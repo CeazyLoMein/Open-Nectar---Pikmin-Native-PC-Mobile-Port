@@ -5,6 +5,10 @@
 #include "port/jaudio_host.h"
 #endif
 #include "pc_window.h"
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+#include <SDL_syswm.h>
+#include <OpenGLES/ES3/gl.h>
+#endif
 #include "timing/pc_frame_scheduler.h"
 #include "pc_speedrun.h"
 #include "pc_gyro.h"
@@ -33,6 +37,20 @@
 
 static SDL_Window*   sWindow = nullptr;
 static SDL_GLContext sGLContext = nullptr;
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+// SDL exposes the actual iOS drawable framebuffer and color renderbuffer.
+// Unlike desktop GL, the iPhone screen is not framebuffer zero.
+void pc_window_ios_drawable(unsigned int* framebuffer, unsigned int* renderbuffer) {
+    if (framebuffer) *framebuffer = 0;
+    if (renderbuffer) *renderbuffer = 0;
+    if (!sWindow) return;
+    SDL_SysWMinfo wm{};
+    SDL_VERSION(&wm.version);
+    if (SDL_GetWindowWMInfo(sWindow, &wm) != SDL_TRUE || wm.subsystem != SDL_SYSWM_UIKIT) return;
+    if (framebuffer) *framebuffer = wm.info.uikit.framebuffer;
+    if (renderbuffer) *renderbuffer = wm.info.uikit.colorbuffer;
+}
+#endif
 // Mandos resueltos por jugador: sControllers[0] = P1, [1] = P2. Se recalculan
 // desde sOpenPads + sPlayerDevice cada vez que cambia algo (resolvePlayerPads).
 static SDL_GameController* sControllers[2] = { nullptr, nullptr };
@@ -1552,7 +1570,29 @@ void pc_window_swap_buffers(void) {
         // SDL2/README-ios documents that FBO 0 is NOT the display framebuffer on iOS.
         const unsigned int renderTarget = pc_gfx_begin_swap_framebuffer();
 #endif
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+        // SDL iOS requires its own drawable framebuffer AND color renderbuffer
+        // bound when swapping. Restore the renderer's bindings afterwards.
+        unsigned int drawableFbo = 0, drawableRbo = 0;
+        pc_window_ios_drawable(&drawableFbo, &drawableRbo);
+        const bool hasDrawable = drawableFbo != 0 && drawableRbo != 0;
+        GLint previousDrawFbo = 0, previousReadFbo = 0, previousRbo = 0;
+        if (hasDrawable) {
+            glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &previousDrawFbo);
+            glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &previousReadFbo);
+            glGetIntegerv(GL_RENDERBUFFER_BINDING, &previousRbo);
+            glBindFramebuffer(GL_FRAMEBUFFER, static_cast<GLuint>(drawableFbo));
+            glBindRenderbuffer(GL_RENDERBUFFER, static_cast<GLuint>(drawableRbo));
+        }
+#endif
         SDL_GL_SwapWindow(sWindow);
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+        if (hasDrawable) {
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, static_cast<GLuint>(previousReadFbo));
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, static_cast<GLuint>(previousDrawFbo));
+            glBindRenderbuffer(GL_RENDERBUFFER, static_cast<GLuint>(previousRbo));
+        }
+#endif
 #if defined(__APPLE__) && !TARGET_OS_IPHONE
         pc_gfx_end_swap_framebuffer(renderTarget);
 #endif

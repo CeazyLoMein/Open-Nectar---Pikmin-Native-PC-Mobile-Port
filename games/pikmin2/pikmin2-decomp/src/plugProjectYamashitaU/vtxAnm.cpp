@@ -344,7 +344,7 @@ void FieldVtxColorMgr::setupFieldVtxColorInfo(J3DShape* shape)
         P2ASSERTLINE(__LINE__, valid);
     }
     return;
-#endif
+#else
 
 	for (u16 i = 0; i < shape->getMtxGroupNum(); i++) {
 		u8* dispList = const_cast<u8*>(shape->getShapeDraw(i)->mDisplayList);
@@ -366,6 +366,7 @@ void FieldVtxColorMgr::setupFieldVtxColorInfo(J3DShape* shape)
 			ptr += 3;
 		}
 	}
+#endif
 }
 
 /**
