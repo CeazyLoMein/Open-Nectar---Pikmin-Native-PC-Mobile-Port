@@ -205,7 +205,16 @@ struct Actor {
 		mVec2      = (Vec*)vec1;
 		mVec3      = (Vec*)vec1;
 		mInfoIndex = unk;
-		if (mVec2 == nullptr || (u32)vec1 == 0xFFFFFFFF) {
+		// The original game used 32-bit pointer sentinels. Preserve both common
+		// 64-bit representations on Apple without truncating a real pointer.
+#if defined(PIKI_PC_PORT) && defined(__APPLE__)
+		const uintptr_t ptrValue = reinterpret_cast<uintptr_t>(vec1);
+		const bool invalidObject = (ptrValue == static_cast<uintptr_t>(0xFFFFFFFFu))
+		                        || (ptrValue == static_cast<uintptr_t>(-1));
+#else
+		const bool invalidObject = ((u32)vec1 == 0xFFFFFFFF);
+#endif
+		if (mVec2 == nullptr || invalidObject) {
 			mFlag.boolView[0] = true;
 		} else {
 			mFlag.boolView[0] = false;
