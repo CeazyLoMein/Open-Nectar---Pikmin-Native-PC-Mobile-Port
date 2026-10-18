@@ -52,6 +52,18 @@ namespace fs = std::filesystem;
 #ifndef GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM
 #define GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM 0x8E8D
 #endif
+// S3TC/DXT format enums are not always exposed by iOS OpenGL ES headers.
+// Defining enum values does NOT mean that the GPU supports these formats.
+// The existing extension checks and CPU fallback must remain in place.
+#ifndef GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
+#define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT 0x83F1
+#endif
+#ifndef GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
+#define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT 0x83F2
+#endif
+#ifndef GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
+#define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT 0x83F3
+#endif
 #ifndef GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
 #define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT 0x8C4D
 #endif
