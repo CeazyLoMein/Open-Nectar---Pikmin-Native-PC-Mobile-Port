@@ -80,7 +80,7 @@ typedef unsigned int p2uint;
  * chocaban con los del sistema. Se incluyen las reales y se definen las guardas
  * que en Linux pone glibc: el decomp ve exactamente lo mismo que alli. */
 /* Android (bionic) pasa lo mismo: sus guardas son _STDIO_H_, _STRING_H_... */
-#if defined(_WIN32) || defined(__ANDROID__)
+#if defined(_WIN32) || defined(__ANDROID__) || defined(__APPLE__)
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
@@ -89,6 +89,11 @@ typedef unsigned int p2uint;
 #include <wchar.h>
 #ifndef _STDIO_H
 #define _STDIO_H 1
+#endif
+// The decompilation's stl/mem.h declares a GameCube-only memchr overload.
+// The host C/C++ library already supplies the correct declarations.
+#if defined(__APPLE__) && !defined(_MEM_H)
+#define _MEM_H 1
 #endif
 #ifndef _STRING_H
 #define _STRING_H 1

@@ -163,12 +163,19 @@ struct JUTGamePad : public JKRDisposer {
 	struct C3ButtonReset {
 		C3ButtonReset() { mIsReset = false; }
 
-		typedef void (*Callback)(EPadPort, u32);
+		// The GameCube stored callback user data in a 32-bit integer.
+		// On Apple 64-bit hosts this must retain the full pointer width.
+#if defined(PIKI_PC_PORT) && defined(__APPLE__)
+		typedef std::uintptr_t CallbackArg;
+#else
+		typedef u32 CallbackArg;
+#endif
+		typedef void (*Callback)(EPadPort, CallbackArg);
 
 		static u32 sResetPattern;
 		static u32 sResetMaskPattern;
 		static Callback sCallback;
-		static u32 sCallbackArg;
+		static CallbackArg sCallbackArg;
 		static OSTime sThreshold;
 		static bool sResetSwitchPushing;
 		static bool sResetOccurred;
@@ -290,7 +297,11 @@ struct JUTGamePad : public JKRDisposer {
 	static void setResetCallback(C3ButtonReset::Callback callback, void* param_0)
 	{
 		C3ButtonReset::sCallback    = callback;
+#if defined(PIKI_PC_PORT) && defined(__APPLE__)
+		C3ButtonReset::sCallbackArg = reinterpret_cast<C3ButtonReset::CallbackArg>(param_0);
+#else
 		C3ButtonReset::sCallbackArg = (u32)param_0;
+#endif
 	}
 
 	void initList();
