@@ -297,6 +297,14 @@ add_library(${P2_LEGACY} STATIC
     ${THP_SOURCES}
 )
 target_compile_options(${P2_LEGACY} PRIVATE ${LEGACY_COMPILE_OPTIONS})
+# Original GameCube code uses 'register', which C++17 rejects on AppleClang.
+# Compile legacy code as C++14 only. The modern native host keeps C++17.
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    set_target_properties(${P2_LEGACY} PROPERTIES
+        CXX_STANDARD 14
+        CXX_STANDARD_REQUIRED YES
+        CXX_EXTENSIONS ON)
+endif()
 target_include_directories(${P2_LEGACY} PRIVATE ${PC_PORT_DIR})
 
 message(STATUS "Pikmin 2 legacy sources:")

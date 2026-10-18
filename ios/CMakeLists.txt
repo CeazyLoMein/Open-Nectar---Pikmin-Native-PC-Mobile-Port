@@ -50,9 +50,14 @@ endif()
 
 # CMake compiles the decompiled native game directly into the .app executable.
 # SDL_UIKitRunApp owns UIKit's run loop and calls renamed nectar_game_main.
+# Keep Objective-C++ Foundation code separate from the GameCube game target.
+# The game target force-includes a header defining BOOL as int, which clashes
+# with Apple's Objective-C BOOL typedef in ios_storage.mm.
 target_sources(${NECTAR_GAME_TARGET} PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/ios_main.m"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ios_main.m")
+add_library(nectar_ios_storage STATIC
     "${CMAKE_CURRENT_SOURCE_DIR}/ios_storage.mm")
+target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE nectar_ios_storage)
 target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE
     "-framework UIKit"
     "-framework Foundation"
