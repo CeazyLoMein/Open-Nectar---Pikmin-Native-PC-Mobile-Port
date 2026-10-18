@@ -3,6 +3,7 @@
 
 #include "CNode.h"
 #include "stream.h"
+#include <cstdint>
 
 struct GenericContainer : public CNode {
 	/**
@@ -117,12 +118,12 @@ struct ArrayContainer : public Container<T> {
 
 	virtual T* get(void* index) // _20 (weak)
 	{
-		return &this->mObjects[(s32)index];
+		return &this->mObjects[reinterpret_cast<std::intptr_t>(index)];
 	}
 
 	virtual void* getNext(void* index) // _14 (weak)
 	{
-		return (void*)((s32)index + 1);
+		return reinterpret_cast<void*>(reinterpret_cast<std::intptr_t>(index) + 1);
 	}
 
 	virtual void* getStart() // _18 (weak)
@@ -132,7 +133,7 @@ struct ArrayContainer : public Container<T> {
 
 	virtual void* getEnd() // _1C (weak)
 	{
-		return (void*)(s32)this->mCount;
+		return reinterpret_cast<void*>(static_cast<std::intptr_t>(this->mCount));
 	}
 
 	virtual T* getAt(int index) // _24 (weak)

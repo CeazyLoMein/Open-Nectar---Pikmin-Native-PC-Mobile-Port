@@ -225,7 +225,7 @@ template <typename T>
 u32 FixedSizePelletMgr<T>::getFlag(Pellet* pellet)
 {
 	if (pellet) {
-		return mMonoObjectMgr.getFlag(pellet->mSlotIndex);
+		return mMonoObjectMgr.getFlag(static_cast<T*>(pellet)->mSlotIndex);
 	}
 
 	return -1;
@@ -235,7 +235,7 @@ template <typename T>
 void FixedSizePelletMgr<T>::setFromTeki(Pellet* pellet)
 {
 	if (pellet) {
-		mMonoObjectMgr.setFlag(pellet->mSlotIndex, 0x40 | 0x20 | 0x4 | 0x1);
+		mMonoObjectMgr.setFlag(static_cast<T*>(pellet)->mSlotIndex, 0x40 | 0x20 | 0x4 | 0x1);
 	}
 }
 
@@ -243,7 +243,7 @@ template <typename T>
 void FixedSizePelletMgr<T>::setRevival(Pellet* pellet)
 {
 	if (pellet) {
-		mMonoObjectMgr.setFlag(pellet->mSlotIndex, 0x40 | 0x20 | 0x4);
+		mMonoObjectMgr.setFlag(static_cast<T*>(pellet)->mSlotIndex, 0x40 | 0x20 | 0x4);
 	}
 }
 
@@ -251,7 +251,7 @@ template <typename T>
 void FixedSizePelletMgr<T>::setComeAlive(Pellet* pellet)
 {
 	if (pellet) {
-		mMonoObjectMgr.setFlag(pellet->mSlotIndex, 0);
+		mMonoObjectMgr.setFlag(static_cast<T*>(pellet)->mSlotIndex, 0);
 	}
 }
 
@@ -282,7 +282,7 @@ Pellet* FixedSizePelletMgr<T>::birthFromTeki(PelletConfig* config)
 		}
 
 		Pellet* pellet = mMonoObjectMgr.getAt(i);
-		if (pellet->mConfig != config) {
+		if (mMonoObjectMgr.getAt(i)->mConfig != config) {
 			continue;
 		}
 

@@ -30,6 +30,8 @@ struct Quat {
 	 * @param other The quaternion to copy from.
 	 */
 	Quat(Quat& other);
+	// On C++14 hosts, allow temporaries to be copied without replacing the legacy lvalue constructor.
+	Quat(const Quat& other) : w(other.w), v(other.v) { }
 
 	/**
 	 * @brief Constructor that initializes the quaternion with a scalar and a vector.

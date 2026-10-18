@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "ObjectMgr.h"
+#include <cstdint>
 
 template <typename T>
 struct MonoObjectMgr : public ObjectMgr<T> {
@@ -51,7 +52,7 @@ struct MonoObjectMgr : public ObjectMgr<T> {
 
 	virtual T* get(void* idx) // _20 (weak)
 	{
-		return &mArray[(int)idx];
+		return &mArray[reinterpret_cast<std::intptr_t>(idx)];
 	}
 
 	inline int getMax() const { return mMax; }
@@ -203,7 +204,7 @@ void MonoObjectMgr<T>::doDirectDraw(Graphics& gfx) // _78 (weak, thunk at _48)
 template <typename T>
 void* MonoObjectMgr<T>::getNext(void* idx) // _14 (weak)
 {
-	for (int i = (int)idx + 1; i < mMax; i++) {
+	for (std::intptr_t i = reinterpret_cast<std::intptr_t>(idx) + 1; i < mMax; i++) {
 		if (mOpenIds[i] == 0) {
 			return (void*)i;
 		}
