@@ -1025,7 +1025,7 @@ if(PIKMIN_BUILD_LAUNCHER)
     install(TARGETS pikmin_launcher RUNTIME DESTINATION bin)
 endif()
 
-install(TARGETS ${NECTAR_GAME} RUNTIME DESTINATION bin)
+install(TARGETS ${NECTAR_GAME} RUNTIME DESTINATION bin BUNDLE DESTINATION bin)
 
 # Tests del launcher: necesitan tanto los tests habilitados como el launcher.
 if(PIKMIN_BUILD_TESTS AND PIKMIN_BUILD_LAUNCHER)
