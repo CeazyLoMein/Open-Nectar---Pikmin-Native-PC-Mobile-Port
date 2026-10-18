@@ -115,7 +115,7 @@ option(PIKMIN_DEBUG_KEYS "Build the F5-F8 testing shortcuts" ON)
 # GLES 3.0 for Android and as an optional desktop path. When ON, shaders emit
 # #version 300 es and the GL context requests ES via SDL. When OFF (default for
 # desktop), the classic OpenGL 3.3 compatibility path is used.
-if(ANDROID)
+if(ANDROID OR IOS)
     set(PIKMIN_GLES_DEFAULT ON)
 else()
     set(PIKMIN_GLES_DEFAULT OFF)
@@ -131,7 +131,7 @@ option(PIKMIN_TOUCH "Build the touch control layer" ${PIKMIN_GLES_DEFAULT})
 # Android no se compila; se rehace como interfaz Android en la fase 7 del plan
 # de docs/ANDROID_PLAN.md. Los tests se ejecutan en la máquina que compila,
 # así que tampoco tienen sentido al cruzar hacia un dispositivo.
-if(ANDROID)
+if(ANDROID OR IOS)
     set(PIKMIN_DESKTOP_DEFAULT OFF)
 else()
     set(PIKMIN_DESKTOP_DEFAULT ON)
@@ -215,6 +215,15 @@ if (ANDROID)
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/sdl2-include")
     file(CREATE_LINK "${_sdl2_src}/include" "${CMAKE_CURRENT_BINARY_DIR}/sdl2-include/SDL2" SYMBOLIC)
     set(SDL2_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/sdl2-include" "${_sdl2_src}/include")
+elseif(IOS)
+    if(NOT TARGET SDL2::SDL2-static)
+        message(FATAL_ERROR "iOS: vendored SDL2-static target not found (use ios/CMakeLists.txt)")
+    endif()
+    set(SDL2_LIBRARIES SDL2::SDL2-static)
+    get_target_property(_sdl2_src SDL2-static SOURCE_DIR)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/sdl2-include")
+    file(CREATE_LINK "${_sdl2_src}/include" "${CMAKE_CURRENT_BINARY_DIR}/sdl2-include/SDL2" SYMBOLIC)
+    set(SDL2_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/sdl2-include" "${_sdl2_src}/include")
 else()
     find_package(SDL2 QUIET)
     if (NOT SDL2_FOUND)
@@ -256,7 +265,7 @@ endif()
 
 # OpenGL de escritorio no existe en Android: allí el contexto es GLES/EGL y lo
 # aporta el NDK (fase 3 del plan de Android).
-if (NOT WIN32 AND NOT ANDROID)
+if (NOT WIN32 AND NOT ANDROID AND NOT IOS)
     find_package(OpenGL REQUIRED)
 endif()
 
@@ -798,6 +807,9 @@ if (WIN32)
     # proyecto declara SDL_MAIN_HANDLED y define su propio main. Enlazarlo deja
     # SDL_main sin definir en todos los ejecutables.
     target_link_libraries(${NECTAR_GAME} PRIVATE ${SDL2_LIBRARIES} opengl32 comdlg32 ws2_32)
+elseif(IOS)
+    # OpenGL ES on iPhone comes from Apple, not Linux GLES/EGL or desktop OpenGL.
+    target_link_libraries(${NECTAR_GAME} PRIVATE ${SDL2_LIBRARIES} "-framework OpenGLES")
 elseif (ANDROID)
     # En Android no hay X11 ni OpenGL de escritorio. GLESv3 y EGL vienen del
     # NDK; log y android los necesita la capa de plataforma (logcat, ciclo de
@@ -820,7 +832,7 @@ endif()
 # compiled out on Windows anyway (glibc's execinfo.h has no equivalent there).
 # En Android tampoco: el binario será una biblioteca compartida, no un
 # ejecutable con símbolos exportados.
-if (NOT WIN32 AND NOT ANDROID)
+if (NOT WIN32 AND NOT ANDROID AND NOT IOS)
     target_link_options(${NECTAR_GAME} PRIVATE -rdynamic)
 elseif (WIN32)
     # SDL2's CMake package links -mwindows, which hides the console and with it
@@ -835,7 +847,7 @@ set_target_properties(${NECTAR_GAME} PROPERTIES
     OUTPUT_NAME "${NECTAR_OUTPUT_NAME}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
-if (NOT ANDROID AND NOT WIN32)
+if (NOT ANDROID AND NOT WIN32 AND NOT IOS)
     add_custom_command(TARGET ${NECTAR_GAME} POST_BUILD
         COMMAND /bin/chmod 775 "$<TARGET_FILE:${NECTAR_GAME}>"
         COMMENT "Ensuring the native Pikmin executable is runnable")

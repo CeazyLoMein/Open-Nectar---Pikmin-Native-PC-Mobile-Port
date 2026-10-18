@@ -29,6 +29,13 @@ int pc_jaudio_integration_test();
  * "run" but produce no visible output yet.
  */
 #include <SDL.h>
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+// Implemented in ios/ios_storage.mm. The iOS app has no desktop launcher.
+extern "C" int nectar_ios_prepare_storage(const char* game);
+#endif
 
 #ifdef _WIN32
 // Laptops with switchable graphics start a process on the integrated GPU unless
@@ -70,7 +77,11 @@ void pc_netplay_session_notify_argv(int argc, char** argv);
 void pc_netplay_launch_preinit(int argc, char** argv);
 void pc_netplay_launch_post_settings(void);
 
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+extern "C" int nectar_game_main(int argc, char* argv[])
+#else
 int main(int argc, char* argv[])
+#endif
 {
     // Disable stdout buffering so we see logs immediately before any crash
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -85,6 +96,10 @@ int main(int argc, char* argv[])
     }
 #endif
 
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+    // Configure app-private writable directory before any relative asset/save access.
+    if (!nectar_ios_prepare_storage("pikmin1")) return 1;
+#endif
     // SDL_MAIN_HANDLED is defined for this build, which means the application
     // owns main() and SDL2main is not linked. The other half of that contract
     // is telling SDL so before the first SDL_Init. It is close to a no-op on

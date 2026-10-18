@@ -10,6 +10,9 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -55,7 +58,7 @@ bool pc_file_dialog_open(const char* title, const char* filterName, const char* 
     return out[0] != '\0';
 }
 
-#elif defined(__ANDROID__)
+#elif defined(__ANDROID__) || (defined(__APPLE__) && TARGET_OS_IPHONE)
 
 bool pc_file_dialog_open(const char*, const char*, const char*, char* out, size_t outSize)
 {

@@ -16,6 +16,13 @@
 #include <cstring>
 
 #include <SDL.h>
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+// Implemented in ios/ios_storage.mm. The iOS app has no desktop launcher.
+extern "C" int nectar_ios_prepare_storage(const char* game);
+#endif
 #include "pc_discord.h"
 
 #ifdef _WIN32
@@ -189,10 +196,17 @@ static void pc_install_crash_handler()
 static void pc_install_crash_handler() { }
 #endif
 
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+extern "C" int nectar_game_main(int argc, char* argv[])
+#else
 int main(int argc, char* argv[])
+#endif
 {
 	pc_install_crash_handler();
 	setvbuf(stdout, NULL, _IONBF, 0);
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+    if (!nectar_ios_prepare_storage("pikmin2")) return 1;
+#endif
 	SDL_SetMainReady();
 
 	// El launcher Fusion consulta y modifica los ajustes sin crear la ventana

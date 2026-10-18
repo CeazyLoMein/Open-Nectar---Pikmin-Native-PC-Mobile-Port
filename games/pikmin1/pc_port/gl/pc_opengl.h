@@ -36,13 +36,27 @@
 #  define PIKI_USE_GLES 0
 #endif
 #if PIKI_USE_GLES
-#  include <GLES3/gl3.h>
-#  include <GLES3/gl3ext.h>
+// The iOS SDK exposes OpenGL ES through OpenGLES.framework, not GLES3/.
+// Do not use the macOS-only OpenGL.framework headers for iPhone builds.
+#  if defined(__APPLE__)
+#    include <TargetConditionals.h>
+#  endif
+#  if defined(__APPLE__) && TARGET_OS_IPHONE
+#    include <OpenGLES/ES3/gl.h>
+#    include <OpenGLES/ES3/glext.h>
+#  else
+#    include <GLES3/gl3.h>
+#    include <GLES3/gl3ext.h>
+#  endif
 // Timer queries: en GLES viven en EXT_disjoint_timer_query (gl2ext.h) con
 // sufijo EXT; el mismo nombre que en escritorio deja el resto del código
 // igual. Si el driver no las expone, los punteros quedan nulos y se ignoran.
-#  include <GLES2/gl2ext.h>
-#  ifndef GL_TIME_ELAPSED
+#  if defined(__APPLE__) && TARGET_OS_IPHONE
+#    include <OpenGLES/ES2/glext.h>
+#  else
+#    include <GLES2/gl2ext.h>
+#  endif
+#  if !defined(GL_TIME_ELAPSED) && defined(GL_TIME_ELAPSED_EXT)
 #    define GL_TIME_ELAPSED GL_TIME_ELAPSED_EXT
 #  endif
 #  ifndef APIENTRYP

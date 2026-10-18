@@ -1,3 +1,6 @@
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
 #if PIKI_USE_JAUDIO
 #include "port/jaudio_host.h"
 #endif
@@ -1544,12 +1547,13 @@ void pc_gfx_end_swap_framebuffer(unsigned int bound);
 
 void pc_window_swap_buffers(void) {
     if (sWindow) {
-#if defined(__APPLE__)
-        // macOS shows the frame only when the default framebuffer is bound here.
+#if defined(__APPLE__) && !TARGET_OS_IPHONE
+        // macOS uses GL default FBO=0; on iOS SDL must retain UIKit's drawable framebuffer.
+        // SDL2/README-ios documents that FBO 0 is NOT the display framebuffer on iOS.
         const unsigned int renderTarget = pc_gfx_begin_swap_framebuffer();
 #endif
         SDL_GL_SwapWindow(sWindow);
-#if defined(__APPLE__)
+#if defined(__APPLE__) && !TARGET_OS_IPHONE
         pc_gfx_end_swap_framebuffer(renderTarget);
 #endif
         // VSync Off must not retain the software presentation limiter. Game

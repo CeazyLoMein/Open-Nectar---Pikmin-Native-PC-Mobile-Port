@@ -1,0 +1,75 @@
+name: Experimental native iOS game build (unsigned)
+
+# A workflow_dispatch workflow must exist on the default branch to be run manually
+# in GitHub's UI. This candidate is intentionally on ios-experimental instead.
+# To enable controlled runs without changing main, use the commit marker [ios-build].
+on:
+  push:
+    branches:
+      - ios-experimental
+  workflow_dispatch:
+    inputs:
+      game:
+        description: 'Compile which game first?'
+        type: choice
+        options:
+          - pikmin1
+          - pikmin2
+        default: pikmin1
+        required: true
+
+jobs:
+  build:
+    # Skips builds on ordinary pushes. A commit containing [ios-build] runs Pikmin 1.
+    # The manual trigger will work later if the workflow is also added to main.
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[ios-build]') }}
+    runs-on: macos-15
+    permissions:
+      contents: read
+    env:
+      GAME: ${{ inputs.game || 'pikmin1' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tool versions
+        run: |
+          xcodebuild -version
+          cmake --version
+      - name: Configure iPhoneOS ARM64 target without signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S ios -B "$RUNNER_TEMP/nectar-build" -G Xcode \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_SYSROOT=iphoneos \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
+            -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
+            -DNECTAR_IOS_GAME="$GAME"
+      - name: Compile native game
+        shell: bash
+        run: |
+          set -o pipefail
+          if [ "$GAME" = pikmin1 ]; then TARGET=pikmin_pc; else TARGET=pikmin2_pc; fi
+          cmake --build "$RUNNER_TEMP/nectar-build" --config Release \
+            --target "$TARGET" --parallel 3 2>&1 | tee "$GITHUB_WORKSPACE/ios-build.log"
+      - name: Package unsigned app for later signing (only if compilation succeeds)
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP="$(find "$RUNNER_TEMP/nectar-build" -type d -name 'Nectar-*.app' | head -n 1)"
+          test -n "$APP"
+          test -f "$APP/Info.plist"
+          mkdir -p "$RUNNER_TEMP/ios-ipa/Payload"
+          ditto "$APP" "$RUNNER_TEMP/ios-ipa/Payload/$(basename "$APP")"
+          cd "$RUNNER_TEMP/ios-ipa"
+          zip -qr "$GITHUB_WORKSPACE/Nectar-${GAME}-unsigned.ipa" Payload
+      - name: Keep build logs and any IPA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nectar-${{ env.GAME }}-experimental
+          path: |
+            ios-build.log
+            Nectar-${{ env.GAME }}-unsigned.ipa
+          if-no-files-found: warn
