@@ -42,6 +42,38 @@
 void pc_netplay_load_keepalive(int site);
 
 #include "pc_opengl.h"
+
+// iOS GLES proc types: Apple declares the ES 3 functions but not all desktop PFNGL typedefs.
+// Use the SDK function signatures directly, preserving calling conventions and type safety.
+// This changes types only; existing SDL_GL_GetProcAddress checks remain unchanged.
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+#define PFNGLACTIVETEXTUREPROC decltype(&::glActiveTexture)
+#define PFNGLBINDATTRIBLOCATIONPROC decltype(&::glBindAttribLocation)
+#define PFNGLBINDFRAMEBUFFERPROC decltype(&::glBindFramebuffer)
+#define PFNGLBINDRENDERBUFFERPROC decltype(&::glBindRenderbuffer)
+#define PFNGLBINDVERTEXARRAYPROC decltype(&::glBindVertexArray)
+#define PFNGLBLENDEQUATIONPROC decltype(&::glBlendEquation)
+#define PFNGLBLITFRAMEBUFFERPROC decltype(&::glBlitFramebuffer)
+#define PFNGLCHECKFRAMEBUFFERSTATUSPROC decltype(&::glCheckFramebufferStatus)
+#define PFNGLDELETEPROGRAMPROC decltype(&::glDeleteProgram)
+#define PFNGLDELETESHADERPROC decltype(&::glDeleteShader)
+#define PFNGLDRAWBUFFERSPROC decltype(&::glDrawBuffers)
+#define PFNGLFRAMEBUFFERRENDERBUFFERPROC decltype(&::glFramebufferRenderbuffer)
+#define PFNGLFRAMEBUFFERTEXTURE2DPROC decltype(&::glFramebufferTexture2D)
+#define PFNGLGENERATEMIPMAPPROC decltype(&::glGenerateMipmap)
+#define PFNGLGENFRAMEBUFFERSPROC decltype(&::glGenFramebuffers)
+#define PFNGLGENRENDERBUFFERSPROC decltype(&::glGenRenderbuffers)
+#define PFNGLGENVERTEXARRAYSPROC decltype(&::glGenVertexArrays)
+#define PFNGLGETACTIVEUNIFORMPROC decltype(&::glGetActiveUniform)
+#define PFNGLGETPROGRAMINFOLOGPROC decltype(&::glGetProgramInfoLog)
+#define PFNGLGETPROGRAMIVPROC decltype(&::glGetProgramiv)
+#define PFNGLGETSHADERINFOLOGPROC decltype(&::glGetShaderInfoLog)
+#define PFNGLGETSHADERIVPROC decltype(&::glGetShaderiv)
+#define PFNGLGETUNIFORMIVPROC decltype(&::glGetUniformiv)
+#define PFNGLRENDERBUFFERSTORAGEPROC decltype(&::glRenderbufferStorage)
+#define PFNGLUNIFORM2FPROC decltype(&::glUniform2f)
+#define PFNGLUNIFORM4FVPROC decltype(&::glUniform4fv)
+#endif // iOS GLES proc types
 #ifdef __ANDROID__
 #include "../android/pc_android.h"
 #endif

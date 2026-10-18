@@ -8,26 +8,21 @@ on:
     branches:
       - ios-experimental
   workflow_dispatch:
-    inputs:
-      game:
-        description: 'Compile which game first?'
-        type: choice
-        options:
-          - pikmin1
-          - pikmin2
-        default: pikmin1
-        required: true
 
 jobs:
   build:
-    # Skips builds on ordinary pushes. A commit containing [ios-build] runs Pikmin 1.
-    # The manual trigger will work later if the workflow is also added to main.
+    # Run both games on marked pushes; manual trigger works if workflow is on the default branch.
     if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[ios-build]') }}
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        game: [pikmin1, pikmin2]
     runs-on: macos-15
     permissions:
       contents: read
     env:
-      GAME: ${{ inputs.game || 'pikmin1' }}
+      GAME: ${{ matrix.game }}
     steps:
       - uses: actions/checkout@v4
       - name: Tool versions
@@ -44,7 +39,8 @@ jobs:
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
             -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
-            -DNECTAR_IOS_GAME="$GAME"
+            -DNECTAR_IOS_GAME="$GAME" \
+            -DCMAKE_CXX_FLAGS="-ferror-limit=80"
       - name: Compile native game
         shell: bash
         run: |
