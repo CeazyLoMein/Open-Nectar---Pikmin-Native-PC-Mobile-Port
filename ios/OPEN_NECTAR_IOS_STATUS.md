@@ -398,3 +398,70 @@ idle polling. After success prepare a clearly named candidate in friendlyfolder1
 and ask user to enableHUD and report readings;then choose realHDassets. Continue
 P2fromactual logs. Saving improvements andonlinewithRaye are not falsely marked done;
 online forBOTHnativeiPhonegames remains the final milestone.
+
+## Build16 dispatch — October19,2026,17:47 Eastern
+
+Local/origin ios-experimental HEAD 01ea8330415171b9d8f61dbc89567ed5f5959c8e. Push succeeded;source clean atpush.
+Includes4f3576c0(P2pellet casts),f9c08c55(optionalP1HUD),01ea8330(docs/buildmarker).
+Build16 run39330204354:https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39330204354
+Initial statusin_progress;final Apple compile/IPA outcomes unknown. STOP idle
+polling;user reports completion. Only this post-push status note is dirty.
+Current phone still uses enhancedBuild13;newHUD requires successfulBuild16IPA.
+No actual HDassets,manual mid-day save or periodic autosave added. Save routines
+and user save data unchanged. Saving/monitoring guide copied to friendlyfolder2.
+Next:fetch completed logs;prepare successful P1HUDIPA in friendlyfolder1,test
+Display>PerformanceHUDOn/closemenu,real readings andrender preservation;check
+normal end-day save/close/relaunch;use measured readings before adding realpacks.
+ContinueP2fromactual compiler/linker output. OnlinewithRaye remains last.
+
+## Build16 result and broader P2 batch — 2026-10-19 18:18 Eastern Daylight Time
+
+User explicitly wants bigger related batches, not smallest-safe-fix/build cycles.
+Audit shared compatibility causes and related active source before pushing. Preserve
+P1; do not hide errors or make unverified broad gameplay changes to appear faster.
+
+Build16 run39330204354 at 01ea8330415171b9d8f61dbc89567ed5f5959c8e: P1 job118326155905 passed,
+P2 job118326156146 failed. P1 artifact12225271604 contains the new HUD IPA;
+P2 artifact12224648508 is logs, not a successful app. Full logs retrieved directly.
+P2 has seven fatal diagnostics (six distinct error lines) in pcMovieInterp.cpp
+container instantiations: five vector and two unordered container cases. Root cause:
+forced adapter globally defines nullptr as integer0 on Apple, corrupting libc++
+pointer forwarding. All are one shared cause, different from prior pellet/route casts.
+
+Broader batch implemented, not yet Apple-compiled: exclude Apple from the legacy
+nullptr macro, matching existing Android behavior; native CPlate and Stickers
+get/getNext/getEnd decode/encode via intptr_t, preserving retail branches, fields,
+and Stickers bounds assertion. No P1 game source changed. Opaque-index audit found
+31 definitions; other narrow-cast matches inspected are comments or retail guards.
+This is a targeted audit, not proof every legacy pointer assumption is eliminated.
+
+tests/pikmin2_apple_nullptr_test.cpp checks the real adapter BEFORE affected STL
+headers, keyword type and all seven container specializations. Local actual-header
+Windows harness passes MSVC17 /W4 /WX; restores MSVC identity around the GCC-targeted
+header and cannot validate Apple libc++. tests/pikmin2_container_handles_test.py
+extracts all eight actual CPlate/Stickers methods and real bounds macro: MSVC17
+/W4 /WX passes 0/1/100/110/10000 entries, ordered iteration, -1 sentinel, >4GiB next
+handles, invalid and high-handle bounds rejection. Both run early on macOS in CI.
+43-header adapter audit and git diff --check pass. Full iOS compilation remains pending.
+
+P2 workflow now uses CMake Unix Makefiles + make -k to continue independent source
+compiles after failures and expose a batch of errors. P1 retains verified Xcode.
+Release/iphoneos/ARM64/iOS15/lipo verification and failure gating retained. Bounded
+90-minute jobs. CMake officially supports Makefiles for iOS with explicit CPU/SDK;
+this generator change still needs the actual Apple runner and may itself need repair.
+tests/ios_build_error_summary.py writes distinct error index plus complete logs;
+verified on the full Build16 log (six distinct lines from seven diagnostics).
+No error suppression or success-on-failure added. GNU make -k does not guarantee
+linker diagnostics until compilation succeeds; some dependent work cannot run.
+
+P1 Build16 IPA ZIP/plist/ARM64 checked, 2575697 bytes; SHA256
+02041fc3c82b757b6a0cfc62592bf855c8b6e4deca63ca4ba64eb0704747bec6.
+Friendly copy verified in 1 - Install on iPhone/Pikmin 1 - Build 16 - Performance Display.ipa,
+with WHAT TO TEST.txt. Hardware layout/readings remain pending. User previously
+reports Build13 works, clearer and120FPS mode feels beautiful, not measured120FPS.
+No external HD payload, mid-day autosave/manual recovery or online co-op added.
+Normal end-day save/relaunch test still required. Online with Raye for both games last.
+
+Next: commit scoped P2 source/tests, then workflow/journal with final [ios-build],
+push once, record run ID, and STOP idle polling. User reports completion. Prepare
+batch from full next run error index/logs; do not assume success before CI.

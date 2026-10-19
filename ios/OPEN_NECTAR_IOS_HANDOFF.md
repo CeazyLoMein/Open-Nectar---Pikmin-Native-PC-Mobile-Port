@@ -1,5 +1,15 @@
 # Open Nectar iOS continuation
 
+Current policy (October19 evening): user explicitly requests broader related P2
+compatibility batches. Check shared headers and related container implementations,
+test together, then one coordinated build. P2 now uses Makefiles + make -k to
+collect independent compiler errors; P1 keeps Xcode. Preserve actual failure status.
+Read the LATEST status-journal entries before historical paused checkpoints below.
+Build16: P1 passed/new HUD IPA ready, P2 failed due shared nullptr macro; batch
+correction and CPlate/Stickers handles implemented, successor Apple build pending.
+Stop idle polling during Actions runs; user reports completion. Test IPAs always
+go in Documents/Open Nectar/1 - Install on iPhone with short instructions and audio.
+
 Read `ios/OPEN_NECTAR_IOS_STATUS.md` first. It records both games, preservation rules, verified baseline, investigations, validation boundaries, and exact next actions.
 
 Before edits: verify origin, branch, `git status`, fetch, compare HEAD and origin/ios-experimental, and preserve unexpected changes. Never run downloaded patch installers blindly.

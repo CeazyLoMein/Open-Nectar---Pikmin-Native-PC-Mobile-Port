@@ -21,6 +21,7 @@ jobs:
     # Build12 never acquired an ARM host because of GitHub capacity. Xcode
     # cross-compiles the same iphoneos ARM64 target on this standard Intel host.
     runs-on: macos-15-intel
+    timeout-minutes: 90
     permissions:
       contents: read
     env:
@@ -34,6 +35,17 @@ jobs:
       - name: Check Pikmin 2 adapter include paths
         if: matrix.game == 'pikmin2'
         run: python3 tests/pikmin2_adapter_includes.py
+      - name: Check Pikmin 2 Apple standard-library compatibility
+        if: matrix.game == 'pikmin2'
+        shell: bash
+        run: |
+          set -euo pipefail
+          c++ -std=c++17 -I"$GITHUB_WORKSPACE/games/pikmin2/pikmin2-decomp-adapter" \
+            "$GITHUB_WORKSPACE/tests/pikmin2_apple_nullptr_test.cpp" -o "$RUNNER_TEMP/p2-nullptr-test"
+          "$RUNNER_TEMP/p2-nullptr-test"
+          python3 tests/pikmin2_container_handles_test.py "$RUNNER_TEMP/p2-container-test.cpp"
+          c++ -std=c++17 "$RUNNER_TEMP/p2-container-test.cpp" -o "$RUNNER_TEMP/p2-container-test"
+          "$RUNNER_TEMP/p2-container-test"
       - name: Check Pikmin 1 enhancement profile and mod imports
         if: matrix.game == 'pikmin1'
         shell: bash
@@ -56,7 +68,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cmake -S ios -B "$RUNNER_TEMP/nectar-build" -G Xcode \
+          # P2 collects independent compiler errors with make -k, instead of
+          # ending the entire diagnostic run at the first failed translation unit.
+          # P1 retains its verified Xcode generator. Both still target iphoneos ARM64.
+          GENERATOR=Xcode
+          if [ "$GAME" = pikmin2 ]; then GENERATOR="Unix Makefiles"; fi
+          cmake -S ios -B "$RUNNER_TEMP/nectar-build" -G "$GENERATOR" \
+            -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_SYSTEM_NAME=iOS \
             -DCMAKE_OSX_SYSROOT=iphoneos \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
@@ -69,8 +87,15 @@ jobs:
         run: |
           set -o pipefail
           if [ "$GAME" = pikmin1 ]; then TARGET=pikmin_pc; else TARGET=pikmin2_pc; fi
+          BUILD_ARGS=()
+          if [ "$GAME" = pikmin2 ]; then BUILD_ARGS=(-- -k); fi
           cmake --build "$RUNNER_TEMP/nectar-build" --config Release \
-            --target "$TARGET" --parallel 3 2>&1 | tee "$GITHUB_WORKSPACE/ios-build.log"
+            --target "$TARGET" --parallel 3 \
+            "${BUILD_ARGS[@]}" \
+            2>&1 | tee "$GITHUB_WORKSPACE/ios-build.log"
+      - name: Index compiler and linker errors
+        if: always()
+        run: python3 tests/ios_build_error_summary.py ios-build.log ios-build-errors.md
       - name: Package unsigned app for later signing (only if compilation succeeds)
         if: success()
         shell: bash
@@ -93,5 +118,6 @@ jobs:
           name: nectar-${{ env.GAME }}-experimental
           path: |
             ios-build.log
+            ios-build-errors.md
             Nectar-${{ env.GAME }}-unsigned.ipa
           if-no-files-found: warn
