@@ -1,3 +1,6 @@
+#ifdef PIKI_PC_PORT
+#include <cstdint>
+#endif
 #include "Game/Entities/PelletOtakara.h"
 #include "Game/pcCoop.h"
 #include "IDelegate.h"
@@ -2877,7 +2880,11 @@ void PelletIterator::first()
 Pellet* PelletIterator::operator*()
 {
 	P2ASSERTLINE(5197, mMgr);
+#ifdef PIKI_PC_PORT
+	return mMgr->getObjectPtr(reinterpret_cast<void*>(static_cast<std::intptr_t>(mIndex)));
+#else
 	return mMgr->getObjectPtr((void*)mIndex);
+#endif
 }
 
 /**
@@ -2887,12 +2894,24 @@ Pellet* PelletIterator::operator*()
 void PelletIterator::next()
 {
 	if (mType == 0) {
+#ifdef PIKI_PC_PORT
+		// These handles encode bounded pool slots, not object addresses.
+		mIndex = static_cast<int>(reinterpret_cast<std::intptr_t>(
+		    mMgr->getNext(reinterpret_cast<void*>(static_cast<std::intptr_t>(mIndex)))));
+#else
 		mIndex = (int)mMgr->getNext((void*)mIndex);
+#endif
 	} else {
 		JUT_PANICLINE(5206, "manda!\n");
 	}
 
-	if (mIndex == (u32)mMgr->getEnd()) {
+	if (
+#ifdef PIKI_PC_PORT
+		    static_cast<u32>(mIndex) == static_cast<u32>(reinterpret_cast<std::uintptr_t>(mMgr->getEnd()))
+#else
+		    mIndex == (u32)mMgr->getEnd()
+#endif
+		) {
 		mNode = mNode->getNext();
 		if (mNode) {
 			mMgr = (FixedSizePelletMgr<Pellet>*)mNode->mContents;
@@ -2920,12 +2939,22 @@ void PelletIterator::setFirst()
 {
 	if (mMgr) {
 		if (mType == 0) {
+#ifdef PIKI_PC_PORT
+			mIndex = static_cast<int>(reinterpret_cast<std::intptr_t>(mMgr->getStart()));
+#else
 			mIndex = (int)mMgr->getStart();
+#endif
 		} else {
 			JUT_PANICLINE(5233, "manda!\n");
 		}
 
-		if (mIndex == (u32)mMgr->getEnd()) {
+		if (
+#ifdef PIKI_PC_PORT
+		    static_cast<u32>(mIndex) == static_cast<u32>(reinterpret_cast<std::uintptr_t>(mMgr->getEnd()))
+#else
+		    mIndex == (u32)mMgr->getEnd()
+#endif
+		) {
 			mNode = mNode->getNext();
 			if (mNode) {
 				mMgr = (FixedSizePelletMgr<Pellet>*)mNode->mContents;
