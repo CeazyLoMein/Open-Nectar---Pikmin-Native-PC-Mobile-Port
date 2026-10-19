@@ -79,6 +79,19 @@ using PcGfxHostVector = std::vector<Value, PcGfxHostAllocator<Value>>;
 #include "../timing/pc_tick_profiler.h"
 
 #include "pc_opengl.h"
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+void pc_window_ios_drawable(unsigned int* framebuffer, unsigned int* renderbuffer);
+#endif
+// Display-target FBO: framebuffer 0 on desktop, UIKit's drawable FBO on iOS.
+static GLuint pc_gfx_display_framebuffer(void) {
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+    unsigned int drawable = 0;
+    pc_window_ios_drawable(&drawable, nullptr);
+    return static_cast<GLuint>(drawable);
+#else
+    return 0;
+#endif
+}
 
 // iOS GLES proc types: Apple declares the ES 3 functions but not all desktop PFNGL typedefs.
 // Use the SDK function signatures directly, preserving calling conventions and type safety.
@@ -1952,7 +1965,7 @@ void pc_gfx_overlay_begin(void)
     pc_gfx_note_gl_state_change();
     invalidate_gl_pipeline_guards();
     invalidate_uniform_cache();
-    if (glBindFramebuffer_ptr) glBindFramebuffer_ptr(GL_FRAMEBUFFER, 0);
+    if (glBindFramebuffer_ptr) glBindFramebuffer_ptr(GL_FRAMEBUFFER, pc_gfx_display_framebuffer());
     glDisable(GL_SCISSOR_TEST);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
@@ -5277,7 +5290,7 @@ void pc_gfx_present(void) {
         glInvalidateFramebuffer_ptr(GL_FRAMEBUFFER, depth_has_stencil() ? 2 : 1, depthAttachments);
     }
     glBindFramebuffer_ptr(GL_READ_FRAMEBUFFER, sourceFramebuffer);
-    glBindFramebuffer_ptr(GL_DRAW_FRAMEBUFFER, 0);
+    glBindFramebuffer_ptr(GL_DRAW_FRAMEBUFFER, pc_gfx_display_framebuffer());
     // Game renders to the target aspect ratio. Display it centered in the window.
     float windowAspect = float(sDrawableWidth) / float(sDrawableHeight);
     sCurrentAspectRatio = calculate_aspect_ratio(sAspectRatioMode, windowAspect);
