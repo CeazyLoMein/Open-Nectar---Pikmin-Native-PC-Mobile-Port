@@ -317,3 +317,84 @@ status checkpoint is uncommitted;source/workflow/prior docs are committed/pushed
   one-time config profile/backup preserving future choices. Camera preserved.
   External HD texture/model files and online co-op are not installed/implemented.
   Online with Raye for both iPhone games remains the final milestone.
+
+## Build15 dispatch — October 19, 2026, 17:15 Eastern
+
+Local/origin ios-experimental HEAD 31791d78ca32cca2ea88d6a21d87c03fcafb519f; push succeeded.
+Build15 run39325940839: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39325940839
+Initial status in_progress; final compiler/IPA results pending. STOP idle polling
+and await user completion report. P1 source remains successful enhanced Build13;
+no replacement download/test is needed. P2 includes tested waypoint handle fix.
+Only this post-push status note is dirty. All source and prior journals pushed.
+
+## P1 enhanced candidate feedback — October 19, 2026, 17:32 Eastern
+
+User reports the enhanced P1 appears to fully work and looks a bit clearer.
+Screenshot "Screenshot 2026-10-19 173104.png" shows Bloom Subtle, Texture Packs
+0 installed and HD Models0/11files. This is expected: no external texture/model
+payload has been installed. Clarity/effect changes use the original game assets.
+Do not diagnose the accurate inventory as a UI bug or claim HD assets are hidden.
+Record this as positive initial user runtime feedback, not full campaign or
+per-feature verification. Specific charge, picker, save/load, sustained thermal/
+performance and real asset import results have not been individually established.
+No source/settings/app data changed in response. Next asset phase is actual mobile
+texture/model file selection/import; online with Raye stays last. No build triggered
+for this documentation. P2Build15result remains pending; do not idle-poll it.
+
+## Build15 result / performance HUD / saving investigation — October19,17:48 Eastern
+
+Build15 run39325940839 at31791d78ca32cca2ea88d6a21d87c03fcafb519f completed:
+P1 job118311684052 success;P2 job118311683504 failure. Artifacts:P1 12223277348,
+P2log12223476178. Existing enhanced Build13P1 remains the same source;no repeated
+IPA download. Full logs savedwork/build15-logs.zip,work/build15-full;unique errors
+work/build15-errors.txt. Previous route/title/adapter errors absent.
+
+P2 has four fatal compiler errors in plugProjectKandoU/pelletMgr.cpp2890,2895,
+2923,2928:PelletIterator decodes opaque pool-slot handles directly toint/u32.
+Corrected native paths viaintptr_t/uintptr_t,including integer-to-handle encoding,
+retaining boundedint mIndex,original unsigned32end comparisons and retail branches.
+Actual6methods extracted/tested inwork/resume-verification/pikmin2_pellet_iterator_test.cpp,
+test-pellet.cmd. MSVC C++14 /W4 /WX passed no-pool,leading/middle/trailing empty,
+sparse active pools,ordered iteration,restart and end detection. No new data layout.
+Full Apple/P2build and runtime remain pending.
+
+User reports P1 looks clearer/appears to work and120FPS mode feels beautiful.
+Record subjective feedback;actual render rate,thermal/memory headroom and sustained
+behavior not measured yet. External HD texture/model payloads still not installed.
+
+Added optional P1 iPhone Settings>Display>Performance HUD,defaultOff,persisted as
+iosPerformanceHud;close settings to apply. It does not reset120FPS/user choices.
+Measures completed SDL render submissions with monotonic timestamps (not physical
+panel refresh),240-frame mean/p95/p99,app physical memory footprint,Mach task_info,
+os_proc_available_memory advisory app headroom,process CPUtime fromgetrusage,
+iOSthermalState andLowPower. CPU100%=onecore,can exceed100%. No GPUutilisation or
+fake temperature/headroom-safe verdict. Native metrics/text refresh1Hz;fixed ring;
+duplicate/invalid timestamps ignored;long suspension/backward clock resets history
+and CPUbaseline. HUDoff performs no native sampling or per-frame clock reads.
+Does not enable heavy per-draw profiling. Native Foundation/Mach code isolated in
+nectar_ios_storage to avoidGameCubeBOOL conflicts. No renderer FBO binding changes.
+30 actual-repo model/controller checks pass MSVC17 /W4 /WX;added P1CI host check.
+One duplicate-timestamp/throttle defect caught by test was fixed before committing.
+Full UIKit/Mach build and phone HUD layout/readings still require CI/hardware.
+
+Saving investigated fromDayOverModeState,ogSave,MemoryCard::saveCurrentGame,
+write/readCurrentGame,PlayerState::saveCard andnativecard saveRoot. Current behavior
+is the normal end-of-day save/checkpoint flow. NO timed mid-day autosave/save-anywhere
+is implemented. Existing serializer is not a complete live-world snapshot;do not
+call it periodically and claim it restores mid-day enemies/Pikmin/clock/state.
+No save routines,format,timing or user files modified. Expected ordinary card path:
+Files>On My iPhone>Open Nectar Pikmin1>pikmin1>save>card0. Copy whole save folder
+after completing save/closing app to back up checkpoints;retain appdata onupdate.
+Normal save/close/relaunch/Continue still needs user verification. A proper mid-day
+recovery/manual-save feature remains separate required future work,not completed.
+
+Guide ios/PERFORMANCE_AND_SAVING.md copied to outputs andfriendlyfolder2 as
+iPhone Performance and Saving Guide.txt. Explains readings/limits,120FPS8.33ms
+budget,comparing representative10-15minute runs before adding mobilepacks,onepack
+at a time,source references,and exact save/recovery limits. Public Apple APIs only.
+
+Next:scoped commitsP2fix/P1diagnostics/docs,push once forBuild16,recordrun,and STOP
+idle polling. After success prepare a clearly named candidate in friendlyfolder1
+and ask user to enableHUD and report readings;then choose realHDassets. Continue
+P2fromactual logs. Saving improvements andonlinewithRaye are not falsely marked done;
+online forBOTHnativeiPhonegames remains the final milestone.
