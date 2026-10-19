@@ -16,10 +16,15 @@ int pc_hd_models_convert_sources(void);
 /// Escritorio: extrae un zip de pack de texturas en Load/Textures (misma
 /// regla de rutas que el instalador Android). Devuelve ficheros escritos.
 int pc_texpack_install_zip(const char* zipPath, char* message, unsigned long messageSize);
+// Output-root variants used by the iOS transaction installer. Output roots
+// must be private staging directories. Zero means the whole import failed;
+// callers must discard staging on failure. These do not activate any pack.
+int pc_texpack_install_zip_at(const char* zipPath, const char* texturesRoot, char* message, unsigned long messageSize);
+int pc_hd_models_convert_file_at(const char* path, int expected, const char* modelsRoot, char* message, unsigned long messageSize);
 
 // Converts one zip or folder chosen by the user (the F1 picker). `expected`
-// is the HD Models submenu row (0 Olimar, 1 Pikmin, 2 Bulborb, 3 Dwarf
-// Bulborb) or -1 for any. Returns the number of packs written (0 when the
+// is the HD Models submenu row (0 Olimar, 1 Louie, 2 Louie HD, 3 Pikmin,
+// 4 Bulborb, 5 Dwarf Bulborb) or -1 for any. Returns files written (0 when the
 // source is not a recognised rip); `message` receives a one-line result for
 // the menu. The packs are always rebuilt, even if up to date.
 int pc_hd_models_convert_file(const char* path, int expected, char* message, unsigned long messageSize);

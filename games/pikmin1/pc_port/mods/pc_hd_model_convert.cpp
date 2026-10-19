@@ -23,6 +23,7 @@
 #include <filesystem>
 #include <fstream>
 #include <map>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -66,12 +67,44 @@ struct Source {
 uint16_t rd16(const char* p) { return (uint16_t)((uint8_t)p[0] | ((uint8_t)p[1] << 8)); }
 uint32_t rd32(const char* p) { return (uint32_t)rd16(p) | ((uint32_t)rd16(p + 2) << 16); }
 
+// ZIP paths are slash-normalized before this check, including on iOS.
+// Reject unsafe entries rather than silently reporting a partial import.
+bool safeArchivePath(const std::string& name)
+{
+	if (name.empty() || name.front() == '/' || name.find(':') != std::string::npos || name.find('\0') != std::string::npos) return false;
+	size_t start = 0;
+	while (start < name.size()) {
+		const size_t end = name.find('/', start);
+		const std::string component = name.substr(start, end == std::string::npos ? end : end - start);
+		if (component == ".." || component == "." || component.empty()) return false;
+		if (end == std::string::npos) break;
+		start = end + 1;
+	}
+	return true;
+}
+
+uint32_t zipCrc32(const std::vector<char>& bytes)
+{
+	static const std::array<uint32_t, 256> table = [] {
+		std::array<uint32_t, 256> values {};
+		for (uint32_t i = 0; i < values.size(); ++i) {
+			uint32_t crc = i;
+			for (int bit = 0; bit < 8; ++bit) crc = (crc >> 1) ^ (0xedb88320u & (0u - (crc & 1u)));
+			values[i] = crc;
+		}
+		return values;
+	}();
+	uint32_t crc = 0xffffffffu;
+	for (unsigned char value : bytes) crc = (crc >> 8) ^ table[(crc ^ value) & 255];
+	return crc ^ 0xffffffffu;
+}
+
 struct ZipSource : Source {
 	struct Entry {
 		std::string name;
 		std::string lowerName;
 		uint16_t method;
-		uint32_t csize, usize, local;
+		uint32_t csize, usize, local, crc;
 	};
 	fs::path path;
 	// Se lee del disco por trozos: los packs de texturas pesan varios GB.
@@ -108,13 +141,18 @@ struct ZipSource : Source {
 		uint16_t count = rd16(&tail[eocd + 10]);
 		uint32_t cdSize = rd32(&tail[eocd + 12]);
 		uint32_t cdOff = rd32(&tail[eocd + 16]);
+		if (rd16(&tail[eocd + 4]) != 0 || rd16(&tail[eocd + 6]) != 0 || rd16(&tail[eocd + 8]) != count
+		    || count == 0xffff || cdSize == 0xffffffffu || cdOff == 0xffffffffu
+		    || uint64_t(cdOff) + cdSize > fileSize) return false;
 		std::vector<char> data(cdSize);
 		if (!readAt(cdOff, data.data(), cdSize)) return false;
 		size_t pos = 0;
 		for (uint16_t i = 0; i < count; i++) {
 			if (pos + 46 > data.size() || rd32(&data[pos]) != 0x02014b50) return false;
 			Entry e;
+			if (rd16(&data[pos + 8]) & 1) return false; // encrypted entries unsupported
 			e.method = rd16(&data[pos + 10]);
+			e.crc    = rd32(&data[pos + 16]);
 			e.csize  = rd32(&data[pos + 20]);
 			e.usize  = rd32(&data[pos + 24]);
 			uint16_t n = rd16(&data[pos + 28]), x = rd16(&data[pos + 30]), c = rd16(&data[pos + 32]);
@@ -122,10 +160,12 @@ struct ZipSource : Source {
 			if (pos + 46 + n > data.size()) return false;
 			std::string name(&data[pos + 46], n);
 			std::replace(name.begin(), name.end(), '\\', '/');
+			if (!safeArchivePath(name)) return false;
 			e.name      = name;
 			e.lowerName = lower(name);
 			entries.push_back(e);
 			pos += 46 + n + x + c;
+			if (pos > data.size()) return false;
 		}
 		return true;
 	}
@@ -156,13 +196,20 @@ struct ZipSource : Source {
 		uint16_t n = rd16(&header[26]), x = rd16(&header[28]);
 		std::vector<char> data(e->csize);
 		if (!readAt(e->local + 30 + n + x, data.data(), data.size())) fail("Truncated zip entry " + suffix + ".");
-		if (e->method == 0) return data;
+		if (e->method == 0) {
+			if (data.size() != e->usize || zipCrc32(data) != e->crc) fail("Corrupt zip entry " + suffix + ".");
+			return data;
+		}
 		if (e->method != 8) fail("Unsupported zip compression for " + suffix + ".");
-		int outLen = 0;
-		char* out = stbi_zlib_decode_noheader_malloc(data.data(), (int)e->csize, &outLen);
-		if (!out) fail("Could not inflate " + suffix + ".");
-		std::vector<char> result(out, out + outLen);
-		std::free(out);
+		if (e->csize > uint32_t(std::numeric_limits<int>::max()) || e->usize > uint32_t(std::numeric_limits<int>::max()))
+			fail("Zip entry is too large: " + suffix + ".");
+		// Bound inflate to the declared entry size instead of allowing an
+		// untrusted compressed stream to grow an unbounded allocation.
+		std::vector<char> result(std::max<uint32_t>(1, e->usize));
+		const int outLen = stbi_zlib_decode_noheader_buffer(result.data(), (int)result.size(), data.data(), (int)e->csize);
+		if (outLen < 0 || uint32_t(outLen) != e->usize) fail("Could not inflate " + suffix + ".");
+		result.resize(e->usize);
+		if (result.size() != e->usize || zipCrc32(result) != e->crc) fail("Corrupt zip entry " + suffix + ".");
 		return result;
 	}
 
@@ -692,10 +739,13 @@ void writePack(const fs::path& output, const std::vector<Bone>& bones, const std
 	}
 	std::error_code ec;
 	fs::create_directories(output.parent_path(), ec);
+	if (ec) fail("Could not create " + output.parent_path().string() + ".");
 	const fs::path tmp = output.string() + ".part";
 	{
 		std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
 		if (!out || !out.write(o.data(), (std::streamsize)o.size())) fail("Could not write " + output.string() + ".");
+		out.close();
+		if (!out) fail("Could not finish " + output.string() + ".");
 	}
 	fs::rename(tmp, output, ec);
 	if (ec) {
@@ -2020,47 +2070,58 @@ fs::path findPikmin2Szs()
 // Misma regla que el instalador Android (TexturePack.java).
 int pc_texpack_install_zip(const char* zipPath, char* message, unsigned long messageSize)
 {
+	return pc_texpack_install_zip_at(zipPath, "Load/Textures", message, messageSize);
+}
+
+int pc_texpack_install_zip_at(const char* zipPath, const char* texturesRoot, char* message, unsigned long messageSize)
+{
 	auto say = [&](const std::string& text) {
 		if (message && messageSize) std::snprintf(message, messageSize, "%s", text.c_str());
 	};
-	ZipSource zip;
-	if (!zipPath || !zip.open(zipPath)) { say("Not a readable .zip file."); return 0; }
-	const fs::path root = fs::path("Load") / "Textures";
-	const std::string stem = fs::path(zipPath).stem().string();
-	std::error_code ec;
-	fs::create_directories(root, ec);
-	// Los packs de Dolphin traen más cosas (el emulador, Config, Shaders):
-	// si el zip tiene Load/Textures, solo se instala eso.
-	bool hasLoadTextures = false;
-	for (const ZipSource::Entry& e : zip.entries)
-		if (e.lowerName.find("load/textures/") != std::string::npos) { hasLoadTextures = true; break; }
-	int written = 0;
-	for (const ZipSource::Entry& e : zip.entries) {
-		if (e.name.empty() || e.name.back() == '/') continue;
-		std::string rel;
-		const size_t idx = e.lowerName.find("load/textures/");
-		if (idx != std::string::npos) rel = e.name.substr(idx + std::strlen("load/textures/"));
-		else if (hasLoadTextures) continue;
-		else rel = stem + "/" + e.name;
-		if (rel.empty() || rel.find("..") != std::string::npos) continue;
-		const fs::path out = root / rel;
-		try {
+	try {
+		ZipSource zip;
+		if (!zipPath || !zip.open(zipPath)) { say("Not a readable, safe .zip file."); return 0; }
+		if (!texturesRoot || !*texturesRoot) { say("Missing texture staging folder."); return 0; }
+		const fs::path root = fs::u8path(texturesRoot);
+		const std::string stem = fs::u8path(zipPath).stem().u8string();
+		if (!safeArchivePath(stem) || stem.find('/') != std::string::npos || stem.find('\\') != std::string::npos)
+			fail("Invalid texture pack filename.");
+		fs::create_directories(root);
+		// Dolphin bundles may contain an emulator and config as well. Only
+		// install Load/Textures when present; require a path-component match.
+		auto texturePrefix = [](const std::string& name) {
+			if (name.compare(0, 14, "load/textures/") == 0) return size_t(14);
+			const size_t i = name.find("/load/textures/");
+			return i == std::string::npos ? i : i + 15;
+		};
+		bool hasLoadTextures = false;
+		for (const ZipSource::Entry& e : zip.entries)
+			if (texturePrefix(e.lowerName) != std::string::npos) { hasLoadTextures = true; break; }
+		int written = 0;
+		std::map<std::string, bool> seen;
+		for (const ZipSource::Entry& e : zip.entries) {
+			if (e.name.back() == '/') continue;
+			const size_t prefix = texturePrefix(e.lowerName);
+			if (hasLoadTextures && prefix == std::string::npos) continue;
+			const std::string rel = prefix != std::string::npos ? e.name.substr(prefix) : stem + "/" + e.name;
+			if (!safeArchivePath(rel) || rel.find('/') == std::string::npos) fail("Invalid texture pack folder.");
+			if (!seen.emplace(lower(rel), true).second) fail("Duplicate texture path in archive: " + rel);
+			const fs::path out = root / fs::u8path(rel);
 			std::vector<char> bytes = zip.readEntry(e);
-			fs::create_directories(out.parent_path(), ec);
-			std::ofstream f(out, std::ios::binary);
-			if (!f) continue;
-			f.write(bytes.data(), (std::streamsize)bytes.size());
-			written++;
-		} catch (const Error& err) {
-			say(err.message);
-			return written;
+			fs::create_directories(out.parent_path());
+			std::ofstream f(out, std::ios::binary | std::ios::trunc);
+			if (!f || !f.write(bytes.data(), (std::streamsize)bytes.size())) fail("Could not write " + rel + ".");
+			f.close();
+			if (!f) fail("Could not finish " + rel + ".");
+			++written;
 		}
-	}
-	if (written == 0) say("The zip has no files to install.");
-	else say("Texture pack installed (" + std::to_string(written) + " files). Activate it in the list.");
-	return written;
+		if (written == 0) { say("The zip has no files to install."); return 0; }
+		say("Texture pack extracted (" + std::to_string(written) + " files).");
+		return written;
+	} catch (const Error& err) { say(err.message); }
+	catch (const std::exception& err) { say(err.what()); }
+	return 0; // Never report success for an incomplete extraction.
 }
-
 int pc_hd_models_convert_sources(void)
 {
 	const fs::path modelsRoot = fs::path("Load") / "Models";
@@ -2085,10 +2146,18 @@ int pc_hd_models_convert_sources(void)
 
 int pc_hd_models_convert_file(const char* pathStr, int expected, char* message, unsigned long messageSize)
 {
+	return pc_hd_models_convert_file_at(pathStr, expected, "Load/Models", message, messageSize);
+}
+
+int pc_hd_models_convert_file_at(const char* pathStr, int expected, const char* outputRoot, char* message, unsigned long messageSize)
+{
 	auto say = [&](const char* text) {
 		if (message && messageSize) std::snprintf(message, messageSize, "%s", text);
 	};
-	const fs::path modelsRoot = fs::path("Load") / "Models";
+	if (!outputRoot || !*outputRoot || expected < -1 || expected >= (int)(sizeof(kKinds) / sizeof(kKinds[0]))) {
+		say("Invalid model import destination or model type."); return 0;
+	}
+	const fs::path modelsRoot = fs::u8path(outputRoot);
 	const fs::path source(pathStr ? pathStr : "");
 	std::error_code ec;
 	std::unique_ptr<Source> src;

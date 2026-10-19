@@ -28,6 +28,9 @@
 #include "gl/pc_texpack.h"
 
 #include <SDL2/SDL.h>
+#ifdef __IPHONEOS__
+#include "pc_ios_mod_bridge.h"
+#endif
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -85,6 +88,10 @@ namespace {
 constexpr const char* kConfigFilename = "pikmin_settings.conf";
 
 struct PcConfig {
+#ifdef __IPHONEOS__
+    // Migration history, deliberately not reset by Restore Defaults.
+    int iosEnhancedProfile = 0;
+#endif
     int windowWidth = 1280;
     int windowHeight = 720;
     int displayMode = PC_WINDOW_FULLSCREEN_WINDOWED; // 0 windowed, 1 fullscreen, 2 borderless
@@ -1188,6 +1195,9 @@ void saveConfig() {
         static const char* const kCodes[] = { "en", "de", "fr", "es", "it", "nl" };
         out << "language = " << kCodes[pc_settings_get_language()] << "\n";
     }
+#ifdef __IPHONEOS__
+    out << "iosEnhancedProfile = " << sConfig.iosEnhancedProfile << "\n";
+#endif
     out << "renderScale = " << sConfig.renderScale << "\n";
     out << "fpsMode = " << sConfig.fpsMode << "\n";
     out << "chainActions = " << sConfig.chainActions << "\n";
@@ -1321,6 +1331,9 @@ void loadConfig() {
         else if (key == "displayMode") sConfig.displayMode = atoi(val.c_str());
         else if (key == "refreshRate") sConfig.refreshRate = atof(val.c_str());
         else if (key == "vsync") sConfig.vsync = atoi(val.c_str()) != 0;
+#ifdef __IPHONEOS__
+        else if (key == "iosEnhancedProfile") sConfig.iosEnhancedProfile = atoi(val.c_str());
+#endif
         else if (key == "renderScale") {
             sConfig.renderScale = (float)atof(val.c_str());
             if (sConfig.renderScale < 0.25f || sConfig.renderScale > 4.0f) sConfig.renderScale = 2.0f / 3.0f;
@@ -1906,6 +1919,20 @@ void pcVsEndScreenInput();
 bool vsEndScreenShown();
 
 void pollMenuInput() {
+#ifdef __IPHONEOS__
+    bool imported = false, cancelled = false;
+    char importMessage[512] = {};
+    if (pc_ios_mod_import_poll(&imported, &cancelled, importMessage, sizeof(importMessage))) {
+        if (cancelled) {
+            sTexturePackPickerActive = false;
+            sHdModelInstallActive = false;
+            sTexturePackInstallFiles.store(0);
+            texturePackNotice(false, importMessage);
+        } else {
+            pc_texpack_install_finished(imported, importMessage);
+        }
+    }
+#endif
     sTouchFrameButtons = sTouchButtons;
     sTouchButtons = 0;
     // Coop: el Select del mando de J2 también abre el menú, y entonces lo
@@ -2893,6 +2920,11 @@ void texturePacksRowAction(int row, const std::vector<std::string>& packs) {
 #ifdef __ANDROID__
             sTexturePackPickerActive = true;
             pc_texpack_android_open_picker();
+#elif defined(__IPHONEOS__)
+            const std::string& selected = pc_texpack_selected_pack();
+            const char* active = pc_texpack_enabled() ? (selected.empty() ? "*" : selected.c_str()) : "";
+            sTexturePackPickerActive = pc_ios_mod_import_open(-1, active);
+            if (!sTexturePackPickerActive) texturePackNotice(true, "An import is already running.");
 #else
             // Desktop: native picker, then the zip is extracted into
             // Load/Textures with the same path rule as Android.
@@ -2947,6 +2979,11 @@ void hdModelsRowAction(int row) {
     sTexturePackPickerActive = true;
     sHdModelInstallActive = true;
     pc_modelpack_android_open_picker(row);
+#elif defined(__IPHONEOS__)
+    if (row < 0 || row >= 6) return;
+    sTexturePackPickerActive = pc_ios_mod_import_open(row, "");
+    sHdModelInstallActive = sTexturePackPickerActive.load();
+    if (!sTexturePackPickerActive) texturePackNotice(true, "An import is already running.");
 #else
     // Desktop: native picker, then convert the chosen rip in place.
     static const char* kTitles[6] = {
