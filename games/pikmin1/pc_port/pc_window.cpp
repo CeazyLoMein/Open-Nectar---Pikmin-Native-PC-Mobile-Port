@@ -877,6 +877,11 @@ bool pc_window_init(const char* title, int width, int height) {
             sWindowWidth,
             sWindowHeight,
             SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+                // Keep UIKit's drawable in physical pixels. The scene render
+                // budget remains based on logical points in pc_gfx_begin_frame.
+                | SDL_WINDOW_ALLOW_HIGHDPI
+#endif
 #ifdef __ANDROID__
                 // Modo inmersivo: SDLActivity oculta la barra de estado y los
                 // botones de navegación solo si la ventana es FULLSCREEN.

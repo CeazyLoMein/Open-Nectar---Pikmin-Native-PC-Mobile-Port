@@ -3,6 +3,8 @@
 #include <SDL.h>
 #include <cstdio>
 #include <cstring>
+#include <algorithm>
+#include <cmath>
 
 #include "Colour.h"
 #include "Graphics.h"
@@ -34,19 +36,44 @@ int sOptSel = 0;
 // del grupo a la izquierda, opciones y explicación a la derecha, y pie.
 // Ocupa el sitio del panel de option.blo, que el título oculta mientras
 // este menú está abierto.
-constexpr int kScreenW = 640, kScreenH = 480;
-constexpr int kTabBarX = 40, kTabBarY = 158, kTabBarW = 560, kTabBarH = 34;
-constexpr int kCloseW = 26;
-constexpr int kTabX = kTabBarX + 12;
-constexpr int kTabW = (kTabBarW - 24 - kCloseW) / PC_SET_GROUP_COUNT;
-constexpr int kColY = kTabBarY + kTabBarH + 6, kColH = 234;
-constexpr int kLeftX = kTabBarX, kLeftW = 322;
-constexpr int kRightX = kLeftX + kLeftW + 8, kRightW = kTabBarX + kTabBarW - kRightX;
-constexpr int kFootX = kTabBarX, kFootY = kColY + kColH + 6, kFootW = kTabBarW, kFootH = 28;
-constexpr int kItemH = 22;
-constexpr int kVisible = (kColH - 16) / kItemH; // cabeceras y filas visibles a la vez
+int kScreenW = 640, kScreenH = 480;
+int kTabBarX = 40, kTabBarY = 158, kTabBarW = 560;
+constexpr int kTabBarH = 34, kCloseW = 26;
+int kTabX = kTabBarX + 12;
+int kTabW = (kTabBarW - 24 - kCloseW) / PC_SET_GROUP_COUNT;
+int kColY = kTabBarY + kTabBarH + 6, kColH = 234;
+int kLeftX = kTabBarX, kLeftW = 322;
+int kRightX = kLeftX + kLeftW + 8, kRightW = kTabBarX + kTabBarW - kRightX;
+int kFootX = kTabBarX, kFootY = kColY + kColH + 6, kFootW = kTabBarW;
+constexpr int kFootH = 28, kItemH = 22;
+int kVisible = (kColH - 16) / kItemH;
 constexpr int kOptH = 22, kOptVisible = 6;
 constexpr int kFontW = 11, kFontH = 16;
+
+void layout()
+{
+#if defined(__IPHONEOS__)
+	// This replaces the title's small embedded desktop panel on iPhone.
+	// Recompute before both input and drawing so rotation cannot desync taps.
+	int dw = 0, dh = 0;
+	pc_gfx_get_drawable_size(&dw, &dh);
+	const float aspect = dh > 0 ? float(dw) / float(dh) : 16.0f / 9.0f;
+	kScreenH = 400;
+	kScreenW = std::max(600, int(lroundf(kScreenH * aspect)));
+	// Conservative margins for landscape iPhone; dynamic UIKit safe-area
+	// insets can replace these without changing the input/drawing mapping.
+	kTabBarX = 56; kTabBarY = 8; kTabBarW = kScreenW - 112;
+	kTabX = kTabBarX + 12;
+	kTabW = (kTabBarW - 24 - kCloseW) / PC_SET_GROUP_COUNT;
+	kColY = kTabBarY + kTabBarH + 6;
+	kFootX = kTabBarX; kFootY = kScreenH - 24 - kFootH; kFootW = kTabBarW;
+	kColH = kFootY - kColY - 6;
+	kLeftX = kTabBarX; kLeftW = (kTabBarW - 8) * 4 / 7;
+	kRightX = kLeftX + kLeftW + 8;
+	kRightW = kTabBarX + kTabBarW - kRightX;
+	kVisible = (kColH - 16) / kItemH;
+#endif
+}
 
 const Colour kSelDark(255, 150, 0, 255);
 const Colour kText(205, 240, 255, 255);
@@ -140,9 +167,12 @@ bool tapToPanelSpace(float tx, float ty, int* outX, int* outY)
 {
 	int dw = 0, dh = 0;
 	pc_gfx_get_drawable_size(&dw, &dh);
-	const float aspect = dh > 0 ? float(dw) / float(dh) : 4.0f / 3.0f;
-	*outX = int(tx * aspect * 480.0f - (aspect * 480.0f - 640.0f) * 0.5f);
-	*outY = int(ty * 480.0f);
+	if (dw <= 0 || dh <= 0) { dw = kScreenW; dh = kScreenH; }
+	const float scale = std::min(float(dw) / kScreenW, float(dh) / kScreenH);
+	const float ox = (dw - kScreenW * scale) * 0.5f;
+	const float oy = (dh - kScreenH * scale) * 0.5f;
+	*outX = int((tx * dw - ox) / scale);
+	*outY = int((ty * dh - oy) / scale);
 	return true;
 }
 bool inRect(const Rect& r, int x, int y) { return x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h; }
@@ -259,7 +289,7 @@ void inputList(const PcNavEdges& e)
 	// Arrastre táctil: desplaza la lista (el dedo arrastra el contenido) y
 	// mantiene la fila seleccionada dentro de lo visible.
 	if (e.dragY != 0.0f && hasScrollbar()) {
-		sDragAccum -= e.dragY;
+		sDragAccum -= e.dragY * float(kScreenH) / 480.0f;
 		const int rows = int(sDragAccum / kItemH);
 		if (rows != 0) {
 			sDragAccum -= rows * kItemH;
@@ -523,6 +553,7 @@ bool pc_glass_menu_active(void) { return sOpen; }
 void pc_glass_menu_input(void)
 {
 	if (!sOpen) return;
+	layout();
 	const PcNavEdges e = pc_settings_read_nav_edges();
 	inputList(e);
 }
@@ -530,6 +561,7 @@ void pc_glass_menu_input(void)
 void pc_glass_menu_draw(void)
 {
 	if (!sOpen || !gsys || !gsys->mDGXGfx) return;
+	layout();
 	DGXGraphics* gfx = static_cast<DGXGraphics*>(gsys->mDGXGfx);
 	// Mismo mapeo que el overlay F1: 4:3 centrado sin barras, oscurecido
 	// completo detrás (en el título el cristal se lee mejor así).
@@ -537,7 +569,11 @@ void pc_glass_menu_draw(void)
 	pc_gfx_set_hud_wide(0);
 	pc_gfx_set_ui_43_no_bars(0);
 	// Se declara antes del frame: su destructor corre después del volcado P2D.
-	struct Unbind { ~Unbind() { pc_gfx_set_ui_43_no_bars(0); } } unbind;
+	struct Unbind { ~Unbind() {
+		pc_gfx_set_ui_43_no_bars(0);
+		pc_gfx_set_hud_wide(0);
+		pc_gfx_set_hud_virtual_size(0, 0);
+	} } unbind;
 	PcSettingsP2DFrame frame(kScreenW, kScreenH);
 	if (!pc_settings_p2d_active()) {
 		// Sin la capa P2D (fuente/placas no cargadas) no hay menú de cristal.
@@ -546,12 +582,21 @@ void pc_glass_menu_draw(void)
 	}
 	// Sin oscurecido (es un apartado del título), pero con el fondo
 	// desenfocado bajo el cristal para que texto y barra se lean.
+#if defined(__IPHONEOS__)
+	pc_gfx_set_hud_virtual_size(kScreenW, kScreenH);
+	pc_gfx_set_hud_wide(1);
+#else
 	pc_gfx_set_ui_43_no_bars(1);
+#endif
 	pc_gfx_blur_gx_rect(kTabBarX + 6, kTabBarY + 6, kTabBarW - 12, kTabBarH - 12, 3);
 	pc_gfx_blur_gx_rect(kLeftX + 6, kColY + 6, kLeftW - 12, kColH - 12, 3);
 	pc_gfx_blur_gx_rect(kRightX + 6, kColY + 6, kRightW - 12, kColH - 12, 3);
 	pc_gfx_blur_gx_rect(kFootX + 6, kFootY + 6, kFootW - 12, kFootH - 12, 3);
 	Matrix4f ortho;
 	gfx->setOrthogonal(ortho.mMtx, RectArea(0, 0, kScreenW, kScreenH));
+#if defined(__IPHONEOS__)
+	gfx->setViewport(RectArea(0, 0, kScreenW, kScreenH));
+	gfx->setScissor(RectArea(0, 0, kScreenW, kScreenH));
+#endif
 	drawPage();
 }
