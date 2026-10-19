@@ -91,3 +91,43 @@ Build #9: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-P
 - Local MSVC C++14 test reproduces the old case-only alias failure on Windows, then the actual corrected VsOtakaraName header compiles under /W4 /WX. PikiAI preprocessing reaches the real _PIKIAI_H guard; it emits existing host/decomp varargs redefinition warnings, not a full source compile result.
 - P2 display follow-up is committed as 762eba1b16d24976bf3cfb84f430052756c51e1a. It and the two alias corrections will be pushed together for the next build. P1 source remains exactly the Build10 version.
 - User requested conserving usage: after dispatching the next build, stop polling and wait for the user to report completion.
+## Build #11 dispatch and stop-wait checkpoint
+
+- Run https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39265932808; initial status queued at October19 10:06 Eastern.
+- Exact local/remote source commit 204c06ade5e82bebd528a56e46bfa76b66115fb9, including P2 display commit762eba1b16d24976bf3cfb84f430052756c51e1a. Push succeeded.
+- No P1 source change since successful Build10. Build11 compiler/IPA/runtime results are pending.
+- This dispatch checkpoint is the only post-push uncommitted journal update. No source edits remain uncommitted.
+- STOP idle polling per user request. Resume when user reports the build result; fetch the actual run/job logs and continue from evidence.
+
+## User-facing project folder (October 19, 2026)
+
+The user requests all future test materials in C:\Users\chazz\Documents\Open Nectar.
+Put each test IPA in `1 - Install on iPhone`, with a clear game/build filename
+and short WHAT TO TEST.txt. Refresh plain-text progress/master-handoff copies
+in `2 - Progress and ChatGPT Handoff` after milestones. Use these accessible
+paths when asking the user to install/test; do not make them browse generated
+Codex directories. Play an audio alert when user action is required.
+
+Nine reviewed Downloads items were moved individually and SHA256-verified.
+RVZ images are in `3 - Game Files - Keep Private\Original RVZ Files`.
+Verified ISOs, source code, active/earlier sessions, and display backup are
+accessible through junctions; originals stay at their existing working paths.
+Windows Documents points to OneDrive; its Open Nectar.lnk points to the local
+project folder, keeping game data outside OneDrive and the Git repository.
+
+Automatic approval review rejected the initial bulk relocation of the live
+repo/active chat workspace. The safer staged plan moved only reviewed Downloads,
+kept active directories in place, and added access links. The old bulk script
+is disabled; do not rerun it. No build was triggered for organization.
+
+## Build #11 result and nested adapter fix (October 19, ~10:27 Eastern)
+
+- Exact build commit204c06ade5e82bebd528a56e46bfa76b66115fb9. Run39265932808 completed: P1 job118105370021 success; P2 job118105369589 failure.
+- Artifacts: P1 12193133375 (unsigned build bundle), P2 12193278343 (failed build log). The user is testing the existing Build10 P1 IPA; no hardware result has been reported. Do not replace that test with a redundant P1 download.
+- Complete workflow logs retrieved as work/build11-logs.zip and extracted in work/build11-full. Exactly one fatal compiler error: vsGS_Title.cpp298, Morimura::DispMemberChallengeSelect incomplete. No linker stage reached. Previous VsOtakaraName errors absent.
+- The warning trace identifies the same self-include hazard in pikmin2-decomp-adapter/Morimura/challengeSelect2D.h. Its include with a directory component resolves back to itself on a case-insensitive host, hiding the real challengeSelect2d.h definition.
+- Previous audit only tested basename includes and missed this nested path. Corrected the adapter to include ../../pikmin2-decomp/include/Morimura/challengeSelect2d.h explicitly.
+- Added tests/pikmin2_adapter_includes.py. It models case-insensitive lookup using a case-folded adapter/decomp header inventory, including directory components and normal local-header-first lookup. It detected the original recursive include; after the correction all43 adapter headers pass.
+- Existing experimental workflow runs the new fast check only for the pikmin2 matrix job before CMake configuration. P1 source is unchanged. Workflow step reviewed; no local YAML parser package was available, so no YAML-parser pass is claimed.
+- Actual corrected header was preprocessed by local MSVC C++14, confirming the real _MORIMURA_CHALLENGESELECT_H guard and complete DispMemberChallengeSelect declaration. Full AppleClang compilation and P2 presentation/runtime remain pending.
+- Next: push this fix/test/workflow update together with the accumulated organization documentation. Record the new build ID, refresh the user-facing reports, then stop idle polling. Resume from compiler evidence when the user reports completion. P1 hardware feedback remains pending.

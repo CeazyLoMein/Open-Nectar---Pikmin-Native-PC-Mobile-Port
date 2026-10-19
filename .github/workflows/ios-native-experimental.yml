@@ -29,6 +29,9 @@ jobs:
         run: |
           xcodebuild -version
           cmake --version
+      - name: Check Pikmin 2 adapter include paths
+        if: matrix.game == 'pikmin2'
+        run: python3 tests/pikmin2_adapter_includes.py
       - name: Configure iPhoneOS ARM64 target without signing
         shell: bash
         run: |
