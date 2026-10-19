@@ -140,3 +140,39 @@ Online iPhone co-op with Raye for BOTH games remains the last milestone.
 - Next:commit correction with this journal using[ios-build],fetch/reconcile,push
   one coordinated Build14,record ID,and STOP idle polling. Retrieve completed logs
   only when user reports done. P1Build13can be tested independently whileP2builds.
+
+## Build14 result / waypoint iterator fix — October 19, 2026, 17:14 Eastern
+
+- Run39322155722 at36d0f156aa92f6bbedad91d3573bc1694bef131b completed:
+  P1 job118298648192 SUCCESS; P2 job118298647821 FAILURE.
+  P1 artifact12220854422; P2 failure-log artifact12221311918.
+- P1 source is identical to the supplied enhanced Build13 IPA; no redundant IPA
+  download/test requested. User has not yet reported its enhanced phone results.
+  Readable menu/camera remain confirmed on the earlier phone-tested baseline.
+- Full workflow logs retrieved to work/build14-logs.zip and work/build14-full.
+  Exactly two unique compiler errors in plugProjectKandoU/routeMgr.cpp:
+  line768:21 pointer-to-s16, line777:17 pointer-to-int. One root cause: pointer-
+  shaped Container handles encode integer slots but are cast directly to narrow
+  integers. No linker stage reached; previous title debug pointer errors absent.
+- GameRouteMgr::get now decodes through std::intptr_t before intentionally
+  narrowing to existing signed16-bit WayPoint ID; getNext increments pointer-width
+  integer; getEnd encodes mCount via pointer-width integer. getStart zero is unchanged.
+  Changes guarded by PIKI_PC_PORT; original retail bodies preserved. EditorRouteMgr
+  uses actual node pointers and is unchanged. No new waypoint range or data layout.
+- Actual four GameRouteMgr methods extracted into a host fixture and compiled/run
+  with MSVC C++14 /W4 /WX. Passed traversals of0,1,8,32768points; -1-to-start;
+  high handle above4GiB; crossing4GiB; fullu16 end-count encoding. All valid IDs
+  select/order exactly their original slots; the high-handle checks do not dereference.
+  Fixture: work/resume-verification/pikmin2_route_iterator_test.cpp; test-route.cmd.
+  This is a narrow semantic check, not whole-game/iOS compilation or runtime proof.
+- git diff --check passed. P1 source, iOS CMake and workflow are unchanged.
+- Next: commit scoped route correction+journals with[ios-build],fetch/reconcile,
+  push once and record Build15. STOP idle polling while GitHub compiles. Retrieve
+  completed logs after user reports. Continue from real compiler/linker evidence.
+- P1 additions explained to user: readable settings; sharper scene/FXAA/anisotropy/
+  subtle bloom; Chain Actions, Hold to Pluck, Better Pathfinding, Idle Counter,
+  Instant Whistle, Quick Grab, No Tripping, Cancel Throw withB, Throw While Moving,
+  manual Lock-On/Charge; native Files ZIP importer with staged installs/backups;
+  one-time config profile/backup preserving future choices. Camera preserved.
+  External HD texture/model files and online co-op are not installed/implemented.
+  Online with Raye for both iPhone games remains the final milestone.

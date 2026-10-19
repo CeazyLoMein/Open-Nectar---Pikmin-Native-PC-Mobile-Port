@@ -1,3 +1,6 @@
+#ifdef PIKI_PC_PORT
+#include <cstdint>
+#endif
 #include "CNode.h"
 #include "Condition.h"
 #include "Game/WaterBox.h"
@@ -765,7 +768,12 @@ WayPoint* GameRouteMgr::getWayPoint(s16 index)
  */
 WayPoint* GameRouteMgr::get(void* index)
 {
+#ifdef PIKI_PC_PORT
+	// Container handles encode a slot number; WayPoint IDs remain signed 16-bit.
+	return getWayPoint(static_cast<s16>(reinterpret_cast<std::intptr_t>(index)));
+#else
 	return getWayPoint((s16)index);
+#endif
 }
 
 /**
@@ -774,7 +782,11 @@ WayPoint* GameRouteMgr::get(void* index)
  */
 void* GameRouteMgr::getNext(void* index)
 {
+#ifdef PIKI_PC_PORT
+	return reinterpret_cast<void*>(reinterpret_cast<std::intptr_t>(index) + 1);
+#else
 	return (void*)((int)index + 1);
+#endif
 }
 
 /**
@@ -792,7 +804,11 @@ void* GameRouteMgr::getStart()
  */
 void* GameRouteMgr::getEnd()
 {
+#ifdef PIKI_PC_PORT
+	return reinterpret_cast<void*>(static_cast<std::intptr_t>(mCount));
+#else
 	return (void*)mCount;
+#endif
 }
 
 /**
