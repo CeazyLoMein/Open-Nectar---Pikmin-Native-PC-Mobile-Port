@@ -50,6 +50,8 @@ jobs:
           ./transaction-test
           c++ -std=c++17 -I"$ROOT/games/pikmin1/pc_port/mods" -I"$ROOT/games/pikmin1/third_party/stb" "$ROOT/tests/pikmin1_mod_zip_test.cpp" "$ROOT/games/pikmin1/pc_port/mods/pc_hd_model_convert.cpp" -o zip-test
           ./zip-test
+          c++ -std=c++17 -I"$ROOT/games/pikmin1/pc_port" "$ROOT/tests/pikmin1_ios_performance_test.cpp" "$ROOT/games/pikmin1/pc_port/timing/pc_ios_performance.cpp" -o performance-test
+          ./performance-test
       - name: Configure iPhoneOS ARM64 target without signing
         shell: bash
         run: |

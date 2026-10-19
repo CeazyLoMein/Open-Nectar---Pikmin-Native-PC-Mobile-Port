@@ -14,6 +14,9 @@
 
 #include "timing/pc_render_phase.h"
 #include "timing/pc_tick_profiler.h"
+#ifdef NECTAR_IOS_PERFORMANCE_HUD
+#include "timing/pc_ios_performance.h"
+#endif
 #include "pc_gfx.h"
 #if defined(PIKI_PC_PORT)
 #include "netplay/pc_netplay_camlead.h"
@@ -194,6 +197,27 @@ void PlugPikiApp::draw(Graphics& gfx)
 			gfx.texturePrintf(gsys->mConsFont, 16, 400 + i * TIMER_STATE_LINE_HEIGHT, "%s", hudLine[i]);
 		}
 	}
+
+#ifdef NECTAR_IOS_PERFORMANCE_HUD
+	char phoneStats[5][96] = {};
+	if (gsys->mConsFont && pc_ios_performance_lines(phoneStats)) {
+		// Diagnostic-only GX overlay: no presentation framebuffer changes.
+		const int left = 56, top = 42;
+		const Colour panel(8, 12, 24, 210);
+		gfx.setColour(panel, true);
+		gfx.setAuxColour(panel);
+		gfx.useTexture(nullptr, GX_TEXMAP0);
+		gfx.fillRectangle(RectArea(left - 6, top - 4, left + 460, top + 64));
+		for (int line = 0; line < 5; ++line) {
+			gfx.setColour(Colour(0, 0, 0, 255), true);
+			gfx.setAuxColour(Colour(0, 0, 0, 255));
+			gfx.texturePrintf(gsys->mConsFont, left + 1, top + line * 12 + 1, "%s", phoneStats[line]);
+			gfx.setColour(COLOUR_WHITE, true);
+			gfx.setAuxColour(COLOUR_WHITE);
+			gfx.texturePrintf(gsys->mConsFont, left, top + line * 12, "%s", phoneStats[line]);
+		}
+	}
+#endif
 
 	// print load text after we finish a section transition (only if it's meant to be visible, or is fading out)
 	// NB: the code in retail and the DLL do all the preparation to print, but never actually print the text.

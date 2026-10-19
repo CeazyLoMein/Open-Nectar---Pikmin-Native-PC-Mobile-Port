@@ -62,12 +62,18 @@ set_target_properties(nectar_ios_storage PROPERTIES
     OBJCXX_STANDARD 17 OBJCXX_STANDARD_REQUIRED YES)
 if(NECTAR_IOS_GAME STREQUAL "pikmin1")
     # UIKit stays isolated from the GameCube BOOL typedef / forced includes.
-    target_sources(nectar_ios_storage PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ios_mod_picker.mm")
+    target_sources(nectar_ios_storage PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/ios_mod_picker.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/ios_runtime_stats.mm")
+    target_include_directories(nectar_ios_storage PRIVATE "${NECTAR_ROOT}/games/pikmin1/pc_port")
+    target_compile_definitions(${NECTAR_GAME_TARGET} PRIVATE NECTAR_IOS_PERFORMANCE_HUD=1)
+    target_compile_definitions(pikmin_legacy PRIVATE NECTAR_IOS_PERFORMANCE_HUD=1)
     set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ios_mod_picker.mm"
         PROPERTIES COMPILE_FLAGS "-fobjc-arc")
     target_sources(${NECTAR_GAME_TARGET} PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/pc_ios_mod_bridge.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/pc_ios_mod_install.cpp")
+        "${CMAKE_CURRENT_SOURCE_DIR}/pc_ios_mod_install.cpp"
+        "${NECTAR_ROOT}/games/pikmin1/pc_port/timing/pc_ios_performance.cpp")
     target_include_directories(${NECTAR_GAME_TARGET} PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}"
         "${NECTAR_ROOT}/games/pikmin1/pc_port/mods")

@@ -16,6 +16,8 @@ extern "C" {
 
 // Called once from pc_main after the window exists. Loads persisted settings.
 void pc_settings_init(void);
+// Compact iPhone diagnostic overlay; zero on other platforms.
+int pc_settings_get_ios_performance_hud(void);
 
 // Órdenes --settings-dump / --settings-set / --settings-reset para el launcher:
 // trabajan sin ventana y devuelven el código de salida, o -1 si no hay ninguna.

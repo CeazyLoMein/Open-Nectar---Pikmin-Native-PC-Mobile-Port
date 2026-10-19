@@ -91,6 +91,7 @@ struct PcConfig {
 #ifdef __IPHONEOS__
     // Migration history, deliberately not reset by Restore Defaults.
     int iosEnhancedProfile = 0;
+    int iosPerformanceHud = 0;
 #endif
     int windowWidth = 1280;
     int windowHeight = 720;
@@ -264,6 +265,9 @@ struct PcConfig {
         renderScale = 2.0f / 3.0f;
         aspectRatioMode = 0;
         fpsMode = 0;
+#ifdef __IPHONEOS__
+        iosPerformanceHud = 0;
+#endif
         controlMode = PC_CONTROL_CLASSIC;
         mouseSensitivity = 1.0f;
         gyroEnabled = 0;
@@ -396,6 +400,9 @@ enum Row {
     ROW_REFRESH_RATE,
     ROW_VSYNC,
     ROW_FPS_MODE,
+#ifdef __IPHONEOS__
+    ROW_IOS_PERFORMANCE_HUD,
+#endif
 #if defined(VERSION_GPIP01)
     // Only the European release carries more than one language. On any other
     // disc the row would be a control with one position.
@@ -1197,6 +1204,7 @@ void saveConfig() {
     }
 #ifdef __IPHONEOS__
     out << "iosEnhancedProfile = " << sConfig.iosEnhancedProfile << "\n";
+    out << "iosPerformanceHud = " << sConfig.iosPerformanceHud << "\n";
 #endif
     out << "renderScale = " << sConfig.renderScale << "\n";
     out << "fpsMode = " << sConfig.fpsMode << "\n";
@@ -1333,6 +1341,7 @@ void loadConfig() {
         else if (key == "vsync") sConfig.vsync = atoi(val.c_str()) != 0;
 #ifdef __IPHONEOS__
         else if (key == "iosEnhancedProfile") sConfig.iosEnhancedProfile = atoi(val.c_str());
+        else if (key == "iosPerformanceHud") sConfig.iosPerformanceHud = atoi(val.c_str()) ? 1 : 0;
 #endif
         else if (key == "renderScale") {
             sConfig.renderScale = (float)atof(val.c_str());
@@ -3055,6 +3064,9 @@ void mainRowValue(int row, char* out, size_t n) {
     else snprintf(valueBuf[4], sizeof(valueBuf[4]), "%.0f Hz", sPending.refreshRate);
     snprintf(valueBuf[5], sizeof(valueBuf[5]), "%s", sPending.vsync ? "On" : "Off");
     snprintf(valueBuf[ROW_FPS_MODE], sizeof(valueBuf[0]), "%s", fpsModeBuf);
+#ifdef __IPHONEOS__
+    snprintf(valueBuf[ROW_IOS_PERFORMANCE_HUD], sizeof(valueBuf[0]), "%s", sPending.iosPerformanceHud ? "On" : "Off");
+#endif
 #if defined(VERSION_GPIP01)
     {
         static const char* const kNames[] = { "English", "Deutsch", "Francais",
@@ -3146,6 +3158,11 @@ void mainRowChange(int row, bool left, bool right, bool ok) {
             startVideoConfirm();
         }
         break;
+#ifdef __IPHONEOS__
+    case ROW_IOS_PERFORMANCE_HUD:
+        if (left || right || ok) sPending.iosPerformanceHud = !sPending.iosPerformanceHud;
+        break;
+#endif
     case ROW_FPS_MODE:
         if (left) {
             sPending.fpsMode = (sPending.fpsMode - 1 + 4) % 4;
@@ -3845,6 +3862,14 @@ void pc_settings_init(void) {
         printf("[PC Settings] Texture pack active: %s\n", sConfig.texturePack.c_str());
     }
     printf("[PC Settings] Init complete.\n");
+}
+
+int pc_settings_get_ios_performance_hud(void) {
+#ifdef __IPHONEOS__
+    return sConfig.iosPerformanceHud;
+#else
+    return 0;
+#endif
 }
 
 int pc_settings_menu_is_open(void) { return sMenuOpen ? 1 : 0; }
@@ -7531,6 +7556,9 @@ const GroupRow kDisplayRows[] = {
     { SRC_MAIN, ROW_REFRESH_RATE, "Refresh Rate", "How often the screen updates in fullscreen. Auto keeps your monitor's setting." },
     { SRC_MAIN, ROW_VSYNC, "Frame Sync (VSync)", "Waits for the screen before showing each frame. Stops tearing (a picture split in two), adds a little input delay." },
     { SRC_MAIN, ROW_FPS_MODE, "FPS Mode", "Frames per second. 30 is the original and the most stable. 60 and 120 are smoother but experimental." },
+#ifdef __IPHONEOS__
+    { SRC_MAIN, ROW_IOS_PERFORMANCE_HUD, "Performance HUD", "Live render FPS, slow frame times, app RAM, CPU and heat. Close settings to apply. Spare memory is advisory app headroom. CPU 100% means one core; GPU load is unavailable." },
+#endif
 #if defined(VERSION_GPIP01)
     { SRC_MAIN, ROW_LANGUAGE, "Language", "Language of the game's text. Takes effect after a restart." },
 #endif
@@ -7755,6 +7783,9 @@ bool rowProbeable(int group, int row) {
     case SRC_MAIN:
         return r->idx == ROW_DISPLAY_MODE || r->idx == ROW_ASPECT_RATIO || r->idx == ROW_RENDER_SCALE
             || r->idx == ROW_REFRESH_RATE || r->idx == ROW_VSYNC || r->idx == ROW_FPS_MODE
+#ifdef __IPHONEOS__
+            || r->idx == ROW_IOS_PERFORMANCE_HUD
+#endif
 #if defined(VERSION_GPIP01)
             // El idioma se guarda aparte de sPending (sLanguage): el sondeo lo
             // restaura por su cuenta. Solo sin ventana, para el launcher.

@@ -5,6 +5,9 @@
 #include "port/jaudio_host.h"
 #endif
 #include "pc_window.h"
+#ifdef NECTAR_IOS_PERFORMANCE_HUD
+#include "timing/pc_ios_performance.h"
+#endif
 #if defined(__APPLE__) && TARGET_OS_IPHONE
 #include <SDL_syswm.h>
 #include <OpenGLES/ES3/gl.h>
@@ -1591,6 +1594,9 @@ void pc_window_swap_buffers(void) {
         }
 #endif
         SDL_GL_SwapWindow(sWindow);
+#ifdef NECTAR_IOS_PERFORMANCE_HUD
+        pc_ios_performance_present();
+#endif
 #if defined(__APPLE__) && TARGET_OS_IPHONE
         if (hasDrawable) {
             glBindFramebuffer(GL_READ_FRAMEBUFFER, static_cast<GLuint>(previousReadFbo));
