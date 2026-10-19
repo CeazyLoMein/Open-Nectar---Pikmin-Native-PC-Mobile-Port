@@ -1,4 +1,5 @@
 #ifdef PIKI_PC_PORT
+#include <cstdint>
 #include "pc_speedrun.h"
 #include "pc_p2_coop.h"
 #include "randomizer/pc_randomizer.h"
@@ -386,7 +387,15 @@ void Section::doUpdateMainTitle()
 	}
 
 	if (mController1->getButtonDown() & Controller::PRESS_Y) {
+#ifdef PIKI_PC_PORT
+		// Heap markers are native addresses on ARM64, not 32-bit GameCube ints.
+		const std::uintptr_t codeStart = reinterpret_cast<std::uintptr_t>(JKRHeap::getCodeStart());
+		const std::uintptr_t codeEnd   = reinterpret_cast<std::uintptr_t>(JKRHeap::getCodeEnd());
+		const std::uintptr_t codeBytes = codeEnd >= codeStart ? codeEnd - codeStart : 0;
+		OSReport("code size           %lluKB\n", static_cast<unsigned long long>(codeBytes / 1024));
+#else
 		OSReport("code size           %dKB\n", ((int)JKRHeap::getCodeEnd() - (int)JKRHeap::getCodeStart()) / 1024);
+#endif
 		OSReport("GameSystemHeap Free %dKB\n", (int)sys->mSysHeap->getTotalFreeSize() / 1024);
 #if defined(VERSION_PAL)
 		OSReport("SystemHeap free     %dKB\n", (int)JKRHeap::sSystemHeap->getTotalFreeSize() >> 10);

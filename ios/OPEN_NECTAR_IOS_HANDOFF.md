@@ -105,3 +105,38 @@ actual Apple compiler validation. User action now: none; no candidate IPA exists
 On build completion retrieve actual logs/artifacts, prepare clearly named IPAs
 in Documents/Open Nectar/1 - Install on iPhone and targeted phone instructions.
 Online iPhone co-op with Raye for BOTH games remains the last milestone.
+
+## Build13 result and P2 title diagnostic correction — October19, 16:46 Eastern
+
+- Exact source eddaf2adcaac1ebf1101ad2c5c4c8cfffc2b4238;run39319700760 complete.
+  P1 job118290256408 SUCCESS;P2 job118290256873 FAILURE. Standard Intel runner
+  workaround acquired runners and compiled native ARM64 as intended.
+- P1 all4 portable suites passed on macOS, including169profile/19bridge checks.
+  Full Apple/Xcode compile,link,ARM64 verification and IPA packaging passed.
+  This validates UIKit compilation,not native picker/runtime behavior on a phone.
+- P1 artifact12220390882 retrieved,ZIP integrity/plist/ARM64 Mach-O verified.
+  IPA2572685bytes,executable6357808bytes,bundleorg.opennectar.experimental.pikmin1,
+  minimumOS15. SHA256 f266a387fc9f7d0f6a6db935b18245ddfa153f43de2531cf4cc1a2e8e08179fd.
+  Copied/hash-verified as Documents/Open Nectar/1 - Install on iPhone/
+  Pikmin 1 - Build 13 - QOL and Visual Enhancements.ipa with WHAT TO TEST.txt
+  and Build 13 - IPA Verification.json. Audio alert played. Build10baseline retained.
+- User asked to test menu/camera preservation,10-15min clarity/frame pacing/heat,
+  QOL/Lock-On/Charge,touch interactions,picker cancel/reopen and setting persistence;
+  saves/loading when convenient. Hardware result not yet reported. No HD asset
+  payload is included. Signing/install via existing Sideloadly;preserve app data.
+- P2 full logs downloaded to work/build13-logs.zip,extracted work/build13-full.
+  Exactly TWO unique compiler errors,both titleSection.cpp:389:43/:72,one root:
+  getCodeEnd/getCodeStart pointers cast to32bit int in a debug OSReport expression.
+  No linker error reached. Prior incomplete Morimura/VsOtakaraName failures absent.
+- Fixed games/pikmin2/pikmin2-decomp/src/sysGCU/titleSection.cpp::doUpdateMainTitle
+  with std::uintptr_t markers/difference,guarded reversed markers,and matching
+  unsigned-long-long/%llu output underPIKI_PC_PORT. Retail branch preserved.
+  Native OSReport implementations usevprintf and support the format.
+- Actual corrected statements extracted to work/resume-verification/
+  pikmin2_title_diagnostic_test.cpp:6cases passed MSVC C++14 /W4 /WX,including
+  addresses above4GiB,crossing4GiB,8GiB span,null and reversed markers.
+  This is a narrow host semantic/compile check,not whole-P2/iOS validation.
+  git diff --check passed. No P1 source or workflow change for this correction.
+- Next:commit correction with this journal using[ios-build],fetch/reconcile,push
+  one coordinated Build14,record ID,and STOP idle polling. Retrieve completed logs
+  only when user reports done. P1Build13can be tested independently whileP2builds.
