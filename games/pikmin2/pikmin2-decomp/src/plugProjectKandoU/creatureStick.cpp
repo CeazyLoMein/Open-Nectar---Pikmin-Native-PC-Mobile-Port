@@ -2,6 +2,9 @@
 #include "Game/Stickers.h"
 #include "Game/Navi.h" // specifically for the navi scale defines. no other reason to include --EpochFlame
 #include "CollInfo.h"
+#ifdef PIKI_PC_PORT
+#include <cstdint>
+#endif
 
 static const char className[] = "creatureStick";
 
@@ -390,8 +393,14 @@ Stickers::~Stickers()
  */
 Creature* Stickers::get(void* id)
 {
+#ifdef PIKI_PC_PORT
+	const std::intptr_t index = reinterpret_cast<std::intptr_t>(id);
+	P2ASSERTBOUNDSLINE(535, 0, index, numBuffer);
+	return buffer[index];
+#else
 	P2ASSERTBOUNDSLINE(535, 0, (int)id, (int)numBuffer);
 	return buffer[(int)id];
+#endif
 }
 
 /**
@@ -400,7 +409,11 @@ Creature* Stickers::get(void* id)
  */
 void* Stickers::getNext(void* in)
 {
+#ifdef PIKI_PC_PORT
+	return reinterpret_cast<void*>(reinterpret_cast<std::intptr_t>(in) + 1);
+#else
 	return (void*)((int)in + 1);
+#endif
 }
 
 /**
@@ -418,7 +431,11 @@ void* Stickers::getStart()
  */
 void* Stickers::getEnd()
 {
+#ifdef PIKI_PC_PORT
+	return reinterpret_cast<void*>(static_cast<std::intptr_t>(numBuffer));
+#else
 	return (void*)numBuffer;
+#endif
 }
 
 } // namespace Game

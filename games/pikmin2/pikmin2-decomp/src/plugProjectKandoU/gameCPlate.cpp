@@ -3,6 +3,9 @@
 #include "Game/Piki.h"
 #include "Game/Navi.h"
 #include "P2Macros.h"
+#ifdef PIKI_PC_PORT
+#include <cstdint>
+#endif
 
 namespace Game {
 
@@ -12,7 +15,11 @@ namespace Game {
  */
 Creature* CPlate::get(void* index)
 {
+#ifdef PIKI_PC_PORT
+	return mSlots[reinterpret_cast<std::intptr_t>(index)].mCreature;
+#else
 	return mSlots[(int)index].mCreature;
+#endif
 }
 
 /**
@@ -22,7 +29,12 @@ Creature* CPlate::get(void* index)
 void* CPlate::getNext(void* index)
 {
 	getEnd();
+#ifdef PIKI_PC_PORT
+	// Container handles encode a slot index, not an actual object address.
+	return reinterpret_cast<void*>(reinterpret_cast<std::intptr_t>(index) + 1);
+#else
 	return (void*)((int)index + 1); // the void* pointer cast stuff is for Container compatibility.
+#endif
 }
 
 /**
@@ -40,7 +52,11 @@ void* CPlate::getStart()
  */
 void* CPlate::getEnd()
 {
+#ifdef PIKI_PC_PORT
+	return reinterpret_cast<void*>(static_cast<std::intptr_t>(mSlotCount));
+#else
 	return (void*)mSlotCount;
+#endif
 }
 
 /**

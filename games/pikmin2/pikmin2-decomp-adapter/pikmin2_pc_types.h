@@ -255,11 +255,13 @@ void*    pc_host_from_gc_phys(uint32_t phys);
 #define TRAP_UNIMPLEMENTED \
     do { fprintf(stderr, "Unimplemented: %s in %s:%d\n", __func__, __FILE__, __LINE__); } while(0)
 
-/* ── nullptr como 0 entero ──
- * La decompilacion trata nullptr como 0 (definicion original de MWCC).
- * Se define DESPUES de los headers del sistema (que no lo usan internamente)
- * para que en el juego completo se resuelva a 0 al preprocesador. */
-#if defined(__cplusplus) && !defined(__ANDROID__)
+/* Legacy desktop builds use integer-zero compatibility for the decomp.
+ * Apple libc++ must retain the real C++ nullptr keyword, as Android already
+ * does: game headers can include standard containers AFTER this forced header.
+ * Replacing nullptr with 0 corrupts perfect-forwarded pointer arguments inside
+ * vector/unordered_map/unordered_set (not just pcMovieInterp.cpp).
+ * Keep the existing desktop behavior outside Apple/Android for this iOS batch. */
+#if defined(__cplusplus) && !defined(__ANDROID__) && !defined(__APPLE__)
 #undef nullptr
 #define nullptr 0
 #endif
