@@ -18,7 +18,9 @@ jobs:
       max-parallel: 2
       matrix:
         game: [pikmin1, pikmin2]
-    runs-on: macos-15
+    # Build12 never acquired an ARM host because of GitHub capacity. Xcode
+    # cross-compiles the same iphoneos ARM64 target on this standard Intel host.
+    runs-on: macos-15-intel
     permissions:
       contents: read
     env:
@@ -32,6 +34,22 @@ jobs:
       - name: Check Pikmin 2 adapter include paths
         if: matrix.game == 'pikmin2'
         run: python3 tests/pikmin2_adapter_includes.py
+      - name: Check Pikmin 1 enhancement profile and mod imports
+        if: matrix.game == 'pikmin1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$GITHUB_WORKSPACE"
+          mkdir -p "$RUNNER_TEMP/nectar-ios-checks"
+          cd "$RUNNER_TEMP/nectar-ios-checks"
+          c++ -std=c++17 -I"$ROOT/ios" "$ROOT/tests/pikmin1_ios_profile_test.cpp" -o profile-test
+          ./profile-test
+          c++ -std=c++17 -pthread -I"$ROOT/ios" "$ROOT/tests/pikmin1_ios_mod_bridge_test.cpp" "$ROOT/ios/pc_ios_mod_bridge.cpp" -o bridge-test
+          ./bridge-test
+          c++ -std=c++17 -I"$ROOT/ios" -I"$ROOT/games/pikmin1/pc_port/mods" "$ROOT/tests/pikmin1_ios_mod_transaction_test.cpp" -o transaction-test
+          ./transaction-test
+          c++ -std=c++17 -I"$ROOT/games/pikmin1/pc_port/mods" -I"$ROOT/games/pikmin1/third_party/stb" "$ROOT/tests/pikmin1_mod_zip_test.cpp" "$ROOT/games/pikmin1/pc_port/mods/pc_hd_model_convert.cpp" -o zip-test
+          ./zip-test
       - name: Configure iPhoneOS ARM64 target without signing
         shell: bash
         run: |
@@ -59,6 +77,9 @@ jobs:
           APP="$(find "$RUNNER_TEMP/nectar-build" -type d -name 'Nectar-*.app' | head -n 1)"
           test -n "$APP"
           test -f "$APP/Info.plist"
+          EXECUTABLE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist")
+          lipo "$APP/$EXECUTABLE" -verify_arch arm64
+          lipo -info "$APP/$EXECUTABLE"
           mkdir -p "$RUNNER_TEMP/ios-ipa/Payload"
           ditto "$APP" "$RUNNER_TEMP/ios-ipa/Payload/$(basename "$APP")"
           cd "$RUNNER_TEMP/ios-ipa"
