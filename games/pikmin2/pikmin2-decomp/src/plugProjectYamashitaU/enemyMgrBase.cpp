@@ -187,12 +187,12 @@ void EnemyMgrBase::doDirectDraw(Graphics& graphics)
  */
 void* EnemyMgrBase::getNext(void* object)
 {
-	for (int i = (int)object + 1; i < mObjLimit; i++) {
+	for (int i = static_cast<int>(reinterpret_cast<std::intptr_t>(object)) + 1; i < mObjLimit; i++) {
 		if (getEnemy(i)->isEvent(0, EB_Alive)) {
-			return (void*)i;
+			return reinterpret_cast<void*>(static_cast<std::intptr_t>(i));
 		}
 	}
-	return (void*)mObjLimit;
+	return reinterpret_cast<void*>(static_cast<std::intptr_t>(mObjLimit));
 }
 
 /**

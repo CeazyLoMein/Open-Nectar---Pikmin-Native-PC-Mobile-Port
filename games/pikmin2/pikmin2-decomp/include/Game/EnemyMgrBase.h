@@ -12,6 +12,7 @@
 #include "Game/EnemyBase.h"
 #include "JSystem/J3D/J3DModelLoader.h"
 #include "Vector3.h"
+#include <cstdint>
 
 struct CollPartFactory;
 struct J3DModelData;
@@ -89,10 +90,10 @@ struct EnemyMgrBase : public IEnemyMgrBase {
 	virtual void* getObject(void* index) { return get(index); }; // _5C (weak)
 	virtual void* getNext(void* index);                          // _60
 	virtual void* getStart() { return getNext((void*)-1); }      // _64 (weak)
-	virtual void* getEnd() { return (void*)mObjLimit; }          // _68 (weak)
+	virtual void* getEnd() { return reinterpret_cast<void*>(static_cast<std::intptr_t>(mObjLimit)); }          // _68 (weak)
 	virtual EnemyBase* get(void* index)                          // _98 (weak)
 	{
-		return getEnemy((int)index);
+		return getEnemy(static_cast<int>(reinterpret_cast<std::intptr_t>(index)));
 	}
 	virtual void alloc();                         // _6C
 	virtual EnemyBase* birth(EnemyBirthArg&);     // _70
