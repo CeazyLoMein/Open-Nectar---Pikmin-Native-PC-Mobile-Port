@@ -1,3 +1,7 @@
+CURRENT - 2026-10-20 09:57 EDT: Build27 P2-only PASSED; verified IPA in folder1.
+P2 phone crash/control retest pending. P1 models INSTALLED, runtime pending;
+saves/settings unchanged. HD environment textures NOT installed.
+
 CURRENT CONTENT UPDATE - 2026-10-20 09:52 EDT: P1 character bundle INSTALLED;
 20 files hash-verified, saves/settings unchanged. P1 model runtime test pending.
 HD environment textures NOT installed. P2 Build27 pending at last dispatch.
@@ -1492,3 +1496,38 @@ watching FPS/Heat/RAM. Keep60FPS. If artifacts or slowdowns, disable affected
 model rows, restart and report exact model/symptom; original game assets remain.
 No further file copy or ZIP import needed. Full private record in folder2/
 Pikmin 1 - Character Pack Installation.json; backup under folder5 above.
+
+## Build27 PASSED; verified P2 crash/menu candidate IPA ready - 2026-10-20 09:57 EDT
+
+Source8d77c5337863f34800bc7b7ef990878e586d7c48; run39432157516;
+job118659675153; artifact12268693334. P2 only. All workflow steps PASS,
+including100 direct-GL scope audit, native1359/console1280/Apple-scalar1359,
+menu188/desktop198, actual iPhone ARM64 syntax checks, existing addresses/TLS
+checks, full game compile/link and IPA packaging. No new source modifications.
+
+Downloaded artifact ZIP digest matches GitHub metadata:
+cc60012d8279edf3049dc17cddf83bb8fc7829ec8958dbc73c974a8e87020bdf.
+IPA ZIP/ARM64/iPhoneOS device/min iOS15/P2 bundle/system-library loads/unsigned
+state verified. Fresh UUIDaecbcead-f044-3dc2-9608-83e40dcd9540; executable11083680bytes.
+Actual ARM64 new/new[] still request16-byte alignment. IPA3831561bytes,
+SHA256f4a90d7da9f3b6130116caaf006b220f27b7e3a4ec17deb97b404222e0ab6b74. No ISO/RVZ/SZS/BMD game payload in IPA.
+Hash-identical copy now in Documents/Open Nectar/1 - Install on iPhone/
+Pikmin 2 - Build 27 - Crash and Menu Controls Fix.ipa. Verification JSON, build shortcut and simple START HERE guide
+updated; folder2 full successful log and master handoff updated.
+
+The batch targets Build26's actual phone failures: clear-depth captain-preview
+abort and Metal completion-thread JKRExpHeap abort; title menu gear/A hidden
+when touch ownership started, right-side menu taps lost as camera gestures.
+Source fixes and tests passed; Build27 PHONE INSTALLATION/CRASH-FREEDOM/MENU
+BEHAVIOR ARE NOT YET VERIFIED. Preserve Build24 allocator/thread/audio fixes,
+UIKit display FBO/RBO, logical-point gameplay rendering budget and frame latch.
+
+Next phone test: update P2 over existing app using same Sideloadly signing
+account/ID; no uninstall or assets/art recopy. Check gear/A during/after title
+animation, advanced settings; repeat Begin/captain selection; enter actual game
+and repeat pause/resume; original Options/choice confirmation; audio/camera.
+If crash, match fresh report to new UUID above. No idle polling/new build.
+P1 unchanged in this result turn; its character bundle was actually installed
+previously (20files/15NHM readback verified,6 protected saves/settings unchanged),
+expected menu11/11; model visuals/performance still untested, environment textures
+NOT installed. Keep60FPS. All private assets/backups remain outside Git.
