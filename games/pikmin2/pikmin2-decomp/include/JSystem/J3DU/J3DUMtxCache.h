@@ -6,6 +6,7 @@
 #include "JSystem/J3D/J3DTypes.h"
 #include "JSystem/J3D/J3DAnmTransform.h"
 #include "JSystem/J3D/J3DMtxBuffer.h"
+#include "JSystem/J3D/J3DModel.h"
 
 struct J3DUMtxAnmCacheTableBase {
 	~J3DUMtxAnmCacheTableBase();

@@ -390,7 +390,7 @@ PSSystem::BgmSeq* Demo::initiate(DemoArg demoArg, u8* unk)
 
 	} else if (streq("s01_dayend", init.mName)) {
 		// modify day end cutscene sound effects based on which captain's active
-		switch ((u32)demoArg.mCameraName) {
+		switch ((P2Address)demoArg.mCameraName) {
 		case 1:
 			mMovieStartSE = PSSE_PL_DAYEND_KAISAN_LUI;
 			break;

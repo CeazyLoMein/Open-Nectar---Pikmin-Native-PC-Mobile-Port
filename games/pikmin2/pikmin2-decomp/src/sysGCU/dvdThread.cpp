@@ -202,7 +202,7 @@ bool DvdThread::sync(DvdThreadCommand* cmd, DvdThread::ESyncBlockFlag blockFlag)
 		while (cmd->mMode != DvdThreadCommand::CM_Completed) {
 			OSMessage msg;
 			OSReceiveMessage(&cmd->mMsgQueue, &msg, OS_MESSAGE_BLOCK);
-			P2ASSERTLINE(396, (u32)msg == 'DTLF');
+			P2ASSERTLINE(396, (P2Address)msg == 'DTLF');
 		}
 
 		result = true;

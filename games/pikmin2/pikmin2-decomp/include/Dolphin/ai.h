@@ -14,12 +14,12 @@ typedef void (*AIDCallback)();
 
 /////////////// AI FUNCTIONS ///////////////
 AIDCallback AIRegisterDMACallback(AIDCallback callback);
-void AIInitDMA(u32 start_addr, u32 length);
+void AIInitDMA(P2Address start_addr, u32 length);
 BOOL AIGetDMAEnableFlag(void);
 void AIStartDMA(void);
 void AIStopDMA(void);
 u32 AIGetDMABytesLeft(void);
-u32 AIGetDMAStartAddr(void);
+P2Address AIGetDMAStartAddr(void);
 u32 AIGetDMALength(void);
 u32 AIGetDSPSampleRate(void);
 void AISetDSPSampleRate(u32 rate);

@@ -48,6 +48,19 @@ typedef unsigned long long u64;
 #endif
 
 // Volatile types
+// Native addresses/opaque handles are pointer-sized; file sizes and GC offsets
+// remain u32. On the original console these aliases retain the original ABI.
+#ifdef PIKI_PC_PORT
+typedef uintptr_t P2Address;
+typedef intptr_t P2SignedAddress;
+#else
+typedef u32 P2Address;
+typedef s32 P2SignedAddress;
+#ifdef __cplusplus
+static inline u32 pc_p2_aram_offset(const void* encoded) { return (u32)encoded; }
+#endif
+#endif
+
 typedef volatile u8 vu8;
 typedef volatile u16 vu16;
 typedef volatile u32 vu32;

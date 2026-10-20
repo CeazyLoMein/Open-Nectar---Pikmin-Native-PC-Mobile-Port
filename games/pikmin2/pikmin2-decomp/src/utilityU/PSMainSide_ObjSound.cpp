@@ -361,7 +361,7 @@ void CreatureAnime::setAnime(JAIAnimeSoundData* data, u32 flag, f32 loopStartFra
 {
 	if (data != mSoundData) {
 
-		if ((int)data == 0xffffffff) {
+		if (((P2Address)data == 0xffffffffu || (P2Address)data == (P2Address)-1)) {
 			data = nullptr;
 		}
 		initActorAnimSound(data, flag, loopStartFrame, loopEndFrame);

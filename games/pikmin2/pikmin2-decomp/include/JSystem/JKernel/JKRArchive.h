@@ -110,7 +110,7 @@ struct JKRArchive : public JKRFileLoader {
 		u32 _1C;             // _1C, unknown
 	};
 
-	JKRArchive(s32 entryNum, EMountMode mountMode);
+	JKRArchive(P2SignedAddress entryNum, EMountMode mountMode);
 
 	virtual bool becomeCurrent(const char* path);                                                             // _10
 	virtual void* getResource(const char* path);                                                              // _14
@@ -151,8 +151,8 @@ struct JKRArchive : public JKRFileLoader {
 	// Unused/inlined:
 	JKRArchive();
 	JKRArchive(const char* p1, EMountMode mountMode);
-	static JKRArchive* check_mount_already(s32 entryNum);
-	static JKRArchive* check_mount_already(s32 entryNum, JKRHeap* heap);
+	static JKRArchive* check_mount_already(P2SignedAddress entryNum);
+	static JKRArchive* check_mount_already(P2SignedAddress entryNum, JKRHeap* heap);
 	SDIDirEntry* findResType(u32 type) const;
 	SDIFileEntry* findTypeResource(u32, u32) const;
 
@@ -182,7 +182,7 @@ struct JKRArchive : public JKRFileLoader {
 	// _00-_38 = JKRFileLoader
 	JKRHeap* mHeap;             // _38
 	u8 mMountMode;              // _3C
-	int mEntryNum;              // _40
+	P2SignedAddress mEntryNum;              // _40
 	SArcDataInfo* mDataInfo;    // _44
 	SDIDirEntry* mDirectories;  // _48
 	SDIFileEntry* mFileEntries; // _4C
@@ -277,7 +277,7 @@ struct JKRCompArchive : public JKRArchive {
 	// _00-_5C = JKRArchive
 	JKRCompression mCompression;     // _5C
 	EMountDirection mMountDirection; // _60
-	u32 _64;                         // _64
+	P2Address _64;                   // _64: memory address, not serialized data
 	JKRAramBlock* mAramPart;         // _68
 	unknown _6C;                     // _6C
 	JKRFile* mDvdFile;               // _70

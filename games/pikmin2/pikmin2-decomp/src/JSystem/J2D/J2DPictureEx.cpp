@@ -1523,7 +1523,7 @@ const J2DAnmTransform* J2DPictureEx::animationPane(const J2DAnmTransform* animat
 			if (_1A4 & (1 << i)) {
 				for (u16 j = 0; j < num0; j++) {
 					J3DAnmVtxColorIndexData* data = mAnmVtxColor->getAnmVtxColorIndexData(0, j);
-					u16* index                    = mAnmVtxColor->getVtxColorIndexPointer(0) + (int)data->mData;
+					u16* index                    = mAnmVtxColor->getVtxColorIndexPointer(0) + (P2Address)data->mData;
 					for (u16 k = 0; k < data->mNum; k++) {
 						if (index[k] == _170[i]) {
 							mAnmVtxColor->getColor(0, j, &mCornerColors[i]);

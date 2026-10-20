@@ -482,8 +482,8 @@ void waitForTick(u32 sleepTime, u16 msgTime)
 			if (!OSReceiveMessage(JUTVideo::getManager()->getMessageQueue(), &msg, OS_MESSAGE_BLOCK)) {
 				msg = 0;
 			}
-		} while (((int)msg - (int)nextCount) < 0);
-		nextCount = (int)msg + time;
+		} while ((static_cast<s32>(static_cast<u32>((P2Address)msg) - nextCount)) < 0);
+		nextCount = static_cast<u32>((P2Address)msg) + time;
 	}
 }
 

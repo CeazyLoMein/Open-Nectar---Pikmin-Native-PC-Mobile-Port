@@ -471,7 +471,7 @@ void JUTCacheFont::getGlyphFromAram(JUTCacheFont::TGlyphCacheInfo* glyphInfo, JU
 	*glyphCode -= pageNumber * totalCells;
 
 	u8* imageData = getImage(cachePage);
-	u8* addr = JKRAram::aramToMainRam((u32)glyphInfo->mPrev + cachePage->mPageSize * pageNumber, imageData, cachePage->mPageSize, Switch_0,
+	u8* addr = JKRAram::aramToMainRam(pc_p2_aram_offset(glyphInfo->mPrev) + cachePage->mPageSize * pageNumber, imageData, cachePage->mPageSize, Switch_0,
 	                                  0, nullptr, 0xFFFFFFFF, nullptr);
 
 	// Set the image data to the page
@@ -608,6 +608,19 @@ bool JUTCacheFont::loadCache_string(const char* str, bool isSJIS)
  */
 void JUTCacheFont::invalidiateAllCache()
 {
+#ifdef PIKI_PC_PORT
+	u8* pageAddress = static_cast<u8*>(mCacheBuffer);
+	for (int i = 0; i < mCachePageCount; ++i) {
+		auto* page = reinterpret_cast<TGlyphCacheInfo*>(pageAddress);
+		page->mPrev = i == 0 ? nullptr : reinterpret_cast<TGlyphCacheInfo*>(pageAddress - mPageSize);
+		page->mNext = i + 1 == mCachePageCount ? nullptr : reinterpret_cast<TGlyphCacheInfo*>(pageAddress + mPageSize);
+		pageAddress += mPageSize;
+	}
+	mEndPageAddr = mCachePageCount > 0 ? pageAddress - mPageSize : nullptr;
+	mCurrPage = static_cast<TGlyphCacheInfo*>(mCacheBuffer);
+	mStartPage = nullptr;
+	mEndPage = nullptr;
+#else
 	// Treat the cache buffer as an array of TGlyphCacheInfo and iterate over each page in the cache
 	int* bufAddr = (int*)mCacheBuffer;
 	for (int i = 0; i < mCachePageCount; i++) {
@@ -628,6 +641,7 @@ void JUTCacheFont::invalidiateAllCache()
 	mCurrPage    = (TGlyphCacheInfo*)mCacheBuffer;
 	mStartPage   = nullptr;
 	mEndPage     = nullptr;
+#endif
 }
 
 /**

@@ -118,7 +118,7 @@ JKRMemArchive::JKRMemArchive(s32 entryNum, JKRArchive::EMountDirection mountDire
  * __ct__13JKRMemArchiveFPvUl15JKRMemBreakFlag
  */
 JKRMemArchive::JKRMemArchive(void* mem, u32 size, JKRMemBreakFlag flag)
-    : JKRArchive((s32)mem, EMM_Mem)
+    : JKRArchive((P2SignedAddress)mem, EMM_Mem)
 {
 	mIsMounted = false;
 	if (!open(mem, size, flag)) {

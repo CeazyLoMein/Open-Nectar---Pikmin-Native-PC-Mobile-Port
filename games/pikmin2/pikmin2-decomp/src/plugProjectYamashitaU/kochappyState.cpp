@@ -78,7 +78,7 @@ void StateWait::init(EnemyBase* enemy, StateArg* stateArg)
 {
 	enemy->startMotion(KOCHAPPYANIM_Wait, nullptr);
 	enemy->mTargetCreature = nullptr;
-	if ((int)stateArg == 'rand') {
+	if ((P2SignedAddress)stateArg == 'rand') {
 		enemy->setMotionFrame(randFloat() * enemy->getFirstKeyFrame());
 	}
 

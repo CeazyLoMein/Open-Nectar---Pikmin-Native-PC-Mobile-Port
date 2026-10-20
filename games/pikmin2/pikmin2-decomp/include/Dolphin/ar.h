@@ -29,8 +29,8 @@ struct ARQRequest {
 	u32 owner;            // _04
 	u32 type;             // _08
 	u32 priority;         // _0C
-	u32 source;           // _10
-	u32 dest;             // _14
+	P2Address source;           // _10
+	P2Address dest;             // _14
 	u32 length;           // _18
 	ARQCallback callback; // _1C
 };
@@ -40,7 +40,7 @@ struct ARQRequest {
 /////////////// AR FUNCTIONS ///////////////
 // ARQ functions.
 void ARQInit();
-void ARQPostRequest(ARQRequest* task, u32 owner, u32 type, u32 priority, u32 source, u32 dest, u32 length, ARQCallback callback);
+void ARQPostRequest(ARQRequest* task, u32 owner, u32 type, u32 priority, P2Address source, P2Address dest, u32 length, ARQCallback callback);
 
 // AR functions.
 ARCallback ARRegisterDMACallback(ARCallback callback);

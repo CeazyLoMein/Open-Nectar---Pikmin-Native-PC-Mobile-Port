@@ -89,7 +89,7 @@ bool J3DDrawBuffer::entryMatSort(J3DMatPacket* materialPacket)
 	if (texNo == 0xFFFF) {
 		hash = 0;
 	} else {
-		hash = ((u32)texture->getResTIMG(texNo) + texture->getResTIMG(texNo)->mImageDataOffset) >> 5;
+		hash = ((P2Address)texture->getResTIMG(texNo) + texture->getResTIMG(texNo)->mImageDataOffset) >> 5;
 	}
 
 	u32 slot = hash & (mBufferSize - 1);
@@ -118,7 +118,7 @@ bool J3DDrawBuffer::entryMatSort(J3DMatPacket* materialPacket)
 bool J3DDrawBuffer::entryMatAnmSort(J3DMatPacket* materialPacket)
 {
 	J3DMaterialAnm* pMaterialAnm = materialPacket->mMaterialAnm;
-	u32 slot                     = (u32)pMaterialAnm & (mBufferSize - 1);
+	u32 slot                     = (P2Address)pMaterialAnm & (mBufferSize - 1);
 
 	if (pMaterialAnm == nullptr) {
 		return entryMatSort(materialPacket);

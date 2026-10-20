@@ -10,7 +10,7 @@
 struct JKRADCommand;
 
 struct JKRDvdAramRipper {
-	typedef void (*LoadCallback)(u32);
+	typedef void (*LoadCallback)(P2Address);
 	static JKRAramBlock* loadToAram(char const* path, u32 addr, JKRExpandSwitch expandSwitch, u32 offset, u32 size, u32* sizePtr);
 	static JKRAramBlock* loadToAram(s32 entryNum, u32 addr, JKRExpandSwitch expandSwitch, u32 offset, u32 size, u32* sizePtr);
 	static JKRAramBlock* loadToAram(JKRDvdFile* dvdFile, u32 addr, JKRExpandSwitch expandSwitch, u32 offset, u32 size, u32* sizePtr);

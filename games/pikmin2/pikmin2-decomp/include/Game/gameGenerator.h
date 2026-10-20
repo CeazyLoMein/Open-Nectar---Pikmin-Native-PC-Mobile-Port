@@ -163,7 +163,7 @@ struct GenBase : public Parameters {
 	virtual void doWrite(Stream&) { }                    // _08 (weak)
 	virtual void ramSaveParameters(Stream&);             // _0C
 	virtual void ramLoadParameters(Stream&);             // _10
-	virtual void doEvent(u32) { }                        // _14 (weak)
+	virtual void doEvent(P2Address) { }                        // _14 (weak)
 	virtual void doRead(Stream&) { }                     // _18 (weak)
 	virtual void update(Generator*) { }                  // _1C (weak)
 	virtual void render(Graphics&, Generator*) { }       // _20 (weak)
@@ -265,7 +265,7 @@ struct GenItem : public GenObject {
 	virtual void doWrite(Stream&);                                            // _08
 	virtual void ramSaveParameters(Stream&);                                  // _0C
 	virtual void ramLoadParameters(Stream&);                                  // _10
-	virtual void doEvent(u32);                                                // _14
+	virtual void doEvent(P2Address);                                                // _14
 	virtual void doRead(Stream&);                                             // _18
 	virtual J3DModelData* getShape();                                         // _28
 	virtual void updateUseList(Generator*, int);                              // _2C
@@ -306,7 +306,7 @@ struct GenPellet : public GenObject {
 	virtual void doWrite(Stream&);                                            // _08
 	virtual void ramSaveParameters(Stream&);                                  // _0C
 	virtual void ramLoadParameters(Stream&);                                  // _10
-	virtual void doEvent(u32);                                                // _14
+	virtual void doEvent(P2Address);                                                // _14
 	virtual void doRead(Stream&);                                             // _18
 	virtual J3DModelData* getShape();                                         // _28
 	virtual void updateUseList(Generator*, int);                              // _2C

@@ -32,9 +32,9 @@ u32 systemStatus;
 u32 controlStatus;
 JASHeap* aramBufferHeap;
 JASHeap* aramParentHeap;
-static AllocCallback allocCallback;
-static DeallocCallback deallocCallback;
-static JASHeap* (*externalAramCallback)();
+AllocCallback allocCallback;
+DeallocCallback deallocCallback;
+JASHeap* (*externalAramCallback)();
 int dataFileNumber;
 MgrCallback mgrCallback;
 u32 sChannelMax         = 2;
@@ -646,13 +646,13 @@ void prepareSystem(s32 inode)
 	u32 length;
 	if (allocCallback != nullptr) {
 		BufferInfo info = allocCallback(inode);
-		start           = (u32)info.mStart;
+		start           = pc_p2_aram_offset(info.mStart);
 		length          = info.mLength;
 	} else {
 		if (aramParentHeap != nullptr) {
 			aramBufferHeap->alloc(aramParentHeap, (sChannelMax * (JAIGlobalParameter::getParamStreamDecodedBufferBlocks() * 10)) >> 1);
 		}
-		start  = (u32)aramBufferHeap->mBase;
+		start  = pc_p2_aram_offset(aramBufferHeap->mBase);
 		length = sChannelMax * (JAIGlobalParameter::getParamStreamDecodedBufferBlocks() * 10) >> 1;
 	}
 	streamSystem->init(start, length, systemCallBack, nullptr);
@@ -693,7 +693,7 @@ void playDirect(char* path)
 				info.mStart  = aramBufferHeap->mBase;
 				info.mLength = sChannelMax * (JAIGlobalParameter::getParamStreamDecodedBufferBlocks() * 10) >> 1;
 			}
-			streamSystem->init(reinterpret_cast<u32>(info.mStart), info.mLength, systemCallBack, nullptr);
+			streamSystem->init(pc_p2_aram_offset(info.mStart), info.mLength, systemCallBack, nullptr);
 			streamSystem->prepare(entryNum, -1);
 			controlStatus = 4;
 		} else {

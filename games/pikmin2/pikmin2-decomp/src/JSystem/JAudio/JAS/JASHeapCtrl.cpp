@@ -97,7 +97,7 @@ bool JASHeap::alloc(JASHeap* parent, u32 size)
 		if (minBase >= parent->mBase + tailOffset) {
 			break;
 		}
-		u32 offset = u32(it->mBase) - u32(minBase);
+		u32 offset = P2Address(it->mBase) - P2Address(minBase);
 		if (offset >= size && offset < minOffset) {
 			nextHeap          = it.getObject();
 			base              = minBase;
@@ -611,7 +611,7 @@ void setupAramHeap(u32 aramBase, u32 aramSize)
 	JASMutexLock lock(&audioAramHeap.mMutex);
 	audioAramHeap.mBase      = (u8*)(aramBase + 31 & ~31);
 	audioAramHeap.mLastChild = 0;
-	audioAramHeap.mSize      = aramSize - ((u32)audioAramHeap.mBase - aramBase);
+	audioAramHeap.mSize      = aramSize - ((P2Address)audioAramHeap.mBase - aramBase);
 }
 
 /**

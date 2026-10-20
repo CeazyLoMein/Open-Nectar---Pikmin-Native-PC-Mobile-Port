@@ -68,7 +68,8 @@ endif()
 # ─── Flags de compilación: código decompilado ───
 # Fuerza nuestro header de adaptación ANTES de cualquier include del juego.
 set(CLANG_LEGACY_RELAXATIONS
-    $<$<CXX_COMPILER_ID:Clang>:-Wno-register>
+    $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-register>
+    $<$<CXX_COMPILER_ID:AppleClang>:-Wno-deprecated-register>
     $<$<CXX_COMPILER_ID:Clang>:-Wno-address-of-temporary>
     $<$<CXX_COMPILER_ID:Clang>:-Wno-unknown-warning-option>
     # clang no tiene -fpermissive. Estas dos dejan pasar como aviso lo mismo que

@@ -42,7 +42,7 @@ void GenItem::updateUseList(Generator* gen, int i)
  * @note Address: 0x801ACE80
  * @note Size: 0x6C
  */
-void GenItem::doEvent(u32 idx)
+void GenItem::doEvent(P2Address idx)
 {
 	if ((int*)idx == &mMgrIndex) {
 		if (mParm) {

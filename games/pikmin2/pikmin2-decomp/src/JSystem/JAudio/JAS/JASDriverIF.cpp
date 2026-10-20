@@ -29,9 +29,9 @@ static const f32 C5BASE_PITCHTABLE[] = {
 };
 // clang-format on
 
-static u16 MAX_MIXERLEVEL         = 12000;
-static u16 MAX_AUTOMIXERLEVEL     = 12000;
-static u32 JAS_SYSTEM_OUTPUT_MODE = JASOUTPUT_Stereo;
+u16 MAX_MIXERLEVEL         = 12000;
+u16 MAX_AUTOMIXERLEVEL     = 12000;
+u32 JAS_SYSTEM_OUTPUT_MODE = JASOUTPUT_Stereo;
 
 /**
  * @note Address: 0x800A47D8

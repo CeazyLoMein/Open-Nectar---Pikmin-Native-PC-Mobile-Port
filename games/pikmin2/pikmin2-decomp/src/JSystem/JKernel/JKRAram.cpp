@@ -135,7 +135,7 @@ void* JKRAram::run()
 void JKRAram::checkOkAddress(u8* addr, u32 size, JKRAramBlock* block, u32 param_4)
 {
 	if (param_4 == 0) {
-		if (!IS_ALIGNED((u32)addr, 0x20) && !IS_ALIGNED(size, 0x20)) {
+		if (!IS_ALIGNED((P2Address)addr, 0x20) && !IS_ALIGNED(size, 0x20)) {
 			JUT_PANICLINE(219, "%s", ":::address not 32Byte aligned.");
 		}
 		return;
@@ -205,7 +205,7 @@ JKRAramBlock* JKRAram::mainRamToAram(u8* buf, u32 bufSize, u32 alignedSize, JKRE
 
 		} else {
 			JKRDecompress(buf, allocatedMem, fileSize, 0);
-			JKRAramPcs(0, (u32)allocatedMem, bufSize, alignedSize, block);
+			JKRAramPcs(0, (P2Address)allocatedMem, bufSize, alignedSize, block);
 			JKRFreeToHeap(heap, allocatedMem);
 			block = (!block) ? (JKRAramBlock*)-1 : block;
 			if (pSize) {
@@ -226,7 +226,7 @@ JKRAramBlock* JKRAram::mainRamToAram(u8* buf, u32 bufSize, u32 alignedSize, JKRE
 			bufSize = block->getAddress();
 		}
 
-		JKRAramPcs(0, (u32)buf, bufSize, alignedSize, block);
+		JKRAramPcs(0, (P2Address)buf, bufSize, alignedSize, block);
 		block = (!block) ? (JKRAramBlock*)-1 : block;
 		if (pSize) {
 			*pSize = alignedSize;
@@ -252,8 +252,8 @@ u8* JKRAram::aramToMainRam(u32 address, u8* buf, u32 size, JKRExpandSwitch expan
 	u32 expandSize;
 	if (expandSwitch == Switch_1) {
 		u8 buffer[64];
-		u8* bufPtr = (u8*)ALIGN_NEXT((u32)buffer, 32);
-		JKRAramPcs(1, address, (u32)bufPtr, sizeof(buffer) / 2, nullptr); // probably change sizeof(buffer) / 2 to 32
+		u8* bufPtr = (u8*)ALIGN_NEXT((P2Address)buffer, 32);
+		JKRAramPcs(1, address, (P2Address)bufPtr, sizeof(buffer) / 2, nullptr); // probably change sizeof(buffer) / 2 to 32
 		compression = JKRCheckCompressed(bufPtr);
 		expandSize  = JKRDecompExpandSize(bufPtr);
 	}
@@ -278,7 +278,7 @@ u8* JKRAram::aramToMainRam(u32 address, u8* buf, u32 size, JKRExpandSwitch expan
 		if (!szpSpace) {
 			return nullptr;
 		} else {
-			JKRAramPcs(1, address, (u32)szpSpace, size, nullptr);
+			JKRAramPcs(1, address, (P2Address)szpSpace, size, nullptr);
 			if (maxExpandSize != 0 && maxExpandSize < expandSize)
 				expandSize = maxExpandSize;
 
@@ -311,7 +311,7 @@ u8* JKRAram::aramToMainRam(u32 address, u8* buf, u32 size, JKRExpandSwitch expan
 
 		} else {
 			changeGroupIdIfNeed(buf, id);
-			JKRAramPcs(1, address, (u32)buf, size, nullptr);
+			JKRAramPcs(1, address, (P2Address)buf, size, nullptr);
 			if (pSize) {
 				*pSize = size;
 			}
@@ -539,7 +539,7 @@ static u8* firstSrcData()
 	u32 max       = (szpEnd - szpBuf);
 	u32 transSize = MIN(transLeft, max);
 
-	JKRAramPcs(1, srcAddress + srcOffset, (u32)buf, ALIGN_NEXT(transSize, 32), nullptr);
+	JKRAramPcs(1, srcAddress + srcOffset, (P2Address)buf, ALIGN_NEXT(transSize, 32), nullptr);
 
 	srcOffset += transSize;
 	transLeft -= transSize;
@@ -566,7 +566,7 @@ static u8* nextSrcData(u8* current)
 		transSize = transLeft;
 	}
 
-	JKRAramPcs(1, (u32)(srcAddress + srcOffset), ((u32)dest + left), ALIGN_NEXT(transSize, 0x20), nullptr);
+	JKRAramPcs(1, (u32)(srcAddress + srcOffset), ((P2Address)dest + left), ALIGN_NEXT(transSize, 0x20), nullptr);
 	srcOffset += transSize;
 	transLeft -= transSize;
 

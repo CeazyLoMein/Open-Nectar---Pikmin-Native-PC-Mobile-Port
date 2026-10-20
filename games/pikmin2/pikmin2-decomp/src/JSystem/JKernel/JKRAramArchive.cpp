@@ -282,7 +282,7 @@ u32 JKRAramArchive::fetchResource_subroutine(u32 srcAram, u32 size, JKRHeap* hea
 			}	case COMPRESSION_YAY0:
 	case COMPRESSION_YAZ0: {
 		u8 decompBuf[64];
-		u8* bufptr = (u8*)ALIGN_NEXT((u32)decompBuf, 32);
+		u8* bufptr = (u8*)ALIGN_NEXT((P2Address)decompBuf, 32);
 		JKRAramToMainRam(srcAram, bufptr, sizeof(decompBuf) / 2, Switch_0, 0, nullptr, -1, nullptr);
 
 		u32 expandSize = ALIGN_NEXT(JKRDecompExpandSize(bufptr), 32);
@@ -318,7 +318,7 @@ u32 JKRAramArchive::getExpandedResSize(const void* resource) const
 	}
 
 	u8 buf[64];
-	u8* bufPtr = (u8*)ALIGN_NEXT((u32)buf, 32);
+	u8* bufPtr = (u8*)ALIGN_NEXT((P2Address)buf, 32);
 
 	JKRAramToMainRam(fileEntry->mDataOffset + mBlock->getAddress(), bufPtr, sizeof(buf) / 2, Switch_0, 0, nullptr, -1, nullptr);
 

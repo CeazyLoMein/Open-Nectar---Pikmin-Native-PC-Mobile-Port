@@ -19,7 +19,7 @@ u32 JKRArchive::sCurrentDirID;
  * @note Address: 0x8001A4BC
  * @note Size: 0xA8
  */
-JKRArchive::JKRArchive(s32 entryNum, JKRArchive::EMountMode mountMode)
+JKRArchive::JKRArchive(P2SignedAddress entryNum, JKRArchive::EMountMode mountMode)
     : JKRFileLoader()
 {
 	mIsMounted  = false;

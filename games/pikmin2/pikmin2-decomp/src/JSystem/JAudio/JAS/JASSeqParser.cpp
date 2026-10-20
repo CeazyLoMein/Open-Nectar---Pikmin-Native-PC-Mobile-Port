@@ -827,7 +827,7 @@ int JASSeqParser::cmdPrintf(JASTrack* track, u32* args)
 {
 	char buf[128];
 	u8 byteArray[4];
-	int registers[4];
+	P2SignedAddress registers[4];
 	u32 count = 0;
 
 	for (u32 i = 0; i < 128; i++) {
@@ -888,7 +888,7 @@ int JASSeqParser::cmdPrintf(JASTrack* track, u32* args)
 	for (u32 i = 0; i < count; i++) {
 		registers[i] = track->getSeq()->readByte();
 		if (byteArray[i] == 2) {
-			registers[i] = (int)&track->getSeq()->mRawFilePtr[registers[i]];
+			registers[i] = (P2SignedAddress)&track->getSeq()->mRawFilePtr[registers[i]];
 		} else if (byteArray[i] == 5) {
 			registers[i] = track->_348;
 		} else if (byteArray[i] >= 3) {

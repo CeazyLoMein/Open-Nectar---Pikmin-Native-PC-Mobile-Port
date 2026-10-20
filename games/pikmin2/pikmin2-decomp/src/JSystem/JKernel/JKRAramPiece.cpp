@@ -26,15 +26,15 @@ struct OrderSyncMsg {
  * @note Address: 0x80019AF8
  * @note Size: 0x1AC
  */
-bool JKRAramPiece::orderSync(int direction, u32 source, u32 destination, u32 length, JKRAramBlock* block)
+bool JKRAramPiece::orderSync(int direction, P2Address source, P2Address destination, u32 length, JKRAramBlock* block)
 {
 	OSLockMutex(&mMutex);
 	OSLockMutex(&mMutex);
 
 	if (!IS_ALIGNED(source, 32) || !IS_ALIGNED(destination, 32)) {
 		OSReport("direction = %x\n", direction);
-		OSReport("source = %x\n", source);
-		OSReport("destination = %x\n", destination);
+		OSReport("source = %llx\n", static_cast<unsigned long long>(source));
+		OSReport("destination = %llx\n", static_cast<unsigned long long>(destination));
 		OSReport("length = %x\n", length);
 		OSErrorLine(107, "Abort.");
 	}

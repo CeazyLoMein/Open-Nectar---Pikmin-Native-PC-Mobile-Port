@@ -105,7 +105,7 @@ bool JKRCompArchive::open(s32 entryNum)
 				JKRDvdToMainRam(entryNum, (u8*)mDataInfo, Switch_1, (u32)arcHeader->mFileDataOffset + mMemSize, nullptr,
 				                JKRDvdRipper::ALLOC_DIR_TOP, 0x20, nullptr, nullptr);
 				DCInvalidateRange(mDataInfo, (u32)arcHeader->mFileDataOffset + mMemSize);
-				_64 = (u32)mDataInfo + arcHeader->mFileDataOffset;
+				_64 = (P2Address)mDataInfo + arcHeader->mFileDataOffset;
 
 				if (mAramSize != 0) {
 					mAramPart = JKRAllocFromAram(mAramSize, JKRAramHeap::AM_Head);
@@ -118,9 +118,9 @@ bool JKRCompArchive::open(s32 entryNum)
 					             arcHeader->mHeaderLength + arcHeader->mFileDataOffset + mMemSize, 0, nullptr);
 				}
 
-				mDirectories = (SDIDirEntry*)((u32)mDataInfo + mDataInfo->mDirEntryOffset);
-				mFileEntries = (SDIFileEntry*)((u32)mDataInfo + mDataInfo->mFileEntryOffset);
-				mStrTable    = (const char*)((u32)mDataInfo + mDataInfo->mStrTableOffset);
+				mDirectories = (SDIDirEntry*)((P2Address)mDataInfo + mDataInfo->mDirEntryOffset);
+				mFileEntries = (SDIFileEntry*)((P2Address)mDataInfo + mDataInfo->mFileEntryOffset);
+				mStrTable    = (const char*)((P2Address)mDataInfo + mDataInfo->mStrTableOffset);
 				_6C          = arcHeader->mHeaderLength + arcHeader->mFileDataOffset;
 			}
 			break;
@@ -151,7 +151,7 @@ bool JKRCompArchive::open(s32 entryNum)
 					} else {
 						// arcHeader + 1 should lead to 0x20, which is the data after the header
 						JKRHeap::copyMemory((u8*)mDataInfo, arcHeader + 1, (arcHeader->mFileDataOffset + mMemSize));
-						_64 = (u32)mDataInfo + arcHeader->mFileDataOffset;
+						_64 = (P2Address)mDataInfo + arcHeader->mFileDataOffset;
 						if (mAramSize) {
 							mAramPart = JKRAllocFromAram(mAramSize, JKRAramHeap::AM_Head);
 							if (!mAramPart) {
@@ -164,9 +164,9 @@ bool JKRCompArchive::open(s32 entryNum)
 					}
 				}
 			}
-			mDirectories = (SDIDirEntry*)((u32)mDataInfo + mDataInfo->mDirEntryOffset);
-			mFileEntries = (SDIFileEntry*)((u32)mDataInfo + mDataInfo->mFileEntryOffset);
-			mStrTable    = (const char*)((u32)mDataInfo + mDataInfo->mStrTableOffset);
+			mDirectories = (SDIDirEntry*)((P2Address)mDataInfo + mDataInfo->mDirEntryOffset);
+			mFileEntries = (SDIFileEntry*)((P2Address)mDataInfo + mDataInfo->mFileEntryOffset);
+			mStrTable    = (const char*)((P2Address)mDataInfo + mDataInfo->mStrTableOffset);
 			_6C          = arcHeader->mHeaderLength + arcHeader->mFileDataOffset;
 			break;
 		}
@@ -364,7 +364,7 @@ u32 JKRCompArchive::getExpandedResSize(const void* resource) const
 	}
 
 	u8 buf[64];
-	u8* bufPtr = (u8*)ALIGN_NEXT((u32)buf, 32);
+	u8* bufPtr = (u8*)ALIGN_NEXT((P2Address)buf, 32);
 	if (flags & 0x20) {
 		JKRAramToMainRam(fileEntry->mDataOffset + mAramPart->mAddress, bufPtr, sizeof(buf) / 2, Switch_0, 0, nullptr, -1, nullptr);
 		DCInvalidateRange(bufPtr, sizeof(buf) / 2);

@@ -402,7 +402,7 @@ void ObjectActor::mountArchive()
  */
 void ObjectActor::parseUserData_(u32 p1, void const* p2)
 {
-	OSReport("data-ID : %u (0x%08x)\n", p1, (u32)p2);
+	OSReport("data-ID : %u (%p)\n", p1, p2);
 	typedef JGadget::binary::TValueIterator_misaligned<s16> IntIterator;
 	JStudio::stb::TParseData_fixed<0x22, IntIterator> ints(p2);
 	if (ints.isEnd()) {

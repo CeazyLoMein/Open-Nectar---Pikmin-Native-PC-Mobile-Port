@@ -384,7 +384,17 @@ void JUTProcBar::getUnuseUserBar()
  */
 int addrToXPos(void* baseAddress, int xPosMultiplier)
 {
+#ifdef PIKI_PC_PORT
+	JKRHeap* root = JKRHeap::getRootHeap();
+	if (!root || !JKRHeap::getMemorySize()) return 0;
+	const P2Address start = (P2Address)root->getStartAddr();
+	const P2Address address = (P2Address)baseAddress;
+	if (address <= start) return 0;
+	const double fraction = (address - start) / static_cast<double>(JKRHeap::getMemorySize());
+	return static_cast<int>(xPosMultiplier * (fraction > 1.0 ? 1.0 : fraction));
+#else
 	return xPosMultiplier * (((u32)baseAddress - 0x80000000) / (f32)JKRHeap::getMemorySize());
+#endif
 }
 /**
  * @note Address: N/A

@@ -187,8 +187,8 @@ struct JKRAMCommand : public ARQRequest {
 	JSULink<JKRAMCommand> _30;        // _30
 	s32 mDirection;                   // _40
 	u32 mLength;                      // _44
-	u32 mSource;                      // _48
-	u32 mDestination;                 // _4C
+	P2Address mSource;                      // _48
+	P2Address mDestination;                 // _4C
 	JKRAramBlock* mAramBlock;         // _50
 	u8 _54[4];                        // _54
 	Callback mCallback;               // _58
@@ -271,7 +271,7 @@ struct JKRAramPiece {
 	    u32 cmdAddr
 #endif
 	);
-	static bool orderSync(int direction, u32 src, u32 dest, u32 length, JKRAramBlock* block);
+	static bool orderSync(int direction, P2Address src, P2Address dest, u32 length, JKRAramBlock* block);
 	static void sendCommand(JKRAMCommand* cmd);
 	static void startDMA(JKRAMCommand* cmd);
 
@@ -311,7 +311,7 @@ inline void JKRAramToMainRam(u32 addr, u8* buf, u32 size, JKRExpandSwitch expand
 	JKRAram::aramToMainRam(addr, buf, size, expandSwitch, maxExpandSize, heap, id, pSize);
 }
 
-inline BOOL JKRAramPcs(int direction, u32 source, u32 destination, u32 length, JKRAramBlock* block)
+inline BOOL JKRAramPcs(int direction, P2Address source, P2Address destination, u32 length, JKRAramBlock* block)
 {
 	return JKRAramPiece::orderSync(direction, source, destination, length, block);
 }

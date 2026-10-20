@@ -251,6 +251,18 @@ void*    pc_host_from_gc_phys(uint32_t phys);
 }
 #endif
 
+#ifdef __cplusplus
+static inline uint32_t pc_p2_aram_offset(const void* encoded)
+{
+    const uintptr_t value = reinterpret_cast<uintptr_t>(encoded);
+    if (value > UINT32_MAX) {
+        fprintf(stderr, "[PC Port] invalid 32-bit ARAM offset/count: %p\n", encoded);
+        abort();
+    }
+    return static_cast<uint32_t>(value);
+}
+#endif
+
 /* ── Macro de traza ── */
 #define TRAP_UNIMPLEMENTED \
     do { fprintf(stderr, "Unimplemented: %s in %s:%d\n", __func__, __FILE__, __LINE__); } while(0)

@@ -43,7 +43,7 @@ bool MapCode::Code::isBald()
  */
 inline void MapCode::Code::write(Stream& output)
 {
-	output.writeByte((u8)getContents());
+	output.writeByte(mContents);
 }
 
 /* --INLINE--

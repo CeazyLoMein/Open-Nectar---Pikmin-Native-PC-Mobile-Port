@@ -263,7 +263,7 @@ void checkEntriedSeq()
 				}
 
 			} else {
-				if ((u32)dataPtr == 0xFFFFFFFF) {
+				if (((P2Address)dataPtr == 0xFFFFFFFFu || (P2Address)dataPtr == (P2Address)-1)) {
 					continue;
 				}
 				if (heapIdx != 255) {

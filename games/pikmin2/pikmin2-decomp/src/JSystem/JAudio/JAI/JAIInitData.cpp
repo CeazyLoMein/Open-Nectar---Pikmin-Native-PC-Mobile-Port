@@ -164,9 +164,9 @@ void JAInter::InitData::initBnkList(u32* p1)
 	while ((aafPointer)[*p1] != 0) {
 		BankWave::initOnCodeBnk[val31].mBankData
 #ifdef PIKI_PC_PORT
-		    = (int*)((uintptr_t) reinterpret_cast<int*>(aafPointer) + (u32)BankWave::initOnCodeBnk[val31].mBankData);
+		    = (int*)((uintptr_t) reinterpret_cast<int*>(aafPointer) + (P2Address)BankWave::initOnCodeBnk[val31].mBankData);
 #else
-		    = (int*)((u32) reinterpret_cast<int*>(aafPointer) + (u32)BankWave::initOnCodeBnk[val31].mBankData);
+		    = (int*)((u32) reinterpret_cast<int*>(aafPointer) + (P2Address)BankWave::initOnCodeBnk[val31].mBankData);
 #endif
 		*p1 += 3;
 		val31++;
@@ -192,9 +192,9 @@ void JAInter::InitData::initWsList(u32* data)
 	while ((aafPointer)[*data] != 0) {
 		BankWave::initOnCodeWs[waveformIndex]._00
 #ifdef PIKI_PC_PORT
-		    = (int*)((uintptr_t) reinterpret_cast<int*>(aafPointer) + (u32)BankWave::initOnCodeWs[waveformIndex]._00);
+		    = (int*)((uintptr_t) reinterpret_cast<int*>(aafPointer) + (P2Address)BankWave::initOnCodeWs[waveformIndex]._00);
 #else
-		    = (int*)((u32) reinterpret_cast<int*>(aafPointer) + (u32)BankWave::initOnCodeWs[waveformIndex]._00);
+		    = (int*)((u32) reinterpret_cast<int*>(aafPointer) + (P2Address)BankWave::initOnCodeWs[waveformIndex]._00);
 #endif
 		BankWave::wsMax++;
 		*data += 3;

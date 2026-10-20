@@ -344,7 +344,7 @@ static u32 sAramNext = 0x4000;
 static u32 sAramSize = 16 * 1024 * 1024;
 static AIDCallback sAiDmaCallback;
 static BOOL sAiDmaEnabled;
-static u32 sAiDmaAddr;
+static P2Address sAiDmaAddr;
 static u32 sAiDmaLength;
 
 extern "C" {
@@ -1536,7 +1536,7 @@ AIDCallback AIRegisterDMACallback(AIDCallback cb)
 	sAiDmaCallback   = cb;
 	return prev;
 }
-void AIInitDMA(u32 addr, u32 length)
+void AIInitDMA(P2Address addr, u32 length)
 {
 	sAiDmaAddr   = addr;
 	sAiDmaLength = length;
@@ -1544,7 +1544,7 @@ void AIInitDMA(u32 addr, u32 length)
 void AIStartDMA() { sAiDmaEnabled = TRUE; }
 void AIStopDMA() { sAiDmaEnabled = FALSE; }
 BOOL AIGetDMAEnableFlag() { return sAiDmaEnabled; }
-u32 AIGetDMAStartAddr() { return sAiDmaAddr; }
+P2Address AIGetDMAStartAddr() { return sAiDmaAddr; }
 u32 AIGetDMALength() { return sAiDmaLength; }
 u32 AIGetDMABytesLeft() { return 0; }
 void AISetDSPSampleRate(u32) {}
@@ -1574,7 +1574,7 @@ void AIInit(u8*)
 }
 
 void ARQInit() {}
-void ARQPostRequest(ARQRequest* task, u32, u32, u32, u32 src, u32 dst, u32 len, ARQCallback cb)
+void ARQPostRequest(ARQRequest* task, u32, u32, u32, P2Address src, P2Address dst, u32 len, ARQCallback cb)
 {
 	if (task) {
 		task->source = src;

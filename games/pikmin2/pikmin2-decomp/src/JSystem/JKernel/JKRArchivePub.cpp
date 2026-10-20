@@ -10,7 +10,7 @@
  * @note Address: N/A
  * @note Size: 0x54
  */
-JKRArchive* JKRArchive::check_mount_already(s32 entryNum)
+JKRArchive* JKRArchive::check_mount_already(P2SignedAddress entryNum)
 {
 	// UNUSED FUNCTION
 	P2_UNUSED_FUNCTION_TRAP();
@@ -20,7 +20,7 @@ JKRArchive* JKRArchive::check_mount_already(s32 entryNum)
  * @note Address: N/A
  * @note Size: 0x6C
  */
-JKRArchive* JKRArchive::check_mount_already(s32 entryNum, JKRHeap* pHeap)
+JKRArchive* JKRArchive::check_mount_already(P2SignedAddress entryNum, JKRHeap* pHeap)
 {
 	// UNUSED FUNCTION
 	JKRHeap* heap = pHeap;
@@ -58,7 +58,7 @@ JKRArchive* JKRArchive::mount(const char* path, EMountMode mode, JKRHeap* heap, 
  */
 JKRArchive* JKRArchive::mount(void* mem, JKRHeap* heap, EMountDirection mountDirection)
 {
-	JKRArchive* archive = check_mount_already((s32)mem, heap);
+	JKRArchive* archive = check_mount_already((P2SignedAddress)mem, heap);
 	if (archive != nullptr) {
 		return archive;
 	}

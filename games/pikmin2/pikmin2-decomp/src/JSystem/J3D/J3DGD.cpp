@@ -23,7 +23,7 @@ static u8 J3DGDTexImage0Ids[8] = { 0x88, 0x89, 0x8A, 0x8B, 0xA8, 0xA9, 0xAA, 0xA
 // static u8 J3DGDTexImage2Ids[8]; // unused
 static u8 J3DGDTexImage3Ids[8] = { 0x94, 0x95, 0x96, 0x97, 0xB4, 0xB5, 0xB6, 0xB7 };
 static u8 J3DGDTexTlutIds[8]   = { 0x98, 0x99, 0x9A, 0x9B, 0xB8, 0xB9, 0xBA, 0xBB };
-static u8 GX2HWFiltConv[6]     = { 0, 4, 1, 5, 2, 6 };
+static u8 J3DLocalFiltConv[6]     = { 0, 4, 1, 5, 2, 6 };
 // static u8 HW2GXFiltConv[8]; // unused
 static u8 J3DTexImage1Ids[8] = { 0x8C, 0x8D, 0x8E, 0x8F, 0xAC, 0xAD, 0xAE, 0xAF };
 static u8 J3DTexImage2Ids[8] = { 0x90, 0x91, 0x92, 0x93, 0xB0, 0xB1, 0xB2, 0xB3 };
@@ -371,7 +371,7 @@ void J3DGDSetTexCoordScale2(GXTexCoordID id, u16 scaleS, u8 biasS, u8 wrapS, u16
 void J3DGDSetTexLookupMode(GXTexMapID id, GXTexWrapMode wrapS, GXTexWrapMode wrapT, GXTexFilter minFilter, GXTexFilter magFilter,
                            f32 minLOD, f32 maxLOD, f32 lodBias, u8 biasClamp, u8 edgeLOD, GXAnisotropy maxAniso)
 {
-	J3DGDWriteBPCmd((wrapS) << 0 | (wrapT) << 2 | (magFilter == GX_LINEAR) << 4 | (GX2HWFiltConv[minFilter]) << 5 | (!edgeLOD) << 8
+	J3DGDWriteBPCmd((wrapS) << 0 | (wrapT) << 2 | (magFilter == GX_LINEAR) << 4 | (J3DLocalFiltConv[minFilter]) << 5 | (!edgeLOD) << 8
 	                | ((u8)(lodBias * 32.0f)) << 9 | (maxAniso) << 19 | (biasClamp) << 21 | (J3DGDTexMode0Ids[id] << 24));
 	J3DGDWriteBPCmd(((u8)(minLOD * 16.0f)) << 0 | ((u8)(maxLOD * 16.0f)) << 8 | (J3DGDTexMode1Ids[id] << 24));
 }

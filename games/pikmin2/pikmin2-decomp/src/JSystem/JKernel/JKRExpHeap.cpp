@@ -184,7 +184,7 @@ void* JKRExpHeap::allocFromHead(u32 size, int align)
 		if (block->mAllocatedSpace < size + offset) {
 			continue;
 		}
-		if (foundSize <= (u32)block->mAllocatedSpace) {
+		if (foundSize <= (P2Address)block->mAllocatedSpace) {
 			continue;
 		}
 		foundSize   = block->mAllocatedSpace;
@@ -266,7 +266,7 @@ void* JKRExpHeap::allocFromHead(u32 size)
 		if (block->mAllocatedSpace < size) {
 			continue;
 		}
-		if (foundSize <= (u32)block->mAllocatedSpace) { // TODO: figure out if mAllocatedSpace is u32 or not
+		if (foundSize <= (P2Address)block->mAllocatedSpace) { // TODO: figure out if mAllocatedSpace is u32 or not
 			continue;
 		}
 		foundSize  = block->mAllocatedSpace;
@@ -1066,10 +1066,10 @@ void JKRExpHeap::state_register(JKRHeap::TState* p, u32 param_1) const
 		if (param_1 <= 0xff) {
 			u8 groupId = block->mGroupID;
 			if (groupId == param_1) {
-				checkCode += (u32)block * 3;
+				checkCode += (P2Address)block * 3;
 			}
 		} else {
-			checkCode += (u32)block * 3;
+			checkCode += (P2Address)block * 3;
 		}
 	}
 	setState_u32CheckCode_(p, checkCode);

@@ -11,9 +11,9 @@
 
 namespace JASDsp {
 
-static TChannel* CH_BUF;
-static Fxline* FX_BUF;
-static f32 sDSPVolume;
+TChannel* CH_BUF;
+Fxline* FX_BUF;
+f32 sDSPVolume;
 
 static const u16 DSPADPCM_FILTER[32] ATTRIBUTE_ALIGN(32)
     = { 0x0,    0x0,    0x800,  0x0,    0x0,    0x800,  0x400, 0x400,  0x1000, 0xF800, 0xE00,  0xFA00, 0xC00,  0xFC00, 0x1200, 0xF600,
@@ -208,9 +208,10 @@ void initBuffer()
 	for (u8 i = 0; i < 4; i++) {
 		setFXLine(i, nullptr, nullptr);
 	}
-	DsetupTable(0x40, (u32)CH_BUF, (u32)DSPRES_FILTER, (u32)DSPADPCM_FILTER, (u32)FX_BUF);
 #ifdef PIKI_PC_PORT
 	pc_p2_audio_set_dsp_tables(DSPRES_FILTER, DSPADPCM_FILTER);
+#else
+	DsetupTable(0x40, (u32)CH_BUF, (u32)DSPRES_FILTER, (u32)DSPADPCM_FILTER, (u32)FX_BUF);
 #endif
 	DCFlushRange(CH_BUF, sizeof(u8) * 0x6000);
 	DCFlushRange(FX_BUF, sizeof(u16) * 0x40);

@@ -37,10 +37,10 @@ void GenPellet::initialise()
  * @note Address: 0x802028B4
  * @note Size: 0x6C
  */
-void GenPellet::doEvent(u32 flag)
+void GenPellet::doEvent(P2Address flag)
 {
 	// weird check?
-	if (flag == (int)&mPelType) {
+	if (flag == (P2Address)&mPelType) {
 		if (mGenParm) {
 			delete mGenParm;
 		}

@@ -60,7 +60,7 @@ JKRThread::JKRThread(OSThread* thread, int msgCount)
 {
 	mHeap      = nullptr;
 	mThread    = thread;
-	mStackSize = (u32)thread->stackEnd - (u32)thread->stackBase;
+	mStackSize = (P2Address)thread->stackEnd - (P2Address)thread->stackBase;
 	mStack     = thread->stackBase;
 	setCommon_mesgQueue(JKRHeap::sSystemHeap, msgCount);
 }

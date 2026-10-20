@@ -623,7 +623,7 @@ void JASAramStream::updateChannel(u32 command, JASChannel* chan, JASDsp::TChanne
 				_1B0 = 1;
 			}
 
-			u32 sampleOffset = dspChan->mSampleOffset - (u32)chan->mWaveData;
+			u32 sampleOffset = dspChan->mSampleOffset - pc_p2_aram_offset(chan->mWaveData);
 			if (sampleOffset != 0) {
 				sampleOffset--;
 			}
@@ -738,7 +738,7 @@ int JASAramStream::channelProc()
 {
 	OSMessage msg;
 	while (OSReceiveMessage(&mMsgQueueB, &msg, OS_MESSAGE_NOBLOCK)) {
-		switch ((u32)msg) {
+		switch ((P2Address)msg) {
 		case 4:
 			_19C = true;
 			break;
@@ -753,12 +753,12 @@ int JASAramStream::channelProc()
 	}
 
 	while (OSReceiveMessage(&mMsgQueueA, &msg, OS_MESSAGE_NOBLOCK)) {
-		switch ((u32)msg & 0xFF) {
+		switch ((P2Address)msg & 0xFF) {
 		case 0:
 			channelStart();
 			break;
 		case 1:
-			channelStop((u32)msg >> 16);
+			channelStop(static_cast<u32>((P2Address)msg >> 16));
 			break;
 		case 2:
 			mPauseFlags |= 1;

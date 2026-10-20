@@ -174,7 +174,7 @@ s32 JKRDvdFile::sync()
 	OSReceiveMessage(&mMessageQueue2, buffer, OS_MESSAGE_BLOCK);
 	mThread = nullptr;
 	OSUnlockMutex(&mDvdMutex);
-	return (u32)*buffer;
+	return static_cast<s32>((P2SignedAddress)*buffer);
 }
 
 /**

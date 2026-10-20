@@ -379,10 +379,10 @@ void JASChannel::initialUpdateDSPChannel(JASDsp::TChannel* dspChan)
 
 	switch (mWaveFormat) {
 	case 0:
-		dspChan->setWaveInfo(*mWaveInfo, (u32)mWaveData, _C8);
+		dspChan->setWaveInfo(*mWaveInfo, pc_p2_aram_offset(mWaveData), _C8);
 		break;
 	case 2:
-		dspChan->setOscInfo((u32)mWaveData);
+		dspChan->setOscInfo(pc_p2_aram_offset(mWaveData));
 		break;
 	}
 

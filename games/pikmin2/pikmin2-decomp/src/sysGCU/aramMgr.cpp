@@ -47,7 +47,11 @@ inline u32 Node::dvdToAram(char const* name, bool forceFail)
 		}
 	}
 
+	#ifdef PIKI_PC_PORT
+	return mMemoryBlock ? 1u : 0u;
+#else
 	return reinterpret_cast<u32>(mMemoryBlock);
+#endif
 }
 
 inline void* Node::aramToMainRam(u8* buf, u32 address, u32 offset, JKRExpandSwitch expandSwitch, u32 maxExpandSize, JKRHeap* heap,

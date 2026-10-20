@@ -58,7 +58,7 @@ void initAI(AIDCallback callback)
 	sDspDacReadBuffer  = 0;
 	sDspStatus         = 0;
 	AIInit(nullptr);
-	AIInitDMA((u32)sDmaDacBuffer[2], size);
+	AIInitDMA((P2Address)sDmaDacBuffer[2], size);
 	AISetDSPSampleRate(sOutputRate != 0);
 	AIRegisterDMACallback(callback);
 }
@@ -101,7 +101,7 @@ void updateDac()
 		s16* rsp     = lastRspMadep;
 		lastRspMadep = nullptr;
 		if (rsp) {
-			AIInitDMA((u32)rsp, getDacSize() * 2);
+			AIInitDMA((P2Address)rsp, getDacSize() * 2);
 		}
 	}
 
