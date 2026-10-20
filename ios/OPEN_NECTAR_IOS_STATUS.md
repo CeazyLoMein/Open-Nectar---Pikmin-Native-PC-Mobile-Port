@@ -1,3 +1,7 @@
+CURRENT - 2026-10-20 09:38 EDT: Build26 PHONE REGRESSIONS: menu gear/A hidden;
+captain-preview/Metal heap crashes. P2-only batch locally checked; Build27/run39432157516 (in_progress at dispatch).
+New Apple build and phone results pending. Build24 backup; P1 untouched.
+
 CURRENT - 2026-10-20 09:37 EDT: Build26 PHONE REGRESSIONS: menu gear/A hidden;
 captain-preview/Metal heap crashes. P2-only batch locally checked; not dispatched.
 New Apple build and phone results pending. Build24 backup; P1 untouched.
@@ -1380,6 +1384,69 @@ compile, full game build/new IPA, phone regressions remain pending.
 
 Candidate:not committed; not dispatched
 
+No idle polling. Next action after successful IPA: update P2 only, preserve data,
+repeat Begin selection several times, check gear/A before/during/after title
+opening, advanced/original options, enter gameplay then pause/resume repeatedly.
+If crash, read fresh UUID-matched report. P1 and assets/art unchanged.
+
+## Build26 hardware regressions and coordinated P2 fix - 2026-10-20 09:38 EDT
+
+User Build26 phone test: title initially blurred with gameplay controls;
+then sharpens and shows only Back/X, blocking advanced settings gear. Begin
+campaign intermittent; third attempt entered gameplay. Pressing top-left pause
+crashed. Ignore logo/flower layout differences in screenshots (opening animation).
+
+Both fresh crashes match Build26 UUID0bd204c6-8a62-35ed-82e6-4ef2cfc76b14.
+09:22:04 main thread: SIGABRT in AppleMetalGLRenderer clearBuffers -> pc_gfx_clear_depth
+ -> pc_p2_captain_preview_begin -> pc_captain_select_draw_3d -> VIWaitForRetrace.
+09:24:55 Metal CompletionQueueDispatch: SIGABRT OSPanic -> JKRExpHeap::joinTwoBlocks
+ -> do_free -> operator delete -> AGX ResourceGroupUsage/command-buffer dealloc.
+Confirms native Metal destruction reached the game heap. Likely source: missing
+host routing during native graphics allocations; specific allocation site for
+completion failure cannot be proven from its free-only crash stack alone.
+Depth clear and numerous GL calls were unguarded; P2 VIWaitForRetrace also called
+SDL_GL_SwapWindow outside pc_gfx_present's host guard. Existing native worker
+thread defaults and16-byte alignment did not cover native calls on game thread.
+09:20 Jetsam report contained no P2 process; no evidence it explains these crashes.
+Phone settings read-only: renderScale=.666667, logical932x430, fpsMode0.
+Raw reports/config are private local evidence, not committed to public repository.
+
+Controls: title claimed touch only in interactive Wait; once it did, the menu
+filter admitted Back plus help-requested buttons and explicit confirm contexts.
+Title has no help icons, so gear/A disappeared at the same point native menus
+became sharp. Small right-half taps could become camera gestures in generic
+menus, cancelling clicks. Source supports this explanation; runtime fixes pending.
+
+P2-only batch: restoring host-allocation scope at the beginning of all100
+parsed direct-GL functions in pc_gfx.cpp (86 entries added/moved; two old inline
+scope implementations unified). Includes clear depth, copy/held-frame/texture
+upload/state/present helpers. Native SDL window init/swap/interval/shutdown and
+narrow event-pump helper guarded. P2 VIWaitForRetrace's independent swap block
+host-scoped. Preserve16-byte allocator policy, game-thread ownership, UIKit
+FBO/RBO and native menu/point-budget frame latch. No JKR heap bypass for game
+objects, no history rewrite, no P1 changes.
+
+Menu filter retains Back, gear/settings and A for any active game-menu lease;
+other gameplay controls still require visible context/help. Existing exclusive
+modal input guards still block advanced-menu opening over their ownership.
+No gameplay camera gesture begins while ANY game menu owns touch; existing
+menu swipe/port scroll handlers retained. Title claims menu in OpenScreen and
+Draw, not just Wait, to avoid delayed animated-title resolution/control switch.
+One frame of render-context transition can still occur; no zero-flicker hardware claim.
+
+Tests: new direct-GL scope audit (100 entries) integrated into existing allocator
+fixture generation; negative control removing clear-depth guard rejected.
+Actual clear-depth implementation exercised with lazy native allocations and
+completion-thread frees, including nested scope restoration; native1359 and
+console1280 MSVC checks PASS. Menu188/iPhone,198/desktop PASS including actual
+button hitboxes for gear/A after generic menu ownership. Clang19 parser checks
+for both menus and native/console/Apple-scalar allocator PASS. Includes static
+checks for native SDL entry scopes, independent VI swap, title opening/drawing.
+These are host mocks/parsing, not Apple graphics execution. Apple ARM64 target
+compile, full game build/new IPA, phone regressions remain pending.
+
+Candidate:8d77c5337863f34800bc7b7ef990878e586d7c48; Build27/run39432157516 (in_progress at dispatch)
+https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39432157516
 No idle polling. Next action after successful IPA: update P2 only, preserve data,
 repeat Begin selection several times, check gear/A before/during/after title
 opening, advanced/original options, enter gameplay then pause/resume repeatedly.
