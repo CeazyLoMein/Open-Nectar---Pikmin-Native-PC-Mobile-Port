@@ -1,3 +1,9 @@
+CURRENT CHECKPOINT - October 20, 2026: P2 Build22 installs but crashes at first
+draw. Real phone crash reports identify an alignment fault; allocator + renderer
+scope candidate implemented and local tests passed. Next P2-only Apple build and
+phone retest pending. P1 working and untouched. Read newest journal entry below;
+historical pending/paused instructions are superseded by this checkpoint.
+
 # Open Nectar native iOS status
 
 Updated: 2026-10-19, America/New_York. Branch: `ios-experimental`.
@@ -821,3 +827,70 @@ P2ArtAudit. No modifications to working P1app,settings,save orcontent.
 Base-data/UI completeness verified onPC;phone transfer/runtime stillNOT tested.
 OptionalHDtextures/models not part of basegamepayload,still not installed;last
 textureattempt quota-blocked. Phoneworkonholduntiluserready. Docscheckpoint[skip ci].
+
+## P2 startup crash investigation and allocator candidate - 2026-10-20 00:22 Eastern Daylight Time
+
+The user installed Build22 P2 and reports immediate closure even after assets
+and art transfer. P2 runtime is now confirmed FAILING; compilation/IPA success
+does not imply startup success. The user connected/unlocked the phone, and Codex
+read five existing P2 .ips reports without moving, deleting or synchronizing
+device reports. Raw logs/device details remain private in the session workspace.
+The three latest reports match the exact Build22 executable UUID
+5af9412e-02a6-3446-96d4-90231accd8a5, also read from the archived IPA Mach-O.
+They repeatedly show EXC_BAD_ACCESS / SIGBUS / EXC_ARM_DA_ALIGN on the main thread
+about 0.24 seconds after launch. Stack: Metal compiler createConnections ->
+AppleMetalGLRenderer first render pass -> glDrawArrays_ES2Exec ->
+pc_gfx_flush_batch -> pc_gfx_p2_force_stretch -> JUTFader::draw.
+Fault addresses have remainder 4 modulo 8 and lie inside P2's 480 MiB game arena.
+This is an alignment exception, not evidence of an iOS out-of-memory kill.
+
+Read-only VendDocuments access confirms Documents/pikmin2/assets, the asset
+marker, the expected user directories, and Documents/pikmin2/art with all 28
+expected PNG filenames; bubble.png is readable. This is a layout/presence check,
+not a byte-for-byte rehash of the entire phone payload. The earlier PC audit
+did compare all 2768 disc files with ISO paths/sizes/SHA256. No phone files changed.
+
+Inspected JKRHeap.cpp: six global C++ new/new[] overloads routed objects into
+the current JKR heap with only 4-byte/default or small explicit alignment.
+This violates native fundamental object alignment. The existing host allocation
+scope covered GXInit and present, but not the actual first pc_gfx_flush_batch
+draw where Apple's driver lazily creates compiler objects. This is the leading
+evidence-based explanation for the observed crash; phone retest is required.
+
+Candidate implemented: native C++ new/new[] heap requests use at least
+alignof(std::max_align_t). Preserve larger requested alignment, negative tail
+allocation direction, explicit heap routing, malloc fallback, and delete routing.
+Original non-PIKI_PC_PORT console policy and raw buffer allocation APIs unchanged.
+Extend existing renderer host scope to 10 boundaries: batch submission, begin
+frame, five overlay texture/draw functions, full-target dim, UI draw, and blur.
+Driver work within these scopes allocates from malloc rather than section heaps.
+No changes to P1 source, installed app, data, settings, saves, or optional content.
+
+Files: games/pikmin2/pikmin2-decomp/src/JSystem/JKernel/JKRHeap.cpp;
+games/pikmin2/pc_port/gl/pc_gfx.cpp; tests/pikmin2_native_allocator_test.py;
+.github/workflows/ios-native-experimental.yml; these two journal documents.
+The test extracts actual new/delete/policy/scope bodies, renames operators only
+to avoid replacing the fixture CRT allocator, and stubs the game heap. It tests
+alignment/routing/zero sizes/deallocation, positive/negative explicit alignment,
+nested and exception scope restoration, and thread-local isolation. It also
+checks host scope precedes executable statements at 11 renderer entries.
+Local MSVC C++14 /W4 /WX: native 1344 checks PASS; console policy 1280 checks PASS.
+Adapter self-include audit: 43 headers PASS. git diff --check PASS.
+These are focused host regression checks, not a complete Windows/iOS game build
+or a real driver execution. Apple CI runs both fixture variants before compiling
+P2. New iOS compile/link/IPA/installation/runtime all pending for this candidate.
+
+Build22 remains run39359925649/sourcea16a3bae; BOTH compiled, linked, and packaged.
+New source push uses [ios-build] [ios-p2-only] so P1 is not rebuilt. Record exact
+commit/run after dispatch; stop idle waiting. User watches Actions completion.
+When successful, put new P2 IPA in Documents/Open Nectar/1 - Install on iPhone;
+update the existing P2 installation while preserving its data (do not uninstall),
+then test startup/menu/audio/touch/gameplay. If it still crashes, retrieve a fresh
+P2 report, verify its executable UUID against the NEW IPA, compare exception/stack.
+Do not assume subsequent failure has this same cause. Never reinstall P1 for this.
+
+P1 remains user-confirmed working on the existing phone build: readable menu,
+working camera/movement and reported smooth 60 FPS. Preserve UIKit framebuffer
+fix. Optional character package prepared privately but NOT installed on phone;
+environment texture download was quota blocked at last check. No timed mid-day
+recovery save implemented. Online co-op with Raye remains the final long-term step.

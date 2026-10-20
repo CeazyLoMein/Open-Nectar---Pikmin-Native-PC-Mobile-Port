@@ -30,7 +30,9 @@ void pc_host_alloc_set(bool active);
 
 // Routes the global operator new to malloc for the enclosing scope (see
 // JKRHeap.cpp); for renderer state built by code that uses the default STL
-// allocator but must survive the current section heap.
+// allocator but must survive the current section heap. Also use at GL submission
+// boundaries: Apple's GLES-to-Metal driver lazily creates C++ compiler objects
+// during drawing, after GXInit's original host scope has already ended.
 struct PcGfxHostAllocScope {
     bool prev = pc_host_alloc_active();
     PcGfxHostAllocScope() { pc_host_alloc_set(true); }
@@ -1932,6 +1934,7 @@ static bool ensure_overlay_program()
 
 unsigned pc_gfx_overlay_texture_create(int width, int height, const unsigned char* rgba)
 {
+    PcGfxHostAllocScope hostAllocScope;
     GLuint tex = 0;
     glGenTextures(1, &tex);
     glActiveTexture_ptr(GL_TEXTURE0);
@@ -1949,6 +1952,7 @@ unsigned pc_gfx_overlay_texture_create(int width, int height, const unsigned cha
 
 void pc_gfx_overlay_texture_destroy(unsigned texture)
 {
+    PcGfxHostAllocScope hostAllocScope;
     GLuint tex = texture;
     if (tex) glDeleteTextures(1, &tex);
 }
@@ -1961,6 +1965,7 @@ void pc_gfx_get_drawable_size(int* width, int* height)
 
 void pc_gfx_overlay_begin(void)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!ensure_overlay_program() || sDrawableWidth <= 0 || sDrawableHeight <= 0) return;
     pc_gfx_note_gl_state_change();
     invalidate_gl_pipeline_guards();
@@ -1984,6 +1989,7 @@ void pc_gfx_overlay_begin(void)
 void pc_gfx_overlay_sprite(unsigned texture, float x, float y, float w, float h,
                            float r, float g, float b, float a, float angleRadians)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sOverlayProgram || sDrawableWidth <= 0 || sDrawableHeight <= 0) return;
     const float cx = (x + w * 0.5f) / float(sDrawableWidth) * 2.0f - 1.0f;
     const float cy = 1.0f - (y + h * 0.5f) / float(sDrawableHeight) * 2.0f;
@@ -2000,6 +2006,7 @@ void pc_gfx_overlay_sprite(unsigned texture, float x, float y, float w, float h,
 
 void pc_gfx_overlay_end(void)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sOverlayProgram) return;
     glBindTexture(GL_TEXTURE_2D, 0);
     restore_stream_vao();
@@ -2014,6 +2021,7 @@ void pc_gfx_overlay_end(void)
 
 void pc_gfx_dim_full_target(unsigned char alpha)
 {
+    PcGfxHostAllocScope hostAllocScope;
     const GLint w = sNativeFramebufferReady ? sRenderWidth : sDrawableWidth;
     const GLint h = sNativeFramebufferReady ? sRenderHeight : sDrawableHeight;
     if (w <= 0 || h <= 0 || alpha == 0) return;
@@ -2130,6 +2138,7 @@ static bool sNativeWrittenThisFrame = false;
 void pc_gfx_ui_draw(const PcUiVertex* verts, int count, int virtW, int virtH,
                     const unsigned char* fontI8, int fontW, int fontH)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!verts || count <= 0 || virtW <= 0 || virtH <= 0) return;
     const GLint w = sNativeFramebufferReady ? sRenderWidth : sDrawableWidth;
     const GLint h = sNativeFramebufferReady ? sRenderHeight : sDrawableHeight;
@@ -2242,6 +2251,7 @@ static bool blur_target(int i, int w, int h)
 
 void pc_gfx_blur_gx_rect(int gxX, int gxY, int gxW, int gxH, int passes)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sNativeFramebufferReady || !glBlitFramebuffer_ptr || !glBindFramebuffer_ptr) return;
     float sx, sy, ox, oy;
     gx_rect_params(sx, sy, ox, oy);
@@ -3713,6 +3723,7 @@ static void perf_gpu_scene_begin() {
 }
 
 void pc_gfx_begin_frame(void) {
+    PcGfxHostAllocScope hostAllocScope;
     sUi43 = false;
     sHudWide = false;
     sMenuClip43 = false;
@@ -8735,6 +8746,7 @@ static void vbo_ring_frame_begin() {
 // Draws whatever has accumulated. Safe to call at any time: a no-op when no
 // batch is open, which is what makes it cheap to place at every flush point.
 void pc_gfx_flush_batch(void) {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sBatchOpen || sBatchVerts.empty()) {
         sBatchOpen  = false;
         sBatchPrims = 0;

@@ -8,6 +8,7 @@
 #ifdef PIKI_PC_PORT
 #include <cstdlib>
 #include <cstdint>
+#include <cstddef>
 
 #ifdef PIKI_PC_PORT
 #include <cstdio>
@@ -43,6 +44,18 @@ void pcHeapLogCaller()
 
 // Host allocation functions take std::size_t (see JKRHeap.h).
 #define JKR_NEW_SIZE_T size_t
+// Native C++ objects need fundamental alignment, including objects allocated
+// by system libraries through this global new override. GameCube's 4 bytes can
+// cause EXC_ARM_DA_ALIGN in Apple's Metal compiler on the first GL draw.
+static int pc_object_alignment(int alignment)
+{
+	const int minimum = static_cast<int>(alignof(std::max_align_t));
+	// A negative alignment selects the tail of a JKR heap. Preserve direction
+	// and larger explicit alignments without negating a potentially INT_MIN value.
+	return alignment < 0 ? (alignment > -minimum ? -minimum : alignment)
+	                     : (alignment < minimum ? minimum : alignment);
+}
+#define JKR_NEW_ALIGNMENT(alignment) pc_object_alignment(alignment)
 static thread_local bool sPcHostAllocActive = false;
 bool pc_host_alloc_active() { return sPcHostAllocActive; }
 void pc_host_alloc_set(bool active) { sPcHostAllocActive = active; }
@@ -50,6 +63,7 @@ void pc_host_alloc_set(bool active) { sPcHostAllocActive = active; }
 #else
 #define JKR_USE_CURRENT_HEAP() (JKRHeap::sCurrentHeap)
 #define JKR_NEW_SIZE_T u32
+#define JKR_NEW_ALIGNMENT(alignment) (alignment)
 #endif
 
 // TODO: This is stupid-hacky. Fix pls.
@@ -534,7 +548,7 @@ JKRHeapErrorHandler* JKRHeap::setErrorHandler(JKRHeapErrorHandler* newHandler)
 void* operator new(JKR_NEW_SIZE_T byteCount)
 {
 	if (JKR_USE_CURRENT_HEAP())
-		return JKRHeap::sCurrentHeap->do_alloc(byteCount, 4);
+		return JKRHeap::sCurrentHeap->do_alloc(byteCount, JKR_NEW_ALIGNMENT(4));
 #ifdef PIKI_PC_PORT
 	// Host static constructors (pc_gfx packet store, etc.) run before JFW heaps exist.
 	return std::malloc(byteCount ? byteCount : 1);
@@ -551,7 +565,7 @@ void* operator new(JKR_NEW_SIZE_T byteCount)
 void* operator new(JKR_NEW_SIZE_T byteCount, int p2)
 {
 	if (JKR_USE_CURRENT_HEAP())
-		return JKRHeap::sCurrentHeap->do_alloc(byteCount, p2);
+		return JKRHeap::sCurrentHeap->do_alloc(byteCount, JKR_NEW_ALIGNMENT(p2));
 #ifdef PIKI_PC_PORT
 	return std::malloc(byteCount ? byteCount : 1);
 #else
@@ -567,9 +581,9 @@ void* operator new(JKR_NEW_SIZE_T byteCount, int p2)
 void* operator new(JKR_NEW_SIZE_T byteCount, JKRHeap* heap, int p3)
 {
 	if (heap) {
-		return heap->do_alloc(byteCount, p3);
+		return heap->do_alloc(byteCount, JKR_NEW_ALIGNMENT(p3));
 	} else if (JKR_USE_CURRENT_HEAP()) {
-		return JKRHeap::sCurrentHeap->do_alloc(byteCount, p3);
+		return JKRHeap::sCurrentHeap->do_alloc(byteCount, JKR_NEW_ALIGNMENT(p3));
 	}
 #ifdef PIKI_PC_PORT
 	return std::malloc(byteCount ? byteCount : 1);
@@ -586,7 +600,7 @@ void* operator new(JKR_NEW_SIZE_T byteCount, JKRHeap* heap, int p3)
 void* operator new[](JKR_NEW_SIZE_T byteCount)
 {
 	if (JKR_USE_CURRENT_HEAP())
-		return JKRHeap::sCurrentHeap->do_alloc(byteCount, 4);
+		return JKRHeap::sCurrentHeap->do_alloc(byteCount, JKR_NEW_ALIGNMENT(4));
 #ifdef PIKI_PC_PORT
 	return std::malloc(byteCount ? byteCount : 1);
 #else
@@ -602,7 +616,7 @@ void* operator new[](JKR_NEW_SIZE_T byteCount)
 void* operator new[](JKR_NEW_SIZE_T byteCount, int p2)
 {
 	if (JKR_USE_CURRENT_HEAP())
-		return JKRHeap::sCurrentHeap->do_alloc(byteCount, p2);
+		return JKRHeap::sCurrentHeap->do_alloc(byteCount, JKR_NEW_ALIGNMENT(p2));
 #ifdef PIKI_PC_PORT
 	return std::malloc(byteCount ? byteCount : 1);
 #else
@@ -618,9 +632,9 @@ void* operator new[](JKR_NEW_SIZE_T byteCount, int p2)
 void* operator new[](JKR_NEW_SIZE_T byteCount, JKRHeap* heap, int p3)
 {
 	if (heap) {
-		return heap->do_alloc(byteCount, p3);
+		return heap->do_alloc(byteCount, JKR_NEW_ALIGNMENT(p3));
 	} else if (JKR_USE_CURRENT_HEAP()) {
-		return JKRHeap::sCurrentHeap->do_alloc(byteCount, p3);
+		return JKRHeap::sCurrentHeap->do_alloc(byteCount, JKR_NEW_ALIGNMENT(p3));
 	}
 #ifdef PIKI_PC_PORT
 	return std::malloc(byteCount ? byteCount : 1);
