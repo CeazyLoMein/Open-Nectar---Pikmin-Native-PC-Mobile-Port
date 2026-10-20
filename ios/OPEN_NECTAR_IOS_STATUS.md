@@ -1,3 +1,7 @@
+CURRENT CHECKPOINT - 2026-10-20 08:43 EDT: Build25 failed only the new test fixture;
+correction locally verified. P2-only Build26 run39424440094 dispatched; result pending.
+Build24 opens on phone; menu candidate remains unverified. P1 untouched.
+
 CURRENT CHECKPOINT - 2026-10-20 08:42 EDT: Build25 failed only the new test fixture;
 correction locally verified. P2-only replacement build not dispatched yet.
 Build24 opens on phone; menu candidate remains unverified. P1 untouched.
@@ -1267,3 +1271,14 @@ folder1 with short phone checklist. Reinstall P2 only preserving app data; no
 asset/art recopy. Test clear advanced settings and tap alignment, original
 options values/save, Continue/Don't Save select/confirm, A/Back, then gameplay,
 audio/camera regression. Preserve P1. User involvement: none until IPA ready.
+
+## Corrected P2 menu fixture retry dispatched - 2026-10-20 08:43 EDT
+
+Build26, run39424440094, sourcedd5bd01557ea7f57255f869d431cd81864bca567.
+https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39424440094
+Status at dispatch: in_progress. P2 only, no new P1 build.
+Includes menu source3013d4c2 plus the Build25 unused-constant fixture correction.
+Local MSVC iPhone180/desktop190 and Clang parser both variants PASS.
+Apple/full-game compilation, new IPA and phone menu behavior remain pending.
+Build25 failed early test, no IPA. Build24 remains the known-opening phone build.
+No idle polling; user will report completion. Dispatch documentation uses [skip ci].
