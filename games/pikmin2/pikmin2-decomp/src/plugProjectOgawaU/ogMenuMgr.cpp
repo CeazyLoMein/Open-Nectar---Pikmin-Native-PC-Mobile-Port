@@ -19,10 +19,12 @@ int MenuMgr::pcTouchTappedOption(bool tapped, f32 x, f32 y) const
 	int hit = -1;
 	for (int i = 0; i < mElementCount; i++) {
 		// El texto de la opción es lo que se ve; el pane principal, por si no hay.
-		J2DPane* pane = mTextBoxPanes && mTextBoxPanes[i] ? mTextBoxPanes[i]
-		              : mTextBoxTakuPanes && mTextBoxTakuPanes[i] ? mTextBoxTakuPanes[i]
-		                                                         : (mMainPanes ? mMainPanes[i] : nullptr);
-		if (pc_touch_pane_hit(pane, x, y, 0.012f) && tapped && hit < 0) hit = i;
+		// Message callbacks can hide/replace a text pane. Also track its visible
+		// row container so a choice remains hittable through its drawn children.
+		const bool textHit = pc_touch_pane_hit(mTextBoxPanes ? mTextBoxPanes[i] : nullptr, x, y, 0.012f);
+		const bool takuHit = pc_touch_pane_hit(mTextBoxTakuPanes ? mTextBoxTakuPanes[i] : nullptr, x, y, 0.012f);
+		const bool rowHit = pc_touch_pane_hit(mMainPanes ? mMainPanes[i] : nullptr, x, y, 0.012f);
+		if ((textHit || takuHit || rowHit) && tapped && hit < 0) hit = i;
 	}
 	return hit;
 }

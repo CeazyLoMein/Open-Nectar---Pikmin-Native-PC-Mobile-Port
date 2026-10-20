@@ -8,6 +8,8 @@
 #include "trig.h"
 #if PIKI_PC_TOUCH
 extern "C" void pc_touch_claim_game_menu(void);
+extern "C" void pc_touch_claim_menu_confirm(void);
+extern "C" void pc_touch_menu_uses_stick(void);
 extern "C" bool pc_touch_take_game_menu_tap(float* x, float* y);
 #endif
 
@@ -142,7 +144,8 @@ bool ObjSMenuPauseVS::menu()
 	u32 input = getGamePad()->getButtonDown();
 #if PIKI_PC_TOUCH
 	// Táctil: tocar una opción la elige; tocar la elegida es A.
-	pc_touch_claim_game_menu();
+	pc_touch_claim_menu_confirm();
+	pc_touch_menu_uses_stick();
 	{
 		float tx = 0.0f, ty = 0.0f;
 		const bool tapped = pc_touch_take_game_menu_tap(&tx, &ty);

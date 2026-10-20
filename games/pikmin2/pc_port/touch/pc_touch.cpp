@@ -95,7 +95,7 @@ const ButtonSpec kButtons[BTN_COUNT] = {
 	{ "first_person", 0.61f, 0.09f, false, 0.045f, 0 },
 	{ "gyro_recenter", 0.73f, 0.09f, false, 0.045f, 0 },
 	{ "back", 0.10f, 0.84f, false, 0.055f, PAD_BUTTON_B },
-	{ nullptr, 0.10f, 0.84f, true, 0.055f, PAD_BUTTON_A },
+	{ "throw", 0.10f, 0.84f, true, 0.055f, PAD_BUTTON_A },
 };
 
 constexpr float kStickRadius = 0.115f; // fracción de H
@@ -297,6 +297,7 @@ int sGameMenuClaimFrames = 0;
 // no cuenta como deslizar para pasar de página.
 int sMenuStickFrames = 0;
 int sPortMenuClaimFrames = 0;
+int sMenuConfirmFrames = 0;
 // Arrastre vertical sobre los menús del port (listas con scroll): se manda
 // como desplazamiento normalizado y, si se movió, el toque no cuenta.
 struct MenuDrag {
@@ -310,7 +311,7 @@ struct MenuDrag {
 bool menu_button_allowed(int i)
 {
 	if (i == BTN_BACK) return true;
-	if (i == BTN_MENU_CONFIRM) return sPortMenuClaimFrames > 0;
+	if (i == BTN_MENU_CONFIRM) return sPortMenuClaimFrames > 0 || sMenuConfirmFrames > 0;
 	return (sMenuWantedButtons >> i) & 1u;
 }
 bool sGameMenuTapPending = false;
@@ -793,7 +794,7 @@ void pc_touch_on_finger(long long fingerId, PcTouchPhase phase, float x, float y
 			sStick.ax = x;
 			sStick.ay = y;
 			sStick.dx = sStick.dy = 0.0f;
-		} else if (x >= sLayoutW * 0.5f) {
+		} else if (x >= sLayoutW * 0.5f && sMenuConfirmFrames <= 0) {
 			for (GestureFinger& g : sRightGesture) {
 				if (g.finger >= 0) continue;
 				g.finger = fingerId;
@@ -1029,6 +1030,7 @@ bool pc_touch_merge_pad(u16* button, s8* stickX, s8* stickY, s8* substickX, s8* 
 	if (sGameMenuClaimFrames > 0) --sGameMenuClaimFrames;
 	if (sMenuStickFrames > 0) --sMenuStickFrames;
 	if (sPortMenuClaimFrames > 0) --sPortMenuClaimFrames;
+	if (sMenuConfirmFrames > 0) --sMenuConfirmFrames;
 	if (sGameMenuTapPending && ++sGameMenuTapAge > 12) sGameMenuTapPending = false;
 	if (sColorIcon.age < 999) ++sColorIcon.age;
 	return touched;
@@ -1131,6 +1133,12 @@ void pc_touch_set_visible(bool visible) { sVisible = visible; }
 bool pc_touch_visible(void) { return sVisible; }
 
 void pc_touch_claim_game_menu(void) { sGameMenuClaimFrames = 3; }
+void pc_touch_claim_menu_confirm(void)
+{
+    sGameMenuClaimFrames = 3;
+    sMenuConfirmFrames = 3;
+}
+bool pc_touch_menu_active(void) { return sGameMenuClaimFrames > 0; }
 void pc_touch_menu_uses_stick(void) { sMenuStickFrames = 3; }
 
 void pc_touch_claim_port_menu(void)

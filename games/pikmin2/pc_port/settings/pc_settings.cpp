@@ -441,15 +441,23 @@ int kF1ColY, kF1ColH, kF1LeftX, kF1LeftW, kF1RightX, kF1RightW;
 int kF1Visible; // cabeceras y filas visibles a la vez
 
 void f1Layout() {
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__IPHONEOS__)
     int dw = 0, dh = 0;
     pc_gfx_get_drawable_size(&dw, &dh);
     const float aspect = dh > 0 ? float(dw) / float(dh) : 16.0f / 9.0f;
     kF1CanvasH = 400;
     kF1CanvasW = std::max(600, int(lroundf(400.0f * aspect)));
+#if defined(__IPHONEOS__)
+    // Conservative landscape margins for the current iPhone test device.
+    // Replace with UIKit safe-area insets when a dynamic bridge is available.
+    kF1PanelX = 56;
+    kF1PanelY = 8;
+    kF1PanelH = kF1CanvasH - kF1PanelY - 24;
+#else
     kF1PanelX = 8;
     kF1PanelY = 8;
     kF1PanelH = kF1CanvasH - 16;
+#endif
 #else
     kF1CanvasW = 640;
     kF1CanvasH = 480;
@@ -3713,6 +3721,8 @@ void pc_settings_init(void) {
     }
     printf("[PC Settings] Init complete.\n");
 }
+
+int pc_settings_menu_is_open(void) { return sMenuOpen ? 1 : 0; }
 
 bool pc_settings_consume_game_input(void) {
     PC_SETTINGS_HOST_ALLOC();
@@ -7006,7 +7016,7 @@ void pc_settings_draw_achievement_toast(void) {
 // usa un lienzo del ancho de la pantalla y 400 de alto (f1Layout): las
 // medidas tienen que ser esas para todo el frame, o el menú sale descolocado.
 void pc_settings_p2_begin_frame(void) {
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__IPHONEOS__)
     f1Layout();
     if (gsys && gsys->mDGXGfx) {
         DGXGraphics* gfx = static_cast<DGXGraphics*>(gsys->mDGXGfx);
@@ -7043,7 +7053,7 @@ void pc_settings_draw(void) {
         }
         void bindPanel()
         {
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__IPHONEOS__)
             pc_gfx_set_hud_virtual_size(kF1CanvasW, kF1CanvasH);
             pc_gfx_set_hud_wide(1);
 #else
@@ -7069,7 +7079,7 @@ void pc_settings_draw(void) {
 
     Matrix4f ortho;
     gfx->setOrthogonal(ortho.mMtx, RectArea(0, 0, screenW, screenH));
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__IPHONEOS__)
     gfx->setViewport(RectArea(0, 0, screenW, screenH));
     gfx->setScissor(RectArea(0, 0, screenW, screenH));
 #endif

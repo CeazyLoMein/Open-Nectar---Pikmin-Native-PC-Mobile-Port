@@ -65,6 +65,18 @@ jobs:
           cc -std=c11 -Wall -Wextra -Werror -c "$RUNNER_TEMP/p2-gd-tls/gd-storage.c" -o "$RUNNER_TEMP/p2-gd-tls/gd-storage.o"
           c++ -std=c++17 -Wall -Wextra -pthread "$RUNNER_TEMP/p2-gd-tls/gd-main.cpp" "$RUNNER_TEMP/p2-gd-tls/gd-mirror.cpp" "$RUNNER_TEMP/p2-gd-tls/gd-storage.o" -o "$RUNNER_TEMP/p2-gd-tls/gd-tls-test"
           "$RUNNER_TEMP/p2-gd-tls/gd-tls-test"
+      - name: Check Pikmin 2 native menu rendering and touch ownership
+        if: matrix.game == 'pikmin2'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/pikmin2_ios_menus_test.py "$RUNNER_TEMP/p2-menu-test.cpp"
+          c++ -std=c++14 -Wall -Wextra -Werror "$RUNNER_TEMP/p2-menu-test.cpp" -o "$RUNNER_TEMP/p2-menu-test"
+          "$RUNNER_TEMP/p2-menu-test"
+          c++ -std=c++14 -Wall -Wextra -Werror -DP2_TEST_DESKTOP "$RUNNER_TEMP/p2-menu-test.cpp" -o "$RUNNER_TEMP/p2-desktop-menu-test"
+          "$RUNNER_TEMP/p2-desktop-menu-test"
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++14 \
+            -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/p2-menu-test.cpp"
       - name: Check Pikmin 1 enhancement profile and mod imports
         if: matrix.game == 'pikmin1'
         shell: bash

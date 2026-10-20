@@ -47,6 +47,10 @@ void pc_touch_last_pad(u16* buttons, s8* stickX, s8* stickY, s8* substickX, s8* 
  * oculta y pueden consumir el último toque como coordenadas normalizadas.
  */
 void pc_touch_claim_game_menu(void);
+/** Only original options/choice dialogs request this explicit A/confirm control. */
+void pc_touch_claim_menu_confirm(void);
+/** Menu lease used by iOS to choose a native-resolution UI frame. */
+bool pc_touch_menu_active(void);
 /** El menú usa el stick táctil (radar): sus arrastres no pasan de página. */
 void pc_touch_menu_uses_stick(void);
 /** Menú F1: muestra B/atrás y una burbuja A/confirmar vacía. */

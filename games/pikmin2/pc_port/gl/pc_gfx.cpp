@@ -81,6 +81,29 @@ using PcGfxHostVector = std::vector<Value, PcGfxHostAllocator<Value>>;
 #include "../timing/pc_tick_profiler.h"
 
 #include "pc_opengl.h"
+#if defined(__APPLE__) && TARGET_OS_IPHONE && defined(PIKI_PC_SETTINGS_MENU)
+#include "../settings/pc_settings.h"
+#if PIKI_PC_TOUCH
+#include "../touch/pc_touch.h"
+#endif
+#endif
+
+// Match P1's native UI path without increasing the gameplay pixel budget.
+// Latch once per frame so target allocation and presentation use one aspect.
+static bool ios_native_settings_frame(bool beginFrame = false) {
+    static bool active = false;
+    if (beginFrame) {
+#if defined(__APPLE__) && TARGET_OS_IPHONE && defined(PIKI_PC_SETTINGS_MENU)
+        active = pc_settings_menu_is_open();
+#if PIKI_PC_TOUCH
+        active = active || pc_touch_menu_active();
+#endif
+#else
+        active = false;
+#endif
+    }
+    return active;
+}
 #if defined(__APPLE__) && TARGET_OS_IPHONE
 void pc_window_ios_drawable(unsigned int* framebuffer, unsigned int* renderbuffer);
 #endif
@@ -3724,6 +3747,7 @@ static void perf_gpu_scene_begin() {
 
 void pc_gfx_begin_frame(void) {
     PcGfxHostAllocScope hostAllocScope;
+    ios_native_settings_frame(true);
     sUi43 = false;
     sHudWide = false;
     sMenuClip43 = false;
@@ -3894,7 +3918,7 @@ void pc_gfx_begin_frame(void) {
     if (sNativeFramebufferReady && sDrawableWidth > 0 && sDrawableHeight > 0) {
         // Calculate aspect ratio for this frame
         float windowAspect = float(sDrawableWidth) / float(sDrawableHeight);
-        sCurrentAspectRatio = calculate_aspect_ratio(sAspectRatioMode, windowAspect);
+        sCurrentAspectRatio = ios_native_settings_frame() ? windowAspect : calculate_aspect_ratio(sAspectRatioMode, windowAspect);
         
         // Scale the exact output viewport instead of first quantising the
         // aspect ratio through a 480-line base. The old calculation turned a
@@ -3904,8 +3928,19 @@ void pc_gfx_begin_frame(void) {
                               outX, outY, outWidth, outHeight);
         // Base del render: el área de salida, o la resolución pedida encajada
         // en su relación de aspecto (Android, donde la ventana no cambia).
+        #if defined(__APPLE__) && TARGET_OS_IPHONE
+        if (!ios_native_settings_frame() && window) {
+            // Retina drawing is for menus. Keep the old point-sized scene
+            // workload when returning to gameplay, including saved scale.
+            int logicalW = 0, logicalH = 0;
+            SDL_GetWindowSize(window, &logicalW, &logicalH);
+            if (logicalW > 0 && logicalH > 0)
+                calculate_output_area(logicalW, logicalH, sCurrentAspectRatio,
+                                      outX, outY, outWidth, outHeight);
+        }
+#endif
         float baseWidth = float(outWidth), baseHeight = float(outHeight);
-        if (sRenderResolutionW > 0 && sRenderResolutionH > 0) {
+        if (!ios_native_settings_frame() && sRenderResolutionW > 0 && sRenderResolutionH > 0) {
             baseHeight = float(sRenderResolutionH);
             baseWidth = baseHeight * sCurrentAspectRatio;
             if (baseWidth > float(sRenderResolutionW)) {
@@ -3913,8 +3948,9 @@ void pc_gfx_begin_frame(void) {
                 baseHeight = baseWidth / sCurrentAspectRatio;
             }
         }
-        const int wantedWidth = std::max(160, int(lroundf(baseWidth * sRenderScale)));
-        const int wantedHeight = std::max(120, int(lroundf(baseHeight * sRenderScale)));
+        const float frameRenderScale = ios_native_settings_frame() ? 1.0f : sRenderScale;
+        const int wantedWidth = std::max(160, int(lroundf(baseWidth * frameRenderScale)));
+        const int wantedHeight = std::max(120, int(lroundf(baseHeight * frameRenderScale)));
         if (wantedWidth != sRenderWidth || wantedHeight != sRenderHeight) {
             sRenderWidth = wantedWidth;
             sRenderHeight = wantedHeight;
@@ -5304,7 +5340,7 @@ void pc_gfx_present(void) {
     glBindFramebuffer_ptr(GL_DRAW_FRAMEBUFFER, pc_gfx_display_framebuffer());
     // Game renders to the target aspect ratio. Display it centered in the window.
     float windowAspect = float(sDrawableWidth) / float(sDrawableHeight);
-    sCurrentAspectRatio = calculate_aspect_ratio(sAspectRatioMode, windowAspect);
+    sCurrentAspectRatio = ios_native_settings_frame() ? windowAspect : calculate_aspect_ratio(sAspectRatioMode, windowAspect);
 
     GLint outX, outY, outWidth, outHeight;
     calculate_output_area(sDrawableWidth, sDrawableHeight, sCurrentAspectRatio,

@@ -10,6 +10,62 @@ extern "C" void pc_gfx_p2_extend_shade(float gxY0, float gxY1, float stripW);
 #include "PSSystem/PSSystemIF.h"
 #include "SoundID.h"
 
+#if PIKI_PC_TOUCH
+#include "touch/pc_touch.h"
+namespace {
+struct PcOptionTap { int row = -1; int value = -1; };
+
+PcOptionTap pcOptionTouch(ebi::Screen::TOption& screen)
+{
+    PcOptionTap result;
+    // A modal over these options owns the tap; never consume it underneath.
+    if (!screen.mEnabled) return result;
+    pc_touch_claim_menu_confirm();
+    pc_touch_menu_uses_stick();
+    float x = 0.0f, y = 0.0f;
+    const bool tapped = pc_touch_take_game_menu_tap(&x, &y);
+    auto hit = [&](J2DPane* pane, int row, int value = -1) {
+        if (pc_touch_pane_hit(pane, x, y, 0.012f) && tapped) {
+            result.row = row; result.value = value;
+        }
+    };
+#if defined(VERSION_JP) || defined(VERSION_PAL)
+    const int firstRow = 0;
+#else
+    const int firstRow = 1;
+#endif
+    for (int i = firstRow; i < 7; ++i) hit(screen.mButtonPaneList[i], i);
+    hit(screen.mPaneRumbleYes, 1, 1); hit(screen.mPaneRumbleNo, 1, 0);
+    for (int i = 0; i < 3; ++i) hit(screen.mPaneSoundType[i], 2, i);
+    for (int i = 0; i < 10; ++i) {
+        hit(screen.mPaneBgmVolume[i], 3, i + 1);
+        hit(screen.mPaneSfxVolume[i], 4, i + 1);
+    }
+    hit(screen.mPaneDeflickerYes, 5, 1); hit(screen.mPaneDeflickerNo, 5, 0);
+    return result;
+}
+
+bool pcOptionSelectRow(ebi::Screen::TOption& screen, const PcOptionTap& tap)
+{
+    if (tap.row < screen.mInputMainSel.mMinSel || tap.row > screen.mInputMainSel.mMaxSel
+        || tap.row == screen.mCurrMainSelection) return false;
+    screen.mInputMainSel.mLastIndex = screen.mCurrMainSelection;
+    screen.mCurrMainSelection = tap.row;
+    screen.mInputMainSel.mSelectionChanged = true;
+    return true;
+}
+
+void pcOptionSetCount(ebi::EUTPadInterface_countNum& input, int value)
+{
+    if (value < input.mMinSel || value > input.mMaxSel || value == *input.mSelIndex) return;
+    input.mLastIndex = *input.mSelIndex;
+    *input.mSelIndex = value;
+    input.mSelectionChanged = true;
+}
+} // namespace
+#endif
+
+
 /**
  * @note Address: N/A
  * @note Size: 0xE4
@@ -327,10 +383,17 @@ bool TOption::doUpdateStateOpen()
  */
 bool TOption::doUpdateStateWait()
 {
+#if PIKI_PC_TOUCH
+    const PcOptionTap pcTap = pcOptionTouch(*this);
+    bool pcRowChanged = false;
+#endif
 	setOptionParamToScreen_();
 	mMainScreen->update();
 	if (mEnabled) {
 		mInputMainSel.update();
+#if PIKI_PC_TOUCH
+        pcRowChanged = pcOptionSelectRow(*this, pcTap);
+#endif
 		if (mInputMainSel.mSelectionChanged) {
 			mNextSelection = mInputMainSel.mLastIndex;
 #if !defined(VERSION_JP) && !defined(VERSION_PAL)
@@ -357,6 +420,10 @@ bool TOption::doUpdateStateWait()
 			}
 		}
 	}
+#if PIKI_PC_TOUCH
+    // Explicit value taps apply immediately through the original change handlers.
+    if (pcTap.value >= 0) mWindowCursor.mCounter = 0;
+#endif
 	mExitStatus = OptionState_NULL;
 
 	if (mEnabled && !mWindowCursor.mCounter) {
@@ -416,14 +483,22 @@ bool TOption::doUpdateStateWait()
 #endif
 
 		case 1: // Rumble
-			if (mController->isMoveRight()) {
+			if ((
+#if PIKI_PC_TOUCH
+                (pcTap.row == 1 && pcTap.value == 0) ||
+#endif
+                mController->isMoveRight())) {
 				if (mOptionParamA.mIsRumble == true) {
 					mOptionParamA.mIsRumble = false;
 					mButtonPuruAnim[1].mScaleMgr.up(0.2f, 30.0f, 0.6f, 0.0f);
 					mExitStatus = OptionState_SelRumble;
 					PSSystem::spSysIF->playSystemSe(PSSE_SY_SOUND_CONFIG, 0);
 				}
-			} else if (mController->isMoveLeft()) {
+			} else if ((
+#if PIKI_PC_TOUCH
+                (pcTap.row == 1 && pcTap.value == 1) ||
+#endif
+                mController->isMoveLeft())) {
 				if (!mOptionParamA.mIsRumble) {
 					mOptionParamA.mIsRumble = true;
 					mButtonPuruAnim[0].mScaleMgr.up(0.2f, 30.0f, 0.6f, 0.0f);
@@ -435,6 +510,9 @@ bool TOption::doUpdateStateWait()
 
 		case 2: // Sound Mode
 			mInputStereo.update();
+#if PIKI_PC_TOUCH
+            if (pcTap.row == 2) pcOptionSetCount(mInputStereo, pcTap.value);
+#endif
 			if (mInputStereo.mSelectionChanged) {
 				mExitStatus = OptionState_SelSoundMode;
 				switch (mOptionParamA.mSoundMode) {
@@ -456,6 +534,9 @@ bool TOption::doUpdateStateWait()
 
 		case 3: // music volume
 			mInputBgmVol.update();
+#if PIKI_PC_TOUCH
+            if (pcTap.row == 3) pcOptionSetCount(mInputBgmVol, pcTap.value);
+#endif
 			if (mInputBgmVol.mSelectionChanged) {
 				mExitStatus = OptionState_SelBgmVol;
 				int prev    = mOptionParamA.mBgmVolume;
@@ -472,6 +553,9 @@ bool TOption::doUpdateStateWait()
 
 		case 4: // sound volume
 			mInputSfxVol.update();
+#if PIKI_PC_TOUCH
+            if (pcTap.row == 4) pcOptionSetCount(mInputSfxVol, pcTap.value);
+#endif
 			if (mInputSfxVol.mSelectionChanged) {
 				mExitStatus = OptionState_SelSfxVol;
 				int prev    = mOptionParamA.mSeVolume;
@@ -484,14 +568,22 @@ bool TOption::doUpdateStateWait()
 			break;
 
 		case 5: // Deflicker
-			if (mController->isMoveRight()) {
+			if ((
+#if PIKI_PC_TOUCH
+                (pcTap.row == 5 && pcTap.value == 0) ||
+#endif
+                mController->isMoveRight())) {
 				if (mOptionParamA.mUseDeflicker == true) {
 					mOptionParamA.mUseDeflicker = false;
 					mButtonPuruAnim[6].mScaleMgr.up(0.2f, 30.0f, 0.6f, 0.0f);
 					PSSystem::spSysIF->playSystemSe(PSSE_SY_SOUND_CONFIG, 0);
 					mExitStatus = OptionState_SelDeflicker;
 				}
-			} else if (mController->isMoveLeft()) {
+			} else if ((
+#if PIKI_PC_TOUCH
+                (pcTap.row == 5 && pcTap.value == 1) ||
+#endif
+                mController->isMoveLeft())) {
 				if (!mOptionParamA.mUseDeflicker) {
 					mOptionParamA.mUseDeflicker = true;
 					mButtonPuruAnim[5].mScaleMgr.up(0.2f, 30.0f, 0.6f, 0.0f);
@@ -502,7 +594,11 @@ bool TOption::doUpdateStateWait()
 			break;
 
 		case 6: // Save Game
-			if (mController->getButtonDown() & Controller::PRESS_A) {
+			if ((mController->getButtonDown() & Controller::PRESS_A)
+#if PIKI_PC_TOUCH
+                || (pcTap.row == 6 && !pcRowChanged)
+#endif
+            ) {
 				mExitStatus = OptionState_SelSaveGame;
 				PSSystem::spSysIF->playSystemSe(PSSE_SY_MENU_DECIDE, 0);
 			}

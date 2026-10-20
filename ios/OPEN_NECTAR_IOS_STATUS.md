@@ -1,3 +1,84 @@
+CURRENT - 2026-10-20 08:33 EDT: user resumed. Build24 P2 startup/menu opening CONFIRMED.
+P2 clarity/options-touch candidate implemented; local tests PASS, next Apple
+build and phone checks pending. P1 untouched. Prior paused notes are historical.
+
+# PAUSED AT USER REQUEST - 2026-10-20 01:13 EDT
+
+The user is shutting the PC down and explicitly asked to pause until morning.
+Do not resume source edits/builds/phone operations until asked to continue.
+No source edits, commits, pushes, new builds or phone operations occurred in
+this menu-investigation turn. Only repository/source/history reads were done.
+Repository branch ios-experimental; local/fetched remote HEAD both
+00bd0db831ce09d37c3da94e00ec5596e2256563, working tree clean at investigation
+start. Build24 source05e33f1c0e55dc11ecb6d413a8393bf73faeb2ce/run39371370836
+PASSED, and the user now CONFIRMS P2 OPENS on the phone and reaches menus.
+This supersedes earlier 'new phone startup unverified' notes. Do not infer
+verified audio/gameplay/full-game stability from this menu/startup observation.
+Preserve Build24 allocator/thread ownership and SDL UIKit framebuffer fixes.
+P1 app, data, source and its working menu/camera behavior remain untouched.
+
+Two newly reported P2 issues (screenshots attached in chat):
+1. Advanced Open Nectar menu is small/blurry, resembling P1's earlier problem.
+2. Original game Options/exit-confirmation screen accepts only bottom-left X/
+   Back. User clarified main-screen taps and Throw/A work; failure is specific
+   to that menu/dialog. Do NOT diagnose all touchscreen input as broken.
+
+Read-only findings before pause:
+- Working P1 pc_window.cpp has SDL_WINDOW_ALLOW_HIGHDPI on iPhone; P2 lacks it.
+- P1 pc_gfx.cpp latches ios_native_settings_frame and renders menus at native
+  drawable resolution independently of gameplay render scale/resolution. P2
+  lacks this path; its screenshot shows a low internal scene scale/resolution.
+- P1 pc_settings.cpp enables the 400-high mobile canvas for iOS and Android,
+  with iPhone landscape margins, matching viewport/scissor and inverse tap map.
+  P2 still restricts those branches to Android. P2's shim begin_frame also sets
+  virtual dimensions only on Android, so include it when adapting the solution.
+- P2 TOption::doUpdateStateWait has controller input but no touch-pane handling.
+  Its rows are mButtonPaneList[7]; save is row6/A; other settings use left/right.
+- The pictured confirmation uses ObjWorldMapInfoWindow0 -> ObjSMenuPauseVS.
+  ObjSMenuPauseVS::menu ALREADY claims game-menu touch, calls
+  MenuMgr::pcTouchTappedOption and treats tapping selected option as A.
+  Investigate why that existing path fails before adding duplicate handlers.
+- pc_touch.cpp only allows Back plus buttons requested by visible help icons
+  while a game menu owns input. Its separate MENU_CONFIRM is currently allowed
+  only for port menus. Check whether this original dialog exposes a usable A
+  control and whether pane tracking/projection hits its visible text correctly.
+  The main-screen working controls should remain unchanged.
+
+Exact resumption steps:
+1. User says resume; read this checkpoint and newest journal; verify branch/
+   status/fetch again and preserve any changes made after this pause.
+2. Compare actual working P1 menu/high-DPI/render-budget code with P2. Adapt
+   P2 paths, including its DGX shim, mobile layout and inverse taps; preserve
+   gameplay pixel budget, startup fixes and P1 source/data.
+3. Inspect TOption and inherited confirmation input/tracked panes. Implement a
+   targeted original-options fix preserving main-screen/gameplay controls and
+   keeping save/discard actions explicit. Do not auto-save or auto-discard.
+4. Add meaningful layout/Retina/touch-state checks; build P2 only after local
+   checks and review. No fixes are implemented yet and no Build25 was triggered.
+5. Record exact commit/run; do not idle-poll Actions. When result known, verify
+   IPA, put in folder1 with short test guide. Phone tests: readable full-width
+   advanced menu, taps/scroll alignment, original options rows, confirmation
+   Continue/Don't Save, Back, plus startup/gameplay/audio/control regression.
+6. Keep P1 untouched. Optional packs and online with Raye remain later; online
+   LAST. User is asleep; no immediate test request/audio alert is needed.
+
+Important source locations:
+games/pikmin1/pc_port/pc_window.cpp andgl/pc_gfx.cpp (working reference)
+games/pikmin1/pc_port/settings/pc_settings.cpp (working mobile layout)
+games/pikmin2/pc_port/pc_window.cpp andgl/pc_gfx.cpp
+games/pikmin2/pc_port/settings/pc_settings.cpp andpc_settings_p2_shim.cpp
+games/pikmin2/pc_port/touch/pc_touch.cpp andpc_touch.h
+games/pikmin2/pikmin2-decomp/src/plugProjectEbisawaU/ebiScreenOption.cpp
+games/pikmin2/pikmin2-decomp/include/ebi/Screen/TOption.h
+games/pikmin2/pikmin2-decomp/src/plugProjectOgawaU/ogObjSMenuPauseVs.cpp
+games/pikmin2/pikmin2-decomp/src/plugProjectOgawaU/ogObjWorldMapInfoWindow0.cpp
+games/pikmin2/pikmin2-decomp/src/plugProjectOgawaU/ogMenuMgr.cpp
+games/pikmin2/pikmin2-decomp/src/JSystem/J2D/J2DPane.cpp
+Session work/prepare_pikmin1_menu_candidate.ps1 records the earlier P1 patch;
+read it as historical evidence, do not blindly execute it against current code.
+
+END PAUSE CHECKPOINT
+
 LATEST CHECKPOINT - 2026-10-20 01:03 EDT: P2 Build24 SUCCESS; target ARM64 allocator
 check and actual binary16-byte alignment verified. New IPA ready in folder1.
 NEW phone installation/startup/audio retest pending. P1 working and untouched.
@@ -1067,3 +1148,67 @@ staying open/title/menu; then basic graphics/audio/touch/gameplay. If failure,
 retrieve fresh report and confirm new UUID/exception/stack before another fix.
 No phone app/file/settings operations were performed in build-result handling.
 No active build or new source changes; journal checkpoint [skip ci], no extra CI.
+
+## P2 menu clarity and original options input candidate - 2026-10-20 08:33 EDT
+
+User resumed after shutdown. Verified origin/ios-experimental, fetched remote,
+HEAD00bd0db831ce09d37c3da94e00ec5596e2256563, no divergence; only two paused
+journal edits were pending and preserved. User confirms Build24 P2 OPENS on phone
+and reaches menus. Main/title taps and Throw/A work. Two reported bugs: blurry,
+small advanced menu; original game Options/exit-confirmation responds only to
+bottom-left Back/X. Gameplay/audio/full-game stability not established by this.
+
+Read the actual working P1 source and adapted its UI paths in P2 only:
+- iPhone SDL high-DPI window flag, native-pixel menu targets independent of
+  saved gameplay resolution/scale, frame-latched aspect at allocation/present.
+- Keep the old logical-point gameplay pixel budget after enabling Retina;
+  do not silently multiply gameplay GPU cost by3x in each dimension.
+- Mobile400-high aspect-adapted menu with the same conservative iPhone margins
+  as working P1; enable matching viewport/scissor and P2 DGX shim virtual sizes
+  on iOS, including inverse taps. Captain-select4:3 exception remains.
+- New read-only settings-open query; active game-menu touch lease also selects
+  native UI rendering so original options/title/confirmation can be sharp.
+  First/last transition follows the per-frame latch, not a mid-present switch.
+  Font sampling remains existing linear; no texture/font replacement installed.
+
+Original TOption had no direct touch handling. Added pane-based row selection,
+explicit rumble/sound/volume/deflicker value taps through its original state,
+animation/sound/saveRam handlers, virtual-stick navigation and visible familiar
+Throw/A confirm. The disabled backing options never consume a modal's tap.
+First Save row tap selects; second/explicit A confirms. No automatic save or
+save/discard changes. JP/PAL-only hidden row0 remains unavailable in USA touch.
+Confirmation already had select-then-confirm touch handling; retained that
+behavior, exposed a context-only confirm control and let hit testing also use
+visible row-container bounds when callback-owned text is hidden/replaced.
+The row-container fallback is a source-supported candidate, not proven as the
+sole cause on hardware. Expired/hidden tracked panes remain non-clickable.
+Right-thumb camera gesture creation is suppressed only in these explicitly
+claimed confirm menus so a slightly moving tap is not stolen by gameplay drag.
+Other main-screen/gameplay button bindings remain unchanged; P1 source untouched.
+
+Files: P2pc_window.cpp,gl/pc_gfx.cpp,settings/pc_settings.cpp/.h,touch/pc_touch.cpp/.h;
+ebiScreenOption.cpp,ogMenuMgr.cpp,ogObjSMenuPauseVs.cpp; new
+ tests/pikmin2_ios_menus_test.py; experimental workflow; both journals.
+Build24 allocator/host-thread ownership and UIKit FBO/RBO corrections preserved.
+No phone operations, signing/credential changes, assets or optional mods installed.
+
+Local MSVC C++14 /W4 /WX actual-code fixtures: iPhone172 PASS; desktop182 PASS.
+Covers native UI pixel budget vs gameplay, explicit aspect/resolution overrides,
+frame latch/open-close transitions, layout and inverse taps across landscape/
+portrait/fallback dimensions, confirm control lease expiration, direct option
+selection/value ranges, disabled backing-menu ownership, row fallback, choice
+select vs confirm, physical A/B and stale pane rejection. Host rendering/math
+and state simulation only: not actual iPhone graphics/gesture verification.
+Existing native allocator1354 and console1280 checks re-run PASS; adapter43 PASS.
+Whitespace check PASS. CI adds iPhone/desktop host fixtures and actual iphoneos
+ARM64 compile/static validation before full game compile. Apple full compile,
+IPA and visual/touch hardware results for this candidate remain pending.
+
+Next one coordinated P2-only build after committing; no P1 rebuild. Record exact
+source/run; stop idle polling. On success verify IPA/identity/new UUID/alignment,
+copy to folder1 and update test guide. Reinstall/update P2 only preserving data;
+no asset/art recopy. Phone tests: menu readability/tabs/scroll/tap alignment,
+original options rows/values/save, Continue/Don't Save selection and confirm,
+Back, main-title controls, startup/gameplay/audio/camera regression. Preserve
+Build24 known-opening IPA in archive. No new visual/touch fix may be called
+confirmed until user reports actual phone behavior.
