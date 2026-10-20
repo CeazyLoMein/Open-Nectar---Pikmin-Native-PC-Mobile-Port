@@ -74,6 +74,7 @@ int main()
 {
 	check(pc_aram_init(), "ARAM init");
 	pc_dsp_host_init();
+	pc_dsp_host_set_mixer_level(1.0f); // Test channel gain independently of game master volume.
 	check(pc_dsp_host_ready(), "renderer reports ready");
 
 	// A ramp is easy to reason about under resampling. It has to outlast the
@@ -93,12 +94,12 @@ int main()
 
 		int mismatches = 0;
 		for (u32 i = 0; i < 64; ++i) {
-			// Full-scale volume is 0x7FFF/0x8000, one part in 32768 short.
-			if (std::abs(static_cast<int>(out[i * 2]) - source[i]) > 2) {
+			// The console mixer applies 0x7FFF with a 16-bit shift: about half gain.
+			if (std::abs(static_cast<int>(out[i * 2]) - source[i] / 2) > 2) {
 				++mismatches;
 			}
 		}
-		check(mismatches == 0, "unity pitch reproduces the source");
+		check(mismatches == 0, "unity pitch reproduces the source at console mixer gain");
 		check(out[0] == out[1], "both dry buses receive the same signal");
 		check(pc_dsp_host_active_voices() == 1, "one voice counted active");
 		check(channel.currentPosition == kFrame,
@@ -188,7 +189,7 @@ int main()
 		channel.useConstantSample  = 1;
 		channel.constantSample     = 1000;
 		pc_dsp_host_render_frame(&channel, 1, out.data(), kFrame);
-		check(std::abs(static_cast<int>(out[0]) - 1000) <= 2,
+		check(std::abs(static_cast<int>(out[0]) - 500) <= 2,
 		      "a paused voice emits its constant sample");
 		check(out[0] == out[100], "a paused voice emits a steady level");
 	}
@@ -207,18 +208,20 @@ int main()
 			                    makeChannel(static_cast<u32>(source.size())) };
 		pc_dsp_host_render_frame(pair, 2, out.data(), kFrame);
 		check(pc_dsp_host_active_voices() == 2, "both voices counted active");
-		// Sample 4 of the ramp is 256; two voices give about 512.
-		check(out[8] > 400 && out[8] < 620, "two voices sum");
+		// Sample 4 is 256; two half-gain voices sum to about 256.
+		check(out[8] > 250 && out[8] < 260, "two voices sum");
 	}
 	{
 		std::vector<s16> loud(64, 32767);
 		writePcm16(kAramBase + 0x8000, loud);
-		DSPchannel_ pair[2] = { makeChannel(64), makeChannel(64) };
+		DSPchannel_ pair[3] = { makeChannel(64), makeChannel(64), makeChannel(64) };
 		pair[0].baseAddress = kAramBase + 0x8000;
 		pair[1].baseAddress = kAramBase + 0x8000;
+		pair[2].baseAddress = kAramBase + 0x8000;
 		pair[0].isLooping   = DSP_TRUE;
 		pair[1].isLooping   = DSP_TRUE;
-		pc_dsp_host_render_frame(pair, 2, out.data(), kFrame);
+		pair[2].isLooping   = DSP_TRUE;
+		pc_dsp_host_render_frame(pair, 3, out.data(), kFrame);
 		check(out[0] == 32767, "the mix saturates rather than wrapping");
 	}
 
@@ -272,7 +275,7 @@ int main()
 	{
 		DSPchannel_ channel = makeChannel(static_cast<u32>(source.size()));
 		pc_dsp_host_render_frame(&channel, 1, out.data(), kFrame);
-		check(std::abs(static_cast<int>(out[2]) - source[1]) <= 2,
+		check(std::abs(static_cast<int>(out[2]) - source[1] / 2) <= 2,
 		      "interleaved layout is restored after a planar render");
 	}
 

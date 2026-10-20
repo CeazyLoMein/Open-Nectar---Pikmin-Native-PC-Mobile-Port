@@ -90,6 +90,9 @@ jobs:
           ./reset-test
           c++ -std=c++17 -Wall -Wextra -Werror -I"$ROOT/ios" -I"$ROOT/games/pikmin2/pc_port" "$RUNNER_TEMP/p2-enhancements/texture-import-action-test.cpp" -o texture-action-test
           ./texture-action-test
+          python3 "$ROOT/tests/pikmin2_ios_hud_test.py" "$RUNNER_TEMP/p2-enhancements/hud-test.cpp"
+          c++ -std=c++17 -Wall -Wextra -Werror "$RUNNER_TEMP/p2-enhancements/hud-test.cpp" -o hud-test
+          ./hud-test
           c++ -std=c++17 -Wall -Wextra -Werror -I"$ROOT/ios" "$ROOT/tests/pikmin2_ios_profile_test.cpp" -o profile-test
           ./profile-test
           c++ -std=c++17 -Wall -Wextra -Werror -pthread -DPIKI_P2_HOST=1 -I"$ROOT/ios" -I"$ROOT/games/pikmin2/pc_port" "$ROOT/tests/pikmin2_ios_mod_bridge_test.cpp" "$ROOT/ios/pc_ios_mod_bridge.cpp" -o bridge-test
@@ -103,6 +106,25 @@ jobs:
           ./zip-test
           c++ -std=c++17 -I"$ROOT/games/pikmin2/pc_port" -I"$ROOT/games/pikmin1/pc_port" "$ROOT/tests/pikmin1_ios_performance_test.cpp" "$ROOT/games/pikmin1/pc_port/timing/pc_ios_performance.cpp" -o performance-test
           ./performance-test
+      - name: Check Pikmin 2 audio routes and bounded diagnostics
+        if: matrix.game == 'pikmin2'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$GITHUB_WORKSPACE"
+          AUDIO="$ROOT/games/pikmin2/pc_port/audio"
+          CHECKS="$RUNNER_TEMP/p2-audio-checks"
+          python3 tests/pikmin2_audio_routes_test.py "$CHECKS"
+          cd "$CHECKS"
+          c++ -std=c++17 -Wall -Wextra -Werror -pthread -I"$CHECKS" -I"$ROOT/games/pikmin2/pc_port" \
+            test.cpp "$AUDIO/pc_dsp_host.cpp" "$AUDIO/pc_aram.cpp" "$AUDIO/pc_p2_audio_audit.cpp" -o routes-test
+          ./routes-test
+          c++ -std=c++17 -Wall -Wextra -Werror -pthread -I"$CHECKS" -I"$AUDIO" \
+            "$AUDIO/pc_dsp_host_test.cpp" host.cpp "$AUDIO/pc_dsp_host.cpp" "$AUDIO/pc_aram.cpp" "$AUDIO/pc_p2_audio_audit.cpp" -o baseline-test
+          ./baseline-test
+          c++ -std=c++17 -Wall -Wextra -Werror -pthread -D__IPHONEOS__=1 -I"$ROOT/games/pikmin2/pc_port" \
+            audit-test.cpp "$AUDIO/pc_p2_audio_audit.cpp" -o audit-test
+          ./audit-test
       - name: Check Pikmin 1 enhancement profile and mod imports
         if: matrix.game == 'pikmin1'
         shell: bash

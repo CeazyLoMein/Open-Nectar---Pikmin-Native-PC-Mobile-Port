@@ -1,4 +1,5 @@
 #include "audio/p2_audio_host.h"
+#include "audio/pc_p2_audio_audit.h"
 
 #include "audio/pc_aram.h"
 #include "audio/pc_dsp_host.h"
@@ -56,6 +57,7 @@ void pc_p2_audio_render(void* channels, s16* planarOutput, u32 frameSamples)
 
 void pc_p2_audio_queue(const s16* interleaved, size_t frames)
 {
+	p2_audio_audit::render(interleaved, frames, pc_dsp_host_active_voices(), SDL_GetTicks());
 	if (sOpened && interleaved && frames) {
 		PikiAudioSinkQueue(interleaved, frames);
 	}

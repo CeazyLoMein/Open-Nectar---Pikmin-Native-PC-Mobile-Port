@@ -1095,13 +1095,13 @@ void VIWaitForRetrace()
 	pc_erased_notice_draw();
 	pc_settings_draw();
 	pc_settings_draw_achievement_toast();
-	pc_settings_draw_ios_performance();
 	pc_settings_p2_flush();
 	pc_captain_select_draw_3d();
 	pc_gfx_present();
 #if PIKI_PC_TOUCH
 	pc_touch_draw(); // controles táctiles encima de todo, como en Pikmin 1
 #endif
+	pc_settings_draw_ios_performance(); // native-resolution diagnostic overlay
 	if (SDL_Window* window = SDL_GL_GetCurrentWindow()) {
 		// SDL swap can allocate Metal objects later freed by completion workers.
 		PcNativeHostAllocScope hostAllocScope;

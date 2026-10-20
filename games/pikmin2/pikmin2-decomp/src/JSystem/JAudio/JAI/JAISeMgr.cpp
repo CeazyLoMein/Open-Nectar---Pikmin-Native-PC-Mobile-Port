@@ -1,3 +1,6 @@
+#ifdef PIKI_PC_PORT
+#include "audio/pc_p2_audio_audit.h"
+#endif
 #include "JSystem/JAudio/JAI/JAIBasic.h"
 #include "JSystem/JAudio/JAI/JAIConst.h"
 #include "JSystem/JAudio/JAI/JAIGlobalParameter.h"
@@ -407,6 +410,9 @@ void checkPlayingSe()
 				track->writePortApp(val0 + 0x60000, JAIBasic::getInterface()->getMapInfoFxline(currSound->mMapInfoIndex));
 				track->writePortApp(val0 + 0x40000, offset);
 				track->writePortApp(val0, 1);
+#ifdef PIKI_PC_PORT
+                p2_audio_audit::event(currSound->mSoundID, p2_audio_audit::Event::Started);
+#endif
 
 				if (currSound->mSoundID & 0xC00) {
 					currSound->mState = SOUNDSTATE_Playing;
@@ -642,6 +648,9 @@ void releaseSeRegist(JAISe* se)
  */
 void storeSeBuffer(JAISe** soundHandlePtr, JAInter::Actor* actor, u32 soundID, u32 fadeTime, u8 camId, JAInter::SoundInfo* soundInfo)
 {
+#ifdef PIKI_PC_PORT
+    p2_audio_audit::event(soundID, p2_audio_audit::Event::Submitted);
+#endif
 	bool check = JAISe::checkDummyHandle(soundHandlePtr);
 	if (soundHandlePtr && *soundHandlePtr
 	    && (soundID != (*soundHandlePtr)->mSoundID || (soundID == (*soundHandlePtr)->mSoundID && (soundID & 0xC00) == 0x800))) {

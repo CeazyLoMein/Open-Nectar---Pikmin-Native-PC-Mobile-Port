@@ -88,8 +88,10 @@ struct PcUiVertex {
     unsigned char r, g, b, a;
     float tex;
 };
+// displayOverlay uses the SDL display framebuffer and drawable pixels after
+// game presentation; false retains the existing game/menu render target.
 void pc_gfx_ui_draw(const PcUiVertex* verts, int count, int virtW, int virtH,
-                    const unsigned char* fontI8, int fontW, int fontH);
+                    const unsigned char* fontI8, int fontW, int fontH, bool displayOverlay = false);
 // Atlas RGBA (w x h) para tex=2: se muestrea con el color del vértice como
 // multiplicador. Se sube de nuevo cuando cambia `generation`.
 void pc_gfx_ui_set_atlas(const unsigned char* rgba, int w, int h, unsigned generation);

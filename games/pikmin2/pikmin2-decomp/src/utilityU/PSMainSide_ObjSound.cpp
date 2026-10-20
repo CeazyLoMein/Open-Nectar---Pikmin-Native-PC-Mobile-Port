@@ -1,3 +1,6 @@
+#ifdef PIKI_PC_PORT
+#include "audio/pc_p2_audio_audit.h"
+#endif
 #include "Game/pelletMgr.h"
 #include "Game/Entities/PelletItem.h"
 #include "Game/Entities/PelletOtakara.h"
@@ -175,11 +178,20 @@ void Creature::loopCalc(FrameCalcArg& arg)
  */
 JAISound* Creature::startSoundInner(PSM::StartSoundArg& arg)
 {
+#ifdef PIKI_PC_PORT
+    p2_audio_audit::event(arg.mSoundID, p2_audio_audit::Event::CreatureRequest);
+#endif
 	if (mGameObj->sound_culling()) {
+#ifdef PIKI_PC_PORT
+        p2_audio_audit::event(arg.mSoundID, p2_audio_audit::Event::Culled);
+#endif
 		return nullptr;
 	}
 
 	if (!static_cast<SceneBase*>(PSMGetSceneMgrCheck()->getEndScene())->getSeSceneGate(this, arg.mSoundID)) {
+#ifdef PIKI_PC_PORT
+        p2_audio_audit::event(arg.mSoundID, p2_audio_audit::Event::SceneBlocked);
+#endif
 		return nullptr;
 	}
 

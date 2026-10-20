@@ -1,3 +1,9 @@
+CURRENT - 2026-10-20 18:37 EDT: P2 audio/HUD batch locally verified; Apple build not dispatched yet.
+Build29 phone gameplay/settings confirmed, but voices/wind/ship-distance issues remain.
+All142 phone AudioRes files SHA-256 match originals. HUD toggle resolved by user.
+New mixer/HUD corrections and bounded diagnostics require Apple/phone validation.
+See PIKMIN2_AUDIO_AUDIT.md and the current progress report below. P1 untouched.
+
 CURRENT - 2026-10-20 14:31 EDT: Build29 P2-only PASSED; verified enhancements IPA ready in folder1.
 Source7f7d0783/run39470849443. New phone installation/runtime test pending.
 P1 textures confirmed354 replacements/0 failures; P1 unchanged. Future co-op
@@ -779,7 +785,7 @@ activation andperformanceverification not yet done. Userauthorizedalloptionalcon
 does not mean claimunsupported models installed or enablesave-destructive modes.
 No timedmid-dayautosave/manualsave oronlineco-op added. OnlinewithRaye remainsLAST.
 
-## Build18 shared configuration failure and recovery — 2026-10-19 21:53 Eastern Daylight Time
+## Build18 shared configuration failure and recovery â€” 2026-10-19 21:53 Eastern Daylight Time
 
 Build18 run39355267175 at9d33219f43dd0cf69b645b7c74c8185a711967e6 failed
 both games BEFORE game compilation. The shared configure step expanded an empty
@@ -801,7 +807,7 @@ PNG texture download returned an HTML confirmation page, not a verified pack.
 Next: record recovery SHA/run, stop idle polling, prepare supported private
 texture/character packages in Documents/Open Nectar/7 - Optional Graphics and Characters.
 
-## Build19 reaches final P2 link; character bundle prepared — 2026-10-19 22:09 Eastern Daylight Time
+## Build19 reaches final P2 link; character bundle prepared â€” 2026-10-19 22:09 Eastern Daylight Time
 
 Recovery0419685b02fd4da80cd91dcb83aa867fde09691c pushed; Build19run39355903504.
 Configuration now succeeds for both. P1 host checks/configuration passed and compile
@@ -858,7 +864,7 @@ Optional mods already built into menus remain available; no forced difficulty,
 cheats, randomizer or destructive mode changes. Mid-day saving and online withRaye
 remain future work (online LAST). Phone transfer request pending; audio cue played.
 
-## Dispatch/result checkpoint — 2026-10-19 22:12 Eastern Daylight Time
+## Dispatch/result checkpoint â€” 2026-10-19 22:12 Eastern Daylight Time
 
 P1 Build19 SUCCESS, including unsigned IPA packaging; artifact12235976028. No
 P1 game source changed; existing phone Build16 remains suitable for content tests.
@@ -871,7 +877,7 @@ Character bundle is prepared, NOT installed. No idle build polling; user will
 report when done. These two final journal updates are intentionally uncommitted
 documentation only, to include with the next source milestone without extra build.
 
-## Build20 test-fixture dependency failure — 2026-10-19 22:14 Eastern Daylight Time
+## Build20 test-fixture dependency failure â€” 2026-10-19 22:14 Eastern Daylight Time
 
 Build20run39357443512 at06fdd716de120551fa4083d4043e6513144bd517
 failed job118415402674 in the early GD TLS smoke fixture, before game configure
@@ -892,7 +898,7 @@ Preserve prior two pending journal appends and include them in this commit.
 Character bundle remains ready privately; phone transfer explicitly postponed
 by user; official texture downloads remain quota-blocked. No idle polling.
 
-## Build21 FIRST successful P2 compilation/link; IPA metadata correction — 2026-10-19 22:37 Eastern Daylight Time
+## Build21 FIRST successful P2 compilation/link; IPA metadata correction â€” 2026-10-19 22:37 Eastern Daylight Time
 
 Build21run39357838317/sourcee4906f89/job118416685307 passed all Apple host tests,
 including mixed C/C++ GD TLS link+three-thread test. FULL P2 iOS ARM64 target
@@ -921,7 +927,7 @@ the working P1 output while producing P2's first IPA if packaging passes.
 Character pack still ready privately; phone work postponed; HD textures quota
 blocked; target60FPS, online withRayeLAST. Stop idle polling after dispatch.
 
-## Build22 BOTH PASSED — first verified P2 IPA ready — 2026-10-19 23:07 Eastern Daylight Time
+## Build22 BOTH PASSED â€” first verified P2 IPA ready â€” 2026-10-19 23:07 Eastern Daylight Time
 
 Run39359925649/sourcea16a3bae9f524ec4c2e4548a6ab5330a82031321:
 P1job118423468727 SUCCESS andP2job118423468451 SUCCESS, including metadata
@@ -959,7 +965,7 @@ privately but onhold;HDenvironmenttexturequota-blocked atlastattempt;60FPStarget
 mid-dayrecovery saving and onlinewithRaye remainfuture (onlineLAST).
 This documentation-only checkpoint uses [skip ci] to avoid an extra build.
 
-## P2 transfer completeness audit and missing touch-art correction — 2026-10-19 23:22 Eastern Daylight Time
+## P2 transfer completeness audit and missing touch-art correction â€” 2026-10-19 23:22 Eastern Daylight Time
 
 User explicitly asked about missing Art after the earlier P1 experience. The
 prepared P2 disc assets were complete, but the standalone touchscreen artwork

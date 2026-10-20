@@ -1,3 +1,64 @@
+# OPEN NECTAR iOS â€” CODEX TO CHATGPT MASTER HANDOFF
+
+# OPEN NECTAR iOS â€” CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-20 18:37 EDT
+
+**Overall project status:** P1 remains working and unchanged. P2 Build29 runs on the phone, but the user reports missing Pikmin voices/wind, ship sound at excessive distance, and a hard-to-read gameplay performance HUD. A P2-only correction/audit batch is implemented and locally verified; Apple compilation and phone retesting are pending.
+
+### Pikmin 1
+
+- Current objective: Preserve working game and installed content.
+- What was investigated: No new P1 changes in this batch.
+- Root cause or leading hypothesis: No new P1 defect reported.
+- Files changed: None in P1 or shared iOS app code.
+- Tests and results: Prior user screenshot confirms GPI texture pack active: 354 replacements, 0 failures. No new P1 hardware test.
+- Confirmed working: User-reported gameplay, readable menu, camera controls, audio and 60 FPS. GPI textures loading.
+- Remaining issues: Full campaign validation; character model visuals not independently confirmed.
+
+### Pikmin 2
+
+- Current objective: Restore missing/spatial sound and improve HUD readability without increasing game rendering resolution.
+- What was investigated: All three supplied recordings were decoded; screenshots inspected. Native JAS bank, sequence, mixer and listener paths inspected. Connected phone audio assets read and hashed.
+- Root cause or leading hypothesis: Reproduced mixer defects: rear direct gain incorrectly depended on reverb send, and rear buses 0x0F40/0x0CA0 were ignored. These can drop positional effects; their contribution to each reported symptom still needs phone evidence. Captain-switch source does select Louie's listener; no speculative listener patch made.
+- Files changed: P2 audio mixer/tests, bounded audit helper, JAI/JAS/PSM observation points, CMake, HUD/settings/renderer/VI presentation, CI, documentation. See ios/PIKMIN2_AUDIO_AUDIT.md.
+- Tests and results: 28 actual mixer route checks PASS (13 failures before correction); existing DSP suite PASS after updating four stale gain assumptions (same failures reproduced on pre-change source); 11 audit checks PASS; 16 HUD checks PASS; menu fixtures 188 iOS/198 desktop PASS; allocator fixtures 1359 native, 1280 console and 1359 Apple-scalar checks PASS; Clang parser checks PASS; 100 GL allocation boundaries audited; git diff check PASS. All 142 AudioRes files on the phone match local extracted originals by SHA-256, including waves, sequences, streams and conductor data; no phone files changed.
+- Confirmed working: Build29 compiled/generated IPA; user installed it and demonstrated gameplay/settings/HUD. These are limited runtime results, not a completed campaign test.
+- Remaining issues: Pikmin voices (other colors untested), snow/wind, distant ship audio; new HUD and audio corrections untested on iPhone. HUD toggle is resolved: user found the existing setting.
+
+### GitHub
+
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: ios-experimental
+- Starting commit: 47f60419d4f31b21ee1c571ecacfad315d39d049
+- Latest commit: Same before this batch is committed; local/fetched remote match.
+- Commits created: None yet for this batch.
+- Changes pushed: None yet for this batch.
+- Uncommitted changes: P2 audio/HUD/audit batch and its tests/docs, all preserved.
+- GitHub Actions run IDs: Latest completed Build29/run39470849443, source7f7d0783e8b42870a8b6bbb1954199fbe9ffc6bb, success. New run not dispatched yet.
+- Build results: New Apple build pending; no local Apple SDK.
+- Artifacts produced: No new IPA. Build29 IPA remains in Documents/Open Nectar/1 - Install on iPhone, with Build27 backup retained.
+
+### Next steps
+
+- Next Pikmin 1 task: Preserve app/content; no reinstall requested.
+- Next Pikmin 2 task: Retest red Pikmin throwing/whistling, wind, captain switching and ship near/far after new build; then audit additional audio categories.
+- GitHub/build task: Commit verified batch with [ios-build] [ios-p2-only], push once, record run, stop idle polling.
+- Anything requiring my involvement: After successful IPA is staged, install/update P2 and perform the short phone test. Phone currently connected; no further action now.
+
+### ChatGPT continuation notes
+
+- Another conversation must not claim all missing sounds fixed: only mixer defects are reproduced and locally corrected.
+- Active audio files: games/pikmin2/pc_port/audio/pc_dsp_host.cpp, p2_audio_host.cpp, pc_p2_audio_audit.cpp/.h; native decomp JAI/JAS/PSM files are active. Copied jaudio_host.cpp is not P2's active audio engine.
+- Relevant logs: workspace outputs/P2-Phone-Audio-Assets-Audit.json and outputs/P2-Audio-Wave-Format-Audit.json; recordings in Downloads; derived files in work/p2-audio-clips. No existing P2 audio report on phone before this candidate.
+- Unverified fixes: Audibility and HUD appearance on real hardware; Apple compile/link pending.
+- Risks and warnings: Existing reverb is approximate, synthetic DSP sources are incomplete. Real wave entries use ADPCM4 except one PCM16, so no unsupported-format patch was invented. Keep crash allocator protections and SDL-managed iOS framebuffer mapping. Never publish private game assets. Online co-op remains design notes only, last priority.
+- Exact next actions: Inspect new build when user reports complete; verify/download IPA and place it in folder1; after phone retest retrieve Files/pikmin2/p2-audio-report.txt and p2-audio-previous.txt over USB. Interpret 'started' as a sequencer trigger, not proof of audible PCM.
+
+**END PROGRESS REPORT**
+
+## Earlier history (superseded where the current report differs)
+
 CURRENT - 2026-10-20 14:31 EDT: Build29 P2-only PASSED; verified enhancements IPA ready in folder1.
 Source7f7d0783/run39470849443. New phone installation/runtime test pending.
 P1 textures confirmed354 replacements/0 failures; P1 unchanged. Future co-op
@@ -424,7 +485,7 @@ and ask user to enableHUD and report readings;then choose realHDassets. Continue
 P2fromactual logs. Saving improvements andonlinewithRaye are not falsely marked done;
 online forBOTHnativeiPhonegames remains the final milestone.
 
-## Build18 shared configuration failure and recovery — 2026-10-19 21:53 Eastern Daylight Time
+## Build18 shared configuration failure and recovery â€” 2026-10-19 21:53 Eastern Daylight Time
 
 Build18 run39355267175 at9d33219f43dd0cf69b645b7c74c8185a711967e6 failed
 both games BEFORE game compilation. The shared configure step expanded an empty
@@ -446,7 +507,7 @@ PNG texture download returned an HTML confirmation page, not a verified pack.
 Next: record recovery SHA/run, stop idle polling, prepare supported private
 texture/character packages in Documents/Open Nectar/7 - Optional Graphics and Characters.
 
-## Build19 reaches final P2 link; character bundle prepared — 2026-10-19 22:09 Eastern Daylight Time
+## Build19 reaches final P2 link; character bundle prepared â€” 2026-10-19 22:09 Eastern Daylight Time
 
 Recovery0419685b02fd4da80cd91dcb83aa867fde09691c pushed; Build19run39355903504.
 Configuration now succeeds for both. P1 host checks/configuration passed and compile
@@ -503,7 +564,7 @@ Optional mods already built into menus remain available; no forced difficulty,
 cheats, randomizer or destructive mode changes. Mid-day saving and online withRaye
 remain future work (online LAST). Phone transfer request pending; audio cue played.
 
-## Dispatch/result checkpoint — 2026-10-19 22:12 Eastern Daylight Time
+## Dispatch/result checkpoint â€” 2026-10-19 22:12 Eastern Daylight Time
 
 P1 Build19 SUCCESS, including unsigned IPA packaging; artifact12235976028. No
 P1 game source changed; existing phone Build16 remains suitable for content tests.
@@ -516,7 +577,7 @@ Character bundle is prepared, NOT installed. No idle build polling; user will
 report when done. These two final journal updates are intentionally uncommitted
 documentation only, to include with the next source milestone without extra build.
 
-## Build20 test-fixture dependency failure — 2026-10-19 22:14 Eastern Daylight Time
+## Build20 test-fixture dependency failure â€” 2026-10-19 22:14 Eastern Daylight Time
 
 Build20run39357443512 at06fdd716de120551fa4083d4043e6513144bd517
 failed job118415402674 in the early GD TLS smoke fixture, before game configure
@@ -537,7 +598,7 @@ Preserve prior two pending journal appends and include them in this commit.
 Character bundle remains ready privately; phone transfer explicitly postponed
 by user; official texture downloads remain quota-blocked. No idle polling.
 
-## Build21 FIRST successful P2 compilation/link; IPA metadata correction — 2026-10-19 22:37 Eastern Daylight Time
+## Build21 FIRST successful P2 compilation/link; IPA metadata correction â€” 2026-10-19 22:37 Eastern Daylight Time
 
 Build21run39357838317/sourcee4906f89/job118416685307 passed all Apple host tests,
 including mixed C/C++ GD TLS link+three-thread test. FULL P2 iOS ARM64 target
@@ -566,7 +627,7 @@ the working P1 output while producing P2's first IPA if packaging passes.
 Character pack still ready privately; phone work postponed; HD textures quota
 blocked; target60FPS, online withRayeLAST. Stop idle polling after dispatch.
 
-## Build22 BOTH PASSED — first verified P2 IPA ready — 2026-10-19 23:07 Eastern Daylight Time
+## Build22 BOTH PASSED â€” first verified P2 IPA ready â€” 2026-10-19 23:07 Eastern Daylight Time
 
 Run39359925649/sourcea16a3bae9f524ec4c2e4548a6ab5330a82031321:
 P1job118423468727 SUCCESS andP2job118423468451 SUCCESS, including metadata
@@ -604,7 +665,7 @@ privately but onhold;HDenvironmenttexturequota-blocked atlastattempt;60FPStarget
 mid-dayrecovery saving and onlinewithRaye remainfuture (onlineLAST).
 This documentation-only checkpoint uses [skip ci] to avoid an extra build.
 
-## P2 transfer completeness audit and missing touch-art correction — 2026-10-19 23:22 Eastern Daylight Time
+## P2 transfer completeness audit and missing touch-art correction â€” 2026-10-19 23:22 Eastern Daylight Time
 
 User explicitly asked about missing Art after the earlier P1 experience. The
 prepared P2 disc assets were complete, but the standalone touchscreen artwork

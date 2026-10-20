@@ -356,6 +356,7 @@ if(PIKMIN2_ENABLE_PORT_LAYER)
         ${PC_PORT_DIR}/audio/pc_aram.cpp
         ${PC_PORT_DIR}/audio/pc_dsp_host.cpp
         ${PC_PORT_DIR}/audio/p2_audio_host.cpp
+        ${PC_PORT_DIR}/audio/pc_p2_audio_audit.cpp
         $<$<BOOL:${PIKMIN_TOUCH}>:${PC_PORT_DIR}/touch/pc_touch.cpp>
         ${PC_PORT_DIR}/audio/jaudio_sink.cpp
         ${PC_PORT_DIR}/audio/pc_ast_stream.cpp

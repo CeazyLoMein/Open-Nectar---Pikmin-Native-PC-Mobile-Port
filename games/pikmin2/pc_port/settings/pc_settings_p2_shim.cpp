@@ -401,7 +401,7 @@ void pc_settings_p2d_clear()
 PcSettingsP2DFrame::PcSettingsP2DFrame(int, int) { }
 PcSettingsP2DFrame::~PcSettingsP2DFrame() { }
 
-void pc_settings_p2_flush(void)
+void pc_settings_p2_flush(bool displayOverlay)
 {
     // El lote del cristal va detrás del de DGXGraphics, como las placas P2D.
     if (sGlassCount > 0 && sAtlas && sVertCount + sGlassCount <= kMaxVerts) {
@@ -414,7 +414,7 @@ void pc_settings_p2_flush(void)
     // texto suelto del siguiente (contador IDLE) se estrecha hasta no leerse.
     sContentLeft = sContentRight = 0;
     if (sVertCount > 0)
-        pc_gfx_ui_draw(sVerts, sVertCount, sGfx.mScreenWidth, sGfx.mScreenHeight, kPcUiFont, kPcUiFontW, kPcUiFontH);
+        pc_gfx_ui_draw(sVerts, sVertCount, sGfx.mScreenWidth, sGfx.mScreenHeight, kPcUiFont, kPcUiFontW, kPcUiFontH, displayOverlay);
     sVertCount = 0;
 }
 

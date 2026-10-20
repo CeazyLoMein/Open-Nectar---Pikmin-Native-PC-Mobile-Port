@@ -6494,15 +6494,19 @@ void pc_settings_draw_ios_performance(void) {
     PcSettingsP2DFrame nativeFrame(w, h);
     Matrix4f ortho;
     gfx->setOrthogonal(ortho.mMtx, RectArea(0, 0, w, h));
-    const int left = 56, top = 48, fw = 7, fh = 11;
+    const int left = 56, top = 48, fw = 10, lineHeight = 16;
     int width = 0;
-    for (const auto& line : lines) width = std::max(width, f1TextW(line, fw));
-    const Colour panel(8, 12, 24, 210);
+    for (const auto& line : lines) width = std::max(width, pc_p2_text_width(line, fw));
+    const Colour panel(8, 12, 24, 245);
     gfx->setColour(panel, true);
     gfx->setAuxColour(panel);
     gfx->useTexture(nullptr, GX_TEXMAP0);
-    gfx->fillRectangle(RectArea(left - 5, top - 4, std::min(w - 8, left + width + 5), top + 5 * 12));
-    for (int i = 0; i < 5; ++i) f1Text(left, top + i * 12, lines[i], Colour(255, 255, 255, 255), fw, fh);
+    gfx->fillRectangle(RectArea(left - 5, top - 4, std::min(w - 8, left + width + 5), top + 5 * lineHeight));
+    // Always use the same readable font, independent of pause/menu atlas state.
+    for (int i = 0; i < 5; ++i)
+        pc_p2_text(left, top + i * lineHeight, lines[i], Colour(255, 255, 255, 255), Colour(0, 0, 0, 255), fw);
+    // Draw at drawable resolution after game post-processing/upscaling.
+    pc_settings_p2_flush(true);
 #endif
 }
 

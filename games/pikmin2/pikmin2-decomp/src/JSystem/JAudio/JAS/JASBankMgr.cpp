@@ -1,4 +1,7 @@
 #ifdef PIKI_PC_PORT
+#include "audio/pc_p2_audio_audit.h"
+#endif
+#ifdef PIKI_PC_PORT
 #include <cstdio>
 #include <cstdlib>
 #endif
@@ -134,18 +137,30 @@ JASChannel* noteOn(int bankIndex, int instIndex, u8 p3, u8 p4, u16 p5, void (*p6
 	}
 	JASBank* bank = getBank(bankIndex);
 	if (bank == nullptr) {
+#ifdef PIKI_PC_PORT
+        p2_audio_audit::bank(p2_audio_audit::BankResult::MissingBank);
+#endif
 		return nullptr;
 	}
 	JASInst* inst = bank->getInst(instIndex);
 	if (inst == nullptr) {
+#ifdef PIKI_PC_PORT
+        p2_audio_audit::bank(p2_audio_audit::BankResult::MissingInstrument);
+#endif
 		return nullptr;
 	}
 	JASInstParam instParam;
 	if (inst->getParam(p3, p4, &instParam) == false) {
+#ifdef PIKI_PC_PORT
+        p2_audio_audit::bank(p2_audio_audit::BankResult::NoKeyRegion);
+#endif
 		return nullptr;
 	}
 	JASWaveBank* waveBank = bank->_04;
 	if (waveBank == nullptr) {
+#ifdef PIKI_PC_PORT
+        p2_audio_audit::bank(p2_audio_audit::BankResult::MissingWaveBank);
+#endif
 		return nullptr;
 	}
 	JASWaveHandle* waveHandle = waveBank->getWaveHandle(instParam.mWaveID);
@@ -158,14 +173,23 @@ JASChannel* noteOn(int bankIndex, int instIndex, u8 p3, u8 p4, u16 p5, void (*p6
 	}
 #endif
 	if (waveHandle == nullptr) {
+#ifdef PIKI_PC_PORT
+        p2_audio_audit::bank(p2_audio_audit::BankResult::MissingWave);
+#endif
 		return nullptr;
 	}
 	const JASWaveInfo* waveInfo = waveHandle->getWaveInfo();
 	if (waveInfo == nullptr) {
+#ifdef PIKI_PC_PORT
+        p2_audio_audit::bank(p2_audio_audit::BankResult::MissingInfo);
+#endif
 		return nullptr;
 	}
 	void* wavePtr = waveHandle->getWavePtr();
 	if (wavePtr == nullptr) {
+#ifdef PIKI_PC_PORT
+        p2_audio_audit::bank(p2_audio_audit::BankResult::MissingData);
+#endif
 		return nullptr;
 	}
 	// JASMemPool<JASChannel, JASThreadingModel::SingleThreaded>* channelMemPool = JASSingletonHolder<JASMemPool<JASChannel,
@@ -174,6 +198,9 @@ JASChannel* noteOn(int bankIndex, int instIndex, u8 p3, u8 p4, u16 p5, void (*p6
 	    = new (JASPoolAllocObject<JASChannel, JASCreationPolicy::NewFromRootHeap, JASThreadingModel::SingleThreaded>::alloc())
 	        JASChannel(p6, p7);
 	if (channel == nullptr) {
+#ifdef PIKI_PC_PORT
+        p2_audio_audit::bank(p2_audio_audit::BankResult::NoChannel);
+#endif
 		return nullptr;
 	}
 	channel->setPanPower(1.0f, 1.0f, 1.0f);
@@ -207,8 +234,14 @@ JASChannel* noteOn(int bankIndex, int instIndex, u8 p3, u8 p4, u16 p5, void (*p6
 	}
 #endif
 	if (!played) {
+#ifdef PIKI_PC_PORT
+        p2_audio_audit::bank(p2_audio_audit::BankResult::PlayFailed);
+#endif
 		return nullptr;
 	}
+#ifdef PIKI_PC_PORT
+    p2_audio_audit::bank(p2_audio_audit::BankResult::Played);
+#endif
 	return channel;
 }
 

@@ -95,7 +95,7 @@ int pc_p2_text_width(const char* text, int fw);
 void pc_p2_text(int x, int y, const char* text, Colour main, Colour shadow, int fw);
 
 // Envia al renderer lo acumulado por el menu en este frame (llamar tras pc_settings_draw).
-void pc_settings_p2_flush(void);
+void pc_settings_p2_flush(bool displayOverlay = false);
 // Al empezar los dibujos de encima del frame (ver pc_settings.cpp).
 void pc_settings_p2_begin_frame(void);
 

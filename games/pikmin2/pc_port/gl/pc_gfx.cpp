@@ -2178,12 +2178,12 @@ void pc_gfx_ui_set_atlas(const unsigned char* rgba, int w, int h, unsigned gener
 static bool sNativeWrittenThisFrame = false;
 
 void pc_gfx_ui_draw(const PcUiVertex* verts, int count, int virtW, int virtH,
-                    const unsigned char* fontI8, int fontW, int fontH)
+                    const unsigned char* fontI8, int fontW, int fontH, bool displayOverlay)
 {
     PcGfxHostAllocScope hostAllocScope;
     if (!verts || count <= 0 || virtW <= 0 || virtH <= 0) return;
-    const GLint w = sNativeFramebufferReady ? sRenderWidth : sDrawableWidth;
-    const GLint h = sNativeFramebufferReady ? sRenderHeight : sDrawableHeight;
+    const GLint w = displayOverlay ? sDrawableWidth : (sNativeFramebufferReady ? sRenderWidth : sDrawableWidth);
+    const GLint h = displayOverlay ? sDrawableHeight : (sNativeFramebufferReady ? sRenderHeight : sDrawableHeight);
     if (w <= 0 || h <= 0 || !ensure_ui_program()) return;
 
     pc_gfx_note_gl_state_change();
@@ -2191,9 +2191,9 @@ void pc_gfx_ui_draw(const PcUiVertex* verts, int count, int virtW, int virtH,
     // Lo que dibuja la capa de menús también cuenta: sin esto, en GLES un
     // frame sin dibujo del juego (la ventana de partida nueva) se limpiaba a
     // negro al presentar y el menú no llegaba a verse.
-    sNativeWrittenThisFrame = true;
-    if (sNativeFramebufferReady && glBindFramebuffer_ptr) {
-        glBindFramebuffer_ptr(GL_FRAMEBUFFER, sNativeFramebuffer);
+    if (!displayOverlay) sNativeWrittenThisFrame = true;
+    if ((displayOverlay || sNativeFramebufferReady) && glBindFramebuffer_ptr) {
+        glBindFramebuffer_ptr(GL_FRAMEBUFFER, displayOverlay ? pc_gfx_display_framebuffer() : sNativeFramebuffer);
     }
     if (fontI8 && (sUiFontSrc != fontI8 || !sUiFontTex)) {
         if (!sUiFontTex) glGenTextures(1, &sUiFontTex);
@@ -2262,6 +2262,10 @@ void pc_gfx_ui_draw(const PcUiVertex* verts, int count, int virtW, int virtH,
     for (int i = 0; i < 8; i++) sBoundTextures[i] = 0;
     gl_program_cache_invalidate();
     invalidate_gl_pipeline_guards();
+    if (displayOverlay && glBindFramebuffer_ptr && sNativeFramebufferReady) {
+        glBindFramebuffer_ptr(GL_FRAMEBUFFER, sNativeFramebuffer);
+        glViewport(0, 0, sRenderWidth, sRenderHeight);
+    }
 }
 
 // Desenfoque de una región del render target (coordenadas GX con el mapeo

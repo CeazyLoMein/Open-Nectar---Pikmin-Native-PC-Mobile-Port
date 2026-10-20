@@ -4,6 +4,7 @@
  */
 
 #include "pc_dsp_host.h"
+#include "pc_p2_audio_audit.h"
 
 #include "pc_aram.h"
 #ifndef BEGIN_SCOPE_EXTERN_C
@@ -65,13 +66,16 @@ enum SourceType : u16 {
 };
 
 /// Bus identifiers DSP_SetBusConnect writes into DSPMixerChannel::id. They are
-/// DSP DRAM addresses, spaced 0x60 apart for the six main buffers.
+/// DSP DRAM addresses. The rear direct pair is not adjacent to the front pair.
+/// 0x0DC0/0x0E20 are FX buffers, not the rear direct outputs.
 enum BusId : u16 {
 	kBusNone       = 0x0000,
 	kBusDryLeft    = 0x0D00,
 	kBusDryRight   = 0x0D60,
-	kBusSurrLeft   = 0x0DC0,
-	kBusSurrRight  = 0x0E20,
+	kBusSurrLeft   = 0x0F40,
+	kBusSurrRight  = 0x0CA0,
+	kBusFxLeft     = 0x0DC0,
+	kBusFxRight    = 0x0E20,
 	kBusAuxLeft    = 0x0E80,
 	kBusAuxRight   = 0x0EE0,
 };
@@ -326,6 +330,7 @@ void pc_dsp_host_render_frame(DSPchannel_* channels, u32 channelCount, s16* out,
 		}
 
 		HostVoice& voice = sVoices[ch];
+		p2_audio_audit::source(channel.samplesSourceType);
 		if (busLog) busLogVoice(channel);
 		if (channel.resetVpb) {
 			// Expand the source end stored in the initial VPB into the running
@@ -384,12 +389,12 @@ void pc_dsp_host_render_frame(DSPchannel_* channels, u32 channelCount, s16* out,
 				};
 				const u8 pan      = static_cast<u8>(channel.dolbyVoicePosition >> 8) & 0x7f;
 				const u8 surround = static_cast<u8>(channel.dolbyVoicePosition) & 0x7f;
-				// fxMix (0..127) feeds the rear buses; with no fx the voice
-				// plays dry out front, matching the DSP's fx routing.
-				const s32 fxSend  = static_cast<s32>(static_cast<u8>(static_cast<u16>(channel.dolbyReverbFactor) >> 8)) << 8;
+				// Rear position is part of the direct voice, independently of its
+				// reverb send. Multiplying the rear gain by fxMix muted dry
+				// sounds behind the listener (including fxMix == 0 voices).
 				const s32 right   = sineGain(pan);
 				const s32 left    = sineGain(pan ^ 0x7f);
-				const s32 back    = (sineGain(surround) * fxSend) >> 15;
+				const s32 back    = sineGain(surround);
 				const s32 front   = sineGain(surround ^ 0x7f);
 				// Q15 * Q15 -> Q15 (con >> 16 el auto-mixer salía a la mitad).
 				const s32 frontL  = (left * front) >> 15;
@@ -445,11 +450,13 @@ void pc_dsp_host_render_frame(DSPchannel_* channels, u32 channelCount, s16* out,
 					endR += to;
 					break;
 				case kBusSurrLeft:
+				case kBusFxLeft:
 				case kBusAuxLeft:
 					startL += (from * kSurroundFold) >> 15;
 					endL += (to * kSurroundFold) >> 15;
 					break;
 				case kBusSurrRight:
+				case kBusFxRight:
 				case kBusAuxRight:
 					startR += (from * kSurroundFold) >> 15;
 					endR += (to * kSurroundFold) >> 15;
@@ -582,7 +589,6 @@ void pc_dsp_host_render_frame(DSPchannel_* channels, u32 channelCount, s16* out,
 
 	if (busLog) busLogFrame();
 	if (std::getenv("PIKMIN_AUDIO_LOG")) {
-		static unsigned n2;
 		if (sActiveVoices > 0) {
 			s32 p = 0;
 			for (u32 i = 0; i < frameSamples; ++i) {

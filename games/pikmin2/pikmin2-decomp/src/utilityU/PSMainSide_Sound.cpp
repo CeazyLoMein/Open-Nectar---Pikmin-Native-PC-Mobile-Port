@@ -1,3 +1,6 @@
+#ifdef PIKI_PC_PORT
+#include "audio/pc_p2_audio_audit.h"
+#endif
 #include "P2Macros.h"
 #include "PSM/Creature.h"
 #include "PSM/ObjMgr.h"
@@ -143,6 +146,9 @@ f32 SeSound::setDistanceVolumeCommon(f32, u8 flag)
 		f32 fx = static_cast<PSM::Scene_Cave*>(PSMGetChildScene())->getSceneFx();
 		setFxmix(fx, 0, SOUNDPARAM_Demo);
 	}
+	#ifdef PIKI_PC_PORT
+    p2_audio_audit::distance(mSoundID, dist, dist2, mPlayerNum);
+#endif
 	return dist2 < 0.0f ? 0.0f : dist2 > 1.0f ? 1.0f : dist2;
 }
 
