@@ -786,3 +786,38 @@ Do not claim runtime success from build/package checks. Optional P1models ready
 privately but onhold;HDenvironmenttexturequota-blocked atlastattempt;60FPStarget;
 mid-dayrecovery saving and onlinewithRaye remainfuture (onlineLAST).
 This documentation-only checkpoint uses [skip ci] to avoid an extra build.
+
+## P2 transfer completeness audit and missing touch-art correction — 2026-10-19 23:22 Eastern Daylight Time
+
+User explicitly asked about missing Art after the earlier P1 experience. The
+prepared P2 disc assets were complete, but the standalone touchscreen artwork
+was omitted from the transfer folder. Codex corrected that preparation omission.
+No phone operation, game-source edit or new IPA build is necessary for this fix.
+Build22 source/IPA remains the verifieda16a3bae build. P1 untouched.
+
+Independent audit reparsed current GPVE01ISO FST with the same UTF8/CP932 name
+conversion as upstream and matched EVERY2768 file path,size,SHA256 to the prepared
+assets and prior manifest,with zero missing/extra disc files (onlyupstreammarker).
+Disc game payload1004985055bytes. Touch source references28unique PNG names.
+Copied all26P2source PNGs plus shared lock_on.png andcharge.png from the P1source
+art directory (not the phone);all28exact-source hashes and PNGdecodes passed.
+All referencedtouchartnames covered. P2touch loader searches relative art/,not
+Load/Art and not assets/art. Separate lowercase art folder now sits besideassets.
+
+Audited8Yaz0/RARC UIarchives for exact requestedBTI/BFN entries: pauseglass,UFOdots,
+repaymentbuttons,encyclopediabuttons,challengeselect,foreignfont,sprayicons and
+portraitfaces. All requested entries present,including pikmin2main.bfn. P2's
+fallbacksettingsfont is also compiled into pc_ui_font.h;no externalTTF needed.
+Full result:privateP2folder/P2 Complete Transfer Verification.json andsession
+work/p2-completeness-audit.json. Native loaders/source reviewed; caches/settings/
+saves are generated at runtime,HDreplacement folders remain optional.
+
+Correct transfer:copy BOTH assets AND art fromDocuments/Open Nectar/3 - Game
+Files - Keep Private/Extracted for iPhone/Pikmin 2 into the separate P2app
+Documents/pikmin2. Expectpikmin2/assets/user/... andpikmin2/art/bubble.png.
+The existing game-files shortcut opens this parentfolder. START HERE andWHATTO
+TEST guides corrected;previous instructions preserved in5/Instructions-Before
+P2ArtAudit. No modifications to working P1app,settings,save orcontent.
+Base-data/UI completeness verified onPC;phone transfer/runtime stillNOT tested.
+OptionalHDtextures/models not part of basegamepayload,still not installed;last
+textureattempt quota-blocked. Phoneworkonholduntiluserready. Docscheckpoint[skip ci].
