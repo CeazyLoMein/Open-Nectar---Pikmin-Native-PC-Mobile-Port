@@ -1,3 +1,6 @@
+CURRENT - 2026-10-20 09:19 EDT: Build26 P2-only PASSED; verified IPA ready in folder1.
+Menu clarity/input on phone pending. Build24 opens; P1 untouched.
+
 CURRENT CHECKPOINT - 2026-10-20 08:43 EDT: Build25 failed only the new test fixture;
 correction locally verified. P2-only Build26 run39424440094 dispatched; result pending.
 Build24 opens on phone; menu candidate remains unverified. P1 untouched.
@@ -1282,3 +1285,35 @@ Local MSVC iPhone180/desktop190 and Clang parser both variants PASS.
 Apple/full-game compilation, new IPA and phone menu behavior remain pending.
 Build25 failed early test, no IPA. Build24 remains the known-opening phone build.
 No idle polling; user will report completion. Dispatch documentation uses [skip ci].
+
+## Build26 PASSED; P2 menu test IPA ready - 2026-10-20 09:19 EDT
+
+P2-only source dd5bd01557ea7f57255f869d431cd81864bca567; run39424440094;
+job118633289923; artifact12266336380. All job steps passed, including native
+menu180/desktop190 host checks, actual iPhone ARM64 syntax check, existing
+allocator/address/TLS checks, full game configure/compile/link and IPA packaging.
+Build25's three unused fixture constant diagnostics corrected; no warnings disabled.
+
+Downloaded artifact ZIP digest verified against GitHub metadata:
+555eb99487ec310e9c9ffb795ade822fca5f9bea5f36c521653347922aa6aaac.
+IPA ZIP integrity, single P2 bundle identity, ARM64 iPhoneOS device executable,
+minimum iOS15, system-library load commands and unsigned state verified.
+Fresh UUID0bd204c6-8a62-35ed-82e6-4ef2cfc76b14, executable11065512bytes.
+Actual new/new[] ARM64 routines both still request16-byte alignment.
+IPA3826605bytes SHA256ca28fbc6f423745e2babb595d1b47fac4a1222917b00c0ea61f24d23ad0325e5.
+No proprietary ISO/RVZ/model/archive game assets embedded in IPA.
+Copied with matching hash to Documents/Open Nectar/1 - Install on iPhone/
+Pikmin 2 - Build 26 - Clear Menus and Touch.ipa, alongside verification JSON,
+updated START HERE/WHAT TO TEST guide and build link. Build24 preserved.
+Full successful job log in friendly folder2; full reports refreshed.
+
+Milestones: source implemented YES; local checks YES; Apple compilation YES;
+IPA YES; Build26 phone installation/runtime/menu clarity/touch verification NO.
+Build24 remains last hardware-confirmed opening build. No phone operations,
+P1 changes, assets/art recopy, signing changes or new build. Docs commit skip-ci.
+Next user test: update existing P2 in Sideloadly with same account/ID, do not
+uninstall. Check advanced clarity/tabs/scroll/tap mapping; original options
+rows/values/Save; Continue/Don't Save select then confirm, visible A and Back;
+then title/gameplay/audio/camera regression. No need to connect phone to Codex
+unless a fresh crash report is needed. Do not call new menu bugs fixed until
+actual user feedback. Wait for phone results without idle usage.
