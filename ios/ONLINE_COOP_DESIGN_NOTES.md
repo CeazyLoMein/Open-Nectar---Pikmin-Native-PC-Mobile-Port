@@ -62,3 +62,40 @@ part of the current P2 graphics/HUD work.
 Possible later sequence: P1 two-iPhone LAN proof, internet connectivity, safe
 campaign saves/rejoin, P2 integration, then performance-tested balance refinements.
 This is a proposed sequence, not a schedule or completion promise.
+
+## Accepted P1 prototype approach - 2026-10-20
+
+The user asked to save this approach and said it was a good way to proceed.
+This records an agreed plan; online implementation has not been authorized to
+start in this exchange. Current P2 audio/HUD validation continues first.
+
+P1 is a good candidate for a controlled exploratory prototype before P2:
+its iPhone game already runs, and the repository has local two-captain co-op
+plus experimental networking foundations. Online on our iPhone build is still
+unproven. These foundations do not establish correct shared campaigns.
+
+A full story completion is not a prerequisite for a separate exploratory
+prototype. Reliable campaign release remains subject to broader gameplay,
+networking and save-integrity validation; the original stable-release goal
+and current priorities remain in place.
+
+Protect the working P1 app and real saves: use a separately identified
+experimental app with its own data container and a disposable campaign.
+Do not overwrite or convert the working installation/save for the prototype.
+
+Milestones:
+
+1. Two iPhones on the same Wi-Fi, each rendering only its own player's
+   full-screen camera/HUD. Confirm two independent captains and squads.
+2. Both devices agree on enemies, Pikmin, shared Onion inventory, player
+   allowances and campaign events. Test actions from both players rather than
+   treating two moving captains as sufficient proof of synchronization.
+3. Safe host-owned campaign saves, disconnect handling and rejoining without
+   lost/duplicated progress or Pikmin. Back up saves before destructive tests.
+4. Different internet connections, private Create/Invite/Join flow and the
+   required connection/relay handling; then longer shared campaign testing.
+5. Apply verified lessons to P2 later, followed by performance-tested balance
+   changes. Keep the previously agreed together-only campaign and group-travel
+   simplifications, with independent offline progress/host migration deferred.
+
+No date, completion guarantee or claim of proven iPhone online functionality.

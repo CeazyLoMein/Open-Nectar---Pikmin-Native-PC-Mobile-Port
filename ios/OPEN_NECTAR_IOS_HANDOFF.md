@@ -2,9 +2,9 @@
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-20 18:39 EDT
+**Date/time:** 2026-10-20 19:10 EDT
 
-**Overall project status:** P1 remains working and unchanged. P2 Build29 runs on the phone, but the user reports missing Pikmin voices/wind, ship sound at excessive distance, and a hard-to-read gameplay performance HUD. A P2-only correction/audit batch is implemented and locally verified; Build30/run39509564730 is in progress at the last observation; new Apple result/IPA and phone retesting are pending.
+**Overall project status:** P1 remains working and unchanged. P2 Build29 runs on the phone, but the user reports missing Pikmin voices/wind, ship sound at excessive distance, and a hard-to-read gameplay performance HUD. A P2-only correction/audit batch is implemented and locally verified; Build30/run39509564730 PASSED, its new IPA is verified and staged in folder1. Installation and phone retesting are pending.
 
 ### Pikmin 1
 
@@ -31,19 +31,19 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental
 - Starting commit: 47f60419d4f31b21ee1c571ecacfad315d39d049
-- Latest source commit: e9a06bebd443e3eb5d8943a5c01c53e186512423, pushed. This report accompanies a documentation-only checkpoint.
-- Commits created: e9a06bebd443e3eb5d8943a5c01c53e186512423, P2 audio/HUD/audit batch.
+- Latest local and remote commit: 5880938b9563fe9b3f7d7536f96b9cd8b1daa830 (documentation checkpoint, pushed). Build30 source: e9a06bebd443e3eb5d8943a5c01c53e186512423.
+- Commits created: e9a06bebd443e3eb5d8943a5c01c53e186512423 (source batch), 5880938b9563fe9b3f7d7536f96b9cd8b1daa830 (dispatch documentation, skip ci).
 - Changes pushed: All verified P2 source/test/workflow changes, one P2-only run triggered.
-- Uncommitted changes: No remaining source changes; this dispatch report is being recorded in the documentation checkpoint.
-- GitHub Actions run IDs: Latest completed Build29/run39470849443, source7f7d0783e8b42870a8b6bbb1954199fbe9ffc6bb, success. New Build30/run39509564730, sourcee9a06bebd443e3eb5d8943a5c01c53e186512423, observed in_progress: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39509564730
-- Build results: Build30 in progress at dispatch; result not polled. No local Apple SDK.
-- Artifacts produced: No new IPA. Build29 IPA remains in Documents/Open Nectar/1 - Install on iPhone, with Build27 backup retained.
+- Uncommitted changes: No source changes. This result and accepted co-op approach are accompanying documentation updates to be committed with skip ci.
+- GitHub Actions run IDs: Latest completed Build29/run39470849443, source7f7d0783e8b42870a8b6bbb1954199fbe9ffc6bb, success. New Build30/run39509564730, sourcee9a06bebd443e3eb5d8943a5c01c53e186512423, SUCCESS: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39509564730
+- Build results: Build30 completed SUCCESS. Apple runner passed 28 audio route checks, existing DSP suite, 11 diagnostic checks, 16 HUD checks, menu and allocator regressions; native ARM64 compile/link and IPA packaging succeeded.
+- Artifacts produced: Build30 artifact12305729295, job118926912719. Verified unsigned P2 IPA staged as Pikmin 2 - Build 30 - Audio and Clear Performance Display.ipa. SHA-256 8fc3a729b92376747b48b98b9cb37d07affe166efbfada616195f7addc92f72d. ARM64 iPhoneOS device, min iOS15, UUID 9a174ddb-184b-3713-a0ab-f869e15277cd. Scalar/array new both retain16-byte alignment. Build29/27 retained.
 
 ### Next steps
 
 - Next Pikmin 1 task: Preserve app/content; no reinstall requested.
 - Next Pikmin 2 task: Retest red Pikmin throwing/whistling, wind, captain switching and ship near/far after new build; then audit additional audio categories.
-- GitHub/build task: Wait for user to report Build30 completion, then inspect its jobs/logs/artifact. No idle polling or duplicate build.
+- GitHub/build task: No new build needed now. Await phone audio/HUD feedback, then read the new diagnostic reports over USB if needed.
 - Anything requiring my involvement: After successful IPA is staged, install/update P2 and perform the short phone test. Phone currently connected; no further action now.
 
 ### ChatGPT continuation notes
@@ -51,9 +51,9 @@
 - Another conversation must not claim all missing sounds fixed: only mixer defects are reproduced and locally corrected.
 - Active audio files: games/pikmin2/pc_port/audio/pc_dsp_host.cpp, p2_audio_host.cpp, pc_p2_audio_audit.cpp/.h; native decomp JAI/JAS/PSM files are active. Copied jaudio_host.cpp is not P2's active audio engine.
 - Relevant logs: workspace outputs/P2-Phone-Audio-Assets-Audit.json and outputs/P2-Audio-Wave-Format-Audit.json; recordings in Downloads; derived files in work/p2-audio-clips. No existing P2 audio report on phone before this candidate.
-- Unverified fixes: Audibility and HUD appearance on real hardware; Apple compile/link pending.
-- Risks and warnings: Existing reverb is approximate, synthetic DSP sources are incomplete. Real wave entries use ADPCM4 except one PCM16, so no unsupported-format patch was invented. Keep crash allocator protections and SDL-managed iOS framebuffer mapping. Never publish private game assets. Online co-op remains design notes only, last priority.
-- Exact next actions: Inspect new build when user reports complete; verify/download IPA and place it in folder1; after phone retest retrieve Files/pikmin2/p2-audio-report.txt and p2-audio-previous.txt over USB. Interpret 'started' as a sequencer trigger, not proof of audible PCM.
+- Unverified fixes: Audibility and HUD appearance on real hardware; Apple compile/link and package verification passed.
+- Risks and warnings: Existing reverb is approximate, synthetic DSP sources are incomplete. Real wave entries use ADPCM4 except one PCM16, so no unsupported-format patch was invented. Keep crash allocator protections and SDL-managed iOS framebuffer mapping. Never publish private game assets. Online co-op remains design notes only. User accepted saving the separate P1 prototype approach: two-iPhone LAN, synchronized world/inventory, safe saves/rejoin, then internet. Full campaign completion is not required before a separate exploratory prototype; no online coding started.
+- Exact next actions: Build30 is verified/staged. After installation and phone retest retrieve Files/pikmin2/p2-audio-report.txt and p2-audio-previous.txt over USB. Interpret 'started' as a sequencer trigger, not proof of audible PCM.
 
 **END PROGRESS REPORT**
 
