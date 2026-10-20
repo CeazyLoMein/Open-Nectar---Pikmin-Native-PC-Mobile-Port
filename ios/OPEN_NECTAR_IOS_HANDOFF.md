@@ -1,3 +1,8 @@
+LATEST CHECKPOINT - 2026-10-20 00:34 EDT: P2 Build23 SUCCESS; startup candidate IPA ready
+in folder1. Source609a45b1/run39369282124. New phone installation/startup retest
+PENDING. Update P2 only; preserve data/assets/art. P1 working and untouched.
+Read the newest journal entry; earlier build-pending checkpoints are historical.
+
 LATEST BUILD CHECKPOINT: P2-only Build23 dispatched at 609a45b1;
 Apple result/IPA/phone retest pending. P1 untouched.
 
@@ -551,3 +556,34 @@ Status at dispatch: in_progress. P2 only; P1 not scheduled. No new IPA or
 hardware retest yet. Host tests: 1344 native + 1280 console checks passed.
 The following journal-only checkpoint uses [skip ci], with no extra build.
 No idle Actions polling. Retrieve result/logs after user reports completion.
+
+## Build23 P2 startup candidate compiled and packaged - 2026-10-20 00:34 EDT
+
+Verified actual Actions result SUCCESS. Run39369282124, job118453229169,
+source 609a45b184b50aeb1a71e581c2c2095f4f664f77. P2-only job; no P1 build.
+Apple adapter/standard-library/allocator/GD TLS checks passed, followed by
+full iPhoneOS ARM64 compilation, linking, metadata validation and IPA packaging.
+Artifact12241127170, archive7609098bytes. Retrieved build log/error index:
+0 recognized compiler/linker errors, and actual job compilation/package SUCCESS.
+
+Downloaded IPA: 3823426bytes; ARM64 executable11064832bytes; iPhoneOS device
+platform; minimumOS15; exact P2 bundle/executable identity; ZIP CRC and all
+Mach-O load-command boundaries PASS. Dynamic-library references are system
+paths. Intentionally unsigned, no proprietary disc assets in IPA.
+SHA256: 9389d36c43713794c2f0e5737c35b74e0ad8b6f32fcd54f1f5911242903a47c4
+Executable UUID: cd97b20e-54c2-396d-9786-3535a215723d
+This differs from crashed Build22 UUID5af9412e-02a6-3446-96d4-90231accd8a5.
+New reports must match the new UUID after Sideloadly signing/repackaging;
+verify the installed executable identity before drawing conclusions.
+
+Copied and SHA256-verified to Documents/Open Nectar/1 - Install on iPhone/
+Pikmin 2 - Build 23 - Startup Fix.ipa. Simple START HERE / WHAT TO TEST guides ready.
+Moved only the old P2 Build22 IPA to folder5/Build 22 - P2 Startup Crash Reference,
+verified unchanged hash; retained prior guides/history and logs. P1 untouched.
+User should update existing P2 through Sideloadly with same signing identity,
+preserve app data, reuse current phone assets/art, then test launch/title/menu.
+No phone operation was performed during this build-result preparation.
+Milestones: solution implemented, local checks passed, Apple compilation/link
+passed, IPA generated and locally verified. New IPA installation/runtime NOT
+verified; startup crash correction is still a candidate until phone evidence.
+No further build needed now. This documentation-only checkpoint uses [skip ci].
