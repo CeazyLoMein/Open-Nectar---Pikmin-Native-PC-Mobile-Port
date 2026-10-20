@@ -1,3 +1,9 @@
+CURRENT - 2026-10-20 13:42 EDT: Build28 P2-only DISPATCHED, run39468391460.
+Source386771cabe6366b0788091f4d6d63f9ef6850c67; observed in_progress.
+Local checks PASS; new Apple result/IPA/phone tests pending. Build27 user reports
+no crashes so far (limited test). P1 app unchanged; GPI activation unverified.
+No idle polling; next action inspect Build28 when user reports completion.
+
 CURRENT - 2026-10-20 13:41 EDT: P2 enhancements implemented; local checks PASS.
 Apple build/IPA/new-profile phone tests pending. Build27 user reports no crashes
 so far (limited test). P1 GPI texture pack installed/listed but inactive in screenshot;
@@ -1616,3 +1622,17 @@ captain selection; pause/resume; original Options; HUD toggle and 60FPS; 15-20mi
 FPS/frame/RAM/heat test. Then separately choose/import/enable a P2-specific pack,
 restart and inspect replacements/counters. Retrieve matching fresh crash report
 read-only if regression. No new source fix is claimed hardware-verified yet.
+
+## Build 28 P2 enhancements dispatched - 2026-10-20 13:42 EDT
+
+Source commit: 386771cabe6366b0788091f4d6d63f9ef6850c67
+Run: 39468391460 / Build 28
+URL: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39468391460
+Observed status at dispatch: in_progress; conclusion/IPA pending.
+Only P2 selected via [ios-p2-only]. Source and local tests summarized in the
+preceding enhancement entry. No P1 app/data changes, no P2 content installation.
+Local source push succeeded; source includes both game journals. This dispatch
+checkpoint uses [skip ci] and does not start another build. Stop idle GitHub
+polling per user; user will report completion. On return fetch/inspect this
+exact run before new code edits, retrieve full logs/artifact, verify and stage
+IPA only after success. Do not claim this candidate hardware-verified.
