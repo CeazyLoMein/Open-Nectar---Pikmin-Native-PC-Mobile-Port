@@ -1,3 +1,9 @@
+CURRENT - 2026-10-20 18:39 EDT: P2-only Build30 DISPATCHED, run39509564730.
+Source e9a06bebd443e3eb5d8943a5c01c53e186512423; observed in_progress.
+All142 phone audio files match originals. Local mixer/HUD/audit checks PASS.
+Apple result/new IPA/phone audio and HUD validation pending. P1 unchanged.
+No idle polling. See current master handoff and PIKMIN2_AUDIO_AUDIT.md.
+
 CURRENT - 2026-10-20 18:37 EDT: P2 audio/HUD batch locally verified; Apple build not dispatched yet.
 Build29 phone gameplay/settings confirmed, but voices/wind/ship-distance issues remain.
 All142 phone AudioRes files SHA-256 match originals. HUD toggle resolved by user.
