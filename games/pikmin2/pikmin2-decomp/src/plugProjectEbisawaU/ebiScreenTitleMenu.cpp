@@ -551,6 +551,10 @@ void TTitleMenu::doSetArchive(JKRArchive* arc)
  */
 void TTitleMenu::doOpenScreen(ArgOpen* arg)
 {
+#if PIKI_PC_TOUCH
+	// Claim during opening/drawing too, before the animated menu becomes interactive.
+	pc_touch_claim_game_menu();
+#endif
 
 	P2ASSERTLINE(197, arg);
 
@@ -841,6 +845,10 @@ bool TTitleMenu::doUpdateStateClose()
  */
 void TTitleMenu::doDraw()
 {
+#if PIKI_PC_TOUCH
+	// Claim during opening/drawing too, before the animated menu becomes interactive.
+	pc_touch_claim_game_menu();
+#endif
 	J2DPerspGraph* graf;
 	Graphics* gfx = sys->mGfx;
 	graf          = &gfx->mPerspGraph;

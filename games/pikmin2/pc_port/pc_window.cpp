@@ -762,6 +762,7 @@ bool pc_window_save_key_bindings(const char* path) {
 }
 
 bool pc_window_init(const char* title, int width, int height) {
+    PcHostAllocScope pcHostAlloc;
     // The PC entry point creates the window before System::Initialise so GX can
     // build its GL resources. PADInit is called later by ControllerMgr and also
     // requests window initialisation. Recreating it there switches to a fresh
@@ -1035,6 +1036,13 @@ static bool pc_window_read_gamepad(SDL_GameController* ctl, u16& button, s8& sti
         || abs(rx) > noticeZone || abs(ry) > noticeZone;
 }
 
+// UIKit event pumping may create native objects. Keep only the SDL call in
+// the host scope, so game/menu handlers below retain their normal allocation.
+static int pc_poll_host_event(SDL_Event* event) {
+    PcHostAllocScope pcHostAlloc;
+    return SDL_PollEvent(event);
+}
+
 void pc_window_poll_events(PADStatus* pad) {
 #if PIKI_P2_HOST
     // Pikmin 2: el audio lo pauta la cola de SDL desde VIWaitForRetrace.
@@ -1045,7 +1053,7 @@ void pc_window_poll_events(PADStatus* pad) {
 #endif
 
     SDL_Event event;
-    while (SDL_PollEvent(&event)) {
+    while (pc_poll_host_event(&event)) {
         switch (event.type) {
             case SDL_QUIT:
                 sShouldClose = true;
@@ -1506,6 +1514,7 @@ unsigned int pc_gfx_begin_swap_framebuffer(void);
 void pc_gfx_end_swap_framebuffer(unsigned int bound);
 
 void pc_window_swap_buffers(void) {
+    PcHostAllocScope pcHostAlloc;
     if (sWindow) {
 #if defined(__APPLE__) && !TARGET_OS_IPHONE
         // macOS uses GL default FBO=0; on iOS SDL must retain UIKit's drawable framebuffer.
@@ -1573,6 +1582,7 @@ int pc_window_take_wheel_steps(void) {
 }
 
 void pc_window_set_swap_interval(int interval) {
+    PcHostAllocScope pcHostAlloc;
     // 0 is meaningful here: it is the port's 120 Hz mode. Only negatives are
     // nonsense.
     if (interval < 0) interval = 1;
@@ -1585,6 +1595,7 @@ void pc_window_set_swap_interval(int interval) {
 }
 
 static void pc_window_apply_monitor_vsync(void) {
+    PcHostAllocScope pcHostAlloc;
     const int wanted = sMonitorVsyncMode && sVsyncEnabled && !sMonitorVsyncFallback ? 1 : 0;
     if (wanted == sDriverSwapInterval) return;
     if (SDL_GL_SetSwapInterval(wanted) == 0) {
@@ -1621,6 +1632,7 @@ void pc_window_monitor_vsync_fallback(void) {
 }
 
 void pc_window_shutdown(void) {
+    PcHostAllocScope pcHostAlloc;
 #if !PIKI_P2_HOST
 #if PIKI_USE_JAUDIO
     StopAudioThread();

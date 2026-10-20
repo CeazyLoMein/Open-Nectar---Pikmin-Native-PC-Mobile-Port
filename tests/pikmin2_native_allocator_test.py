@@ -7,6 +7,7 @@ fallbacks and scope nesting/thread-local state run normally.
 from pathlib import Path
 import re
 import sys
+from pikmin2_gl_host_audit import audit, functions
 
 repo = Path(__file__).resolve().parents[1]
 source = (repo/'games/pikmin2/pikmin2-decomp/src/JSystem/JKernel/JKRHeap.cpp').read_text(encoding='utf-8')
@@ -26,12 +27,21 @@ sink_lock = re.search(r'struct SinkLock \{.*?\n\};', sink, re.S).group()
 audio_host = (repo/'games/pikmin2/pc_port/audio/jaudio_host.cpp').read_text(encoding='utf-8')
 assert 'PcNativeHostAllocScope hostAllocScope;' in audio_host[audio_host.index('void beginSinkOpen()'):audio_host.index('void serviceSinkOpen(')]
 assert 'PcNativeHostAllocScope workerHostAllocScope;' in audio_host
+window=(repo/'games/pikmin2/pc_port/pc_window.cpp').read_text(encoding='utf-8')
+for name in ['pc_window_init','pc_window_swap_buffers','pc_window_set_swap_interval',
+             'pc_window_apply_monitor_vsync','pc_window_shutdown','pc_poll_host_event']:
+    body=next(body for name_,_,_,body in functions(window) if name_==name)
+    assert body.strip().startswith('PcHostAllocScope pcHostAlloc;'),name
+assert 'while (pc_poll_host_event(&event))' in window
+assert re.search(r'if \(SDL_Window\* window = SDL_GL_GetCurrentWindow\(\)\) \{\s*//[^\n]*\n\s*PcNativeHostAllocScope hostAllocScope;',os_source)
+
 begin = source.index('void* operator new(JKR_NEW_SIZE_T byteCount)')
 end = source.index('\nJKRHeap::TState::TState(', begin)
 operators = source[begin:end]
 assert len(re.findall(r'void\* operator new(?:\[\])?\(', operators)) == 6
 operators = operators.replace('operator new[]', 'test_new_array').replace('operator new', 'test_new')
 operators = operators.replace('operator delete[]', 'test_delete_array').replace('operator delete', 'test_delete')
+gl_boundaries = audit(gfx)
 scope = re.search(r'struct PcGfxHostAllocScope \{.*?\n\};', gfx, re.S).group()
 boundaries = ['pc_gfx_init', 'pc_gfx_begin_frame', 'pc_gfx_flush_batch',
               'pc_gfx_overlay_texture_create', 'pc_gfx_overlay_texture_destroy',
@@ -98,6 +108,28 @@ static_assert(pc_object_alignment(-4) <= -16, "Native tail new must support 16-b
 struct PcThreadArg { void* (*func)(void*); void* param; };
 void* run_actual_game_callback(PcThreadArg* arg) { void* ret = nullptr;
 ''' + game_callback + '\nreturn ret; }\n#endif\n'
+# Exercise the exact crashing entry with a lazy-allocating driver stand-in.
+depth_body=next(gfx[a:b] for name,a,b,_ in functions(gfx) if name=='pc_gfx_clear_depth')
+fixture += r'''
+#ifdef PIKI_PC_PORT
+#define PIKI_USE_GLES 1
+constexpr int GL_SCISSOR_TEST=1, GL_TRUE=1, GL_DEPTH_BUFFER_BIT=2;
+float sReplayClearDepth=1.f;
+void* driverAllocations[8]={};int driverCalls=0;
+void lazyDriverCall(){
+    assert(pc_host_alloc_active());
+    void* p=test_new(64);assert(p && !JKRHeap::findFromRoot(p));
+    assert(driverCalls<8);driverAllocations[driverCalls++]=p;
+}
+void pc_gfx_flush_batch(){PcGfxHostAllocScope hostAllocScope;lazyDriverCall();}
+void glDisable(int){lazyDriverCall();}
+void glDepthMask(int){lazyDriverCall();}
+void glClearDepthf(float){lazyDriverCall();}
+void glClear(int){lazyDriverCall();}
+void state_touched(){}void invalidate_gl_pipeline_guards(){}
+void pc_gfx_clear_depth(){
+''' + depth_body + '\n}\n#endif\n'
+
 fixture += r'''
 static int checks = 0;
 #define CHECK(condition) do { ++checks; assert(condition); } while (false)
@@ -217,6 +249,22 @@ int main() {
     }
     CHECK(!pc_host_alloc_active());
     CHECK(pc_game_alloc_active());
+    // Actual depth clear must not put any lazy driver allocation into JKR.
+    const int beforeClear=a.calls, freesBeforeClear=a.frees;
+    pc_gfx_clear_depth();
+    CHECK(driverCalls==5 && a.calls==beforeClear);
+    CHECK(!pc_host_alloc_active() && pc_game_alloc_active());
+    std::thread completion([] {
+        assert(!pc_game_alloc_active());
+        for(int i=0;i<driverCalls;++i){
+            assert(!JKRHeap::findFromRoot(driverAllocations[i]));
+            test_delete(driverAllocations[i]);
+        }
+    });
+    completion.join();CHECK(a.frees==freesBeforeClear);
+    {PcGfxHostAllocScope nested;driverCalls=0;pc_gfx_clear_depth();CHECK(pc_host_alloc_active());
+     for(int i=0;i<driverCalls;++i)test_delete(driverAllocations[i]);}
+    CHECK(!pc_host_alloc_active());
     // Audio's actual lock wraps synchronous SDL calls even on a game thread.
     std::recursive_mutex audioMutex;
     const int beforeAudio = a.calls;
@@ -243,4 +291,4 @@ int main() {
 }
 '''
 out = Path(sys.argv[1]); out.write_text(fixture)
-print(f'Generated actual-code allocator fixture; verified {len(boundaries)} renderer host boundaries.')
+print(f'Generated actual-code allocator fixture; verified {len(boundaries)} required entries and {len(gl_boundaries)} direct GL host boundaries.')

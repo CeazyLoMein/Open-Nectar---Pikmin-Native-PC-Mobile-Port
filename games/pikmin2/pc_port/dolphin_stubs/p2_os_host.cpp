@@ -1099,6 +1099,8 @@ void VIWaitForRetrace()
 	pc_touch_draw(); // controles táctiles encima de todo, como en Pikmin 1
 #endif
 	if (SDL_Window* window = SDL_GL_GetCurrentWindow()) {
+		// SDL swap can allocate Metal objects later freed by completion workers.
+		PcNativeHostAllocScope hostAllocScope;
 		// FPS Mode 120 en un monitor mas lento: con VSync el swap bloquearia
 		// hasta el refresco y frenaria la logica. Se presenta un frame por
 		// refresco y los demas se quedan en el framebuffer propio.

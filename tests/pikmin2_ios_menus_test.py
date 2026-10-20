@@ -17,8 +17,11 @@ gfx=read('games/pikmin2/pc_port/gl/pc_gfx.cpp');settings=read('games/pikmin2/pc_
 touch=read('games/pikmin2/pc_port/touch/pc_touch.cpp');option=read('games/pikmin2/pikmin2-decomp/src/plugProjectEbisawaU/ebiScreenOption.cpp')
 menu=read('games/pikmin2/pikmin2-decomp/src/plugProjectOgawaU/ogMenuMgr.cpp');modal=read('games/pikmin2/pikmin2-decomp/src/plugProjectOgawaU/ogObjSMenuPauseVs.cpp')
 window=read('games/pikmin2/pc_port/pc_window.cpp')
+title=read('games/pikmin2/pikmin2-decomp/src/plugProjectEbisawaU/ebiScreenTitleMenu.cpp')
+for signature in ['void TTitleMenu::doOpenScreen(ArgOpen* arg)','void TTitleMenu::doDraw()']:
+ assert 'pc_touch_claim_game_menu();' in fn(title,signature)
 assert '#if defined(__ANDROID__) || defined(__IPHONEOS__)' in fn(settings,'void pc_settings_p2_begin_frame')
-assert 'sMenuConfirmFrames <= 0' in touch[touch.index('void pc_touch_on_finger'):touch.index('static u16 sLastPadButtons')]
+assert 'sGameMenuClaimFrames <= 0' in touch[touch.index('void pc_touch_on_finger'):touch.index('static u16 sLastPadButtons')]
 assert 'pcOptionSelectRow(*this, pcTap)' in fn(option,'bool TOption::doUpdateStateWait()')
 assert 'pcTap.row == 6 && !pcRowChanged' in option
 assert 'if (pcTap.value >= 0) mWindowCursor.mCounter = 0;' in option
@@ -120,21 +123,23 @@ void run(){
 } // render
 namespace touchCase {
 using u16=unsigned short;using u32=unsigned;using f32=float;
-enum { BTN_BACK=0,BTN_MENU_CONFIRM=1,BTN_THROW=2 };
-int sGameMenuClaimFrames=0,sPortMenuClaimFrames=0,sMenuConfirmFrames=0,sMenuStickFrames=0;
+enum { BTN_BACK=0,BTN_MENU_CONFIRM=1,BTN_THROW=2,BTN_SETTINGS=3 };
+int sGameMenuClaimFrames=0,sPortMenuClaimFrames=0,sMenuStickFrames=0;
 unsigned sMenuWantedButtons=0;
 bool sGameMenuTapPending=false;int sGameMenuTapAge=0;float sGameMenuTapX=0,sGameMenuTapY=0;
 int width=1000,height=500;
 void pc_gfx_get_drawable_size(int* w,int* h){*w=width;*h=height;}
 '''
+cpp+='struct ButtonState {float cx,cy,r;};\nconstexpr int BTN_COUNT=4;\nButtonState sButtons[BTN_COUNT]={{10,10,2},{20,10,2},{30,10,2},{40,10,2}};\nbool button_modded_off(int){return false;}\n'
 for signature in ['bool menu_button_allowed(','void pc_touch_claim_game_menu(','void pc_touch_claim_menu_confirm(','bool pc_touch_menu_active(','void pc_touch_menu_uses_stick(','bool pc_touch_take_game_menu_tap(']:cpp+=fn(touch,signature)+'\n'
+cpp+=fn(touch,'int button_at(')+'\n'
 tracked=touch[touch.index('struct TrackedPane {'):touch.index('} // namespace',touch.index('struct TrackedPane {'))]
 cpp+=tracked+'\n'
 for signature in ['void pc_touch_pane_drawn(','bool pc_touch_pane_rect(','bool pc_touch_pane_hit(']:cpp+=fn(touch,signature)+'\n'
 cpp+=r'''
 void tick(){
 '''
-for name in ['sGameMenuClaimFrames','sPortMenuClaimFrames','sMenuStickFrames','sMenuConfirmFrames']:cpp+=f'if ({name}>0) --{name};\n'
+for name in ['sGameMenuClaimFrames','sPortMenuClaimFrames','sMenuStickFrames']:cpp+=f'if ({name}>0) --{name};\n'
 cpp+=r'''
 }
 struct J2DPane {float x0,y0,x1,y1;};
@@ -171,6 +176,11 @@ cpp+=fn(modal,'bool ObjSMenuPauseVS::menu()')+'\n'
 cpp+=r'''
 void run(){
  CHECK(menu_button_allowed(BTN_BACK));CHECK(!menu_button_allowed(BTN_MENU_CONFIRM));CHECK(!menu_button_allowed(BTN_THROW));
+ CHECK(menu_button_allowed(BTN_SETTINGS));
+ pc_touch_claim_game_menu();CHECK(menu_button_allowed(BTN_MENU_CONFIRM));CHECK(menu_button_allowed(BTN_SETTINGS));
+ CHECK(button_at(40,10)==BTN_SETTINGS);CHECK(button_at(20,10)==BTN_MENU_CONFIRM);CHECK(button_at(30,10)==-1);
+ CHECK(!menu_button_allowed(BTN_THROW));
+ for(int i=0;i<3;++i)tick();CHECK(!menu_button_allowed(BTN_MENU_CONFIRM));
  sMenuWantedButtons=1u<<BTN_THROW;CHECK(menu_button_allowed(BTN_THROW));
  pc_touch_claim_menu_confirm();CHECK(menu_button_allowed(BTN_MENU_CONFIRM)&&pc_touch_menu_active());
  for(int i=0;i<3;++i)tick();CHECK(!menu_button_allowed(BTN_MENU_CONFIRM)&&!pc_touch_menu_active());

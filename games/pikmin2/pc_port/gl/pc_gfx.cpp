@@ -32,7 +32,9 @@ void pc_host_alloc_set(bool active);
 // JKRHeap.cpp); for renderer state built by code that uses the default STL
 // allocator but must survive the current section heap. Also use at GL submission
 // boundaries: Apple's GLES-to-Metal driver lazily creates C++ compiler objects
-// during drawing, after GXInit's original host scope has already ended.
+// during clears, state changes, texture uploads and drawing. Their objects may
+// be freed by Metal completion workers after a game section heap is destroyed.
+// Every function that calls GL directly must begin with this restoring scope.
 struct PcGfxHostAllocScope {
     bool prev = pc_host_alloc_active();
     PcGfxHostAllocScope() { pc_host_alloc_set(true); }
@@ -284,6 +286,7 @@ static bool pc_gfx_verbose()
 }
 
 static void load_gl_functions() {
+    PcGfxHostAllocScope hostAllocScope;
     glActiveTexture_ptr = (PFNGLACTIVETEXTUREPROC)SDL_GL_GetProcAddress("glActiveTexture");
     glGenVertexArrays_ptr = (PFNGLGENVERTEXARRAYSPROC)SDL_GL_GetProcAddress("glGenVertexArrays");
     glGenerateMipmap_ptr = (PFNGLGENERATEMIPMAPPROC)SDL_GL_GetProcAddress("glGenerateMipmap");
@@ -434,6 +437,7 @@ static void invalidate_uniform_cache() {
 // alone paints a noisy overlay. Bloom/AO change the shader and mask it.
 static void post_bind_program(GLuint program)
 {
+    PcGfxHostAllocScope hostAllocScope;
     glUseProgram_ptr(program);
     invalidate_uniform_cache();
 }
@@ -464,6 +468,7 @@ static bool uniform_check_enabled() {
     return enabled;
 }
 static void check_uniform_write(GLint loc, const char* kind) {
+    PcGfxHostAllocScope hostAllocScope;
     if (!uniform_check_enabled()) return;
     const GLenum error = glGetError();
     if (error == GL_NO_ERROR) return;
@@ -489,6 +494,7 @@ static void check_uniform_write(GLint loc, const char* kind) {
 }
 
 static void cached_uniform1i(GLint loc, GLint value) {
+    PcGfxHostAllocScope hostAllocScope;
     if (loc < 0) return;
     if (uniform_cache_disabled()) { glUniform1i_ptr(loc, value); return; }
     if (loc >= PC_UNIFORM_CACHE_SIZE) { glUniform1i_ptr(loc, value); return; }
@@ -499,6 +505,7 @@ static void cached_uniform1i(GLint loc, GLint value) {
     check_uniform_write(loc, "1i");
 }
 static void cached_uniform1f(GLint loc, GLfloat value) {
+    PcGfxHostAllocScope hostAllocScope;
     if (loc < 0) return;
     if (uniform_cache_disabled()) { glUniform1f_ptr(loc, value); return; }
     if (loc >= PC_UNIFORM_CACHE_SIZE) { glUniform1f_ptr(loc, value); return; }
@@ -509,6 +516,7 @@ static void cached_uniform1f(GLint loc, GLfloat value) {
     check_uniform_write(loc, "1f");
 }
 static void cached_uniform2i(GLint loc, GLint x, GLint y) {
+    PcGfxHostAllocScope hostAllocScope;
     if (loc < 0) return;
     if (uniform_cache_disabled()) { glUniform2i_ptr(loc, x, y); return; }
     if (loc >= PC_UNIFORM_CACHE_SIZE) { glUniform2i_ptr(loc, x, y); return; }
@@ -520,6 +528,7 @@ static void cached_uniform2i(GLint loc, GLint x, GLint y) {
     check_uniform_write(loc, "2i");
 }
 static void cached_uniform4i(GLint loc, GLint x, GLint y, GLint z, GLint w) {
+    PcGfxHostAllocScope hostAllocScope;
     if (loc < 0) return;
     if (uniform_cache_disabled()) { glUniform4i_ptr(loc, x, y, z, w); return; }
     if (loc >= PC_UNIFORM_CACHE_SIZE) { glUniform4i_ptr(loc, x, y, z, w); return; }
@@ -531,6 +540,7 @@ static void cached_uniform4i(GLint loc, GLint x, GLint y, GLint z, GLint w) {
     check_uniform_write(loc, "4i");
 }
 static void cached_uniform4f(GLint loc, GLfloat x, GLfloat y, GLfloat z, GLfloat w) {
+    PcGfxHostAllocScope hostAllocScope;
     if (loc < 0) return;
     if (uniform_cache_disabled()) { glUniform4f_ptr(loc, x, y, z, w); return; }
     if (loc >= PC_UNIFORM_CACHE_SIZE) { glUniform4f_ptr(loc, x, y, z, w); return; }
@@ -542,6 +552,7 @@ static void cached_uniform4f(GLint loc, GLfloat x, GLfloat y, GLfloat z, GLfloat
     check_uniform_write(loc, "4f");
 }
 static void cached_uniform_mat4(GLint loc, GLsizei count, GLboolean transpose, const GLfloat* value) {
+    PcGfxHostAllocScope hostAllocScope;
     if (loc < 0 || !value) return;
     if (uniform_cache_disabled()) { glUniformMatrix4fv_ptr(loc, count, transpose, value); return; }
     if (count != 1 || transpose != GL_FALSE || loc >= PC_UNIFORM_CACHE_SIZE) {
@@ -554,6 +565,7 @@ static void cached_uniform_mat4(GLint loc, GLsizei count, GLboolean transpose, c
     check_uniform_write(loc, "mat4");
 }
 static void cached_uniform_mat3(GLint loc, GLsizei count, GLboolean transpose, const GLfloat* value) {
+    PcGfxHostAllocScope hostAllocScope;
     if (loc < 0 || !value) return;
     if (uniform_cache_disabled()) { glUniformMatrix3fv_ptr(loc, count, transpose, value); return; }
     if (count != 1 || transpose != GL_FALSE || loc >= PC_UNIFORM_CACHE_SIZE) {
@@ -1110,9 +1122,9 @@ void pc_gfx_replay_display_list(const void* list, u32 nbytes) {
 // This demonstrates that replaying the same immutable packet twice is visually
 // identical. Returns false if there is nothing to replay.
 bool pc_gfx_replay_captured_frame(void) {
+    PcGfxHostAllocScope hostAllocScope;
     PcRenderPacketStore& store = sPacketStore;
     if (!sCaptureEnabled) return false;
-    PcGfxHostAllocScope hostAllocScope; // preparePresentation copies packets
 
     const uint64_t targetSerial = pc_render_tick_serial();
     if (!store.preparePresentation(targetSerial, 1.0)) return false;
@@ -1207,6 +1219,7 @@ static GLint  sStreamVAO = 0;
 // (seleccion de archivo, videos THP) no hay malla residente que los
 // re-enlace, y todo lo siguiente se dibujaba en el VAO 0, es decir, nada.
 static void restore_stream_vao() {
+    PcGfxHostAllocScope hostAllocScope;
     if (glBindVertexArray_ptr) glBindVertexArray_ptr(GLuint(sStreamVAO));
     if (glBindBuffer_ptr) glBindBuffer_ptr(GL_ARRAY_BUFFER, sVBO);
 }
@@ -1389,6 +1402,7 @@ static GLenum gx_filter_to_gl(GXTexFilter f, bool hasMips) {
 }
 
 static void apply_tex_obj_filter(uintptr_t key, GLuint tex) {
+    PcGfxHostAllocScope hostAllocScope;
     std::lock_guard<std::mutex> lock(sTextureRegistryMutex);
     auto f = sTexObjFilters.find(key);
     if (f == sTexObjFilters.end() || f->second.appliedTo == tex) return;
@@ -1761,6 +1775,7 @@ static void map_gx_rect(float x, float y, float width, float height,
 }
 
 static void fill_ui_43_bars() {
+    PcGfxHostAllocScope hostAllocScope;
     const float targetWidth = sNativeFramebufferReady ? float(sRenderWidth) : float(sDrawableWidth);
     const float targetHeight = sNativeFramebufferReady ? float(sRenderHeight) : float(sDrawableHeight);
     GLint ix, iy;
@@ -1828,6 +1843,7 @@ static unsigned char sDimWindowAlpha = 160;
 
 static bool ensure_dim_program()
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (sDimProgram && sDimVAO) return true;
     if (!glCreateShader_ptr || !glCreateProgram_ptr || !glGenVertexArrays_ptr) return false;
 
@@ -1869,6 +1885,7 @@ static bool ensure_dim_program()
 
 static void dim_draw(unsigned char alpha)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!ensure_dim_program() || !glUseProgram_ptr || !glBindVertexArray_ptr) return;
     invalidate_uniform_cache();
     glUseProgram_ptr(sDimProgram);
@@ -1892,6 +1909,7 @@ static GLint sOverlayRectLoc = -1, sOverlayColorLoc = -1, sOverlayRotLoc = -1, s
 
 static bool ensure_overlay_program()
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (sOverlayProgram && sOverlayVAO) return true;
     if (!glCreateShader_ptr || !glCreateProgram_ptr || !glGenVertexArrays_ptr) return false;
     static const char* kVert =
@@ -2075,6 +2093,7 @@ static const unsigned char* sUiFontSrc = nullptr;
 
 static bool ensure_ui_program()
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (sUiProgram && sUiVAO && sUiVBO) return true;
     if (!glCreateShader_ptr || !glCreateProgram_ptr || !glGenVertexArrays_ptr || !glGenBuffers_ptr) return false;
     static const char* kVert =
@@ -2254,6 +2273,7 @@ static int sBlurTexW[2] = { 0, 0 }, sBlurTexH[2] = { 0, 0 };
 
 static bool blur_target(int i, int w, int h)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!glGenFramebuffers_ptr || !glFramebufferTexture2D_ptr) return false;
     if (!sBlurFbo[i]) glGenFramebuffers_ptr(1, &sBlurFbo[i]);
     if (!sBlurTex[i]) glGenTextures(1, &sBlurTex[i]);
@@ -2314,6 +2334,7 @@ void pc_gfx_blur_gx_rect(int gxX, int gxY, int gxW, int gxH, int passes)
 
 static void dim_window_letterbox(GLint outX, GLint outY, GLint outW, GLint outH)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sDimWindowAfterBlit) return;
     sDimWindowAfterBlit = false;
     if (sDrawableWidth <= 0 || sDrawableHeight <= 0) return;
@@ -2915,6 +2936,7 @@ void pc_gfx_clear_out_tint(void) { pc_gfx_set_out_tint(1.0f, 1.0f, 1.0f); }
 // Profundidad del destino actual a vacío, entera (sin tijera). Para dibujar
 // en 3D encima de un frame ya terminado (modelos del selector de capitanes).
 void pc_gfx_clear_depth(void) {
+    PcGfxHostAllocScope hostAllocScope;
     pc_gfx_flush_batch();
     glDisable(GL_SCISSOR_TEST);
     glDepthMask(GL_TRUE);
@@ -2986,6 +3008,7 @@ static void calculate_output_area(int drawableWidth, int drawableHeight,
 // nothing about where they came from. These checkpoints drain and name the
 // stage that raised one, so a stray error is attributable instead of ambient.
 static void gl_error_checkpoint(const char* stage) {
+    PcGfxHostAllocScope hostAllocScope;
     // Read the environment once. Two of these sit in the per-draw path, so a
     // getenv per call meant well over a thousand environment scans per frame.
     static const bool enabled = std::getenv("PIKMIN_GL_CHECK") != nullptr;
@@ -3006,6 +3029,7 @@ static void gl_error_checkpoint(const char* stage) {
 }
 
 static void bind_fixed_attrib_locations(GLuint program) {
+    PcGfxHostAllocScope hostAllocScope;
     if (!glBindAttribLocation_ptr) return;
     glBindAttribLocation_ptr(program, kAttrPosIndex, "aPos");
     glBindAttribLocation_ptr(program, kAttrColorIndex, "aColor");
@@ -3024,6 +3048,7 @@ static void bind_fixed_attrib_locations(GLuint program) {
 // ignored by the driver, which is what lets one upload path serve both the
 // ubershader and the generated programs.
 static void query_program_locations(GLuint program, ProgramLocations& out) {
+    PcGfxHostAllocScope hostAllocScope;
     out = ProgramLocations();
     invalidate_uniform_cache();
     out.projMtx = glGetUniformLocation_ptr(program, "uProjMtx");
@@ -3218,6 +3243,7 @@ static uint32_t sProgramBinaryMisses = 0;
 static double sShaderBuildMsThisFrame = 0.0;
 
 static void program_binary_init() {
+    PcGfxHostAllocScope hostAllocScope;
     if (const char* v = std::getenv("PIKMIN_SHADER_CACHE")) {
         if (v[0] == '0') { printf("[PC Port] Shader binary cache disabled (PIKMIN_SHADER_CACHE=0)\n"); return; }
     }
@@ -3263,6 +3289,7 @@ static std::string program_binary_path(uint64_t key) {
 // Loads the cached binary into `program`. True only if the driver accepted
 // it and the program links.
 static bool program_binary_load(GLuint program, uint64_t key) {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sProgramBinaryReady) return false;
     FILE* f = fopen(program_binary_path(key).c_str(), "rb");
     if (!f) return false;
@@ -3285,6 +3312,7 @@ static bool program_binary_load(GLuint program, uint64_t key) {
 }
 
 static void program_binary_store(GLuint program, uint64_t key) {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sProgramBinaryReady) return;
     GLint length = 0;
     glGetProgramiv_ptr(program, GL_PROGRAM_BINARY_LENGTH, &length);
@@ -3342,6 +3370,7 @@ static bool depth_has_stencil() {
 static GLenum depth_internal_format() { return depth_has_stencil() ? GL_DEPTH24_STENCIL8 : GL_DEPTH_COMPONENT24; }
 static GLenum depth_attachment() { return depth_has_stencil() ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT; }
 static void depth_tex_image(int width, int height) {
+    PcGfxHostAllocScope hostAllocScope;
     if (depth_has_stencil()) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
     } else {
@@ -3352,6 +3381,7 @@ static void depth_tex_image(int width, int height) {
 // The one Vertex layout, described to whichever GL_ARRAY_BUFFER is bound:
 // the streaming ring at init, the resident-mesh arena in its own VAO.
 static void setup_vertex_attribs() {
+    PcGfxHostAllocScope hostAllocScope;
     glEnableVertexAttribArray_ptr(sAttrPos);
     glVertexAttribPointer_ptr(sAttrPos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, x));
     if (sAttrNormal >= 0) {
@@ -3380,6 +3410,7 @@ static void setup_vertex_attribs() {
 // it and the streaming ring is one glBindVertexArray. Leaves the streaming
 // VAO and ring bound on return, which is what the rest of the file assumes.
 static void mesh_arena_init() {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sMeshDecodeCacheEnabled || !glGenVertexArrays_ptr || !glBindVertexArray_ptr) {
         sMeshDecodeCacheEnabled = false;
         return;
@@ -3679,6 +3710,7 @@ static bool perf_gpu_queries_supported() {
 }
 
 static void perf_gpu_queries_init() {
+    PcGfxHostAllocScope hostAllocScope;
     if (sPerfGpuQueriesReady || !perf_gpu_queries_supported()) return;
     GLuint ids[PC_GPU_QUERY_RING_SIZE * 2] = {};
     glGenQueries_ptr(GLsizei(PC_GPU_QUERY_RING_SIZE * 2), ids);
@@ -3692,6 +3724,7 @@ static void perf_gpu_queries_init() {
 }
 
 static void perf_gpu_queries_poll() {
+    PcGfxHostAllocScope hostAllocScope;
 #ifdef GL_TIME_ELAPSED
     if (!sPerfGpuQueriesReady) return;
     // Never wait for the GPU. Only consume query pairs whose two results are
@@ -3733,6 +3766,7 @@ static void perf_gpu_queries_poll() {
 }
 
 static void perf_gpu_scene_begin() {
+    PcGfxHostAllocScope hostAllocScope;
 #ifdef GL_TIME_ELAPSED
     if (!sGpuTimingEnabled) return;
     perf_gpu_queries_init();
@@ -4069,6 +4103,7 @@ void pc_gfx_set_dof_focus(float viewDistance)
 // guessed at.
 static void dof_debug_report()
 {
+    PcGfxHostAllocScope hostAllocScope;
     static bool checked = false;
     static bool enabled = false;
     if (!checked) {
@@ -4126,6 +4161,7 @@ static void dof_debug_report()
 
 static GLuint post_compile(GLenum type, const char* src, const char* what)
 {
+    PcGfxHostAllocScope hostAllocScope;
     GLuint sh = glCreateShader_ptr(type);
     glShaderSource_ptr(sh, 1, &src, nullptr);
     glCompileShader_ptr(sh);
@@ -4146,6 +4182,7 @@ static GLuint post_compile(GLenum type, const char* src, const char* what)
 // than as a reason to stop drawing.
 static bool post_ensure_program()
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (sPostCompiled && sPostCompiledFor == sPostEffects && sPostProgram) return true;
 
     if (sPostProgram) {
@@ -4343,6 +4380,7 @@ static bool post_ensure_program()
 // scale changes at runtime.
 static bool post_ensure_target()
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!glGenFramebuffers_ptr || !glBindFramebuffer_ptr || !glFramebufferTexture2D_ptr) return false;
     if (!sPostFramebuffer) {
         glGenFramebuffers_ptr(1, &sPostFramebuffer);
@@ -4373,6 +4411,7 @@ static bool post_ensure_target()
 // Half-resolution ping-pong pair for the bloom chain.
 static bool bloom_ensure_targets()
 {
+    PcGfxHostAllocScope hostAllocScope;
     const int w = std::max(1, sRenderWidth / 2);
     const int h = std::max(1, sRenderHeight / 2);
     if (!sBloomFbo[0]) {
@@ -4412,6 +4451,7 @@ static bool bloom_ensure_targets()
 // multiplies by.
 static GLuint post_white_texture()
 {
+    PcGfxHostAllocScope hostAllocScope;
     static GLuint tex = 0;
     if (!tex) {
         const unsigned char white[4] = { 255, 255, 255, 255 };
@@ -4430,6 +4470,7 @@ static GLuint post_white_texture()
 
 static bool dof_ensure_targets()
 {
+    PcGfxHostAllocScope hostAllocScope;
     const int w = std::max(1, sRenderWidth / 2);
     const int h = std::max(1, sRenderHeight / 2);
     if (!sDofFbo[0]) {
@@ -4464,6 +4505,7 @@ static bool dof_ensure_targets()
 // for. Leaves the result in sDofTex[0].
 static bool dof_build()
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sDofCocProgram || !sDofBlurProgram) return false;
     if (!dof_ensure_targets()) return false;
 
@@ -4521,6 +4563,7 @@ static bool dof_build()
 // Bright pass, blur across, blur down. Leaves the result in sBloomTex[0].
 static bool bloom_build()
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sBrightProgram || !sBlurProgram) return false;
     if (!bloom_ensure_targets()) return false;
 
@@ -4564,6 +4607,7 @@ static bool bloom_build()
 // Half-resolution pair for occlusion and its denoise blur.
 static bool ao_ensure_targets()
 {
+    PcGfxHostAllocScope hostAllocScope;
     // Full resolution, matching the depth buffer it reads. At half resolution
     // the pass point-samples one depth pixel in four -- depth is NEAREST, as it
     // must be -- and which one it lands on changes as geometry moves under a
@@ -4602,6 +4646,7 @@ static bool ao_ensure_targets()
 // Occlusion into [0], blurred across into [1] and back down into [0].
 static bool ao_build()
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sSsaoProgram || !sAoBlurProgram) return false;
     // Depth is the whole input. Without a depth texture there is nothing to
     // compute from, which is exactly the fallback case pc_gfx warned about.
@@ -4713,6 +4758,7 @@ static GLsizei sLastScissorW = 0, sLastScissorH = 0;
 
 static GLuint post_apply(bool allowDof)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sPostAllowed || sPostSuppressed || !pc_post_any_enabled(sPostEffects)) return sNativeFramebuffer;
     // An effect that needs depth cannot run when the driver made us fall back
     // to a renderbuffer. Drop the pass rather than sample a texture that is
@@ -4720,7 +4766,6 @@ static GLuint post_apply(bool allowDof)
     if (pc_post_needs_depth(sPostEffects) && !sDepthIsTexture) return sNativeFramebuffer;
     // Shader sources are std::string: also reached from pc_gfx_world_done and
     // pc_gfx_set_projection mid-frame, where the section heap may be full.
-    PcGfxHostAllocScope hostAllocScope;
     // Any of these failing means no post-processing, never a stopped frame.
     if (!post_ensure_target() || !post_ensure_program()) return sNativeFramebuffer;
 
@@ -4918,6 +4963,7 @@ static GLuint post_apply(bool allowDof)
 
 static void post_apply_before_interface()
 {
+    PcGfxHostAllocScope hostAllocScope;
     // Escape hatch back to the old behaviour, for telling a fault caused by
     // this pass apart from one that merely shows up at the same time.
     static bool checked = false;
@@ -5094,6 +5140,7 @@ static bool sHeldFrameValid = false;
 
 bool pc_gfx_held_frame_capture(void)
 {
+    PcGfxHostAllocScope hostAllocScope;
     sHeldFrameValid = false;
     if (!sNativeFramebufferReady || !glBlitFramebuffer_ptr || !glBindFramebuffer_ptr || !glGenFramebuffers_ptr
         || !glFramebufferTexture2D_ptr)
@@ -5127,6 +5174,7 @@ bool pc_gfx_held_frame_capture(void)
 
 bool pc_gfx_held_frame_restore(void)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sHeldFrameValid || sHeldFrameW != sRenderWidth || sHeldFrameH != sRenderHeight || !sNativeFramebufferReady)
         return false;
     if (sInPrimitive) pc_gfx_end();
@@ -5145,6 +5193,7 @@ bool pc_gfx_held_frame_restore(void)
 }
 
 unsigned int pc_gfx_begin_swap_framebuffer(void) {
+    PcGfxHostAllocScope hostAllocScope;
     GLint bound = 0;
     if (!glBindFramebuffer_ptr) return 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &bound);
@@ -5153,17 +5202,14 @@ unsigned int pc_gfx_begin_swap_framebuffer(void) {
 }
 
 void pc_gfx_end_swap_framebuffer(unsigned int bound) {
+    PcGfxHostAllocScope hostAllocScope;
     if (glBindFramebuffer_ptr) glBindFramebuffer_ptr(GL_FRAMEBUFFER, GLuint(bound));
 }
 
 void pc_gfx_present(void) {
     // El post-proceso crea shaders con std::string: que no tire del heap JKR
     // actual (la Piklopedia lo deja sin memoria libre -> Memory Alloc Error).
-    struct HostAllocScope {
-        bool prev = pc_host_alloc_active();
-        HostAllocScope() { pc_host_alloc_set(true); }
-        ~HostAllocScope() { pc_host_alloc_set(prev); }
-    } hostAllocScope;
+    PcGfxHostAllocScope hostAllocScope;
     if (sInPrimitive) pc_gfx_end(); // the frame's last primitive, if GXEnd never came
     pc_gfx_flush_batch();
     if (fb_invalidate_enabled() && !sNativeWrittenThisFrame && sNativeFramebufferReady && glBindFramebuffer_ptr) {
@@ -5556,6 +5602,7 @@ static float sGxVp[4] = { 0.0f, 0.0f, 640.0f, 480.0f };
 static u32 sGxSc[4] = { 0, 0, 640, 480 };
 
 void pc_gfx_set_viewport(f32 xOrig, f32 yOrig, f32 wd, f32 ht, f32 nearZ, f32 farZ) {
+    PcGfxHostAllocScope hostAllocScope;
     (void)nearZ; (void)farZ;
     sGxVp[0] = xOrig; sGxVp[1] = yOrig; sGxVp[2] = wd; sGxVp[3] = ht;
     GLint x, y; GLsizei width, height;
@@ -5628,6 +5675,7 @@ struct P2HostAllocScope {
 // Color medio de cada fila de una region del render target, suavizado en
 // vertical para quitar el dibujo de las texturas y quedarse con el degradado.
 static void p2_measure_rows(int x, int y, int w, int h, std::vector<float>& out) {
+    PcGfxHostAllocScope hostAllocScope;
     static std::vector<unsigned char> px;
     px.resize(size_t(w) * size_t(h) * 4);
     glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, px.data());
@@ -5659,6 +5707,7 @@ static bool p2_box_rows(float gxY0, float gxY1, GLint& bx, GLint& by, GLsizei& b
 
 // Pinta los laterales fila a fila: dst = color (blend off) o dst *= color.
 static void p2_paint_sides(GLint bx, GLint by, GLsizei bw, GLsizei bh, const std::vector<float>* colors[2], bool multiply) {
+    PcGfxHostAllocScope hostAllocScope;
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -5735,8 +5784,8 @@ extern "C" void pc_gfx_p2_extend_shade(float gxY0, float gxY1, float stripW) {
 // maxLuma (0-1, <=0 sin limite): si la franja a copiar es mas clara (un
 // destello que pasa por el centro) no se copia. Devuelve 1 si se copio.
 extern "C" int pc_gfx_p2_tile_edges(float gxY0, float gxY1, float period, float maxLuma) {
+    PcGfxHostAllocScope hostAllocScope;
     if (sP2Widen <= 1.0f || !sNativeFramebufferReady || !glBlitFramebuffer_ptr || !glBindFramebuffer_ptr) return 0;
-    P2HostAllocScope hostAlloc;
     pc_gfx_flush_batch();
     GLint bx, by;
     GLsizei bw, bh;
@@ -5787,6 +5836,7 @@ static bool sSidesValid = false;
 extern "C" void pc_gfx_p2_sides_static_reset(void) { sSidesValid = false; }
 
 extern "C" void pc_gfx_p2_sides_static(int capture) {
+    PcGfxHostAllocScope hostAllocScope;
     if (sP2Widen <= 1.0f || !sNativeFramebufferReady || !glBlitFramebuffer_ptr || !glBindFramebuffer_ptr
         || !glGenFramebuffers_ptr || !glFramebufferTexture2D_ptr) return;
     pc_gfx_flush_batch();
@@ -5853,6 +5903,7 @@ extern "C" void pc_gfx_get_scissor(u32* l, u32* t, u32* w, u32* h) {
 }
 
 void pc_gfx_set_scissor(u32 xOrig, u32 yOrig, u32 wd, u32 ht) {
+    PcGfxHostAllocScope hostAllocScope;
     sGxSc[0] = xOrig; sGxSc[1] = yOrig; sGxSc[2] = wd; sGxSc[3] = ht;
     GLint x, y; GLsizei width, height;
     // El hardware enmascara el origen, así que un origen negativo (llega como
@@ -5986,6 +6037,7 @@ void pc_gfx_set_pipeline_state(const PcGfxPipelineState& st) {
 }
 
 void pc_gfx_set_z_mode(GXBool compareEnable, GXCompare func, GXBool updateEnable) {
+    PcGfxHostAllocScope hostAllocScope;
     sPipelineState.zCompare = compareEnable; sPipelineState.zFunc = func; sPipelineState.zUpdate = updateEnable;
     static bool valid = false;
     static uint32_t seenSerial = 0;
@@ -6025,6 +6077,7 @@ void pc_gfx_set_pixel_fmt(int pixFmt) {
 }
 
 void pc_gfx_set_blend_mode(GXBlendMode type, GXBlendFactor srcFactor, GXBlendFactor dstFactor, GXLogicOp op) {
+    PcGfxHostAllocScope hostAllocScope;
     sPipelineState.blendType = type; sPipelineState.blendSrc = srcFactor; sPipelineState.blendDst = dstFactor; sPipelineState.blendOp = op;
     static bool valid = false;
     static uint32_t seenSerial = 0;
@@ -6103,6 +6156,7 @@ void pc_gfx_set_blend_mode(GXBlendMode type, GXBlendFactor srcFactor, GXBlendFac
 }
 
 void pc_gfx_set_cull_mode(GXCullMode mode) {
+    PcGfxHostAllocScope hostAllocScope;
     sPipelineState.cull = mode;
     static bool valid = false;
     static uint32_t seenSerial = 0;
@@ -6120,6 +6174,7 @@ void pc_gfx_set_cull_mode(GXCullMode mode) {
 }
 
 void pc_gfx_set_color_update(GXBool updateEnable) {
+    PcGfxHostAllocScope hostAllocScope;
     if (sColorUpdate == updateEnable) return;
     sColorUpdate = updateEnable;
     pc_gfx_note_gl_state_change();
@@ -6127,6 +6182,7 @@ void pc_gfx_set_color_update(GXBool updateEnable) {
 }
 
 void pc_gfx_set_alpha_update(GXBool updateEnable) {
+    PcGfxHostAllocScope hostAllocScope;
     if (sAlphaUpdate == updateEnable) return;
     sAlphaUpdate = updateEnable;
     pc_gfx_note_gl_state_change();
@@ -6578,6 +6634,7 @@ static void note_texture_bytes(uintptr_t key, size_t bytes)
 
 void pc_gfx_release_texture(void* gxTexObj)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!gxTexObj) return;
     const uintptr_t key = reinterpret_cast<uintptr_t>(gxTexObj);
     auto it = sTextureCache.find(key);
@@ -6631,6 +6688,7 @@ void pc_gfx_get_texture_stats(size_t* live, size_t* liveBytes, size_t* peakBytes
 // can judge it: nobody restarts the game twice to compare a filter.
 void pc_gfx_set_anisotropy(int samples)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (samples == sAnisotropyRequested) return;
     sAnisotropyRequested = samples;
     if (!glActiveTexture_ptr) return;
@@ -6657,6 +6715,7 @@ void pc_gfx_set_anisotropy(int samples)
 // the game means to sample flat, and the HUD is full of them.
 static void apply_texture_filtering(bool gameRequestedMipmaps)
 {
+    PcGfxHostAllocScope hostAllocScope;
     // The game asks for mipmaps only where a material carries LOD levels of its
     // own, which turns out to be almost nowhere -- so honouring the flag alone
     // produced a setting with nothing to act on.
@@ -6720,6 +6779,7 @@ static void apply_texture_filtering(bool gameRequestedMipmaps)
 }
 
 void pc_gfx_init_tex_obj_rgba(GXTexObj* obj, void* rgba, u16 width, u16 height, GXTexWrapMode wrapS, GXTexWrapMode wrapT) {
+    PcGfxHostAllocScope hostAllocScope;
     if (!obj || !rgba || width == 0 || height == 0) return;
 
     const uintptr_t key = (uintptr_t)obj;
@@ -6778,6 +6838,7 @@ void pc_gfx_init_tex_obj(GXTexObj* obj, void* imagePtr, u16 width, u16 height, G
 }
 
 static bool upload_regular_texture(GXTexObj* obj, PcTextureSource& sourceRecord) {
+    PcGfxHostAllocScope hostAllocScope;
     if (!obj || sourceRecord.indexed || sourceRecord.image.empty()) return false;
     const uintptr_t key = reinterpret_cast<uintptr_t>(obj);
     const u16 width = sourceRecord.width;
@@ -7075,6 +7136,7 @@ void pc_gfx_load_tlut(GXTlutObj* obj, u32 tlutName) {
 }
 
 static bool upload_ci_texture(GXTexObj* obj, PcTextureSource& ci) {
+    PcGfxHostAllocScope hostAllocScope;
     if (!obj || !ci.indexed || ci.image.empty()) return false;
     PcTlut palette;
     {
@@ -7192,6 +7254,7 @@ void pc_gfx_init_tex_obj_ci(GXTexObj* obj, void* imagePtr, u16 width, u16 height
 
 static u8 sBpTexDirty = 0;
 void pc_gfx_load_tex_obj(GXTexObj* obj, GXTexMapID id) {
+    PcGfxHostAllocScope hostAllocScope;
     if (id >= 0 && id < 8) sBpTexDirty &= u8(~(1u << id));
     // On hardware, GXLoadTexObj is a FIFO command that lands after any
     // vertices already written. Immediate GL binds break that ordering when
@@ -7667,6 +7730,7 @@ static const char* gl_blend_name(GLint factor)
 
 static void filesel_debug_probe_now(const char* tag, GLuint fbo)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sFileSelDebugReport || !sNativeFramebufferReady || !glBindFramebuffer_ptr) return;
     pc_gfx_flush_batch();
     if (!fbo) fbo = sNativeFramebuffer;
@@ -7741,6 +7805,7 @@ static int sFileSelLargeQuadCount = 0;
 
 static void filesel_debug_log_draw()
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sFileSelDebugReport || !sFileSelFxWindow) return;
 
     const TevStageState& st = sTevStages[0];
@@ -7836,6 +7901,7 @@ static bool title_debug_enabled()
 
 void pc_gfx_title_debug_probe(const char* tag)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!title_debug_enabled()) return;
     if (!sNativeFramebufferReady || !glBindFramebuffer_ptr) return;
 
@@ -7973,6 +8039,7 @@ static unsigned char sPostOrthoScan[7][4] = {};
 
 static void filesel_debug_note_ortho_post()
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!filesel_debug_enabled() || !glBindFramebuffer_ptr) return;
     sPostOrthoFrame = sGfxFrameSerial;
     sPostOrthoDraws = int(sPerfDraws - sDrawsAtFrameStart);
@@ -8025,6 +8092,7 @@ static void filesel_debug_print_post_ortho()
 
 static void filesel_debug_on_present(bool latePost, GLuint produced)
 {
+    PcGfxHostAllocScope hostAllocScope;
     if (!sFileSelDebugReport) return;
     filesel_debug_probe_now(latePost ? "present_after_post" : "present_no_late_post", produced);
     if (sLastAoReady && sAoFbo[0] && glBindFramebuffer_ptr && sAoWidth > 0 && sAoHeight > 0) {
@@ -8128,14 +8196,10 @@ static void build_tev_shader_key(PcTevShaderKey& key) {
 // sends the caller back to the ubershader rather than dropping the draw.
 static inline double submit_clock_ms();
 static GLuint compile_specialised_program(const PcTevShaderKey& key) {
+    PcGfxHostAllocScope hostAllocScope;
     if (!glCreateShader_ptr || !sSharedVertexShader) return 0;
     // El fuente del shader (std::string) no puede salir del heap de la seccion:
     // en pantallas con el heap lleno (Piklopedia) daria Memory Alloc Error.
-    struct HostAllocScope {
-        bool prev = pc_host_alloc_active();
-        HostAllocScope() { pc_host_alloc_set(true); }
-        ~HostAllocScope() { pc_host_alloc_set(prev); }
-    } hostAllocScope;
 
     const double buildT0 = submit_clock_ms();
     const std::string source = pc_tev_build_fragment_source(key);
@@ -8212,6 +8276,7 @@ static void gl_program_cache_invalidate()
 // Selects the program for the current TEV state and makes its uniform
 // locations active. Falls back to the ubershader whenever generation fails.
 static void use_program_for_current_state() {
+    PcGfxHostAllocScope hostAllocScope;
     state_touched();
     if (!sSpecialiseShaders || sSpecialiseFailed
         || int(sNumTevStages) > sSpecialiseMaxStages) {
@@ -8732,6 +8797,7 @@ static bool vbo_ranges_overlap(size_t a0, size_t a1, size_t b0, size_t b1) {
 }
 
 static void vbo_fence_current_range(size_t end) {
+    PcGfxHostAllocScope hostAllocScope;
     if (!glFenceSync_ptr || end <= sVboFrameStart) { sVboFrameStart = end; return; }
     sVboFences.push_back({ glFenceSync_ptr(GL_SYNC_GPU_COMMANDS_COMPLETE, 0), sVboFrameStart, end });
     sVboFrameStart = end;
@@ -8740,6 +8806,7 @@ static void vbo_fence_current_range(size_t end) {
 // Reserva [offset, offset+bytes) para escribir ahora mismo. Envuelve al
 // principio si no cabe, y espera a cualquier fence cuyo rango pise.
 static size_t vbo_ring_reserve(size_t bytes) {
+    PcGfxHostAllocScope hostAllocScope;
     if (sVboWriteOffset + bytes > sVboCapacity) {
         // Lo escrito en este frame antes de envolver queda protegido por su
         // propio fence: si el frame no cabe entero, se espera a la GPU.
@@ -8764,6 +8831,7 @@ static size_t vbo_ring_reserve(size_t bytes) {
 // Al empezar un frame: fence sobre lo escrito por el anterior, y limpieza de
 // fences ya señalados para que la lista no crezca.
 static void vbo_ring_frame_begin() {
+    PcGfxHostAllocScope hostAllocScope;
     sVboBytesLastFrame = sVboWriteOffset >= sVboFrameStart ? sVboWriteOffset - sVboFrameStart
                                                           : sVboCapacity - sVboFrameStart + sVboWriteOffset;
     if (sVboBytesLastFrame > sVboBytesPeakFrame) sVboBytesPeakFrame = sVboBytesLastFrame;
@@ -9216,6 +9284,7 @@ void pc_gfx_flush_submit_stats(void) {
 // `slots` slots a mesh actually references, and only when one of those
 // matrices was reloaded since the last upload to this program.
 static void upload_matrix_palette(int slots) {
+    PcGfxHostAllocScope hostAllocScope;
     if (sLoc.posPalette < 0 && sLoc.nrmPalette < 0) return;
     if (slots < 1) slots = 1;
     if (slots > kPaletteSlots) slots = kPaletteSlots;
@@ -9251,6 +9320,7 @@ static void upload_matrix_palette(int slots) {
 // and the resident-mesh path, which has no vertex stream to hand over.
 // stateT0 is the clock at entry when profiling, so gl:program can be split out.
 static void apply_draw_state(bool profilingSubmit, double stateT0) {
+    PcGfxHostAllocScope hostAllocScope;
     // Pick the program for this material first: every uniform below is written
     // through sLoc, which describes whichever program is now bound.
     use_program_for_current_state();
@@ -9914,6 +9984,7 @@ void pc_gfx_end(void) {
 }
 
 static void pc_gfx_end_impl(void) {
+    PcGfxHostAllocScope hostAllocScope;
     if (sInPrimitive && sHaveVertex) {
         sVertexStream.push_back(sCurVertex);
         sHaveVertex = false;
@@ -11068,6 +11139,7 @@ static bool mesh_signature_matches(const ResidentMesh& mesh, u32 nbytes) {
 }
 
 static void mesh_arena_reset() {
+    PcGfxHostAllocScope hostAllocScope;
     sResidentMeshes.clear();
     if (sMeshArenaUsed == 0) return;
     sMeshArenaUsed = 0;
@@ -11099,6 +11171,7 @@ void pc_gfx_invalidate_cpu_range(const void* addr, size_t bytes) {
 // Copies the built vertices into the arena and registers the mesh. Returns
 // false (and caches nothing) when the arena is full.
 static bool mesh_upload(ResidentMesh& mesh, const PcGfxHostVector<Vertex>& verts) {
+    PcGfxHostAllocScope hostAllocScope;
     const size_t bytes = verts.size() * sizeof(Vertex);
     if (bytes == 0 || sMeshArenaUsed + bytes > sMeshArenaCapacity) return false;
     if (sMeshArenaResetFence) {
@@ -11133,6 +11206,7 @@ static bool mesh_upload(ResidentMesh& mesh, const PcGfxHostVector<Vertex>& verts
 // programmed exactly as pc_gfx_end would, and the mesh is drawn from the
 // arena. Skinned meshes use the palette; static ones the current matrix.
 static void draw_resident_mesh(ResidentMesh& mesh) {
+    PcGfxHostAllocScope hostAllocScope;
     const bool profiling = pc_tick_profiler_enabled();
     const double t0 = profiling ? submit_clock_ms() : 0.0;
     pc_gfx_flush_batch();
@@ -11735,6 +11809,7 @@ static void pc_gfx_call_display_list_impl(const void* list, u32 nbytes) {
 }
 
 void pc_gfx_copy_disp(void* dest, GXBool clear) {
+    PcGfxHostAllocScope hostAllocScope;
     pc_gfx_note_gl_state_change();
     (void)dest;
     /*
@@ -11771,6 +11846,7 @@ void pc_gfx_set_tex_copy_dst(u16 wd, u16 ht, u32 fmt) {
 // usa cuando un GXTexObj apunta a esa imagen (JUTTexture::capture: fondos
 // capturados, pantalla de resultados, transiciones).
 void pc_gfx_copy_tex(void* dest, GXBool clear) {
+    PcGfxHostAllocScope hostAllocScope;
     // PIKMIN_NO_EFB_COPY=1: sin copia (diagnostico de fantasmas en cinematicas).
     static const bool disabled = getenv("PIKMIN_NO_EFB_COPY") != nullptr;
     if (disabled) return;
