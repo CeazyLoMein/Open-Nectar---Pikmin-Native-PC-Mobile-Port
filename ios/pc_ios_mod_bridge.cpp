@@ -5,6 +5,12 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#if PIKI_P2_HOST
+#include "pc_host_alloc.h"
+#define PC_IOS_IMPORT_HOST() PcNativeHostAllocScope importHostScope
+#else
+#define PC_IOS_IMPORT_HOST() ((void)0)
+#endif
 
 extern "C" void nectar_ios_open_mod_picker(int kind);
 extern "C" void nectar_ios_cleanup_mod_import(const char* path);
@@ -21,6 +27,7 @@ std::string sActivePack;
 std::string sMessage;
 
 void finish(bool ok, bool cancelled, const std::string& message) {
+    PC_IOS_IMPORT_HOST();
     std::lock_guard<std::mutex> guard(sMutex);
     sOk = ok;
     sCancelled = cancelled;
@@ -30,9 +37,13 @@ void finish(bool ok, bool cancelled, const std::string& message) {
 }
 
 bool pc_ios_mod_import_open(int kind, const char* activeTexturePack) {
+    PC_IOS_IMPORT_HOST();
     {
         std::lock_guard<std::mutex> guard(sMutex);
         if (sBusy || kind < -1 || kind > 5) return false;
+#if PIKI_P2_HOST
+        if (kind != -1) return false; // P1 character-model rows do not apply to P2.
+#endif
         sBusy = true;
         sReady = sPicked = false;
         sKind = kind;
@@ -43,6 +54,7 @@ bool pc_ios_mod_import_open(int kind, const char* activeTexturePack) {
 }
 
 extern "C" void nectar_ios_mod_picker_result(int kind, const char* path, const char* error) {
+    PC_IOS_IMPORT_HOST();
     std::string active;
     {
         std::lock_guard<std::mutex> guard(sMutex);
@@ -57,6 +69,7 @@ extern "C" void nectar_ios_mod_picker_result(int kind, const char* path, const c
     const std::string copiedPath(path);
     try {
         std::thread([copiedPath, active, kind] {
+            PC_IOS_IMPORT_HOST();
             char message[512] = {};
             int count = 0;
             try {
@@ -76,6 +89,7 @@ extern "C" void nectar_ios_mod_picker_result(int kind, const char* path, const c
 }
 
 bool pc_ios_mod_import_poll(bool* ok, bool* cancelled, char* message, std::size_t size) {
+    PC_IOS_IMPORT_HOST();
     std::lock_guard<std::mutex> guard(sMutex);
     if (!sReady) return false;
     if (ok) *ok = sOk;

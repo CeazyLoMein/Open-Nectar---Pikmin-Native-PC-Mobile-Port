@@ -77,6 +77,30 @@ jobs:
           "$RUNNER_TEMP/p2-desktop-menu-test"
           xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++14 \
             -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/p2-menu-test.cpp"
+      - name: Check Pikmin 2 enhancement profile, HUD and texture imports
+        if: matrix.game == 'pikmin2'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$GITHUB_WORKSPACE"
+          python3 tests/pikmin2_ios_enhancements_test.py "$RUNNER_TEMP/p2-enhancements"
+          mkdir -p "$RUNNER_TEMP/p2-enhancement-checks"
+          cd "$RUNNER_TEMP/p2-enhancement-checks"
+          c++ -std=c++17 -Wall -Wextra -Werror "$RUNNER_TEMP/p2-enhancements/reset-test.cpp" -o reset-test
+          ./reset-test
+          c++ -std=c++17 -Wall -Wextra -Werror -I"$ROOT/ios" "$ROOT/tests/pikmin2_ios_profile_test.cpp" -o profile-test
+          ./profile-test
+          c++ -std=c++17 -Wall -Wextra -Werror -pthread -DPIKI_P2_HOST=1 -I"$ROOT/ios" -I"$ROOT/games/pikmin2/pc_port" "$ROOT/tests/pikmin2_ios_mod_bridge_test.cpp" "$ROOT/ios/pc_ios_mod_bridge.cpp" -o bridge-test
+          ./bridge-test
+          # These shared paths also preserve P1's picker behavior and rollback rules.
+          c++ -std=c++17 -pthread -I"$ROOT/ios" "$ROOT/tests/pikmin1_ios_mod_bridge_test.cpp" "$ROOT/ios/pc_ios_mod_bridge.cpp" -o p1-bridge-test
+          ./p1-bridge-test
+          c++ -std=c++17 -I"$ROOT/ios" -I"$ROOT/games/pikmin1/pc_port/mods" "$ROOT/tests/pikmin1_ios_mod_transaction_test.cpp" -o transaction-test
+          ./transaction-test
+          c++ -std=c++17 -I"$ROOT/games/pikmin1/pc_port/mods" -I"$ROOT/games/pikmin2/third_party/stb" "$ROOT/tests/pikmin1_mod_zip_test.cpp" "$ROOT/games/pikmin1/pc_port/mods/pc_hd_model_convert.cpp" -o zip-test
+          ./zip-test
+          c++ -std=c++17 -I"$ROOT/games/pikmin2/pc_port" -I"$ROOT/games/pikmin1/pc_port" "$ROOT/tests/pikmin1_ios_performance_test.cpp" "$ROOT/games/pikmin1/pc_port/timing/pc_ios_performance.cpp" -o performance-test
+          ./performance-test
       - name: Check Pikmin 1 enhancement profile and mod imports
         if: matrix.game == 'pikmin1'
         shell: bash

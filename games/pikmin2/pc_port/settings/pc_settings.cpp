@@ -28,6 +28,10 @@
 #include "gl/pc_texpack.h"
 
 #include <SDL2/SDL.h>
+#ifdef __IPHONEOS__
+#include "pc_ios_mod_bridge.h"
+#include "timing/pc_ios_performance.h"
+#endif
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -128,6 +132,8 @@ struct PcConfig {
 
     // FPS mode (0=30fps, 1=60fps, 2=120fps experimental)
     int fpsMode = 0;
+    int iosEnhancedProfile = 0;
+    int iosPerformanceHud = 0;
 
     // Control mode (0=Classic, 1=Mouse Cursor)
     int controlMode = PC_CONTROL_CLASSIC;
@@ -289,6 +295,8 @@ struct PcConfig {
         renderScale = 2.0f / 3.0f;
         aspectRatioMode = 0;
         fpsMode = 0;
+        iosEnhancedProfile = 0;
+        iosPerformanceHud = 0;
         controlMode = PC_CONTROL_CLASSIC;
         mouseSensitivity = 1.0f;
         gyroEnabled = 0;
@@ -419,6 +427,9 @@ enum Row {
     ROW_REFRESH_RATE,
     ROW_VSYNC,
     ROW_FPS_MODE,
+#ifdef __IPHONEOS__
+    ROW_IOS_PERFORMANCE_HUD,
+#endif
 #if defined(VERSION_GPIP01)
     // Only the European release carries more than one language. On any other
     // disc the row would be a control with one position.
@@ -1058,7 +1069,10 @@ void closeMenu() {
 }
 
 void resetToDefaults() {
+    // A reset is a user choice, not a request to rerun the first-launch upgrade.
+    const int enhancedProfile = sConfig.iosEnhancedProfile;
     sConfig.applyDefaults();
+    sConfig.iosEnhancedProfile = enhancedProfile;
     sPending = sConfig;
     applyVideo();
     applyControls(sConfig);
@@ -1182,6 +1196,8 @@ void saveConfig() {
     }
     out << "renderScale = " << sConfig.renderScale << "\n";
     out << "fpsMode = " << sConfig.fpsMode << "\n";
+    out << "iosEnhancedProfile = " << sConfig.iosEnhancedProfile << "\n";
+    out << "iosPerformanceHud = " << sConfig.iosPerformanceHud << "\n";
     out << "chainActions = " << sConfig.chainActions << "\n";
     out << "holdToPluck = " << sConfig.holdToPluck << "\n";
     out << "betterPathfinding = " << sConfig.betterPathfinding << "\n";
@@ -1325,6 +1341,8 @@ void loadConfig() {
             sConfig.renderScale = (float)atof(val.c_str());
             if (sConfig.renderScale < 0.25f || sConfig.renderScale > 4.0f) sConfig.renderScale = 2.0f / 3.0f;
         }
+        else if (key == "iosEnhancedProfile") sConfig.iosEnhancedProfile = atoi(val.c_str());
+        else if (key == "iosPerformanceHud") sConfig.iosPerformanceHud = atoi(val.c_str()) ? 1 : 0;
         else if (key == "controlMode") {
             sConfig.controlMode = atoi(val.c_str());
             if (sConfig.controlMode < PC_CONTROL_CLASSIC || sConfig.controlMode > PC_CONTROL_MOUSE_CURSOR) {
@@ -1885,6 +1903,21 @@ void pcVsEndScreenInput();
 bool vsEndScreenShown();
 
 void pollMenuInput() {
+#ifdef __IPHONEOS__
+    bool imported = false, cancelled = false;
+    char importMessage[512] = {};
+    if (pc_ios_mod_import_poll(&imported, &cancelled, importMessage, sizeof(importMessage))) {
+        if (cancelled) {
+            sTexturePackPickerActive = false;
+            sHdModelInstallActive = false;
+            sTexturePackInstallFiles.store(0);
+            texturePackNotice(false, importMessage);
+        } else {
+            pc_texpack_install_finished(imported, importMessage);
+        }
+    }
+#endif
+
     sTouchFrameButtons = sTouchButtons;
     sTouchButtons = 0;
     // Coop: el Select del mando de J2 también abre el menú, y entonces lo
@@ -2863,6 +2896,11 @@ void texturePacksRowAction(int row, const std::vector<std::string>& packs) {
 #ifdef __ANDROID__
             sTexturePackPickerActive = true;
             pc_texpack_android_open_picker();
+#elif defined(__IPHONEOS__)
+            const char* active = pc_texpack_enabled() ? pc_texpack_active_pack() : "";
+            if (pc_texpack_enabled() && (!active || !*active)) active = "*";
+            sTexturePackPickerActive = pc_ios_mod_import_open(-1, active);
+            if (!sTexturePackPickerActive) texturePackNotice(true, "An import is already running.");
 #else
             // Desktop: native picker, then the zip is extracted into
             // Load/Textures with the same path rule as Android.
@@ -2979,6 +3017,9 @@ void mainRowValue(int row, char* out, size_t n) {
     else snprintf(valueBuf[4], sizeof(valueBuf[4]), "%.0f Hz", sPending.refreshRate);
     snprintf(valueBuf[5], sizeof(valueBuf[5]), "%s", sPending.vsync ? "On" : "Off");
     snprintf(valueBuf[ROW_FPS_MODE], sizeof(valueBuf[0]), "%s", fpsModeBuf);
+#ifdef __IPHONEOS__
+    snprintf(valueBuf[ROW_IOS_PERFORMANCE_HUD], sizeof(valueBuf[0]), "%s", sPending.iosPerformanceHud ? "On" : "Off");
+#endif
 #if defined(VERSION_GPIP01)
     {
         static const char* const kNames[] = { "English", "Deutsch", "Francais",
@@ -3070,6 +3111,11 @@ void mainRowChange(int row, bool left, bool right, bool ok) {
             startVideoConfirm();
         }
         break;
+#ifdef __IPHONEOS__
+    case ROW_IOS_PERFORMANCE_HUD:
+        if (left || right || ok) sPending.iosPerformanceHud = !sPending.iosPerformanceHud;
+        break;
+#endif
     case ROW_FPS_MODE:
         if (left) {
             sPending.fpsMode = (sPending.fpsMode - 1 + kFpsModeCount) % kFpsModeCount;
@@ -3720,6 +3766,14 @@ void pc_settings_init(void) {
         printf("[PC Settings] Texture pack active: %s\n", sConfig.texturePack.c_str());
     }
     printf("[PC Settings] Init complete.\n");
+}
+
+int pc_settings_get_ios_performance_hud(void) {
+#ifdef __IPHONEOS__
+    return sConfig.iosPerformanceHud;
+#else
+    return 0;
+#endif
 }
 
 int pc_settings_menu_is_open(void) { return sMenuOpen ? 1 : 0; }
@@ -6426,6 +6480,32 @@ void pc_settings_note_gameplay_frame(void) {
 #endif
 }
 
+void pc_settings_draw_ios_performance(void) {
+#ifdef __IPHONEOS__
+    PC_SETTINGS_HOST_ALLOC();
+    if (sMenuOpen || pc_captain_select_active() || !gsys || !gsys->mDGXGfx) return;
+    char lines[5][96] = {};
+    if (!pc_ios_performance_lines(lines)) return;
+    DGXGraphics* gfx = static_cast<DGXGraphics*>(gsys->mDGXGfx);
+    ensureFont();
+    if (!sFont) return;
+    int w, h;
+    ngScreen(&w, &h);
+    PcSettingsP2DFrame nativeFrame(w, h);
+    Matrix4f ortho;
+    gfx->setOrthogonal(ortho.mMtx, RectArea(0, 0, w, h));
+    const int left = 56, top = 48, fw = 7, fh = 11;
+    int width = 0;
+    for (const auto& line : lines) width = std::max(width, f1TextW(line, fw));
+    const Colour panel(8, 12, 24, 210);
+    gfx->setColour(panel, true);
+    gfx->setAuxColour(panel);
+    gfx->useTexture(nullptr, GX_TEXMAP0);
+    gfx->fillRectangle(RectArea(left - 5, top - 4, std::min(w - 8, left + width + 5), top + 5 * 12));
+    for (int i = 0; i < 5; ++i) f1Text(left, top + i * 12, lines[i], Colour(255, 255, 255, 255), fw, fh);
+#endif
+}
+
 void pc_settings_draw_idle_counter(void) {
     PC_SETTINGS_HOST_ALLOC();
     if (!pc_settings_get_idle_counter()) return;
@@ -7948,6 +8028,9 @@ struct GroupRow {
 };
 
 const GroupRow kDisplayRows[] = {
+#ifdef __IPHONEOS__
+    { SRC_MAIN, ROW_IOS_PERFORMANCE_HUD, "Performance HUD", "Render FPS, slow frame times, app RAM, CPU and heat. Close settings to apply. Spare memory is advisory; CPU100% means one core. GPU load is unavailable." },
+#endif
     { SRC_MAIN, ROW_DISPLAY_MODE, "Display Mode", "Windowed, fullscreen, or a borderless window that fills the screen." },
     { SRC_MAIN, ROW_RESOLUTION, "Resolution", "Size of the window or the fullscreen picture. A: full list. Left/Right: next size." },
     { SRC_MAIN, ROW_ASPECT_RATIO, "Aspect Ratio", "Auto fills the window. The others keep that shape and add black bars." },
@@ -8249,6 +8332,9 @@ bool rowProbeable(int group, int row) {
     case SRC_MAIN:
         return r->idx == ROW_DISPLAY_MODE || r->idx == ROW_ASPECT_RATIO || r->idx == ROW_RENDER_SCALE
             || r->idx == ROW_REFRESH_RATE || r->idx == ROW_VSYNC || r->idx == ROW_FPS_MODE
+#ifdef __IPHONEOS__
+            || r->idx == ROW_IOS_PERFORMANCE_HUD
+#endif
 #if defined(VERSION_GPIP01)
             // El idioma se guarda aparte de sPending (sLanguage): el sondeo lo
             // restaura por su cuenta. Solo sin ventana, para el launcher.

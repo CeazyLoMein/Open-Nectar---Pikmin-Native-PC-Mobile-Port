@@ -1,3 +1,9 @@
+CURRENT - 2026-10-20 13:41 EDT: P2 enhancements implemented; local checks PASS.
+Apple build/IPA/new-profile phone tests pending. Build27 user reports no crashes
+so far (limited test). P1 GPI texture pack installed/listed but inactive in screenshot;
+activation unverified. P1 working app untouched; keep60FPS. New entries supersede
+older current-status headers; older entries below are historical.
+
 CURRENT - 2026-10-20 09:57 EDT: Build27 P2-only PASSED; verified IPA in folder1.
 P2 phone crash/control retest pending. P1 models INSTALLED, runtime pending;
 saves/settings unchanged. HD environment textures NOT installed.
@@ -1531,3 +1537,82 @@ P1 unchanged in this result turn; its character bundle was actually installed
 previously (20files/15NHM readback verified,6 protected saves/settings unchanged),
 expected menu11/11; model visuals/performance still untested, environment textures
 NOT installed. Keep60FPS. All private assets/backups remain outside Git.
+
+## P2 enhancement batch locally verified - 2026-10-20 13:41 EDT
+
+User resumed after the usage pause; no external source changes were reported.
+Fetched local/remote baseline aa59864e3be6c8a6e5d9a7b4ca130861ed861e27 matches.
+Build27/run39432157516/source8d77c5337863f34800bc7b7ef990878e586d7c48 passed;
+user now reports P2 working so far with no crashes, with incomplete testing.
+This supersedes earlier blanket Build27 phone-result-pending notes. It is not
+proof of full campaign stability or of the new enhancements below.
+
+P2 candidate:
+- One-time backed-up/atomic config profile: renderScale1.0, FXAA, anisotropy4,
+  subtle bloom; 60FPS; performance HUD initially on; hold-to-pluck, better
+  pathfinding, idle counter, instant whistle, quick grab, no-trip, B throw
+  cancellation, manual lock-on and charge. Existing active texture selection,
+  saves, touch layout and unrelated settings survive. The profile marker is
+  serialized; later menu choices survive restarts. Reset preserves that marker
+  while resetting actual settings, so the preset does not silently reapply.
+- chainActions and throwWhileMoving are also compatible profile keys, but the
+  active P2 decomp does not consume these two getters. P2 already invokes nearby
+  AI work on completion and calls control during throw states; no new AI hooks
+  were added. Do not advertise either key as a newly implemented P2 mechanic.
+- Performance HUD in Display: render submissions FPS, average/p95/p99 frame
+  times, process RAM, advisory available memory, process CPU (100%=one core),
+  categorical thermal state and Low Power. It measures actual SDL swaps,
+  samples OS counters once/second, and skips sampling when disabled. It hides
+  during advanced settings/captain selection. No GPU percentage or temperature.
+- Native Files ZIP picker for P2 texture packs. Reuses the existing bounded,
+  CRC-checked P1 extractor and staged transactional install/rollback code.
+  CMake removes the old P2 converter source to prevent duplicate symbols.
+  UIKit callbacks/bridge/worker have restoring native allocation scopes; the
+  P2 game allocator and recent GL100/SDL/thread/audio protections remain intact.
+  P1-specific model kinds are rejected for P2. P1 game source not changed;
+  shared picker changes are gated, with P1 regression coverage.
+- Workflow adds P2 profile/HUD/bridge/ZIP/rollback and actual CMake-wiring/reset
+  checks before compiling. Only P2 will build via [ios-p2-only].
+
+Source files: ios/pikmin2_ios_profile.h; ios/ios_storage.mm (P2 atomic config);
+ios/CMakeLists.txt (P2 features and shared portable sources); ios/ios_mod_picker.mm;
+ios/pc_ios_mod_bridge.cpp; games/pikmin2/pc_port/settings/pc_settings.cpp/.h;
+games/pikmin2/pc_port/dolphin_stubs/p2_os_host.cpp. New tests: pikmin2_ios_profile_test.cpp,
+pikmin2_ios_mod_bridge_test.cpp, pikmin2_ios_enhancements_test.py.
+
+Local checks PASS: profile188; shared HUD30 with P2 includes; P2 bridge24;
+P1 bridge19 and profile169; transactional install/backup/active-pack protection/
+invalid data/rollback; real ZIP stored/deflate/CRC/paths/duplicate/failure tests;
+actual reset execution; actual extracted CMake feature branches configure for
+P1 and P2. Existing actual allocator native1359/console1280/Apple-scalar1359;
+GL audit100; iOS menu188/desktop198; Clang parser for allocator three variants,
+menu two variants, new profile/bridge/reset all passed. Local Windows compiler
+checks do not compile UIKit or establish Apple ARM64 linking/runtime behavior.
+
+P1 content update: user installed texture ZIP and screenshot lists GPI Inactive,
+Loader off. Advised select GPI/A to activate, accept restart/full restart.
+Activation/texture replacements/FPS/heat after activation not yet confirmed.
+Previously installed character bundle:20 files/15NHM/4portraits/source archive,
+readback SHA256 verified;6 preexisting save/settings/layout/achievement files
+unchanged; backup in folder5/Before P1 Character Packs -2026-10-20 095114.
+Model visual correctness remains unverified. P1 gameplay/menu/camera/audio
+remain user-confirmed; no P1 app/data operations in this enhancement turn.
+P1 texture ZIP SHA256 5d9254b4f1ca46fee93b57ce17e888521884634bc1fae4bc7a4cf22af7e2551b;
+previous no-threat Defender plus full ZIP/PNG structural check is not a runtime
+or absolute security guarantee. Keep60FPS; 120 canceled; online co-op remains last.
+
+P2 needs its own compatible texture pack (upstream launcher Drive ID
+1blzsLSFBr617h-gP7lvp_7HqsLRyQWzl, advertised1072944206bytes, folderGPV).
+No P2 HD texture/model content downloaded or installed in this batch; importer
+support and graphics defaults are separate from content installation. P1 GPI
+pack/models cannot be treated as installed P2 content. No automatic phone changes.
+
+NEXT: commit/push this coordinated P2-only candidate; record exact source/run;
+stop idle polling per user. Once user reports completion, retrieve job/logs,
+verify IPA ZIP/plist/ARM64/UUID/alignment/digest and copy to friendly folder1.
+Retain Build27 working backup. Update existing P2 via same signing identity/ID;
+do not uninstall or touch P1. Hardware test: title gear/A; repeat Begin and
+captain selection; pause/resume; original Options; HUD toggle and 60FPS; 15-20min
+FPS/frame/RAM/heat test. Then separately choose/import/enable a P2-specific pack,
+restart and inspect replacements/counters. Retrieve matching fresh crash report
+read-only if regression. No new source fix is claimed hardware-verified yet.

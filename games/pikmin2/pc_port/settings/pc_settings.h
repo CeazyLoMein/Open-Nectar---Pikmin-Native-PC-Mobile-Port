@@ -41,6 +41,8 @@ void pc_settings_touch_drag(float dy);
 // Draws the overlay through the game's GX/GL stack. Called from VIWaitForRetrace
 // just before the framebuffer is blitted to the window, so it appears on top.
 void pc_settings_draw(void);
+int pc_settings_get_ios_performance_hud(void);
+void pc_settings_draw_ios_performance(void);
 
 // Applies the currently selected video settings to the SDL window.
 void pc_settings_apply_video(void);

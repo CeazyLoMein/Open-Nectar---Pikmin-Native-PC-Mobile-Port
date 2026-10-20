@@ -78,7 +78,33 @@ if(NECTAR_IOS_GAME STREQUAL "pikmin1")
         "${CMAKE_CURRENT_SOURCE_DIR}"
         "${NECTAR_ROOT}/games/pikmin1/pc_port/mods")
     target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE "-framework UniformTypeIdentifiers")
+elseif(NECTAR_IOS_GAME STREQUAL "pikmin2")
+    target_compile_definitions(nectar_ios_storage PRIVATE NECTAR_IOS_P2_FEATURES=1)
+    target_sources(nectar_ios_storage PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/ios_mod_picker.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/ios_runtime_stats.mm")
+    target_include_directories(nectar_ios_storage PRIVATE "${NECTAR_ROOT}/games/pikmin2/pc_port"
+        "${NECTAR_ROOT}/games/pikmin1/pc_port")
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ios_mod_picker.mm"
+        PROPERTIES COMPILE_FLAGS "-fobjc-arc")
+    target_compile_definitions(${NECTAR_GAME_TARGET} PRIVATE NECTAR_IOS_PERFORMANCE_HUD=1)
+    target_compile_definitions(pikmin2_legacy PRIVATE NECTAR_IOS_PERFORMANCE_HUD=1)
+    # P2's old converter lacks the bounded/CRC-checked staging API. Use the
+    # existing hardened portable converter, with P2's native host guards below.
+    get_target_property(P2_IOS_SOURCES ${NECTAR_GAME_TARGET} SOURCES)
+    list(FILTER P2_IOS_SOURCES EXCLUDE REGEX "/mods/pc_hd_model_convert[.]cpp$")
+    set_property(TARGET ${NECTAR_GAME_TARGET} PROPERTY SOURCES "${P2_IOS_SOURCES}")
+    target_sources(${NECTAR_GAME_TARGET} PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/pc_ios_mod_bridge.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/pc_ios_mod_install.cpp"
+        "${NECTAR_ROOT}/games/pikmin1/pc_port/mods/pc_hd_model_convert.cpp"
+        "${NECTAR_ROOT}/games/pikmin1/pc_port/timing/pc_ios_performance.cpp")
+    target_include_directories(${NECTAR_GAME_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${NECTAR_ROOT}/games/pikmin1/pc_port/mods"
+        "${NECTAR_ROOT}/games/pikmin1/pc_port")
+    target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE "-framework UniformTypeIdentifiers")
 endif()
+
 target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE nectar_ios_storage)
 target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE
     "-framework UIKit"

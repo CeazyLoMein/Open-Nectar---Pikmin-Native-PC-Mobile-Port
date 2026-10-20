@@ -1,5 +1,11 @@
 #import <UIKit/UIKit.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#if NECTAR_IOS_P2_FEATURES
+#include "pc_host_alloc.h"
+#define PICKER_HOST() PcNativeHostAllocScope pickerHostScope
+#else
+#define PICKER_HOST() ((void)0)
+#endif
 
 extern "C" void nectar_ios_mod_picker_result(int kind, const char* path, const char* error);
 
@@ -13,22 +19,26 @@ static NectarModPickerDelegate* sPickerDelegate;
 
 @implementation NectarModPickerDelegate
 - (void)finishWithPath:(NSString*)path error:(NSString*)error {
+    PICKER_HOST();
     if (self.finished) return;
     self.finished = YES;
     nectar_ios_mod_picker_result(self.kind, path.fileSystemRepresentation, error.UTF8String);
     sPickerDelegate = nil;
 }
 - (void)documentPickerWasCancelled:(UIDocumentPickerViewController*)controller {
+    PICKER_HOST();
     (void)controller;
     if (self.copying) return;
     [self finishWithPath:nil error:nil];
 }
 - (void)presentationControllerDidDismiss:(UIPresentationController*)presentationController {
+    PICKER_HOST();
     (void)presentationController;
     if (self.copying) return;
     [self finishWithPath:nil error:nil];
 }
 - (void)documentPicker:(UIDocumentPickerViewController*)controller didPickDocumentsAtURLs:(NSArray<NSURL*>*)urls {
+    PICKER_HOST();
     (void)controller;
     if (self.finished || self.copying) return;
     NSURL* source = urls.firstObject;
@@ -37,6 +47,7 @@ static NectarModPickerDelegate* sPickerDelegate;
     BOOL scoped = [source startAccessingSecurityScopedResource];
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
         @autoreleasepool {
+            PICKER_HOST();
             NSFileManager* manager = NSFileManager.defaultManager;
             NSString* directory = [NSTemporaryDirectory() stringByAppendingPathComponent:
                 [@"NectarModImport." stringByAppendingString:NSUUID.UUID.UUIDString]];
@@ -50,10 +61,16 @@ static NectarModPickerDelegate* sPickerDelegate;
             if (!copied) {
                 [manager removeItemAtPath:directory error:nil];
                 NSString* reason = error.localizedDescription ?: @"Could not copy the selected ZIP.";
-                dispatch_async(dispatch_get_main_queue(), ^{ [self finishWithPath:nil error:reason]; });
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    PICKER_HOST();
+                    [self finishWithPath:nil error:reason];
+                });
                 return;
             }
-            dispatch_async(dispatch_get_main_queue(), ^{ [self finishWithPath:path error:nil]; });
+            dispatch_async(dispatch_get_main_queue(), ^{
+                PICKER_HOST();
+                [self finishWithPath:path error:nil];
+            });
         }
     });
 }
@@ -61,6 +78,7 @@ static NectarModPickerDelegate* sPickerDelegate;
 
 extern "C" void nectar_ios_open_mod_picker(int kind) {
     dispatch_async(dispatch_get_main_queue(), ^{
+        PICKER_HOST();
         if (sPickerDelegate) {
             nectar_ios_mod_picker_result(kind, nullptr, "An import picker is already open.");
             return;
@@ -103,6 +121,7 @@ extern "C" void nectar_ios_open_mod_picker(int kind) {
 
 extern "C" void nectar_ios_cleanup_mod_import(const char* importedPath) {
     @autoreleasepool {
+        PICKER_HOST();
         if (!importedPath) return;
         NSString* path = [[NSString stringWithUTF8String:importedPath] stringByStandardizingPath];
         NSString* parent = path.stringByDeletingLastPathComponent;

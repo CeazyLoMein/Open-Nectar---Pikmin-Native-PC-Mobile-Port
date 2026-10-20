@@ -54,6 +54,9 @@ RenderModeInfo gPcRenderInfoStore = {};
 #include "port/audio_sink.h"
 #include "pc_window.h"
 #include "pc_host_alloc.h"
+#ifdef NECTAR_IOS_PERFORMANCE_HUD
+#include "timing/pc_ios_performance.h"
+#endif
 #include "settings/pc_settings.h"
 #include "settings/pc_settings_p2_shim.h"
 #if PIKI_PC_TOUCH
@@ -1092,6 +1095,7 @@ void VIWaitForRetrace()
 	pc_erased_notice_draw();
 	pc_settings_draw();
 	pc_settings_draw_achievement_toast();
+	pc_settings_draw_ios_performance();
 	pc_settings_p2_flush();
 	pc_captain_select_draw_3d();
 	pc_gfx_present();
@@ -1119,6 +1123,9 @@ void VIWaitForRetrace()
 		const u32 swapEvery = (sRefreshHz > 0 && retraceHz > sRefreshHz) ? u32((retraceHz + sRefreshHz - 1) / sRefreshHz) : 1u;
 		if (sRetraceCount % swapEvery == 0) {
 			SDL_GL_SwapWindow(window);
+#ifdef NECTAR_IOS_PERFORMANCE_HUD
+			pc_ios_performance_present();
+#endif
 		}
 		// Some drivers accept interval 1 but do not actually block. In that
 		// case the game would race far above the monitor and its adaptive delta
