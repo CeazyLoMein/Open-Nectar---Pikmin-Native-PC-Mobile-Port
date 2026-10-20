@@ -99,3 +99,14 @@ Milestones:
    simplifications, with independent offline progress/host migration deferred.
 
 No date, completion guarantee or claim of proven iPhone online functionality.
+
+## Clarification and solo readiness gate - 2026-10-20
+
+The separate P1 app is for the solo readiness experiment and later co-op
+prototype. The user's eventual goal is proven co-op in the original P1 app,
+preserving its solo play and existing saves. Do not replace that app now.
+The user accepted a short representative solo campaign check instead of
+requiring a full story playthrough before exploratory co-op. This is increased
+confidence, not certification of every campaign event. See
+PIKMIN1_SOLO_READINESS_PLAN.md for scope, shortcut limits and exact next actions.
+No separate test IPA or co-op implementation was produced in this checkpoint.

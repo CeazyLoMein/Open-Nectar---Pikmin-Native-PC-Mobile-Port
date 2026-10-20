@@ -1,3 +1,9 @@
+CURRENT - 2026-10-20 19:43 EDT: Build31 P2-only PASSED, run39514971137, sourcedc73a848.
+Verified IPA staged in folder1. New audio/proximity/report phone test pending.
+P1 working app untouched. Separate solo-readiness test approach accepted;
+eventual proven co-op is intended for original app. No test IPA/co-op code yet.
+See PIKMIN1_SOLO_READINESS_PLAN.md and current master handoff.
+
 CURRENT - 2026-10-20 19:26 EDT: P2-only Build31 DISPATCHED, run39514971137.
 Source dc73a84887e60d4e3b7911b1e46ed64ab4a764b9; observed in_progress.
 Native JAI parameter stride/report platform defects corrected; local48 parameter,

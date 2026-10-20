@@ -1,3 +1,13 @@
+## Build31 result - 2026-10-20 19:43 EDT
+
+Run39514971137/source dc73a84887e60d4e3b7911b1e46ed64ab4a764b9 SUCCESS.
+48 actual scalar producer/consumer checks, 28 mixer routes, 11 audit checks and
+existing DSP suite passed on Apple runner. iPhone SDK platform assertion passed.
+Verified ARM64 iPhoneOS IPA, both new operators16-byte aligned; desktop-only
+audit opt-in string absent. Staged in Documents/Open Nectar/folder1.
+Installation, reported sound restoration/proximity and phone report output are
+still unverified. Next collect reports after the first short Build31 phone test.
+
 # Current follow-up: Build30 audio failure and native parameter layout
 
 Build30's clearer HUD is confirmed by the user; Pikmin, enemy and winter/wind
