@@ -1,3 +1,7 @@
+CURRENT CONTENT UPDATE - 2026-10-20 09:52 EDT: P1 character bundle INSTALLED;
+20 files hash-verified, saves/settings unchanged. P1 model runtime test pending.
+HD environment textures NOT installed. P2 Build27 pending at last dispatch.
+
 CURRENT - 2026-10-20 09:38 EDT: Build26 PHONE REGRESSIONS: menu gear/A hidden;
 captain-preview/Metal heap crashes. P2-only batch locally checked; Build27/run39432157516 (in_progress at dispatch).
 New Apple build and phone results pending. Build24 backup; P1 untouched.
@@ -1096,3 +1100,40 @@ No idle polling. Next action after successful IPA: update P2 only, preserve data
 repeat Begin selection several times, check gear/A before/during/after title
 opening, advanced/original options, enter gameplay then pause/resume repeatedly.
 If crash, read fresh UUID-matched report. P1 and assets/art unchanged.
+
+## P1 optional character/model bundle INSTALLED by USB - 2026-10-20 09:52 EDT
+
+User explicitly authorized installation; ZIP already present in P1 Documents.
+Verified no running P1 process before backup, staging and promotion and after
+installation. Phone ZIP SHA2567fa0bacc8f99349b0fd84d8b2a43716e91e68d033ca989c96a414a72dfc1538c,
+matching prepared local bundle. ZIP integrity/path/type/size/model magic checked.
+Backed up6 existing files/161965bytes: saves/card0+card1, config, original enhanced
+config backup, touch layout and achievements. Existing Load Models folder empty;
+no prior model files overwritten. Backup SHA256 validated locally and against
+phone readback before changes. Full backup/private install manifest in:
+C:\Users\chazz\Documents\Open Nectar\5 - Archives\Before P1 Character Packs - 2026-10-20 095114
+
+Staged20 files/18360060bytes outside active Load, verified each SHA256, then
+renamed only into absent destinations. No differing existing file overwritten.
+Final readback SHA256 of all20 installed files PASS. All6 pre-existing protected
+files remained byte-for-byte unchanged; P1 kept closed throughout. Original ZIP
+preserved on phone. Recovery record retained in P1 Documents. No P2 writes,
+reinstall, app signing, code or settings changes.
+
+Content installed:15 NHM files comprising11 menu-counted HD models plus4 extra
+captain choices,4 portraits and1 private source archive for existing character
+recognition. HD Olimar, standard/HD Louie alternatives; red/yellow/blue Pikmin
+and leaf/bud/flower; Bulborb/Dwarf Bulborb; President/White/Purple/Bulbmin extra
+captains. Native loader expected11/11 counter. Read config hdModelsDisabled=0
+(all model rows enabled). Do not confuse file-install verification with runtime
+visual/animation/performance verification: game not launched by Codex.
+Environment HD texture pack remains NOT installed (last official quota block).
+P1 installed app/build and60FPS preference preserved. P2 Build27 still pending
+at last dispatch; no polling/new build for this content milestone.
+
+Next user action: reopen P1, Graphics > HD Models should show11/11, inspect
+Olimar/Pikmin/Bulborbs and extra captain selector, play15-20 minutes while
+watching FPS/Heat/RAM. Keep60FPS. If artifacts or slowdowns, disable affected
+model rows, restart and report exact model/symptom; original game assets remain.
+No further file copy or ZIP import needed. Full private record in folder2/
+Pikmin 1 - Character Pack Installation.json; backup under folder5 above.
