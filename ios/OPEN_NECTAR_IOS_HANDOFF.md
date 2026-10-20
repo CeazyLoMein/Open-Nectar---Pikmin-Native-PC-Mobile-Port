@@ -1,5 +1,12 @@
 # Open Nectar iOS continuation
 
+LATEST USER PRIORITY: keep P1 at60FPS;120FPS/ProMotion opt-in canceled and removed.
+Install/prepare ALL supported optional graphics/character content from upstream;
+preserve alternatives,phone saves,andworkingP1. Content preparation pending.
+Build17 P1passed/P2failed; fullkeep-goinglogexposes102diagnostics. Broad native-address
+batch spansroughly55source/header/buildfiles andnewactual-codehostfixture;local
+checks passed,successor Apple build pending. ReadLATESTstatusentries for exactstate.
+
 Current policy (October19 evening): user explicitly requests broader related P2
 compatibility batches. Check shared headers and related container implementations,
 test together, then one coordinated build. P2 now uses Makefiles + make -k to

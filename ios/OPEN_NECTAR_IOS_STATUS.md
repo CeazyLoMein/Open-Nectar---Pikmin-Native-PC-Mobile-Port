@@ -465,3 +465,144 @@ Normal end-day save/relaunch test still required. Online with Raye for both game
 Next: commit scoped P2 source/tests, then workflow/journal with final [ios-build],
 push once, record run ID, and STOP idle polling. User reports completion. Prepare
 batch from full next run error index/logs; do not assume success before CI.
+
+## Build17 batch dispatched — 2026-10-19 18:19 Eastern Daylight Time
+
+Pushed once to ios-experimental. Local/origin HEAD 02ec11b866bbc39a21d6d5a8641a60790b3621d1.
+Commits:5542499c (shared Apple nullptr plus CPlate/Stickers handles/tests),
+02ec11b8 (P2 keep-going diagnostics, error index, journals and build marker).
+Build17 run39334027043:https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39334027043
+Initial queued, not compiled/packaged/runtime-verified. Stop idle polling; user
+will report completion. Source/tests/workflow clean after push; only this dispatch
+checkpoint in ios/OPEN_NECTAR_IOS_STATUS.md is dirty. No unexpected source changes.
+
+P1 Build16 successful HUD IPA already copied/hash-verified to friendly folder1;
+WHAT TO TEST.txt and verification JSON supplied; requested audio alert played.
+Phone HUD/readings/normal save reload pending. No HD assets/autosave/co-op added.
+Next agent action: when Build17 finishes retrieve full job logs and error index,
+batch remaining related errors. Check generator/configure errors before compiler
+diagnosis. P1 source unchanged from passed Build16; no redundant install needed
+unless new evidence or source changes justify it. Online with Raye remains last.
+
+## P1 Build16 phone HUD evidence and ProMotion opt-in — 2026-10-19 18:33 Eastern Daylight Time
+
+User supplied a real gameplay screenshot from the new performance display, reporting
+120FPS selected but very smooth gameplay. HUD visibly reports Render60.0 FPS,
+average16.67ms, AppCPU40% (onecore=100%), HeatNominal, LowPowerOff. CPU40% does NOT
+mean40%of all phone CPU capacity. No exact RAM/spare or frame-tail values transcribed
+from the small screenshot; inspect original for those. This single snapshot validates
+HUD display and live sampling during gameplay, not sustained thermals/memory/HD safety,
+physicalpanel120Hz or save/reload. User has not reported a10-15minute comparison yet.
+
+Investigated scheduler/high-rate and SDLUIKit presentation paths. Existing bundled
+SDL_uikitviewcontroller.m:122-133 already creates a preferredFrameRateRange request
+on >60Hz iPhone displays and explicitly requires Info.plist
+CADisableMinimumFrameDurationOnPhone=true. Both source template and actual Build16
+packaged IPA lack that key. Apple documents it is needed for faster iPhone ProMotion
+timing hints. This is an identified configuration omission and leading explanation
+for a steady60 cap; GPU saturation, OS settings or other pacing issues are not yet
+excluded by hardware evidence. Do not promise120FPS from this declaration alone.
+
+Implemented only the boolean opt-in in shared ios/Info.plist.in. Both games inherit
+it when built; it permits higher rates rather than forcing120FPS or changing game
+FPS configuration. Renderer, SDL framebuffer correction, camera, touch, saves and
+game logic untouched. Local plistlib parse/configure for each game passes and dictionary
+comparison confirms this is the sole metadata change; Build16 packaged absence verified.
+No new tests added for a reversible one-key metadata fix. Actual Apple packaging and
+phone60vs120 test pending. Retain user FPS preference, do not force hardware refresh.
+
+Sources:
+https://developer.apple.com/documentation/bundleresources/information-property-list/cadisableminimumframedurationonphone
+https://developer.apple.com/documentation/quartzcore/optimizing-iphone-and-ipad-apps-to-support-promotion-displays
+
+Correction is UNCOMMITTED and NOT PUSHED, held for next coordinated batch after
+Build17 so no redundant run is triggered. HEAD/origin remain02ec11b866bbc39a21d6d5a8641a60790b3621d1.
+Dirty files:ios/Info.plist.in andios/OPEN_NECTAR_IOS_STATUS.md (includes dispatch note).
+Build17run39334027043 uses the older plist and CANNOT validate this pending correction.
+Do not ask user to reinstall Build17 expecting this fix. No build polling performed.
+Next:retrieve Build17 full P2 result when user reports, batch related corrections,
+include this plist change, verify generated IPA has boolean key, then ask user for
+same-area120FPS HUD reading. If still60, inspect OS frame limit and actual render/pacing.
+No HD payload installed, no mid-dayautosave/manualsave or online co-op implemented.
+
+## Build17 full results, broad native-address batch, and 60FPS priority — 2026-10-19 21:45 Eastern Daylight Time
+
+User explicitly cancels120FPS work: keep60FPS and budget for HD textures, all
+supported optional character/model packs and associated compatible upstream content.
+Removed ONLY our uncommitted ProMotion plist opt-in; Info.plist.in now matchesHEAD.
+No P1 game source altered. Current phone still can show120selected while actual60;
+user should choose Display>FPSMode60 once to match requested simulation/pacing mode.
+P1 Build16 HUD confirmed live in earlier screenshot (60/16.67ms,CPU40%ofonecore,
+HeatNominal,LowPowerOff); subjective smoothness positive. No sustained/HDheadroom proof.
+
+Build17run39334027043/02ec11b8 completed: P1successjob118338903254,
+P2failurejob118338902944. P1artifact12225988208 (same source as installedBuild16;
+no redundant install). P2artifact12226262590 contains167591189byte complete rawlog
+and26318byte error index. Downloaded directly. API logs have aggregatejobfiles
+plusrunner-systemsubfolders; don't confuse system.txt with full build output.
+New Makefiles keep-going configuration and Apple nullptr/container host checks PASS.
+
+Full compilation exposes102 diagnostics:84 located pointer-width sites,11 linkage
+conflicts,6 incomplete-model accesses,plus1 genPellet pointer diagnostic interleaved
+into a register warning. These are a batch of earlier latent failures, not102 known
+new regressions. No successful P2 link/IPA/runtime. Index/source contexts inwork/
+build17-pikmin2,build17-errors.txt,build17-source-contexts.txt; concise copyoutputs/
+Build17-P2-ERRORS.md. Important genPellet.cpp43 diagnostic recovered manually.
+
+Broader source batch implemented, not Apple-compiled yet:
+- P2Address/P2SignedAddress aliases use native uintptr_t/intptr_t;u32 file sizes,
+  serialized offsets and packed DSP/sample fields stay32bit. Original console
+  aliases stay32bit. Native class-layout comments remain originalconsole offsets.
+- Widen actual RAM addresses end-to-end through ARQ/JKRAMCommand/JKRAramPcs/
+  orderSync andcallback signatures;AI DMA setter/storage/getter;memoryarchive
+  identities/constructor/cache lookup andcompoundarchive memorybase. Narrowing
+  only at the original RAM API callsite would still truncate in receivers.
+- Address arithmetic/alignment/hash/modeloffset/threadstack/checksum paths use
+  full-width values first. Alignmentmask also pointer-sized for unsigned32alignment.
+  Final bounded modelcounts explicitly narrowed after subtracting full addresses.
+- Fontcache initialization writes typed mPrev/mNext pointers,notint[2] into64bit
+  fields; handles emptycache; doesn't clobber glyph metadata.
+- True32bit ARAMoffset/count values represented asvoid* usepc_p2_aram_offset,
+  rejecting >UINT32_MAX rather than silently accepting a hostpointer. Wave/stream
+  sources checked against their existing offset conventions (e.g. mDataOffset).
+- Generator event base+alloverrides carryP2Address,includinghidden genPellet case;
+  OSmessages/sentinels decoded with explicit width/wrap behavior;MapCode writes
+  itsactualbyte directly;ARAMnode result is boolean success as consumed byMgr.
+- Match11extern definitions orrenameprivateGXtable;includecompleteJ3DModel in
+  J3DUMtxCache header for6memberaccesses. NativeDSP uses existing typed software
+  tablehook instead of empty console DsetupTable with truncated addresses.
+- Debugpointerformat uses%p;nativeheapchart usesrealroot start,not0x80000000.
+  MatchingwideDMA diagnostic format. No hidden pointer-to-int warning suppression.
+
+Verification: actual-header nullptr/STL test andactual8container-method suite pass
+MSVC17/W4/WX. Newtests/pikmin2_native_addresses_test.py extracts actual aliases,
+ARQ/AI signatures/fields/implementations,DMAdispatch,fontcache,MapCode,modeloffsets,
+andheapchart intohostfixture. MSVC17/W4/WX passed highaddresses,callbackroundtrip,
+32bitlength preservation,16unsignedalignmentcases,valid/rejectedARAMboundaries,
+0/1/3/7fontpages+metadata,all256mapbytes,chartclamps andmodelcounts. Testfirstcaught
+model-count narrowing warnings; explicit finalcounts corrected. A fixture-only
+buffer allocation assumedmax_align_t16;Windows8 causedtestcrash;fixture corrected
+toallocate bybytes. No claim that was a gamecrash or hardwarevalidation.
+Reviewcaught remainingorderSync declaration src/destnames;fixed before finaltest.
+Actual Apple complete compilation/link and first P2 runtime still pending.
+Native DMA transfer stubs still only complete/store requests; no new DMAcopy engine
+or claim that the game's unused legacy ARAM paths now work at runtime.
+
+CI now runs newhostfixture early,retainsmake-k,adds onlyobsolete-register warning
+silencing onAppleClang (huge167MBlognoise),prefersalready-installedgmake whenpresent,
+andusesoutput-sync only ifselectedmakeadvertises it. No toolinstall/flags that
+silence pointer truncation errors. One coordinated push after finalchecks.
+
+Optional content request NOT completed yet: upstreamlauncher explicitly supplies
+mobilePNGpack P1 id1870dA11T9FpuLQDnI3axoCJ_Eh5ptgWP (925049459bytes),P2
+id1blzsLSFBr617h-gP7lvp_7HqsLRyQWzl (1072944206bytes). DesktopDDS variants exist
+but mobilePNG is intended mobileinput. Siximportrows supported:OlimarHD,LouieP2,
+LouieHD,PikminHD (3colors+3leafparts),Bulborb,Dwarf. AdditionalP2captains require
+existingpc_hd_models_import_pikmin2 using privatepikis.szs (Louie/President/white/
+purple/Bulbmin+portraits). No assets downloaded/installed yet in this checkpoint.
+The Models Resource moved to models.spriters-resource.com;assetpages inspected
+normally. Originaloldhost sometimes403,newofficial URLs work. Sources/inventory
+andpackpreparation are next;keepall proprietaryassets outsideGit. Phone transfer/
+activation andperformanceverification not yet done. Userauthorizedalloptionalcontent
+does not mean claimunsupported models installed or enablesave-destructive modes.
+No timedmid-dayautosave/manualsave oronlineco-op added. OnlinewithRaye remainsLAST.

@@ -46,6 +46,9 @@ jobs:
           python3 tests/pikmin2_container_handles_test.py "$RUNNER_TEMP/p2-container-test.cpp"
           c++ -std=c++17 "$RUNNER_TEMP/p2-container-test.cpp" -o "$RUNNER_TEMP/p2-container-test"
           "$RUNNER_TEMP/p2-container-test"
+          python3 tests/pikmin2_native_addresses_test.py "$RUNNER_TEMP/p2-address-test.cpp"
+          c++ -std=c++17 "$RUNNER_TEMP/p2-address-test.cpp" -o "$RUNNER_TEMP/p2-address-test"
+          "$RUNNER_TEMP/p2-address-test"
       - name: Check Pikmin 1 enhancement profile and mod imports
         if: matrix.game == 'pikmin1'
         shell: bash
@@ -72,7 +75,13 @@ jobs:
           # ending the entire diagnostic run at the first failed translation unit.
           # P1 retains its verified Xcode generator. Both still target iphoneos ARM64.
           GENERATOR=Xcode
-          if [ "$GAME" = pikmin2 ]; then GENERATOR="Unix Makefiles"; fi
+          CONFIGURE_ARGS=()
+          if [ "$GAME" = pikmin2 ]; then
+            GENERATOR="Unix Makefiles"
+            if command -v gmake >/dev/null 2>&1; then
+              CONFIGURE_ARGS+=("-DCMAKE_MAKE_PROGRAM=$(command -v gmake)")
+            fi
+          fi
           cmake -S ios -B "$RUNNER_TEMP/nectar-build" -G "$GENERATOR" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_SYSTEM_NAME=iOS \
@@ -81,14 +90,20 @@ jobs:
             -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
             -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
             -DNECTAR_IOS_GAME="$GAME" \
-            -DCMAKE_CXX_FLAGS="-ferror-limit=80"
+            -DCMAKE_CXX_FLAGS="-ferror-limit=80" "${CONFIGURE_ARGS[@]}"
       - name: Compile native game
         shell: bash
         run: |
           set -o pipefail
           if [ "$GAME" = pikmin1 ]; then TARGET=pikmin_pc; else TARGET=pikmin2_pc; fi
           BUILD_ARGS=()
-          if [ "$GAME" = pikmin2 ]; then BUILD_ARGS=(-- -k); fi
+          if [ "$GAME" = pikmin2 ]; then
+            BUILD_ARGS=(-- -k)
+            MAKE_TOOL=$(sed -n 's/^CMAKE_MAKE_PROGRAM:[^=]*=//p' "$RUNNER_TEMP/nectar-build/CMakeCache.txt")
+            if "$MAKE_TOOL" --help | grep -q 'output-sync'; then
+              BUILD_ARGS+=(--output-sync=target)
+            fi
+          fi
           cmake --build "$RUNNER_TEMP/nectar-build" --config Release \
             --target "$TARGET" --parallel 3 \
             "${BUILD_ARGS[@]}" \
