@@ -1,3 +1,6 @@
+LATEST BUILD CHECKPOINT: P2-only Build23 dispatched at 609a45b1;
+Apple result/IPA/phone retest pending. P1 untouched.
+
 CURRENT CHECKPOINT - October 20, 2026: P2 Build22 installs but crashes at first
 draw. Real phone crash reports identify an alignment fault; allocator + renderer
 scope candidate implemented and local tests passed. Next P2-only Apple build and
@@ -894,3 +897,12 @@ working camera/movement and reported smooth 60 FPS. Preserve UIKit framebuffer
 fix. Optional character package prepared privately but NOT installed on phone;
 environment texture download was quota blocked at last check. No timed mid-day
 recovery save implemented. Online co-op with Raye remains the final long-term step.
+
+## Startup candidate build dispatched - 2026-10-20 00:23 Eastern Daylight Time
+
+Source commit: 609a45b184b50aeb1a71e581c2c2095f4f664f77
+Actions Build23: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39369282124
+Status at dispatch: in_progress. P2 only; P1 not scheduled. No new IPA or
+hardware retest yet. Host tests: 1344 native + 1280 console checks passed.
+The following journal-only checkpoint uses [skip ci], with no extra build.
+No idle Actions polling. Retrieve result/logs after user reports completion.
