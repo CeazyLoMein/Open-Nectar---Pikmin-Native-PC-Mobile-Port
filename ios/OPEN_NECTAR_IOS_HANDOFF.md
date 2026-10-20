@@ -330,3 +330,37 @@ found in the focused source/release check. Do not pretend texture content presen
 Optional mods already built into menus remain available; no forced difficulty,
 cheats, randomizer or destructive mode changes. Mid-day saving and online withRaye
 remain future work (online LAST). Phone transfer request pending; audio cue played.
+
+## Dispatch/result checkpoint — 2026-10-19 22:12 Eastern Daylight Time
+
+P1 Build19 SUCCESS, including unsigned IPA packaging; artifact12235976028. No
+P1 game source changed; existing phone Build16 remains suitable for content tests.
+P2 Build19 final-link failure above. Link fix committed/pushed06fdd716de120551fa4083d4043e6513144bd517.
+Build20run39357443512 in progress at dispatch check; verified exactly ONE job,
+build(pikmin2), so the P2-only matrix option works. No result/IPA confirmed yet.
+https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39357443512
+User postponed phone connection/transfer because busy. Do not keep requesting it.
+Character bundle is prepared, NOT installed. No idle build polling; user will
+report when done. These two final journal updates are intentionally uncommitted
+documentation only, to include with the next source milestone without extra build.
+
+## Build20 test-fixture dependency failure — 2026-10-19 22:14 Eastern Daylight Time
+
+Build20run39357443512 at06fdd716de120551fa4083d4043e6513144bd517
+failed job118415402674 in the early GD TLS smoke fixture, before game configure
+or compilation. Generated gd-storage.c used the real GDBase.c NULL initializer
+but fixture gd-0.h included stdint.h only, not stddef.h. Apple's C compiler
+correctly reported undeclared NULL. Earlier Windows test passed because its
+headers provided NULL transitively. This omission was Codex's test setup mistake,
+not a newly observed game error. P1 did not run in Build20; Build19 P1 remains
+SUCCESS with IPA artifact12235976028. Full Build20 job log saved work/build20-job.log.
+Artifact12235768616 is only269bytes (no game compile log/IPA), not a P2 app.
+
+Correction adds explicit standard stddef.h to generated fixture headers. No game
+source, workflow, thread storage declaration, settings or save changes. Local
+mixed C/C++ link and three-thread fixture will be regenerated/rechecked before
+push; Apple ABI/link and full game build remain pending. One P2-only Build21
+will validate the existing GD linkage correction after this dependency fix.
+Preserve prior two pending journal appends and include them in this commit.
+Character bundle remains ready privately; phone transfer explicitly postponed
+by user; official texture downloads remain quota-blocked. No idle polling.

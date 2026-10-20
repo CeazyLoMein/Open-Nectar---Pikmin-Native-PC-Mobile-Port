@@ -13,7 +13,7 @@ for i,path in enumerate(headers):
     end=text.index('extern GDOverflowCallback overflowcb;',begin)
     declaration=text[begin:end]
     write=re.search(r'static inline void __GDWrite\(u8 data\)\s*\{.*?\n\}',text,re.S).group()
-    (out/f'gd-{i}.h').write_text('#include <stdint.h>\n#define PIKI_PC_PORT 1\ntypedef uint8_t u8; typedef int32_t s32;\n'+structure+'\n#ifdef __cplusplus\nextern "C" {\n#endif\n'+declaration+write+'\n#ifdef __cplusplus\n}\n#endif\n')
+    (out/f'gd-{i}.h').write_text('#include <stddef.h>\n#include <stdint.h>\n#define PIKI_PC_PORT 1\ntypedef uint8_t u8; typedef int32_t s32;\n'+structure+'\n#ifdef __cplusplus\nextern "C" {\n#endif\n'+declaration+write+'\n#ifdef __cplusplus\n}\n#endif\n')
 source=(repo/'games/pikmin2/pikmin2-decomp/src/Dolphin/gd/GDBase.c').read_text()
 begin=source.index('#ifdef PIKI_PC_PORT');end=source.index('#endif',begin)+len('#endif')
 (out/'gd-storage.c').write_text('#include "gd-0.h"\n'+source[begin:end]+'''
