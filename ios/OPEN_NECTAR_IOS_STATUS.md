@@ -1,3 +1,9 @@
+CURRENT - 2026-10-20 14:00 EDT: Build29 P2-only DISPATCHED, run39470849443.
+Source7f7d0783e8b42870a8b6bbb1954199fbe9ffc6bb; observedin_progress.
+Build28 FAILED at import API call; corrected, new19-check real API fixture PASS.
+Build29 result/link/IPA/phone tests pending; Build27 working baseline. P1 untouched.
+No idle polling. Next inspect Build29 when user reports done. Older entries historical.
+
 CURRENT - 2026-10-20 13:59 EDT: Build28 FAILED (2 compiler errors,1 incorrect API call).
 Correction and19-check real menu/API regression locally PASS; retry not dispatched yet.
 Build27 remains limited positive phone baseline. P1 untouched; texture replacements
@@ -1681,3 +1687,15 @@ P1 user screenshot now shows60.2FPS/16.60ms,1715MiB appRAM,CPU39%onecore,HeatNom
 user says texture pack enabled but visual change uncertain. Replacement counter
 screenshot requested; activation/render replacements remain unconfirmed. No P1
 phone writes. P2 HD texture/model content still not installed by this batch.
+
+## Build29 P2 retry dispatched - 2026-10-20 14:00 EDT
+
+Source 7f7d0783e8b42870a8b6bbb1954199fbe9ffc6bb; run 39470849443/Build 29.
+URL: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39470849443
+Observed in_progress at dispatch. Local correction/API-boundary19 checks,
+negative control and Clang PASS; Build29 Apple result/link/IPA/runtime pending.
+Build28 had2 compiler diagnostics from1 incorrect API name; no IPA. Retain the
+full enhancement batch and working Build27 backup. Only P2 builds. No P1 changes
+or phone operations. Stop idle polling; user reports completion. On return inspect
+this exact run, full logs/artifact, and only stage verified successful IPA. Docs
+checkpoint uses [skip ci]. Logs and self-contained handoff saved in folder2.
