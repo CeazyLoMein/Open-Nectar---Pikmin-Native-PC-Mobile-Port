@@ -1,3 +1,8 @@
+LATEST CHECKPOINT - 2026-10-20 01:03 EDT: P2 Build24 SUCCESS; target ARM64 allocator
+check and actual binary16-byte alignment verified. New IPA ready in folder1.
+NEW phone installation/startup/audio retest pending. P1 working and untouched.
+Earlier Build23 phone startup failed; read newest journal entry for current state.
+
 CURRENT BUILD: P2-only Build24 dispatched at 05e33f1c;
 result and phone retest pending. P1 untouched.
 
@@ -675,3 +680,35 @@ native1354/console1280/Apple-scalar1354 pass; old8-byte-policy negative control
 rejected. Real iPhone-target CI check/full compilation/IPA/runtime pending.
 No idle polling. Record build result when user reports completion. Journal-only
 dispatch checkpoint uses [skip ci] to avoid another build.
+
+## Build24 P2 allocation/audio candidate SUCCESS; phone test ready - 2026-10-20 01:03 EDT
+
+Run39371370836, job118459762543, exact source05e33f1c0e55dc11ecb6d413a8393bf73faeb2ce.
+P2-only. Apple host tests, native/console/Apple-scalar allocator variants, and
+the new actual iphoneos ARM64 C++14 compile/static-assert check all passed.
+Full P2 iPhoneOS ARM64 compilation/link and unsigned IPA packaging succeeded.
+Artifact12242386661, archive7585567bytes; compiler/linker index0 recognized errors.
+
+IPA3824677bytes, executable11065224bytes. Verified ZIP CRC, exact P2 identity,
+ARM64 Mach-O, iPhoneOS device platform, minimumOS15, load-command boundaries,
+system dynamic-library paths, intentionally unsigned status, no disc assets.
+SHA256 bacf33944221573fc1917de1311b5ddc328ce93b29977920f2ed7514259d9153
+New executable UUID 21d95a32-9dfb-3bbb-bab8-4dd36cbc37d8
+Inspected actual symbol/function instructions: ordinary new(__Znwm) and new[]
+(__Znam) both pass16 in w2 to the JKR allocator. Build23 passed8 and Build22
+passed4. This validates the actual target alignment correction in the produced
+binary, independently of the host test. New phone crash must match new UUID;
+old Build23 AudioQueue report is not evidence of this binary's failure.
+
+Copied and hash-verified to Documents/Open Nectar/1 - Install on iPhone/
+Pikmin 2 - Build 24 - Audio Startup Fix.ipa. Short START HERE/WHAT TO TEST guides updated.
+Old Build23 P2 IPA/verification moved within the same project folder to folder5/
+Build 23 - P2 Audio Startup Crash Reference, with unchanged SHA256. P1 untouched.
+
+New candidate installation and startup/audio/gameplay remain UNVERIFIED.
+User should update existing P2 through Sideloadly with the same identity,
+preserving its data/assets/art; no asset recopy or P1 change. First test is
+staying open/title/menu; then basic graphics/audio/touch/gameplay. If failure,
+retrieve fresh report and confirm new UUID/exception/stack before another fix.
+No phone app/file/settings operations were performed in build-result handling.
+No active build or new source changes; journal checkpoint [skip ci], no extra CI.
