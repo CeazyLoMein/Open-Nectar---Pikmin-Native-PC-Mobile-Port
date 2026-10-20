@@ -80,7 +80,24 @@ JASTrack* JAInter::SystemInterface::trackToSeqp(JASTrack* track, u8 p2, u32 p3)
  */
 void JAInter::SystemInterface::setSeqPortargsF32(JAInter::SeqUpdateData* updateData, u32 playerParameterIndex, u8 portArgIndex, f32 value)
 {
+#ifdef PIKI_PC_PORT
+	// PortArg contains a pointer, so its array stride becomes 8 bytes on ARM64.
+	// JASPortArgs keeps 4-byte scalar fields after its native track pointer.
+	// Use logical engine fields rather than the console-only union overlay.
+	JASPortArgs& args = updateData->mPlayerParams[playerParameterIndex].mPortArgs.asStruct;
+	switch (portArgIndex) {
+	case 3: args.mTrackVolume = value; break;
+	case 4: args.mTrackPitch = value; break;
+	case 5: args.mTrackPan = value; break;
+	case 6: args.mTrackFxmix = value; break;
+	case 7: args.mTrackDolby = value; break;
+	case 8: args._20 = value; break;
+	case 10: args.mTrackTempo = value; break;
+	default: break;
+	}
+#else
 	updateData->mPlayerParams[playerParameterIndex].mPortArgs.asArray[portArgIndex].f32 = value;
+#endif
 }
 
 /**
@@ -99,7 +116,17 @@ void JAInter::SystemInterface::setSeqPortargsPS16(JAInter::SeqUpdateData* update
  */
 void JAInter::SystemInterface::setSeqPortargsU32(JAInter::SeqUpdateData* updateData, u32 playerParameterIndex, u8 portArgIndex, u32 value)
 {
+#ifdef PIKI_PC_PORT
+	JASPortArgs& args = updateData->mPlayerParams[playerParameterIndex].mPortArgs.asStruct;
+	switch (portArgIndex) {
+	case 1: args._04 = value; break;
+	case 2: args.mFlags = value; break;
+	case 9: args._24 = value; break;
+	default: break;
+	}
+#else
 	updateData->mPlayerParams[playerParameterIndex].mPortArgs.asArray[portArgIndex].u32 = value;
+#endif
 }
 
 /**

@@ -2,58 +2,60 @@
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-20 19:10 EDT
+**Date/time:** 2026-10-20 19:25 EDT
 
-**Overall project status:** P1 remains working and unchanged. P2 Build29 runs on the phone, but the user reports missing Pikmin voices/wind, ship sound at excessive distance, and a hard-to-read gameplay performance HUD. A P2-only correction/audit batch is implemented and locally verified; Build30/run39509564730 PASSED, its new IPA is verified and staged in folder1. Installation and phone retesting are pending.
+**Overall project status:** P1 preserved. Build30's performance display is clearer on the user's iPhone, but Pikmin voices, enemy effects and winter/wind audio remain missing. Louie's breathing and the ship can be heard from across the map. A newly reproduced native parameter-layout defect and report-activation defect are corrected locally; a new Apple build and phone retest are pending.
 
 ### Pikmin 1
 
-- Current objective: Preserve working game and installed content.
-- What was investigated: No new P1 changes in this batch.
+- Current objective: Preserve working app, save and installed graphics content.
+- What was investigated: No P1 source or app changes in this batch.
 - Root cause or leading hypothesis: No new P1 defect reported.
-- Files changed: None in P1 or shared iOS app code.
-- Tests and results: Prior user screenshot confirms GPI texture pack active: 354 replacements, 0 failures. No new P1 hardware test.
-- Confirmed working: User-reported gameplay, readable menu, camera controls, audio and 60 FPS. GPI textures loading.
-- Remaining issues: Full campaign validation; character model visuals not independently confirmed.
+- Files changed: None.
+- Tests and results: Prior GPI screenshot confirms354 replaced textures,0 failed; no new P1 hardware test.
+- Confirmed working: User-reported native gameplay/audio/menu/camera/60FPS and active textures.
+- Remaining issues: Full campaign validation; model visuals not independently confirmed. Accepted separate online prototype approach is saved in ios/ONLINE_COOP_DESIGN_NOTES.md; no online code started.
 
 ### Pikmin 2
 
-- Current objective: Restore missing/spatial sound and improve HUD readability without increasing game rendering resolution.
-- What was investigated: All three supplied recordings were decoded; screenshots inspected. Native JAS bank, sequence, mixer and listener paths inspected. Connected phone audio assets read and hashed.
-- Root cause or leading hypothesis: Reproduced mixer defects: rear direct gain incorrectly depended on reverb send, and rear buses 0x0F40/0x0CA0 were ignored. These can drop positional effects; their contribution to each reported symptom still needs phone evidence. Captain-switch source does select Louie's listener; no speculative listener patch made.
-- Files changed: P2 audio mixer/tests, bounded audit helper, JAI/JAS/PSM observation points, CMake, HUD/settings/renderer/VI presentation, CI, documentation. See ios/PIKMIN2_AUDIO_AUDIT.md.
-- Tests and results: 28 actual mixer route checks PASS (13 failures before correction); existing DSP suite PASS after updating four stale gain assumptions (same failures reproduced on pre-change source); 11 audit checks PASS; 16 HUD checks PASS; menu fixtures 188 iOS/198 desktop PASS; allocator fixtures 1359 native, 1280 console and 1359 Apple-scalar checks PASS; Clang parser checks PASS; 100 GL allocation boundaries audited; git diff check PASS. All 142 AudioRes files on the phone match local extracted originals by SHA-256, including waves, sequences, streams and conductor data; no phone files changed.
-- Confirmed working: Build29 compiled/generated IPA; user installed it and demonstrated gameplay/settings/HUD. These are limited runtime results, not a completed campaign test.
-- Remaining issues: Pikmin voices (other colors untested), snow/wind, distant ship audio; new HUD and audio corrections untested on iPhone. HUD toggle is resolved: user found the existing setting.
+- Current objective: Repair missing effects and broken distance attenuation; retain clearer HUD.
+- What was investigated: Build30 feedback, connected phone's P2 folder/settings, actual JAI scalar setters, parameter layout and consumer. No p2-audio-report.txt or previous report was present on phone. All142 phone audio files matched extracted originals in the preceding audit.
+- Root cause or leading hypothesis: Confirmed ABI defect: PlayerParameter::PortArg contains a pointer and becomes8 bytes on ARM64, while JASPortArgs scalar members remain4 bytes after its native pointer. Array-index writes therefore target the wrong fields. For example a volume update writes pan; update flags overwrite volume. Stop interrupts can miss their field. This provides a concrete mechanism for missing sounds and distance changes not taking effect; restoration of the reported audio still needs hardware evidence.
+- Additional confirmed defect: The report depended on SDL's __IPHONEOS__ macro without including SDL. Build30 contains the desktop-only opt-in string and wrote no report. The helper now uses Apple's TargetConditionals platform identity, with an SDK compile assertion added.
+- Files changed: games/pikmin2/pikmin2-decomp/src/JSystem/JAudio/JAI/JAISystemInterface.cpp; games/pikmin2/pc_port/audio/pc_p2_audio_audit.cpp/.h; tests/pikmin2_audio_parameters_test.py; experimental CI and docs.
+- Tests and results: Original native setters failed13 of37 checks. Corrected producer/layout/actual-consumer fixture now passes48, including repeated near/far volume, other scalar values and stop interrupts. Platform activation control failed6 of11 before correction and passes11 afterward. Existing28 mixer route checks and original DSP suite PASS; Clang parser checks PASS. Apple ARM64/SDK compilation remains pending.
+- Confirmed working: Build30 installed; HUD clearer per user. Startup/gameplay and settings had limited positive results; full campaign not verified.
+- Remaining issues: Pikmin/enemy/wind sounds, ship/Louie proximity. Ship previously disappeared then returned, so the earlier mixer fixes did not establish a runtime resolution. No speculative camera/listener remapping was applied.
 
 ### GitHub
 
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental
-- Starting commit: 47f60419d4f31b21ee1c571ecacfad315d39d049
-- Latest local and remote commit: 5880938b9563fe9b3f7d7536f96b9cd8b1daa830 (documentation checkpoint, pushed). Build30 source: e9a06bebd443e3eb5d8943a5c01c53e186512423.
-- Commits created: e9a06bebd443e3eb5d8943a5c01c53e186512423 (source batch), 5880938b9563fe9b3f7d7536f96b9cd8b1daa830 (dispatch documentation, skip ci).
-- Changes pushed: All verified P2 source/test/workflow changes, one P2-only run triggered.
-- Uncommitted changes: No source changes. This result and accepted co-op approach are accompanying documentation updates to be committed with skip ci.
-- GitHub Actions run IDs: Latest completed Build29/run39470849443, source7f7d0783e8b42870a8b6bbb1954199fbe9ffc6bb, success. New Build30/run39509564730, sourcee9a06bebd443e3eb5d8943a5c01c53e186512423, SUCCESS: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39509564730
-- Build results: Build30 completed SUCCESS. Apple runner passed 28 audio route checks, existing DSP suite, 11 diagnostic checks, 16 HUD checks, menu and allocator regressions; native ARM64 compile/link and IPA packaging succeeded.
-- Artifacts produced: Build30 artifact12305729295, job118926912719. Verified unsigned P2 IPA staged as Pikmin 2 - Build 30 - Audio and Clear Performance Display.ipa. SHA-256 8fc3a729b92376747b48b98b9cb37d07affe166efbfada616195f7addc92f72d. ARM64 iPhoneOS device, min iOS15, UUID 9a174ddb-184b-3713-a0ab-f869e15277cd. Scalar/array new both retain16-byte alignment. Build29/27 retained.
+- Starting commit: d1a869ea03178e42b8ee76c07337f2f369a216af
+- Latest source commit: Same before this candidate is committed; fetched remote matches.
+- Commits created: None yet for this candidate.
+- Changes pushed: None yet for this candidate.
+- Uncommitted changes: Scoped P2 parameter/report fixes, regression test, CI and current documentation.
+- GitHub Actions run IDs: Build30/run39509564730 SUCCESS, sourcee9a06bebd443e3eb5d8943a5c01c53e186512423; new build not dispatched yet.
+- Build results: New Apple result pending. Build30 compiled but failed the reported audio phone test; HUD improved.
+- Artifacts produced: No new IPA yet. Build30 verified IPA remains in folder1; SHA2568fc3a729b92376747b48b98b9cb37d07affe166efbfada616195f7addc92f72d, UUID9a174ddb-184b-3713-a0ab-f869e15277cd. Keep older P2 backups and P1 app.
 
 ### Next steps
 
-- Next Pikmin 1 task: Preserve app/content; no reinstall requested.
-- Next Pikmin 2 task: Retest red Pikmin throwing/whistling, wind, captain switching and ship near/far after new build; then audit additional audio categories.
-- GitHub/build task: No new build needed now. Await phone audio/HUD feedback, then read the new diagnostic reports over USB if needed.
-- Anything requiring my involvement: After successful IPA is staged, install/update P2 and perform the short phone test. Phone currently connected; no further action now.
+- Next Pikmin 1 task: Preserve stable installation; online remains planning only.
+- Next Pikmin 2 task: On next successful IPA, test Pikmin/enemy/wind sounds and compare near/far ship and breathing after switching both captains. Leave HUD/settings unchanged for comparison.
+- GitHub/build task: Commit/push this tested batch with [ios-build] [ios-p2-only]; record exact run and stop idle polling.
+- Anything requiring my involvement: None until next build succeeds and is staged. Phone may stay paused and connected; do not reinstall assets or delete app.
 
 ### ChatGPT continuation notes
 
-- Another conversation must not claim all missing sounds fixed: only mixer defects are reproduced and locally corrected.
-- Active audio files: games/pikmin2/pc_port/audio/pc_dsp_host.cpp, p2_audio_host.cpp, pc_p2_audio_audit.cpp/.h; native decomp JAI/JAS/PSM files are active. Copied jaudio_host.cpp is not P2's active audio engine.
-- Relevant logs: workspace outputs/P2-Phone-Audio-Assets-Audit.json and outputs/P2-Audio-Wave-Format-Audit.json; recordings in Downloads; derived files in work/p2-audio-clips. No existing P2 audio report on phone before this candidate.
-- Unverified fixes: Audibility and HUD appearance on real hardware; Apple compile/link and package verification passed.
-- Risks and warnings: Existing reverb is approximate, synthetic DSP sources are incomplete. Real wave entries use ADPCM4 except one PCM16, so no unsupported-format patch was invented. Keep crash allocator protections and SDL-managed iOS framebuffer mapping. Never publish private game assets. Online co-op remains design notes only. User accepted saving the separate P1 prototype approach: two-iPhone LAN, synchronized world/inventory, safe saves/rejoin, then internet. Full campaign completion is not required before a separate exploratory prototype; no online coding started.
-- Exact next actions: Build30 is verified/staged. After installation and phone retest retrieve Files/pikmin2/p2-audio-report.txt and p2-audio-previous.txt over USB. Interpret 'started' as a sequencer trigger, not proof of audible PCM.
+- Do not say Build30 fixed audio. Only its HUD improvement is confirmed. New parameter fix is locally verified, not yet heard on hardware.
+- Important source: JAISystemInterface.cpp setSeqPortargsF32/U32 now address named fields on PIKI_PC_PORT; original console array path retained. All active setter call sites were inspected. The unused PS16 helper was not changed.
+- Reports cover all six SE categories plus dedicated wind/ship rows, bank failures, source formats and mixed peak. 'started' means a sequencer trigger, not proof of sound. Existing report bounds are ten minutes and one previous launch.
+- Relevant evidence: workspace work/read_p2_audio_logs.py; no phone report collected because none existed. outputs/P2-Phone-Audio-Assets-Audit.json confirms all142 audio files matched. Build30 job log work/build30-job.log; actual-code regression tests under tests/.
+- Unverified fixes: Actual iPhone audibility, attenuation and newly enabled report output; Apple compile/link for the new source.
+- Risks and warnings: Keep16-byte scalar/array new alignment, host allocator scopes, SDL display FBO, separate P1 app/data. The earlier rear-bus/reverb corrections are retained but did not resolve the named missing effects. Never upload private game assets or saves.
+- Exact next actions: Inspect next CI once user says complete; verify IPA/device platform/alignment and put it in Documents/Open Nectar/1 - Install on iPhone. After phone test, retrieve both p2-audio report files directly. If audio remains missing, use category/bank/source/gain observations to choose the next fix.
 
 **END PROGRESS REPORT**
 

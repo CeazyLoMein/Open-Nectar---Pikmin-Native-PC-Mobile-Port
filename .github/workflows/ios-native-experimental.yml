@@ -115,6 +115,7 @@ jobs:
           AUDIO="$ROOT/games/pikmin2/pc_port/audio"
           CHECKS="$RUNNER_TEMP/p2-audio-checks"
           python3 tests/pikmin2_audio_routes_test.py "$CHECKS"
+          python3 tests/pikmin2_audio_parameters_test.py "$CHECKS/parameters-test.cpp"
           cd "$CHECKS"
           c++ -std=c++17 -Wall -Wextra -Werror -pthread -I"$CHECKS" -I"$ROOT/games/pikmin2/pc_port" \
             test.cpp "$AUDIO/pc_dsp_host.cpp" "$AUDIO/pc_aram.cpp" "$AUDIO/pc_p2_audio_audit.cpp" -o routes-test
@@ -125,6 +126,14 @@ jobs:
           c++ -std=c++17 -Wall -Wextra -Werror -pthread -D__IPHONEOS__=1 -I"$ROOT/games/pikmin2/pc_port" \
             audit-test.cpp "$AUDIO/pc_p2_audio_audit.cpp" -o audit-test
           ./audit-test
+          c++ -std=c++17 -Wall -Wextra -Werror parameters-test.cpp -o parameters-test
+          ./parameters-test
+          # SDK platform detection must work without including SDL first.
+          printf '#include "audio/pc_p2_audio_audit.h"\nstatic_assert(p2_audio_audit::kAutomaticallyEnabled, "iPhone audit must auto-enable without SDL");\n' > platform-test.cpp
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
+            -std=c++17 -Wall -Wextra -Werror -fsyntax-only -I"$ROOT/games/pikmin2/pc_port" platform-test.cpp
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
+            -std=c++17 -Wall -Wextra -Werror -fsyntax-only parameters-test.cpp
       - name: Check Pikmin 1 enhancement profile and mod imports
         if: matrix.game == 'pikmin1'
         shell: bash

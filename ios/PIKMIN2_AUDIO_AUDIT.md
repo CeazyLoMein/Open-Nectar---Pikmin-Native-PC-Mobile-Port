@@ -1,3 +1,31 @@
+# Current follow-up: Build30 audio failure and native parameter layout
+
+Build30's clearer HUD is confirmed by the user; Pikmin, enemy and winter/wind
+sounds remain missing. Louie's breathing/ship sounds can remain audible far away.
+The earlier rear-route patch did not establish a runtime fix for these symptoms.
+
+The active JAI parameter setters index a union array whose element includes a
+pointer. Its stride expands to8 bytes on ARM64, but JASPortArgs' scalar fields
+are still4 bytes after the native pointer. Float slot3 intended for volume lands
+in pan; word slot2 intended for update flags overwrites volume. Other scalar and
+stop-interrupt updates similarly miss their consumers. Native setters now use
+named logical fields. Original console path unchanged; unused PS16 helper retained.
+An actual producer/layout/consumer fixture failed13 checks before correction,
+then passed48 after the patch, including repeated near/far volume changes and
+stop interrupts. This is code-level evidence; phone restoration remains unverified.
+
+Build30 also produced no audit report. Its standalone helper depended on SDL's
+__IPHONEOS__ macro without including SDL. The shipped binary contains the
+non-iOS opt-in string. Detection now includes Apple's TargetConditionals identity;
+a platform regression failed6 of11 before and passes11 after. CI additionally
+checks activation and parameter fixtures against the actual iPhone ARM64 SDK.
+
+No new camera/listener remapping, content installation, save edit, P1 app change
+or online implementation. New source must compile and be tested on iPhone before
+claiming the reported effects or attenuation are restored.
+
+## Earlier investigation and report/test instructions
+
 # P2 missing/spatial audio audit and HUD candidate
 
 The user reports missing red Pikmin voices, missing snowy wind, ship audio audible across the map as Louie, and blurry/small performance text during gameplay. They found the existing HUD toggle; no new toggle is needed.

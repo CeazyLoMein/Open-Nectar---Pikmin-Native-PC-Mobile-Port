@@ -23,12 +23,12 @@ std::atomic<bool> finished{false};
 const char* const names[kSlots] = {"captain", "system", "pikmin", "item", "environment", "enemy", "wind-402d", "ship-3043"};
 bool enabled()
 {
-#ifdef __IPHONEOS__
-    return !finished.load(std::memory_order_relaxed);
-#else
-    static const bool optIn = std::getenv("PIKMIN_AUDIO_AUDIT") != nullptr;
-    return optIn && !finished.load(std::memory_order_relaxed);
-#endif
+    if constexpr (kAutomaticallyEnabled) {
+        return !finished.load(std::memory_order_relaxed);
+    } else {
+        static const bool optIn = std::getenv("PIKMIN_AUDIO_AUDIT") != nullptr;
+        return optIn && !finished.load(std::memory_order_relaxed);
+    }
 }
 void increment(unsigned slot, std::uint32_t id, Event kind)
 {

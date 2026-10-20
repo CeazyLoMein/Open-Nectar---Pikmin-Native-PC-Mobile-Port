@@ -1,3 +1,9 @@
+CURRENT - 2026-10-20 19:25 EDT: Build30 phone result: HUD clearer, audio NOT resolved.
+Pikmin/enemy/wind missing; ship and inactive captain breathing can ignore distance.
+Confirmed native audio parameter union stride defect and report activation defect;
+local48 producer/consumer and11 platform report checks PASS. New Apple build pending.
+P1 unchanged. Phone had no audio reports; see current handoff/audio audit notes.
+
 CURRENT - 2026-10-20 19:10 EDT: P2 Build30 PASSED, run39509564730, sourcee9a06beb.
 New unsigned IPA verified and staged in folder1; phone install/audio/HUD test pending.
 P1 untouched. All142 P2 audio assets matched phone originals. User accepted saving
