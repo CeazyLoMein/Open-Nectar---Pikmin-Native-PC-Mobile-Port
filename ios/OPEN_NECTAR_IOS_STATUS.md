@@ -1,3 +1,8 @@
+CURRENT - 2026-10-20 14:31 EDT: Build29 P2-only PASSED; verified enhancements IPA ready in folder1.
+Source7f7d0783/run39470849443. New phone installation/runtime test pending.
+P1 textures confirmed354 replacements/0 failures; P1 unchanged. Future co-op
+choices recorded (notes only, implementation still last). Older pending headers historical.
+
 CURRENT - 2026-10-20 14:07 EDT: P1 GPI HD textures CONFIRMED loading on phone:
 354 successful replacements,0 failed;455 originals not in pack. No P1 changes needed.
 P2 Build29 result still pending at last observation; no idle polling.
@@ -1721,3 +1726,37 @@ No code or phone changes needed; leave GPI enabled. P1 model file installation
 was previously verified but this texture counter does not verify model visuals.
 P2 Build29/run39470849443/source7f7d0783e8b42870a8b6bbb1954199fbe9ffc6bb remains
 pending at last observation; not polled. Only documentation changed [skip ci].
+
+## Build29 success; verified P2 enhancements IPA staged - 2026-10-20 14:31 EDT
+
+User confirmed success, then API/logs/artifact independently verified.
+Source7f7d0783e8b42870a8b6bbb1954199fbe9ffc6bb; run39470849443/Build29;
+job118794209786; artifact12287084885. P2 only. All intended workflow steps passed,
+including new19-case real import-menu/API boundary; profile188/P2bridge24/P1bridge19/
+HUD30/transaction/ZIP/reset/CMake, allocator1359/1280/Apple-scalar1359, menu188/198,
+actual iPhone ARM64 allocator/menu syntax, headers/addresses/TLS, full compile/link
+and IPA packaging. Full logs retrieved;0 distinct compiler/linker error lines.
+Artifact ZIP SHA25669b13b4db9a885c711ddd2dc08aacf59bba2974e677afcb189e45263d2a7f50e
+matches GitHub metadata; ZIP CRC pass. IPA integrity/plist/P2 bundle/ARM64/iPhoneOS
+min15/system-only library loads/unsigned state verified; fresh UUID
+03e1bc57-bc1e-356a-a65b-6474b990b91c. Actual ARM64 new/new[] both retain16-byte alignment.
+IPA3897973bytes; executable11221000bytes;
+SHA256429b2f4011e82cee0d8b879bf3bfc271c93c382c1c33d461f2c8a9a7c8ce1871. No proprietary ISO/RVZ/SZS/BMD payload found.
+
+Hash-identical verified IPA copied to Documents/Open Nectar/1 - Install on iPhone/
+Pikmin 2 - Build 29 - QOL Graphics and Performance.ipa. Clear START HERE/WHAT TO TEST guides, verification JSON and build
+shortcut updated. Build27 backup retained; no app installation/uninstallation,
+phone file writes, asset/art recopy or P1 modifications occurred in this turn.
+New Build29 PHONE INSTALLATION/60FPS/QOL/HUD/menu/import/runtime tests pending.
+Separate P2 HD texture/model content not downloaded/installed; this IPA adds
+preset and ZIP import support, not a content bundle. Next user updates existing
+P2 using same signing account/ID, tests menu/Begin/pause, controls/audio/HUD,
+then screenshot stats and sustained play. Obtain compatible GPV textures later.
+
+Future online co-op design agreed and recorded in ios/ONLINE_COOP_DESIGN_NOTES.md
+and folder2/Future Online Co-op - Agreed Design.md: together-only host campaign,
+shared progress/inventory, own screen/squad/allowance; forced group area/cave
+travel acceptable; health-first difficulty, selected extra encounters only after
+performance/stability evidence; reconnect/pings/phone interruptions/backups and
+independent graphics accepted. No online implementation begun; remains last.
+P1 texture uploads already screenshot-confirmed354 replaced/0 failed; P1 untouched.
