@@ -1,3 +1,6 @@
+LATEST BUILD: P2-only Build25 at 3013d4c2;
+result/IPA/menu phone test pending. Build24 opens; P1 untouched.
+
 CURRENT - 2026-10-20 08:33 EDT: user resumed. Build24 P2 startup/menu opening CONFIRMED.
 P2 clarity/options-touch candidate implemented; local tests PASS, next Apple
 build and phone checks pending. P1 untouched. Prior paused notes are historical.
@@ -1212,3 +1215,12 @@ original options rows/values/save, Continue/Don't Save selection and confirm,
 Back, main-title controls, startup/gameplay/audio/camera regression. Preserve
 Build24 known-opening IPA in archive. No new visual/touch fix may be called
 confirmed until user reports actual phone behavior.
+
+## P2 menu candidate dispatched - 2026-10-20 08:34 EDT
+
+Source commit 3013d4c23035db25ba17851fe65cd2e29123830d
+Build25: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39423349538
+Status at dispatch: in_progress. P2 only. New Apple target/full compilation,
+IPA, menu clarity and original-options touch on phone remain pending.
+Local UI172/desktop182/allocator1354/console1280/adapter43 checks passed.
+No idle Actions polling. Dispatch journal checkpoint [skip ci], no extra build.
