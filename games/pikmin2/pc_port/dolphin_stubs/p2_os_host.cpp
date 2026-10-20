@@ -53,6 +53,7 @@ RenderModeInfo gPcRenderInfoStore = {};
 #include <pthread.h>
 #include "port/audio_sink.h"
 #include "pc_window.h"
+#include "pc_host_alloc.h"
 #include "settings/pc_settings.h"
 #include "settings/pc_settings_p2_shim.h"
 #if PIKI_PC_TOUCH
@@ -103,8 +104,6 @@ static_assert(kArenaSize <= kSideTableBase, "arena overlaps the side-table windo
 static void* sArenaLo   = nullptr;
 static void* sArenaHi   = nullptr;
 static void* sArenaBase = nullptr; // never moves, unlike sArenaLo
-bool pc_host_alloc_active();
-void pc_host_alloc_set(bool active);
 static std::mutex sSideTableMutex;
 static std::vector<const void*> sSideTable;
 static std::unordered_map<const void*, u32> sSideTableIndex;
@@ -676,7 +675,10 @@ static void* pc_thread_entry(void* p)
 		pthread_cond_wait(&arg->cond, &arg->mutex);
 	pthread_mutex_unlock(&arg->mutex);
 	arg->thread->state          = OS_THREAD_STATE_RUNNING;
-	ret                         = arg->func(arg->param);
+	{
+		PcNativeGameAllocScope gameAllocScope;
+		ret = arg->func(arg->param);
+	}
 	arg->thread->state          = OS_THREAD_STATE_MORIBUND;
 	arg->thread->val            = ret;
 	arg->thread->specific[1]    = nullptr;

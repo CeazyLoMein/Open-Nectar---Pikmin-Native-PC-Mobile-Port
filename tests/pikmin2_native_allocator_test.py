@@ -14,6 +14,18 @@ gfx = (repo/'games/pikmin2/pc_port/gl/pc_gfx.cpp').read_text(encoding='utf-8')
 begin = source.index('#define JKR_NEW_SIZE_T size_t')
 end = source.index('\n#endif', begin) + len('\n#endif')
 policy = '#ifndef P2_TEST_CONSOLE\n#define PIKI_PC_PORT 1\n#endif\n#ifdef PIKI_PC_PORT\n' + source[begin:end]
+# Emulate Apple's smaller scalar alignment on a host with a different ABI.
+# Only the platform measurement is substituted; allocator control flow is real.
+policy = policy.replace('alignof(std::max_align_t)', 'alignof(P2FixtureScalarMaxAlign)')
+native_header = (repo/'games/pikmin2/pc_port/pc_host_alloc.h').read_text(encoding='utf-8').replace('#pragma once', '')
+os_source = (repo/'games/pikmin2/pc_port/dolphin_stubs/p2_os_host.cpp').read_text(encoding='utf-8')
+game_callback = re.search(r'\t\{\n\t\tPcNativeGameAllocScope gameAllocScope;.*?\n\t\}', os_source, re.S).group()
+become = re.search(r'JKRHeap\* JKRHeap::becomeCurrentHeap\(\)\s*\{.*?\n\}', source, re.S).group()
+sink = (repo/'games/pikmin2/pc_port/audio/jaudio_sink.cpp').read_text(encoding='utf-8')
+sink_lock = re.search(r'struct SinkLock \{.*?\n\};', sink, re.S).group()
+audio_host = (repo/'games/pikmin2/pc_port/audio/jaudio_host.cpp').read_text(encoding='utf-8')
+assert 'PcNativeHostAllocScope hostAllocScope;' in audio_host[audio_host.index('void beginSinkOpen()'):audio_host.index('void serviceSinkOpen(')]
+assert 'PcNativeHostAllocScope workerHostAllocScope;' in audio_host
 begin = source.index('void* operator new(JKR_NEW_SIZE_T byteCount)')
 end = source.index('\nJKRHeap::TState::TState(', begin)
 operators = source[begin:end]
@@ -39,10 +51,18 @@ fixture = r'''
 #include <cstdio>
 #include <cstdlib>
 #include <initializer_list>
+#include <mutex>
 #include <thread>
+#ifdef P2_TEST_APPLE_SCALAR_ALIGNMENT
+using P2FixtureScalarMaxAlign = double;
+static_assert(alignof(P2FixtureScalarMaxAlign) == 8, "Apple ARM64 scalar alignment emulation");
+#else
+using P2FixtureScalarMaxAlign = std::max_align_t;
+#endif
 typedef std::size_t u32; // fixture count only; avoids host narrowing warnings
 struct JKRHeap {
     static JKRHeap *sCurrentHeap, *first, *second;
+    JKRHeap* becomeCurrentHeap();
     alignas(64) unsigned char bytes[4096];
     std::size_t cursor = 3;
     int lastAlign = 0, calls = 0, frees = 0;
@@ -70,7 +90,14 @@ struct JKRHeap {
 };
 JKRHeap *JKRHeap::sCurrentHeap = nullptr, *JKRHeap::first = nullptr, *JKRHeap::second = nullptr;
 '''
-fixture += policy + '\n' + operators + '\n#ifdef PIKI_PC_PORT\n' + scope + '\n#endif\n'
+fixture += '\n#ifndef P2_TEST_CONSOLE\n' + native_header + '\n#endif\n'
+fixture += policy + '\n' + operators + '\n' + become
+fixture += '\n#ifdef PIKI_PC_PORT\n' + scope + '\n' + sink_lock + '''
+static_assert(pc_object_alignment(4) >= 16, "Native default new must support 16-byte objects, including iPhone ARM64");
+static_assert(pc_object_alignment(-4) <= -16, "Native tail new must support 16-byte objects");
+struct PcThreadArg { void* (*func)(void*); void* param; };
+void* run_actual_game_callback(PcThreadArg* arg) { void* ret = nullptr;
+''' + game_callback + '\nreturn ret; }\n#endif\n'
 fixture += r'''
 static int checks = 0;
 #define CHECK(condition) do { ++checks; assert(condition); } while (false)
@@ -78,10 +105,13 @@ int main() {
     JKRHeap a, b; JKRHeap::first = &a; JKRHeap::second = &b;
     JKRHeap::sCurrentHeap = &a;
 #ifdef PIKI_PC_PORT
-    const int minimum = static_cast<int>(alignof(std::max_align_t));
-#if defined(__APPLE__) && defined(__aarch64__)
-    static_assert(alignof(std::max_align_t) >= 16, "Apple ARM64 fundamental alignment");
-#endif
+    CHECK(!pc_game_alloc_active());
+    void* nativeDefault = test_new(17);
+    CHECK(nativeDefault && !JKRHeap::findFromRoot(nativeDefault)); test_delete(nativeDefault);
+    CHECK(a.calls == 0);
+    a.becomeCurrentHeap(); CHECK(pc_game_alloc_active());
+    const int scalar = static_cast<int>(alignof(std::max_align_t));
+    const int minimum = scalar > 16 ? scalar : 16;
 #else
     const int minimum = 4;
 #endif
@@ -159,13 +189,46 @@ int main() {
         test_delete(explicitHeap);
         // Thread-local host routing must not leak from this main-thread scope.
         std::thread worker([] {
+            assert(!pc_game_alloc_active());
             assert(!pc_host_alloc_active());
+            void* native = test_new(13);
+            assert(native && !JKRHeap::findFromRoot(native)); test_delete(native);
             { PcGfxHostAllocScope child; assert(pc_host_alloc_active()); }
             assert(!pc_host_alloc_active());
+            PcThreadArg arg{[](void*) -> void* {
+                assert(pc_game_alloc_active()); return test_new(13);
+            }, nullptr};
+            void* game = run_actual_game_callback(&arg);
+            assert(JKRHeap::first->owns(game)); test_delete(game);
+            assert(!pc_game_alloc_active());
+            {
+                PcNativeHostAllocScope host;
+                void* nested = run_actual_game_callback(&arg);
+                assert(nested && !JKRHeap::findFromRoot(nested)); test_delete(nested);
+            }
+            PcThreadArg throwing{[](void*) -> void* { throw 7; }, nullptr};
+            try { run_actual_game_callback(&throwing); } catch (int) {}
+            assert(!pc_game_alloc_active() && !pc_host_alloc_active());
+            // Explicit game heap selection must still work from a native worker.
+            void* explicitHeap = test_new_array(9, JKRHeap::second, -4);
+            assert(JKRHeap::second->owns(explicitHeap)); test_delete_array(explicitHeap);
         });
         worker.join(); CHECK(pc_host_alloc_active());
     }
     CHECK(!pc_host_alloc_active());
+    CHECK(pc_game_alloc_active());
+    // Audio's actual lock wraps synchronous SDL calls even on a game thread.
+    std::recursive_mutex audioMutex;
+    const int beforeAudio = a.calls;
+    {
+        SinkLock audio(audioMutex);
+        CHECK(pc_host_alloc_active());
+        { SinkLock nested(audioMutex); CHECK(pc_host_alloc_active()); }
+        void* audioBuffer = test_new(32);
+        CHECK(audioBuffer && !JKRHeap::findFromRoot(audioBuffer));
+        test_delete(audioBuffer); CHECK(a.calls == beforeAudio);
+    }
+    CHECK(!pc_host_alloc_active() && pc_game_alloc_active());
     JKRHeap::sCurrentHeap = nullptr;
     void* fallback = test_new(9);
     CHECK(fallback && !JKRHeap::findFromRoot(fallback));
@@ -176,7 +239,7 @@ int main() {
     void* p = test_new(13);
     { PcGfxHostAllocScope host; const int freed = a.frees; test_delete(p, std::size_t(13)); CHECK(a.frees == freed+1); }
 #endif
-    std::printf("PASS: %d checks on actual JKR allocation/deallocation bodies; native scope nesting/thread isolation; original console policy preserved\n", checks);
+    std::printf("PASS: %d allocator checks; game/native/audio thread ownership and scope restoration; console policy preserved\n", checks);
 }
 '''
 out = Path(sys.argv[1]); out.write_text(fixture)

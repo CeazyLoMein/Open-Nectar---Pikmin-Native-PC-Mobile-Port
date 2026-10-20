@@ -1,3 +1,9 @@
+LATEST CHECKPOINT - 2026-10-20 00:46 EDT: P2 Build23 phone startup FAILED on AudioQueue
+thread. Matched real crash UUID; binary new alignment is8bytes. 16-byte floor +
+native/game thread allocation ownership batch implemented; local tests passed.
+Next P2-only Apple build pending. P1 working/untouched. Older pending/success
+checkpoints describe compilation or historical results, not a working P2 app.
+
 LATEST CHECKPOINT - 2026-10-20 00:34 EDT: P2 Build23 SUCCESS; startup candidate IPA ready
 in folder1. Source609a45b1/run39369282124. New phone installation/startup retest
 PENDING. Update P2 only; preserve data/assets/art. P1 working and untouched.
@@ -942,3 +948,72 @@ Milestones: solution implemented, local checks passed, Apple compilation/link
 passed, IPA generated and locally verified. New IPA installation/runtime NOT
 verified; startup crash correction is still a candidate until phone evidence.
 No further build needed now. This documentation-only checkpoint uses [skip ci].
+
+## Build23 phone startup failure: audio-thread allocation batch - 2026-10-20 00:46 EDT
+
+User updated P2 to Build23 and reports the same immediate-close symptom.
+Retrieved fresh existing reports read-only after explicit connection/unlock.
+Reports Nectar-pikmin2-2026-10-20-003826.ips and -003841.ips BOTH match Build23
+UUIDcd97b20e-54c2-396d-9786-3535a215723d. They crash after about0.25-0.29seconds,
+EXC_BAD_ACCESS/SIGBUS/EXC_ARM_DA_ALIGN on an AudioQueue thread (thread21), not
+the previous main-thread Metal stack. Stack: AudioToolbox caulk concurrent
+allocator -> tracking_allocator -> AQ::API::V2Impl::AllocateBuffer -> SDL
+audioqueue_thread -> SDL_RunThread -> pthread. Faults are inside the480MiB JKR
+arena; addresses are8-byte aligned but not16-byte aligned. No new phone files,
+apps or settings were modified during diagnostic reads. P1 untouched.
+
+Binary evidence: parsed actual Build22/23 Mach-O symbol/load-command data and
+decoded MOVZ immediate arguments in ordinary new and new[]. Build22 passes4
+in w2 to JKR do_alloc; Build23 passes8, not16. Thus the previous max_align_t
+change under-corrected on iPhone ARM64. The Intel-host tests passed but did not
+compile the fixture for the actual target. This was a Codex validation gap.
+Clang's Apple max_align_t typedef is long double; Apple's ARM64 long double is
+the same type format as double. Primary references:
+https://clang.llvm.org/doxygen/____stddef__max__align__t_8h_source.html
+https://developer.apple.com/documentation/xcode/writing-arm64-code-for-apple-platforms
+The observed8-byte machine-code argument, not a host-type assumption, establishes
+the actual Build23 behavior. Old graphics scopes did not transfer to SDL's
+independently created AudioQueue thread. Its default global-new routing still
+used the process-wide current JKR heap, risking native object lifetime/races too.
+
+Related batch implemented:
+- Native pc_object_alignment is constexpr and enforces max(16,max_align_t).
+  Keep negative tail direction, larger explicit heap alignment, deletion routing,
+  and original console behavior. Raw game buffer APIs unchanged.
+- A thread-local game-allocation opt-in defaults FALSE on unknown native workers.
+  JKRHeap::becomeCurrentHeap enables it on a game thread; pc_thread_entry scopes
+  it around the actual emulated OS game callback, restoring on return/unwind.
+  Native Apple/SDL threads therefore use malloc instead of the global game heap.
+  This does not clear or replace the global heap pointer from a native thread.
+- New pc_host_alloc.h contains noncopyable game/native host RAII scopes.
+  Audio SinkLock scopes synchronous SDL/framework calls into host memory, with
+  nested lock/scope restoration. beginSinkOpen and its worker explicitly use
+  host allocation so the std::thread control block also avoids section heaps.
+- Existing P2 graphics host scopes retained. No P1 changes or unified app.
+
+Tests expanded from actual allocation/policy/becomeCurrentHeap/callback/scope/
+audio-lock source. MSVC C++14 /W4 /WX: native1354 PASS; console1280 PASS;
+Apple8-byte scalar-alignment emulation1354 PASS. Native worker default malloc,
+game callback JKR opt-in, explicit heap selection, host override, exception
+restoration, cross-thread isolation, audio scope nesting, and all six new forms
+tested. Negative control removes16-byte floor and is rejected at compile time.
+Adapter43-header audit PASS; git diff --check PASS. These are host fixtures.
+CI adds Apple scalar emulation RUN plus xcrun iphoneos ARM64 C++14 syntax/static
+assertion check before full game compile, catching the missed target ABI.
+No local Apple SDK: actual target check/compile/link/IPA/phone retest pending.
+
+Important source: JKRHeap.cpp; pc_host_alloc.h; dolphin_stubs/p2_os_host.cpp;
+audio/jaudio_sink.cpp andjaudio_host.cpp; tests/pikmin2_native_allocator_test.py;
+.github/workflows/ios-native-experimental.yml. New files contain no device IDs,
+raw crash logs, credentials, assets or personal data. Raw reports remain local
+in work/p2-phone-crashes and folder2/private phone report archive.
+
+Build23 run39369282124/source609a45b1 remains compile/link/IPA SUCCESS but phone
+startup FAILED. Its IPA is not a proven working app. Next P2-only build validates
+this related allocation batch; no new candidate IPA or runtime evidence yet.
+After success inspect new binary for16-byte w2 alignment and new UUID, prepare
+verified IPA in folder1, update existing P2 with same signing identity/data,
+test title/menu first. If failure, retrieve fresh matching report and diagnose
+new exception/stack. Do not re-copy assets/art or touch P1 without evidence.
+P1 remains existing working Build16,60FPS target; optional packs on hold; no
+mid-day recovery save; online with Raye LAST. Stop idle waiting for Actions.

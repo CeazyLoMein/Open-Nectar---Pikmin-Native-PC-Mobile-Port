@@ -1,5 +1,6 @@
 // SDL2 adapter for the NextOS JAudio host renderer. Native S16 stereo PCM.
 #include "port/audio_sink.h"
+#include "pc_host_alloc.h"
 #include "audio/pc_ast_stream.h"
 
 extern "C" void pc_thp_mix(int16_t* out, size_t frames, int rate);
@@ -20,7 +21,13 @@ bool ownsAudio = false;
 // or SDL shutdown never lands in the middle of SDL_QueueAudio. Recursive:
 // the entry points call each other (TryOpen -> Close, GetProgress -> Queued).
 std::recursive_mutex sSinkMutex;
-using SinkLock = std::lock_guard<std::recursive_mutex>;
+// Keep synchronous SDL/framework calls and their C++ allocations out of the
+// current section heap, including calls made directly from a game thread.
+struct SinkLock {
+    PcNativeHostAllocScope hostAllocScope;
+    std::lock_guard<std::recursive_mutex> lock;
+    explicit SinkLock(std::recursive_mutex& mutex) : lock(mutex) {}
+};
 }
 namespace {
 // Bringing the audio subsystem up connects SDL's client to the system daemon.

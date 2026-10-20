@@ -42,6 +42,7 @@
 #include "jaudio/rate.h"
 #include "jaudio/streamctrl.h"
 #include "port/audio_sink.h"
+#include "pc_host_alloc.h"
 #include "port/jaudio_state.h"
 
 
@@ -1602,9 +1603,11 @@ void joinSinkOpenThread()
 
 void beginSinkOpen()
 {
+    PcNativeHostAllocScope hostAllocScope; // std::thread control block outlives section heaps
     joinSinkOpenThread();
     sSinkOpenState.store(SinkOpen::Running);
     sSinkOpenThread = std::thread([] {
+        PcNativeHostAllocScope workerHostAllocScope;
         const bool ok = PikiAudioSinkTryOpen(kHostSampleRate) != 0;
         sSinkOpenResult.store(ok);
         sSinkOpenState.store(SinkOpen::Finished);

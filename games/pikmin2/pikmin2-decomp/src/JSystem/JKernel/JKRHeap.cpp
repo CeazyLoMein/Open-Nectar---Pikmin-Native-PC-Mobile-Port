@@ -47,19 +47,27 @@ void pcHeapLogCaller()
 // Native C++ objects need fundamental alignment, including objects allocated
 // by system libraries through this global new override. GameCube's 4 bytes can
 // cause EXC_ARM_DA_ALIGN in Apple's Metal compiler on the first GL draw.
-static int pc_object_alignment(int alignment)
+static constexpr int pc_object_alignment(int alignment)
 {
-	const int minimum = static_cast<int>(alignof(std::max_align_t));
+	// Apple ARM64 max_align_t is only 8-byte aligned, while ordinary native
+	// allocation must also support 16-byte SIMD/atomic objects used by drivers.
+	const int scalarAlignment = static_cast<int>(alignof(std::max_align_t));
+	const int minimum = scalarAlignment > 16 ? scalarAlignment : 16;
 	// A negative alignment selects the tail of a JKR heap. Preserve direction
 	// and larger explicit alignments without negating a potentially INT_MIN value.
 	return alignment < 0 ? (alignment > -minimum ? -minimum : alignment)
 	                     : (alignment < minimum ? minimum : alignment);
 }
 #define JKR_NEW_ALIGNMENT(alignment) pc_object_alignment(alignment)
+// Native framework/SDL worker threads must not inherit the global game heap.
+// Only threads entering game code explicitly opt in; host scopes still override.
+static thread_local bool sPcGameAllocActive = false;
+bool pc_game_alloc_active() { return sPcGameAllocActive; }
+void pc_game_alloc_set(bool active) { sPcGameAllocActive = active; }
 static thread_local bool sPcHostAllocActive = false;
 bool pc_host_alloc_active() { return sPcHostAllocActive; }
 void pc_host_alloc_set(bool active) { sPcHostAllocActive = active; }
-#define JKR_USE_CURRENT_HEAP() (JKRHeap::sCurrentHeap && !sPcHostAllocActive)
+#define JKR_USE_CURRENT_HEAP() (JKRHeap::sCurrentHeap && sPcGameAllocActive && !sPcHostAllocActive)
 #else
 #define JKR_USE_CURRENT_HEAP() (JKRHeap::sCurrentHeap)
 #define JKR_NEW_SIZE_T u32
@@ -201,6 +209,9 @@ JKRHeap* JKRHeap::becomeSystemHeap()
  */
 JKRHeap* JKRHeap::becomeCurrentHeap()
 {
+#ifdef PIKI_PC_PORT
+	pc_game_alloc_set(true);
+#endif
 	JKRHeap* old = sCurrentHeap;
 	sCurrentHeap = this;
 	return old;
