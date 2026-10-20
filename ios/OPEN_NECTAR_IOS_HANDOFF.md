@@ -393,3 +393,41 @@ Build22 will validate BOTH games because bundle metadata is shared, preserving
 the working P1 output while producing P2's first IPA if packaging passes.
 Character pack still ready privately; phone work postponed; HD textures quota
 blocked; target60FPS, online withRayeLAST. Stop idle polling after dispatch.
+
+## Build22 BOTH PASSED — first verified P2 IPA ready — 2026-10-19 23:07 Eastern Daylight Time
+
+Run39359925649/sourcea16a3bae9f524ec4c2e4548a6ab5330a82031321:
+P1job118423468727 SUCCESS andP2job118423468451 SUCCESS, including metadata
+preflight,compilation,link,arm64/lipo and unsignedIPA packaging. P2artifact
+12237930806 (7580578bytes);P1artifact12237826313 (2867471bytes). Both downloaded.
+P2IPA3823331bytes,ARM64binary11064544bytes,SHA256
+36976c498d943ad30b3dfe0290689638013a8fe8e5042ef0d370741c4cb94fd6.
+P1IPA2575697bytes,ARM64binary6358656bytes,SHA256
+2cb997dc570a1e7222e3e35d47acc614f13af4efd4556df251982d63fa559ac0.
+Both ZIPCRC and exact app identity/executable passed; MachO load commands verify
+iPhoneOS device platform,not simulator; linked libraries use system paths.
+No code-signature command present,consistent with intentionally unsigned outputs.
+No proprietary disc assets bundled. MinimumOS15.0. Hardware install/runtime for
+these builds NOT verified. This is P2's FIRST successful IPA milestone.
+
+User explicitly wants to leave working P1 app alone. Keep separate apps:
+P1org.opennectar.experimental.pikmin1;P2org.opennectar.experimental.pikmin2.
+No unified launcher/app migration. No P1phone update or content transfer now.
+P2ready inDocuments/Open Nectar/1 - Install on iPhone/Pikmin 2 - Build 22 - First
+iPhone Build.ipa. NewP1IPA retained in5 - Backups and Older Files/Build 22 - P1
+Reference Only to avoid unnecessary reinstall. Existing P1Build16 remains working.
+
+Prepared P2 assets privately from user's GPVE01ISO using unmodified upstream
+gamecube_image.cpp+sha256.cpp,verifyWrites=true.2768 game files,1004985055bytes.
+Every file read back and SHA256-compared by extractor; additional per-fileSHA256
+manifest in3 - Game Files - Keep Private/Extracted for iPhone/Pikmin 2. Original
+ISO opened read-only;SHA1before/after both63a68c656d654388e096d27a768e85823dcf3327.
+Added the same .pikmin2-assets marker as upstream installer. No game data inGit.
+Simple P2install/test guide and game-assets-folder shortcut in1 - Install on iPhone.
+Phone transfer explicitly postponed by user; no repeated connection prompt.
+Next: when ready,sign/install P2,open once/close,copyassets into separate P2app
+Documents/pikmin2/assets,then verify startup/menu/graphics/audio/input/gameplay.
+Do not claim runtime success from build/package checks. Optional P1models ready
+privately but onhold;HDenvironmenttexturequota-blocked atlastattempt;60FPStarget;
+mid-dayrecovery saving and onlinewithRaye remainfuture (onlineLAST).
+This documentation-only checkpoint uses [skip ci] to avoid an extra build.
