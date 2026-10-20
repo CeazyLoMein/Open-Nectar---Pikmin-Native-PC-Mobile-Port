@@ -1,3 +1,8 @@
+CURRENT - 2026-10-20 14:07 EDT: P1 GPI HD textures CONFIRMED loading on phone:
+354 successful replacements,0 failed;455 originals not in pack. No P1 changes needed.
+P2 Build29 result still pending at last observation; no idle polling.
+Older texture-unconfirmed notes below are superseded by this screenshot.
+
 CURRENT - 2026-10-20 14:00 EDT: Build29 P2-only DISPATCHED, run39470849443.
 Source7f7d0783e8b42870a8b6bbb1954199fbe9ffc6bb; observedin_progress.
 Build28 FAILED at import API call; corrected, new19-check real API fixture PASS.
@@ -1344,3 +1349,20 @@ full enhancement batch and working Build27 backup. Only P2 builds. No P1 changes
 or phone operations. Stop idle polling; user reports completion. On return inspect
 this exact run, full logs/artifact, and only stage verified successful IPA. Docs
 checkpoint uses [skip ci]. Logs and self-contained handoff saved in folder2.
+
+## P1 HD texture runtime confirmation - 2026-10-20 14:07 EDT
+
+User supplied an in-game Texture Packs screenshot: GPI Active; Loader1460
+textures indexed (0dds,3046png);354 replaced,455 not in pack,0 failed.
+The live successful-upload counter confirms texture replacement is working,
+superseding earlier activation/replacement-unconfirmed notes. The455 misses
+fall back to original textures and are not load failures. The count records
+successful replacement uploads, not necessarily distinct textures. Screenshot
+is from actual P1 gameplay, day2. User previously reported little visible
+difference on the small phone screen; visual preference/model correctness and
+long-session performance remain separate. Prior screenshot60.2FPS/16.60ms,
+1715MiB RAM,CPU39%of one core,HeatNominal was a snapshot, not a sustained test.
+No code or phone changes needed; leave GPI enabled. P1 model file installation
+was previously verified but this texture counter does not verify model visuals.
+P2 Build29/run39470849443/source7f7d0783e8b42870a8b6bbb1954199fbe9ffc6bb remains
+pending at last observation; not polled. Only documentation changed [skip ci].
