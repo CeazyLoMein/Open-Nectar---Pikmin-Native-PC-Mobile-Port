@@ -1,3 +1,10 @@
+CURRENT - 2026-10-20 19:26 EDT: P2-only Build31 DISPATCHED, run39514971137.
+Source dc73a84887e60d4e3b7911b1e46ed64ab4a764b9; observed in_progress.
+Native JAI parameter stride/report platform defects corrected; local48 parameter,
+11 activation and28 routing checks PASS. Apple result/IPA/phone audio pending.
+Build30 HUD clearer; audio failed on phone. P1 unchanged. No idle polling.
+Phone/game not needed until next successful install/test. See current handoff.
+
 CURRENT - 2026-10-20 19:25 EDT: Build30 phone result: HUD clearer, audio NOT resolved.
 Pikmin/enemy/wind missing; ship and inactive captain breathing can ignore distance.
 Confirmed native audio parameter union stride defect and report activation defect;

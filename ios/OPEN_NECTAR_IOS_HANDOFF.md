@@ -2,9 +2,9 @@
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-20 19:25 EDT
+**Date/time:** 2026-10-20 19:26 EDT
 
-**Overall project status:** P1 preserved. Build30's performance display is clearer on the user's iPhone, but Pikmin voices, enemy effects and winter/wind audio remain missing. Louie's breathing and the ship can be heard from across the map. A newly reproduced native parameter-layout defect and report-activation defect are corrected locally; a new Apple build and phone retest are pending.
+**Overall project status:** P1 preserved. Build30's performance display is clearer on the user's iPhone, but Pikmin voices, enemy effects and winter/wind audio remain missing. Louie's breathing and the ship can be heard from across the map. A newly reproduced native parameter-layout defect and report-activation defect are corrected locally; P2-only Build31/run39514971137 is in progress at the last observation; its result, new IPA and phone retest are pending.
 
 ### Pikmin 1
 
@@ -32,11 +32,11 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental
 - Starting commit: d1a869ea03178e42b8ee76c07337f2f369a216af
-- Latest source commit: Same before this candidate is committed; fetched remote matches.
-- Commits created: None yet for this candidate.
-- Changes pushed: None yet for this candidate.
-- Uncommitted changes: Scoped P2 parameter/report fixes, regression test, CI and current documentation.
-- GitHub Actions run IDs: Build30/run39509564730 SUCCESS, sourcee9a06bebd443e3eb5d8943a5c01c53e186512423; new build not dispatched yet.
+- Latest source commit: dc73a84887e60d4e3b7911b1e46ed64ab4a764b9, committed and pushed. This report accompanies its documentation checkpoint.
+- Commits created: dc73a84887e60d4e3b7911b1e46ed64ab4a764b9, native audio parameter/report corrections.
+- Changes pushed: P2 scalar parameter fix, report platform fix, regression fixture and experimental CI checks; P1 unchanged.
+- Uncommitted changes: No source changes; this dispatch documentation checkpoint is being saved.
+- GitHub Actions run IDs: Build30/run39509564730 SUCCESS, sourcee9a06bebd443e3eb5d8943a5c01c53e186512423; new Build31/run39514971137, source dc73a84887e60d4e3b7911b1e46ed64ab4a764b9, observed in_progress: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39514971137
 - Build results: New Apple result pending. Build30 compiled but failed the reported audio phone test; HUD improved.
 - Artifacts produced: No new IPA yet. Build30 verified IPA remains in folder1; SHA2568fc3a729b92376747b48b98b9cb37d07affe166efbfada616195f7addc92f72d, UUID9a174ddb-184b-3713-a0ab-f869e15277cd. Keep older P2 backups and P1 app.
 
@@ -44,8 +44,8 @@
 
 - Next Pikmin 1 task: Preserve stable installation; online remains planning only.
 - Next Pikmin 2 task: On next successful IPA, test Pikmin/enemy/wind sounds and compare near/far ship and breathing after switching both captains. Leave HUD/settings unchanged for comparison.
-- GitHub/build task: Commit/push this tested batch with [ios-build] [ios-p2-only]; record exact run and stop idle polling.
-- Anything requiring my involvement: None until next build succeeds and is staged. Phone may stay paused and connected; do not reinstall assets or delete app.
+- GitHub/build task: Build31 dispatched. Wait for user-reported completion, then inspect jobs/logs/artifact; no idle polling or duplicate run.
+- Anything requiring my involvement: None until next build succeeds and is staged. The game can be closed and the phone is not needed during the build. Do not reinstall assets or delete app.
 
 ### ChatGPT continuation notes
 
