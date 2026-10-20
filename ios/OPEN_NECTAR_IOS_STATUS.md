@@ -1,3 +1,8 @@
+CURRENT - 2026-10-20 13:59 EDT: Build28 FAILED (2 compiler errors,1 incorrect API call).
+Correction and19-check real menu/API regression locally PASS; retry not dispatched yet.
+Build27 remains limited positive phone baseline. P1 untouched; texture replacements
+not confirmed. New entries supersede older pending-build headers below.
+
 CURRENT - 2026-10-20 13:42 EDT: Build28 P2-only DISPATCHED, run39468391460.
 Source386771cabe6366b0788091f4d6d63f9ef6850c67; observed in_progress.
 Local checks PASS; new Apple result/IPA/phone tests pending. Build27 user reports
@@ -1636,3 +1641,43 @@ checkpoint uses [skip ci] and does not start another build. Stop idle GitHub
 polling per user; user will report completion. On return fetch/inspect this
 exact run before new code edits, retrieve full logs/artifact, verify and stage
 IPA only after success. Do not claim this candidate hardware-verified.
+
+## Build28 failure reviewed; texture-import API correction verified - 2026-10-20 13:59 EDT
+
+Build28/run39468391460/job118785702425/source386771cabe6366b0788091f4d6d63f9ef6850c67
+FAILED in full native game compilation. Adapter, Apple allocator/TLS/addresses,
+menu/input, enhancement profile/HUD/bridge/ZIP/rollback/CMake/reset preflights,
+and real iPhoneOS configuration all passed. Packaging skipped; no IPA produced.
+Full job log retrieved, full artifact ZIP digest/CRC verified. Artifact12286432727
+contains only ios-build.log and ios-build-errors.md. Error index and full log
+show exactly2 compiler diagnostics, one root cause, in settings line2900:
+undeclared pc_texpack_active_pack; secondary incompatible vector/string operand
+from Clang's suggested correction. No linker stage was reached, so successful
+linking is still unverified.
+
+This was an incorrect API name introduced in the new P2 iOS texture-import menu.
+P2 already provides const std::string& pc_texpack_selected_pack(void). Replace
+only that call with pc_texpack_selected_pack().c_str(); keep runtime enabled-state
+check and '*' protection when all packs are indexed. Use the renderer's selection,
+not sConfig/sPending, because menu changes do not rebuild the live index until
+restart. P1 game/app/data and P2 Build27 working baseline are unchanged.
+
+Added real boundary regression to tests/pikmin2_ios_enhancements_test.py. It
+extracts actual texturePacksRowAction plus actual renderer enabled/selection
+getters, compiles against real P2 texture-pack and iOS bridge headers, and tests
+19 cases: disabled runtime; named pack; pending/config changes since startup;
+all-indexed mode; busy/reentry; bridge refusal; activate/deactivate/save/restart
+semantics. Only graphics SDK declarations are bypassed in the portable fixture.
+Local MSVC strict compile/execution and Clang strict parser PASS. Negative
+control recreating Build28's exact call fails as intended. Actual CMake P1/P2
+feature wiring also reconfigured successfully. The previous broad candidate
+preflights just passed on Apple in Build28; no unrelated changes were added.
+Experimental P2 preflight now executes this boundary fixture before full build.
+
+Next: commit/push correction+test+journals as one P2-only retry, record actual new
+run/source, stop idle polling. No new IPA/phone fix claimed until verified.
+Keep60FPS and complete enhancement batch; no need to rebuild P1 or reinstall assets.
+P1 user screenshot now shows60.2FPS/16.60ms,1715MiB appRAM,CPU39%onecore,HeatNominal;
+user says texture pack enabled but visual change uncertain. Replacement counter
+screenshot requested; activation/render replacements remain unconfirmed. No P1
+phone writes. P2 HD texture/model content still not installed by this batch.

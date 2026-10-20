@@ -88,6 +88,8 @@ jobs:
           cd "$RUNNER_TEMP/p2-enhancement-checks"
           c++ -std=c++17 -Wall -Wextra -Werror "$RUNNER_TEMP/p2-enhancements/reset-test.cpp" -o reset-test
           ./reset-test
+          c++ -std=c++17 -Wall -Wextra -Werror -I"$ROOT/ios" -I"$ROOT/games/pikmin2/pc_port" "$RUNNER_TEMP/p2-enhancements/texture-import-action-test.cpp" -o texture-action-test
+          ./texture-action-test
           c++ -std=c++17 -Wall -Wextra -Werror -I"$ROOT/ios" "$ROOT/tests/pikmin2_ios_profile_test.cpp" -o profile-test
           ./profile-test
           c++ -std=c++17 -Wall -Wextra -Werror -pthread -DPIKI_P2_HOST=1 -I"$ROOT/ios" -I"$ROOT/games/pikmin2/pc_port" "$ROOT/tests/pikmin2_ios_mod_bridge_test.cpp" "$ROOT/ios/pc_ios_mod_bridge.cpp" -o bridge-test

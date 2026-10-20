@@ -65,3 +65,93 @@ int main() {
 '''
 fixture = "#include <initializer_list>\n" + fixture
 (out/"reset-test.cpp").write_text(fixture, encoding="utf-8")
+
+# Compile the actual settings-to-import boundary against the real public APIs.
+# Replacing GL's include guard only avoids needing a graphics SDK in this unit
+# fixture; the texture-pack header and declarations are used without alteration.
+texpack = (repo/"games/pikmin2/pc_port/gl/pc_texpack.cpp").read_text(encoding="utf-8")
+def body(source, signature):
+    start = source.index(signature + "\n{") if signature + "\n{" in source else source.index(signature + " {")
+    return source[start:source.index("\n}", start) + 2]
+action = body(settings, "void texturePacksRowAction(int row, const std::vector<std::string>& packs)")
+fixture = r'''
+#include <cassert>
+#include <cstdio>
+#include <string>
+#include <vector>
+#define __IPHONEOS__ 1
+#define PIKMIN_PC_OPENGL_H
+using GLuint = unsigned int;
+#include "gl/pc_texpack.h"
+#include "pc_ios_mod_bridge.h"
+static bool sEnabled=false;
+static std::string sSelectedPack;
+struct Config { int texturePackEnabled=0; std::string texturePack; };
+static Config sConfig,sPending;
+static bool sTexturePackPickerActive=false,sTexturePackRestartPrompt=false;
+static const int kTexturePackInstallRow=0;
+static bool acceptImport=true,noticeError=false;
+static int imports=0,saves=0,openedKind=99;
+static std::string capturedPack,notice;
+static void saveConfig() { ++saves; }
+static void texturePackNotice(bool error,const char* text) { noticeError=error; notice=text; }
+bool pc_ios_mod_import_open(int kind,const char* active) {
+    ++imports; openedKind=kind; capturedPack=active; return acceptImport;
+}
+'''
+fixture += body(texpack, "bool pc_texpack_enabled(void)") + "\n"
+fixture += body(texpack, "const std::string& pc_texpack_selected_pack(void)") + "\n" + action
+fixture += r'''
+static int checks=0;
+static void check(bool value) { ++checks; assert(value); }
+int main() {
+    const std::vector<std::string> packs={"GPV","GPVE01"};
+    // Disabled renderer must not protect a merely configured or pending pack.
+    sConfig.texturePack="GPV";sConfig.texturePackEnabled=1;
+    sPending=sConfig;
+    texturePacksRowAction(0,packs);
+    check(imports==1 && capturedPack.empty() && openedKind==-1);
+    check(sTexturePackPickerActive);
+    // Renderer selection is independent of settings changed since startup.
+    sTexturePackPickerActive=false;sEnabled=true;sSelectedPack="GPV";
+    sConfig.texturePack="GPVE01";sPending=sConfig;
+    texturePacksRowAction(0,packs);
+    check(imports==2 && capturedPack=="GPV");
+    check(sTexturePackPickerActive);
+    sTexturePackPickerActive=false;sConfig.texturePackEnabled=0;
+    sConfig.texturePack.clear();sPending=sConfig;
+    texturePacksRowAction(0,packs);
+    check(imports==3 && capturedPack=="GPV");
+    check(sEnabled && sSelectedPack=="GPV");
+    // All-indexed mode protects all existing pack folders, until restart.
+    sTexturePackPickerActive=false;sSelectedPack.clear();
+    texturePacksRowAction(0,packs);
+    check(imports==4 && capturedPack=="*");
+    sTexturePackPickerActive=false;sEnabled=false;
+    texturePacksRowAction(0,packs);
+    check(imports==5 && capturedPack.empty());
+    // Reentry and activation during installation must not interrupt the worker.
+    texturePacksRowAction(0,packs);
+    check(imports==5);
+    texturePacksRowAction(1,packs);
+    check(saves==0 && sConfig.texturePack.empty() && !sTexturePackRestartPrompt);
+    check(noticeError);
+    sTexturePackPickerActive=false;acceptImport=false;
+    texturePacksRowAction(0,packs);
+    check(imports==6 && !sTexturePackPickerActive);
+    check(noticeError && notice=="An import is already running.");
+    // Choosing and disabling a pack changes config, not the current index.
+    texturePacksRowAction(1,packs);
+    check(saves==1 && sConfig.texturePack=="GPV" && sPending.texturePack=="GPV");
+    check(sConfig.texturePackEnabled && sPending.texturePackEnabled && sTexturePackRestartPrompt);
+    sTexturePackRestartPrompt=false;sEnabled=true;sSelectedPack="GPV";
+    texturePacksRowAction(1,packs);
+    check(saves==2 && sConfig.texturePack.empty() && sPending.texturePack.empty());
+    check(!sConfig.texturePackEnabled && !sPending.texturePackEnabled);
+    check(sEnabled && sSelectedPack=="GPV" && !sTexturePackRestartPrompt);
+    texturePacksRowAction(-1,packs);texturePacksRowAction(99,packs);
+    check(saves==2 && imports==6);
+    std::printf("PASS: %d actual P2 texture-action/API/active-pack checks\n",checks);
+}
+'''
+(out/"texture-import-action-test.cpp").write_text(fixture, encoding="utf-8")

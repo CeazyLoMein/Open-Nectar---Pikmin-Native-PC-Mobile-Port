@@ -2897,7 +2897,7 @@ void texturePacksRowAction(int row, const std::vector<std::string>& packs) {
             sTexturePackPickerActive = true;
             pc_texpack_android_open_picker();
 #elif defined(__IPHONEOS__)
-            const char* active = pc_texpack_enabled() ? pc_texpack_active_pack() : "";
+            const char* active = pc_texpack_enabled() ? pc_texpack_selected_pack().c_str() : "";
             if (pc_texpack_enabled() && (!active || !*active)) active = "*";
             sTexturePackPickerActive = pc_ios_mod_import_open(-1, active);
             if (!sTexturePackPickerActive) texturePackNotice(true, "An import is already running.");
