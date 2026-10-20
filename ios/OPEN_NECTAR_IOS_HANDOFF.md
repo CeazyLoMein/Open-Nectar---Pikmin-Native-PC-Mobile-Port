@@ -251,3 +251,25 @@ idle polling. After success prepare a clearly named candidate in friendlyfolder1
 and ask user to enableHUD and report readings;then choose realHDassets. Continue
 P2fromactual logs. Saving improvements andonlinewithRaye are not falsely marked done;
 online forBOTHnativeiPhonegames remains the final milestone.
+
+## Build18 shared configuration failure and recovery — 2026-10-19 21:53 Eastern Daylight Time
+
+Build18 run39355267175 at9d33219f43dd0cf69b645b7c74c8185a711967e6 failed
+both games BEFORE game compilation. The shared configure step expanded an empty
+CONFIGURE_ARGS array under set -u; the runner reported CONFIGURE_ARGS[@]: unbound
+variable. This workflow mistake was introduced by Codex, not a new game-source
+regression. No IPA was produced. P1 host profile/import/performance checks passed;
+P2 adapter, Apple nullptr, container and new native-address host checks passed.
+Full P2 compile/link/runtime is still unverified.
+
+Recovery uses a non-empty complete CMake command array, appending the optional
+already-installed gmake path only for P2. All iOS target arguments stay identical.
+No P1 source or Info.plist edits; target remains60FPS. Both branches reviewed.
+Local Apple SDK/shell validation unavailable; actual runner validation pending.
+The earlier P2 batch is committed as ec702737; workflow/docs as9d33219f.
+One recovery push will trigger Build19 with the same broad P2 source batch.
+Optional-content preparation remains incomplete; one original Pikmin3 model ZIP
+was downloaded to Downloads/302842.zip, not yet verified or installed. Mobile
+PNG texture download returned an HTML confirmation page, not a verified pack.
+Next: record recovery SHA/run, stop idle polling, prepare supported private
+texture/character packages in Documents/Open Nectar/7 - Optional Graphics and Characters.

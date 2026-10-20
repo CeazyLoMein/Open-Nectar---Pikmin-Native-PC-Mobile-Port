@@ -75,22 +75,24 @@ jobs:
           # ending the entire diagnostic run at the first failed translation unit.
           # P1 retains its verified Xcode generator. Both still target iphoneos ARM64.
           GENERATOR=Xcode
-          CONFIGURE_ARGS=()
           if [ "$GAME" = pikmin2 ]; then
             GENERATOR="Unix Makefiles"
-            if command -v gmake >/dev/null 2>&1; then
-              CONFIGURE_ARGS+=("-DCMAKE_MAKE_PROGRAM=$(command -v gmake)")
-            fi
           fi
-          cmake -S ios -B "$RUNNER_TEMP/nectar-build" -G "$GENERATOR" \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_SYSTEM_NAME=iOS \
-            -DCMAKE_OSX_SYSROOT=iphoneos \
-            -DCMAKE_OSX_ARCHITECTURES=arm64 \
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
-            -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
-            -DNECTAR_IOS_GAME="$GAME" \
-            -DCMAKE_CXX_FLAGS="-ferror-limit=80" "${CONFIGURE_ARGS[@]}"
+          # Keep the command array non-empty: macOS Bash 3.2 with nounset
+          # rejects expansion of an empty optional-arguments array.
+          CONFIGURE_COMMAND=(cmake -S ios -B "$RUNNER_TEMP/nectar-build" -G "$GENERATOR"
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_SYSTEM_NAME=iOS
+            -DCMAKE_OSX_SYSROOT=iphoneos
+            -DCMAKE_OSX_ARCHITECTURES=arm64
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0
+            -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO
+            -DNECTAR_IOS_GAME="$GAME"
+            -DCMAKE_CXX_FLAGS="-ferror-limit=80")
+          if [ "$GAME" = pikmin2 ] && command -v gmake >/dev/null 2>&1; then
+            CONFIGURE_COMMAND+=("-DCMAKE_MAKE_PROGRAM=$(command -v gmake)")
+          fi
+          "${CONFIGURE_COMMAND[@]}"
       - name: Compile native game
         shell: bash
         run: |
