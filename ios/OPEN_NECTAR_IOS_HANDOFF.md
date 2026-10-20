@@ -1,3 +1,7 @@
+CURRENT CHECKPOINT - 2026-10-20 08:42 EDT: Build25 failed only the new test fixture;
+correction locally verified. P2-only replacement build not dispatched yet.
+Build24 opens on phone; menu candidate remains unverified. P1 untouched.
+
 LATEST BUILD: P2-only Build25 at 3013d4c2;
 result/IPA/menu phone test pending. Build24 opens; P1 untouched.
 
@@ -869,3 +873,42 @@ Status at dispatch: in_progress. P2 only. New Apple target/full compilation,
 IPA, menu clarity and original-options touch on phone remain pending.
 Local UI172/desktop182/allocator1354/console1280/adapter43 checks passed.
 No idle Actions polling. Dispatch journal checkpoint [skip ci], no extra build.
+
+## Build25 early fixture failure corrected - 2026-10-20 08:42 EDT
+
+Build25 run39423349538, source3013d4c23035db25ba17851fe65cd2e29123830d,
+job118629595502 FAILED in the new native menu test before game configure/compile.
+Full job log retrieved directly: work/build25-job.log in the development session;
+friendly copy: Documents/Open Nectar/2 - Progress and ChatGPT Handoff/Build 25 - Full Failed Job Log.txt.
+Unique diagnostics: Clang unused-const-variable for kF1TabH, kF1OptH,
+kF1OptVisible, promoted to errors by -Werror. These were imported real source
+constants unused by the extracted fixture, although used by the full game.
+Existing adapter/Apple library, native+console+Apple-scalar allocator, ARM64
+allocator syntax and GD TLS checks PASSED. No game compile/link or IPA occurred.
+This failure is not evidence of a new phone crash or a failure of menu visuals.
+
+Correction limited to tests/pikmin2_ios_menus_test.py: meaningful geometry checks
+exercise the imported metrics, checking tab/list separation and room for the
+option rows in each tested layout. No warning suppressions or weakened CI.
+MSVC C++14 /W4 /WX: iPhone180 and desktop190 PASS. Installed LLVM19 Clang parser
+(clang-tidy with clang-diagnostic-* and warnings-as-errors) reproduced ALL THREE
+original diagnostics before correction, then accepted both corrected variants.
+Clang parser on Windows is not the Apple SDK/full iOS game build. The new Apple
+CI/full compile and phone menu tests remain required. git diff --check passed.
+No further game source, P1 app/data, startup allocator, framebuffer, assets or
+signing changes. Build25 menu/source candidate remains3013d4c2, now with this
+fixture correction for one P2-only retry. Do not install/retest Build24 for this
+new candidate; retain its known-opening IPA until a new IPA succeeds.
+
+P2 underlying menu findings remain: missing iOS high-DPI/native-resolution menu
+path and Android-only mobile layout/shim versus working P1; original TOption
+missing direct touch and game-menu confirm control not exposed. Visible row
+fallback addresses potentially hidden callback text. Main/title taps and Throw/A
+worked in user tests. The source candidate is implemented, NOT phone verified.
+
+Next: commit corrected fixture and this checkpoint, push one P2-only build,
+record source/run, stop idle polling. On success validate IPA and put it in
+folder1 with short phone checklist. Reinstall P2 only preserving app data; no
+asset/art recopy. Test clear advanced settings and tap alignment, original
+options values/save, Continue/Don't Save select/confirm, A/Back, then gameplay,
+audio/camera regression. Preserve P1. User involvement: none until IPA ready.

@@ -104,6 +104,10 @@ void run(){
   CHECK(kF1CanvasH==480 && kF1CanvasW==640);
 #endif
   CHECK(kF1PanelW>0 && kF1PanelH>0 && kF1Visible>0);
+  // Exercise imported menu metrics too: Clang diagnoses unused constants.
+  // Tab text must stop above the list, and all eight option rows must fit.
+  CHECK(kF1TabY+kF1TabH<=kF1ColY);
+  CHECK(16+kF1OptVisible*kF1OptH<=kF1ColH);
   if(drawableW<=0)continue;
   for(int y=kF1ColY;y<kF1ColY+kF1ColH;y+=22){
    for(int x: {kF1LeftX+8,kF1RightX+8,kF1PanelX+kF1PanelW-20}){
