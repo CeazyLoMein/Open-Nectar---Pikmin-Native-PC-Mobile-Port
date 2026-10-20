@@ -1,3 +1,6 @@
+CURRENT BUILD: P2-only Build24 dispatched at 05e33f1c;
+result and phone retest pending. P1 untouched.
+
 LATEST CHECKPOINT - 2026-10-20 00:46 EDT: P2 Build23 phone startup FAILED on AudioQueue
 thread. Matched real crash UUID; binary new alignment is8bytes. 16-byte floor +
 native/game thread allocation ownership batch implemented; local tests passed.
@@ -1017,3 +1020,13 @@ test title/menu first. If failure, retrieve fresh matching report and diagnose
 new exception/stack. Do not re-copy assets/art or touch P1 without evidence.
 P1 remains existing working Build16,60FPS target; optional packs on hold; no
 mid-day recovery save; online with Raye LAST. Stop idle waiting for Actions.
+
+## Audio allocator batch dispatched - 2026-10-20 00:46 EDT
+
+Build24: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39371370836
+Exact source commit: 05e33f1c0e55dc11ecb6d413a8393bf73faeb2ce
+Status at dispatch: in_progress. P2-only; P1 not scheduled. Host checks
+native1354/console1280/Apple-scalar1354 pass; old8-byte-policy negative control
+rejected. Real iPhone-target CI check/full compilation/IPA/runtime pending.
+No idle polling. Record build result when user reports completion. Journal-only
+dispatch checkpoint uses [skip ci] to avoid another build.
