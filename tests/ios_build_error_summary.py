@@ -9,10 +9,12 @@ def summarize(log):
     errors = []
     seen = set()
     for line in log.splitlines():
-        if not re.search(r'\b(?:fatal )?error:|Undefined symbols for|undefined reference|^ld:', line):
-            continue
-        # Timestamped downloaded Actions logs and raw CI logs are both accepted.
+        # Normalize Actions timestamps before recognizing Apple linker symbols.
         line = re.sub(r'^\d{4}-\d\d-\d\dT\S+\s+', '', line).strip()
+        diagnostic = re.search(r'\b(?:fatal )?error:|Undefined symbols for|undefined reference|^ld:', line)
+        symbol = line.startswith(('"', "'")) and line.endswith('referenced from:')
+        if not diagnostic and not symbol:
+            continue
         if line not in seen:
             seen.add(line)
             errors.append(line)

@@ -39,10 +39,13 @@ void GDSetArrayRaw(GXAttr attr, u32 data, u8 stride);
 ///////////// GD DECLARATIONS //////////////
 
 #ifdef PIKI_PC_PORT
-#ifdef __cplusplus
-extern thread_local GDCurrentDL* __GDCurrentDL;
-#else
+// GDBase.c defines this pointer in C with constant zero initialization.
+// Clang's C TLS spelling also works in C++ and avoids requesting a C++
+// dynamic-initialization wrapper that the C translation unit cannot provide.
+#if defined(__clang__) || !defined(__cplusplus)
 extern _Thread_local GDCurrentDL* __GDCurrentDL;
+#else
+extern thread_local GDCurrentDL* __GDCurrentDL;
 #endif
 #else
 extern GDCurrentDL* __GDCurrentDL;

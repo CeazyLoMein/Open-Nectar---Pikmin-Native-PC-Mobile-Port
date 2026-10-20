@@ -628,3 +628,60 @@ was downloaded to Downloads/302842.zip, not yet verified or installed. Mobile
 PNG texture download returned an HTML confirmation page, not a verified pack.
 Next: record recovery SHA/run, stop idle polling, prepare supported private
 texture/character packages in Documents/Open Nectar/7 - Optional Graphics and Characters.
+
+## Build19 reaches final P2 link; character bundle prepared — 2026-10-19 22:09 Eastern Daylight Time
+
+Recovery0419685b02fd4da80cd91dcb83aa867fde09691c pushed; Build19run39355903504.
+Configuration now succeeds for both. P1 host checks/configuration passed and compile
+was in progress at last check (job118410485014). No P1 source changed.
+P2job118410484796 compiled to100% then failed final arm64 link with ONE missing
+symbol: thread-local wrapper routine for __GDCurrentDL. No compiler errors in
+the complete127950929byte raw log. Artifact12236055046 downloaded directly into
+session work/build19-pikmin2. Previous broad102-diagnostic batch now compiles.
+No P2 IPA or phone runtime yet.
+
+GDBase.c defines a constant-initialized C _Thread_local pointer; the legacy GD
+header exposed it to C++ as thread_local, requesting a C++ initializer wrapper
+not emitted by the C source on Apple. Both GD header copies now use Clang's
+C TLS spelling in C++ as well, while retaining other-compiler/retail branches.
+Thread isolation is preserved, not replaced by a process-global pointer.
+Reference: https://clang.llvm.org/docs/LanguageExtensions.html (C11 _Thread_local
+available with C semantics in all language modes). Actual Apple link still pending.
+
+New tests/pikmin2_gd_tls_test.py extracts both actual declarations, real structure,
+real inline writer and C storage definition into mixed C/C++ multi-unit link and
+three-thread isolation check. Windows/MSVC check passed, using __declspec(thread)
+for the C11 TLS spelling because MSVC lacks that C keyword. This does not validate
+Clang's spelling or Apple ABI; the same fixture runs with actual C11+C++17 Clang
+on macOS before full compilation. Error summary now includes actual missing symbol
+names; checked against complete Build19 log and timestamped copy, excluding warnings.
+
+Next push uses [ios-build] [ios-p2-only] to validate P2 without duplicating P1's
+unchanged ongoing Build19 compile. Default marked pushes still build both. Matrix
+selection uses standard Actions contains/fromJSON expressions. No idle polling.
+
+All SIX supported public model ZIPs downloaded normally, CRC/SHA256 verified and
+originals copied privately into Documents/Open Nectar/7 - Optional Graphics and
+Characters/2 - Original Downloads. Upstream Python converter produced11 models.
+Two source archives read-only extracted from owned GPVE01 ISO (pikis.szs354208bytes,
+res_ground.szs189792bytes). Existing unmodified C++ importer produced5 extra-model
+outputs including alternative Louie and3 portraits. Preserve the main Louie and
+alternative separately; merge4 extra characters and3 portraits into ready bundle.
+
+Ready PRIVATE bundle:1 - Ready for iPhone/Pikmin 1 - All Character Packs.zip
+2813255bytes, SHA2567fa0bacc8f99349b0fd84d8b2a43716e91e68d033ca989c96a414a72dfc1538c.
+20 entries:15 NHM models,3 portrait PNGs,2 small P2 source archives. Last2 are needed
+by existing captain availability detection, under pikmin1/pikmin2/assets/. No full
+P2 assets/game installed in P1. HD menu counter is11/11;4 extra-captain models are
+separate. Binary headers,parts,bones,finite values,joint indices,texture sizes,
+exact file boundaries,PNG decoding andZIP CRC passed locally. This is NOT phone
+installation, visual validation or sustained performance proof. Target60FPS.
+No save/config files included. Simple transfer guide and manifest beside bundle.
+
+P1 official mobile texture source AND official1080p alternative both return
+Google Drive QUOTA EXCEEDED HTML, not ZIP. No texture payload installed. Official
+upstream releases mention this known quota scenario; no alternate official mirror
+found in the focused source/release check. Do not pretend texture content present.
+Optional mods already built into menus remain available; no forced difficulty,
+cheats, randomizer or destructive mode changes. Mid-day saving and online withRaye
+remain future work (online LAST). Phone transfer request pending; audio cue played.

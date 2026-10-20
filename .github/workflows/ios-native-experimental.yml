@@ -3,6 +3,7 @@ name: Experimental native iOS game build (unsigned)
 # A workflow_dispatch workflow must exist on the default branch to be run manually
 # in GitHub's UI. This candidate is intentionally on ios-experimental instead.
 # To enable controlled runs without changing main, use the commit marker [ios-build].
+# Add [ios-p2-only] for a P2-only correction; ordinary marked pushes build both.
 on:
   push:
     branches:
@@ -17,7 +18,7 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        game: [pikmin1, pikmin2]
+        game: ${{ contains(github.event.head_commit.message, '[ios-p2-only]') && fromJSON('["pikmin2"]') || fromJSON('["pikmin1","pikmin2"]') }}
     # Build12 never acquired an ARM host because of GitHub capacity. Xcode
     # cross-compiles the same iphoneos ARM64 target on this standard Intel host.
     runs-on: macos-15-intel
@@ -49,6 +50,10 @@ jobs:
           python3 tests/pikmin2_native_addresses_test.py "$RUNNER_TEMP/p2-address-test.cpp"
           c++ -std=c++17 "$RUNNER_TEMP/p2-address-test.cpp" -o "$RUNNER_TEMP/p2-address-test"
           "$RUNNER_TEMP/p2-address-test"
+          python3 tests/pikmin2_gd_tls_test.py "$RUNNER_TEMP/p2-gd-tls"
+          cc -std=c11 -Wall -Wextra -Werror -c "$RUNNER_TEMP/p2-gd-tls/gd-storage.c" -o "$RUNNER_TEMP/p2-gd-tls/gd-storage.o"
+          c++ -std=c++17 -Wall -Wextra -pthread "$RUNNER_TEMP/p2-gd-tls/gd-main.cpp" "$RUNNER_TEMP/p2-gd-tls/gd-mirror.cpp" "$RUNNER_TEMP/p2-gd-tls/gd-storage.o" -o "$RUNNER_TEMP/p2-gd-tls/gd-tls-test"
+          "$RUNNER_TEMP/p2-gd-tls/gd-tls-test"
       - name: Check Pikmin 1 enhancement profile and mod imports
         if: matrix.game == 'pikmin1'
         shell: bash
