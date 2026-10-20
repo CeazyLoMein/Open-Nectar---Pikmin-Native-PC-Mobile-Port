@@ -98,6 +98,7 @@ jobs:
             CONFIGURE_COMMAND+=("-DCMAKE_MAKE_PROGRAM=$(command -v gmake)")
           fi
           "${CONFIGURE_COMMAND[@]}"
+          python3 ios/verify_bundle_info.py "$RUNNER_TEMP/nectar-build/Nectar-${GAME}-Info.plist" --game "$GAME"
       - name: Compile native game
         shell: bash
         run: |
@@ -126,6 +127,7 @@ jobs:
           APP="$(find "$RUNNER_TEMP/nectar-build" -type d -name 'Nectar-*.app' | head -n 1)"
           test -n "$APP"
           test -f "$APP/Info.plist"
+          python3 ios/verify_bundle_info.py "$APP/Info.plist" --game "$GAME" --require-binary
           EXECUTABLE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist")
           lipo "$APP/$EXECUTABLE" -verify_arch arm64
           lipo -info "$APP/$EXECUTABLE"

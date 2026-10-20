@@ -364,3 +364,32 @@ will validate the existing GD linkage correction after this dependency fix.
 Preserve prior two pending journal appends and include them in this commit.
 Character bundle remains ready privately; phone transfer explicitly postponed
 by user; official texture downloads remain quota-blocked. No idle polling.
+
+## Build21 FIRST successful P2 compilation/link; IPA metadata correction — 2026-10-19 22:37 Eastern Daylight Time
+
+Build21run39357838317/sourcee4906f89/job118416685307 passed all Apple host tests,
+including mixed C/C++ GD TLS link+three-thread test. FULL P2 iOS ARM64 target
+pikmin2_pc COMPILED AND LINKED SUCCESSFULLY at100%. Error index0 compiler/linker
+errors. This is a new confirmed milestone; not a runtime/IPA success yet.
+The subsequent unsigned packaging step failed because CFBundleExecutable was
+literal $(EXECUTABLE_NAME). Xcode expands that build-setting token for P1;
+Makefiles does not. lipo attempted a nonexistent file named $(EXECUTABLE_NAME).
+Actual built binary path was app/Nectar-pikmin2.app/Nectar-pikmin2.
+Full job log:session work/build21-job.log. Artifact12236422070 contains logs/index
+(3800110byte archive); no IPA or preserved executable in that artifact.
+
+Fix shared bundle metadata at its source: CMake sets NECTAR_IOS_EXECUTABLE once
+and uses it for OUTPUT_NAME and @ONLY-configured Info.plist CFBundleExecutable.
+No fallback executable guessing or renaming. Labels, IDs and other plist fields
+retain prior values. New ios/verify_bundle_info.py validates game-specific
+identity/executable/name and rejects unresolved template tokens. CI calls it
+immediately after CMake configure (fail before expensive compilation) and again
+on the actual .app with a required nonempty binary before lipo/ZIP.
+Local verification uses the installed real CMake to configure the actual template
+for both games, compares every P1 configured field to the known working Build16
+IPA, and checks placeholder/wrong-ID/missing/empty-binary rejection. Results will
+be recorded after checks. No game source, savedata, graphics or controls edited.
+Build22 will validate BOTH games because bundle metadata is shared, preserving
+the working P1 output while producing P2's first IPA if packaging passes.
+Character pack still ready privately; phone work postponed; HD textures quota
+blocked; target60FPS, online withRayeLAST. Stop idle polling after dispatch.

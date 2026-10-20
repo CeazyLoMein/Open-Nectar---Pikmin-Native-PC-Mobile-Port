@@ -88,6 +88,8 @@ target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE
     "-framework AVFoundation"
     "-framework GameController")
 
+# Resolve bundle metadata with CMake for every generator, including Makefiles.
+set(NECTAR_IOS_EXECUTABLE "Nectar-${NECTAR_IOS_GAME}")
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
     "${CMAKE_CURRENT_BINARY_DIR}/Nectar-${NECTAR_IOS_GAME}-Info.plist" @ONLY)
 set_target_properties(${NECTAR_GAME_TARGET} PROPERTIES
@@ -97,7 +99,7 @@ set_target_properties(${NECTAR_GAME_TARGET} PROPERTIES
     XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1"
     XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO"
     XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
-    OUTPUT_NAME "Nectar-${NECTAR_IOS_GAME}"
+    OUTPUT_NAME "${NECTAR_IOS_EXECUTABLE}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/app"
 )
 message(STATUS "Experimental iOS target: ${NECTAR_GAME_TARGET} (${NECTAR_IOS_GAME})")
