@@ -1,3 +1,63 @@
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-21 01:15 EDT
+
+**Overall project status:** Build34 failed before packaging; no IPA. Missing header corrected, local checks passed, correction pushed. P1-only normal-campaign Build35 is in_progress at this single dispatch observation. Installed apps and private phone content unchanged.
+
+### Pikmin 1
+
+- Current objective: Compile and phone-test the normal-campaign charge, whistle, cursor, Aim/Soft Assist, Recall All and bounded following-edge batch.
+- What was investigated: Complete Build34 job119042338355 log, actual KeyConfig binding declaration, Navi include list and extracted regression fixture.
+- Root cause: New whistle-priority expression uses KeyConfig, but navi.cpp lacked KeyConfig.h. The host fixture supplied a stand-in type and missed this dependency.
+- Files changed: navi.cpp adds direct header; tests/pikmin1_command_test.py checks the owning source declares that dependency; status/handoff journals updated.
+- Tests and results: 60 command/aim/recall/edge scenarios PASS; preset update/separate/standard58/58/7 PASS; Clang checks PASS; dependency negative control rejects Build34 source as expected; diff check PASS. Apple and hardware results pending.
+- Confirmed working: Existing phone baseline remains installed; prior phone save evidence and verified rollback backups retained. No new runtime result claimed.
+- Remaining issues: Every new gameplay behavior still needs normal-campaign phone retest. Unrecorded clam cutscene consequences not independently reproduced. Autosave/networking remain deferred as agreed.
+
+### Pikmin 2
+
+- Current objective: Preserve user-confirmed working Build32 baseline, later perform stronger readiness test and selected upstream audit follow-up.
+- What was investigated: No new P2 investigation in this compiler correction.
+- Root cause or leading hypothesis: No new P2 failure reported.
+- Files changed: None in P2.
+- Tests and results: No new P2 build or phone test.
+- Confirmed working: User's previous positive runtime/audio feedback; full campaign not certified.
+- Remaining issues: Later check all effects/proximity, caves/transitions, saves and heavier gameplay; upstream candidates remain queued.
+
+### GitHub
+
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
+- Branch: ios-experimental.
+- Starting commit: 92e847efd253cfe96fc1138eeb3874288d6cb13f; fetched remote and found no divergence/uncommitted work.
+- Latest source commit: 01d7e7ed18df04cb0856ae5cab77b6df62101e39.
+- Commits created / changes pushed: 01d7e7ed, header correction, regression guard and journal.
+- Uncommitted changes: Only this dispatch documentation update while recording; commit with skip-ci afterward.
+- GitHub Actions run IDs: Build34=39545404613, FAILED; Build35=39548476790, in_progress at dispatch.
+- Build results: Build34 one compiler error, no IPA. Build35 unknown until next completion check.
+- Artifacts produced: No new IPA. Full failed log retained privately at work/build34-pikmin1.log.
+- Build35: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39548476790
+
+### Next steps
+
+- Next Pikmin 1 task: Retrieve Build35 result; if successful verify original bundle ID/STANDARD campaign, stage in Documents/Open Nectar/1 - Install on iPhone, then fresh-save test checklist.
+- Next Pikmin 2 task: Keep installed working version; no rebuild needed for this P1-only correction.
+- GitHub/build task: Stop waiting/polling. User reports completion, or requests a check. Batch any actual remaining compiler errors from full logs.
+- Anything requiring my involvement: No phone/USB action now; user can disconnect. No install until a verified IPA is staged.
+
+### ChatGPT continuation notes
+
+- Another conversation needs to know: All prior P1 changes retained, upstream1.0.6 audit recorded, normal saves unchanged. Co-op prototype/shared exact-scene recovery follow successful representative P1 retest, not a claim of full campaign completion.
+- Important source-file locations: games/pikmin1/src/plugPikiKando/navi.cpp; tests/pikmin1_command_test.py; ios/PIKMIN1_NORMAL_CAMPAIGN_FIXES_TEST.md; ios/UPSTREAM_1_0_6_IOS_AUDIT.md; ios/SAVE_AND_COOP_RECOVERY_PLAN.md.
+- Relevant logs: work/build34-pikmin1.log; work/build34-jobs.json; work/build35-dispatch.json; current recovery state work/p1-runtime-batch-state.json.
+- Unverified fixes: New batch is source/local checked only, including this header correction; Apple compile and phone behavior unverified.
+- Risks and warnings: Do not install old Build33 synthetic fixture as this new normal-campaign update. Preserve current settings/private content/restore backups. No finale spoilers or automatic networking enablement.
+- Exact next actions: Inspect Build35 once reported done, retrieve log/artifact, verify/stage, update journal and give the normal-save checklist.
+
+**END PROGRESS REPORT**
+
+
+---
+
 ## Build 34 compiler correction — 2026-10-21 01:14 EDT
 
 - Build 34 / run 39545404613 / source ff57b9ffc71b9fcd87c444630b2454bcbe4e4110 FAILED. Full job 119042338355 log inspected: one compiler error, navi.cpp:1539 undeclared KeyConfig. No new IPA was produced. Installed P1/P2 remain unchanged.

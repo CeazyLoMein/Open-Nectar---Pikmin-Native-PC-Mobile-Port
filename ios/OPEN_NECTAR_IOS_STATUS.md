@@ -1,3 +1,5 @@
+CURRENT - 2026-10-21 01:15 EDT: Build34 FAILED (missing KeyConfig.h), corrected/local checks PASS, source01d7e7ed18df04cb0856ae5cab77b6df62101e39. P1-only STANDARD Build35/run39548476790 in_progress at dispatch. No new IPA/phone result; P2 unchanged. No idle polling.
+
 ## Build 34 compiler correction — 2026-10-21 01:14 EDT
 
 - Build 34 / run 39545404613 / source ff57b9ffc71b9fcd87c444630b2454bcbe4e4110 FAILED. Full job 119042338355 log inspected: one compiler error, navi.cpp:1539 undeclared KeyConfig. No new IPA was produced. Installed P1/P2 remain unchanged.
