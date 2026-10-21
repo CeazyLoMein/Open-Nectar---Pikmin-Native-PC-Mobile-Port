@@ -36,6 +36,8 @@ jobs:
         run: |
           xcodebuild -version
           cmake --version
+      - name: Check iOS icon resource target scope
+        run: python3 tests/ios_icon_resources_test.py
       - name: Check Pikmin 2 adapter include paths
         if: matrix.game == 'pikmin2'
         run: python3 tests/pikmin2_adapter_includes.py

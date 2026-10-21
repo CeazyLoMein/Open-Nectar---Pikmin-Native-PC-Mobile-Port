@@ -1,3 +1,5 @@
+CURRENT — 2026-10-21 16:01 EDT: Build38/run39664622876 FAILED at CMake configuration: icon POST_BUILD target created in child directory. Native game compile skipped, no IPA. Corrected to native RESOURCE files;4 real cross-directory checks with old-error negative controls and27 identity/storage checks PASS. Navigation source unchanged. Replacement P1-only build pending. Phone not needed, P2 installed baseline untouched.
+
 CURRENT — 2026-10-21 15:47 EDT: P1 navigation v2 source2d1e2800d2e3d42908914bdd63bba91707ac684d PUSHED; Build38/run39664622876 observed IN_PROGRESS. Local87 route/17 surface/82 command/283+283 speed/58+58+7 campaign/27 identity checks PASS; Apple/IPA/phone PENDING. Build37 pathing FAILED at100% speed per user. Phone read finished, may disconnect. P2 unchanged. No idle polling.
 
 ## Navigation v2 work in progress — 2026-10-21 15:42 EDT

@@ -1,5 +1,63 @@
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
+**Date/time:** 2026-10-21 16:01 EDT
+
+**Overall project status:** Build38 failed during CMake configuration, before native game compilation. Exact icon-packaging cause corrected locally; one replacement P1-only build pending dispatch. Navigation source retained. Installed P1/P2 apps untouched.
+
+### Pikmin 1
+
+- Current objective: Produce the navigation v2 IPA for the existing app, then test the same crossing/return at normal speed.
+- What was investigated: Full Build38 job119446251421 log and all step results. Enhancement checks succeeded; configuration failed at ios/CMakeLists.txt:145.
+- Root cause or leading hypothesis: Confirmed packaging error: add_custom_command(TARGET pikmin_pc POST_BUILD) was called in ios/, but the target is created in games/pikmin1/. CMake rejects this directory mismatch. This was introduced with the approved name/icon source integration, not a navigation compiler or phone failure.
+- Files changed: ios/CMakeLists.txt now attaches icons as native RESOURCE target files; new tests/ios_icon_resources_test.py configures the actual block against child-directory P1/P2 targets and verifies the old error as negative control; experimental workflow runs it before expensive configuration. tests/ios_build_error_summary.py now recognizes configuration errors and their target-scope explanation.
+- Tests and results:4 real CMake configuration/negative-control checks PASS;27 app metadata/storage/icon checks PASS; actual full-log error-index regression and compiler/linker deduplication/non-error probe controls PASS. Build38 CI87 routes,17 surfaces,82 commands,283+283 speed, campaign/profile/mod/performance checks PASS. Native game compilation was never reached. No new IPA or phone result.
+- Confirmed working: Existing Build35 phone controls/save baseline, global Recall button user pass; Build37 IPA compiled but crossing failed even at100%/100%. Navigation v2 is source implemented and fixture checked only.
+- Remaining issues: Exact crossing, circling/return persistence, reachable route entry and crowd performance need phone verification after successful replacement build. Rare clam scene/full campaign unverified. No teleport/autosave/online code added.
+
+### Pikmin 2
+
+- Current objective: Preserve user-confirmed working Build32; development remains paused.
+- What was investigated: Shared icon setup would have had the same directory mismatch for P2; new cross-directory CMake regression includes P2.
+- Root cause or leading hypothesis: Same shared icon packaging setup, corrected for future builds.
+- Files changed: Shared iOS packaging only; no P2 gameplay/audio source changes.
+- Tests and results: P2 icon configuration succeeds and old target-scope version fails as expected. No P2 native build requested.
+- Confirmed working: User reported P2 working after Build32 audio changes; installed app untouched.
+- Remaining issues: Broader spoiler-free solo testing and later shared co-op/recovery foundation.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: ios-experimental
+- Starting commit: dfc632b66386dbca088ae1105387c13ab1d9fd66, fetched and matched origin.
+- Latest commit: dfc632b66386dbca088ae1105387c13ab1d9fd66 before correction commit.
+- Commits created: Packaging/error-index/regression correction pending commit.
+- Changes pushed: None yet this correction batch.
+- Uncommitted changes: Shared iOS icon packaging, configuration regression/CI step, error summary and journal/checklist only. Navigation code unchanged from2d1e2800d2e3d42908914bdd63bba91707ac684d.
+- GitHub Actions run IDs: Build38=39664622876 FAILED, source2d1e2800d2e3d42908914bdd63bba91707ac684d, job119446251421. Build37=39617967156 SUCCESS but phone pathing FAIL; Build36 CANCELLED; P2 working32=39518825366.
+- Build results: Configuration error only; not a compiled-game or runtime result. Replacement native build pending.
+- Artifacts produced: No Build38 IPA; failed-job log preserved. Existing P1Build35/37 and P2Build32 IPA backups unchanged.
+
+### Next steps
+
+- Next Pikmin 1 task: Verify replacement build/artifact, stage original-ID IPA in folder1, repeat normal-speed crossing/Recall checklist. Retrieve p1-navigation-report.txt if it fails.
+- Next Pikmin 2 task: Keep working baseline; no rebuild in this batch.
+- GitHub/build task: Push one [ios-build] [ios-p1-only] correction, record actual new run/source, stop idle polling. User reports completion.
+- Anything requiring my involvement: Nothing now; phone not needed until installation or a requested log collection.
+
+### ChatGPT continuation notes
+
+- What another ChatGPT conversation needs to know: Build38 blocked by confirmed icon CMake directory error. Game source retained; prior normal-speed phone failure is real and not attributed to500%. No new navigation hardware result yet.
+- Important source-file locations: ios/CMakeLists.txt icon resource block; tests/ios_icon_resources_test.py; tests/ios_build_error_summary.py. Navigation: pc_follow_trail.h stalledToward, pc_follow_surface.h, pc_follow_report.h, aiCrowd.cpp pcRecoverFollower/pcProtectFormationEdge, piki.cpp pcBuildFollowerRoute/pcMoveFollowerRoute, navi.cpp shared route budget.
+- Relevant logs: work/build38-full-job.log and build38-jobs.json; corrected build38-error-summary.md; accessible folder2/Build38 - Full Failed Job Log.txt and Build38 - Configuration Error.md. Private video/phone backups remain in folder2/folder5 as recorded in prior report.
+- Unverified fixes: Native Apple resource copying after this correction, full navigation game compilation and phone crossing behavior. Host CMake regressions prove directory setup, not iOS runtime.
+- Risks and warnings: No installed app changes or lost progress. Shared icon resource setup changed for both games but P1-only build planned. CMake documents native RESOURCE files for flat iOS bundles: https://cmake.org/cmake/help/latest/prop_tgt/RESOURCE.html . Existing route limitations remain; no guaranteed recovery if graph lacks a safe path. Keep spoilers excluded.
+- Exact next actions: Commit/push corrected setup and journal; record new run, stop waiting. When user reports completion, retrieve full log, fix any actual compiler error or verify native ARM64 bundle/identity/icons/standard variant, stage accessible IPA, then phone test. P2 remains paused; solo/autosave/co-op plans remain unchanged.
+
+**END PROGRESS REPORT**
+
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
 **Date/time:** 2026-10-21 15:47 EDT
 
 **Overall project status:** P1 Build37 compilation passed but phone navigation failed even at100% speed. Navigation v2 batch implemented and locally verified; P1-only standard Build38 dispatched and observed in progress. P2 working user baseline preserved, development paused.

@@ -142,7 +142,9 @@ set(NECTAR_IOS_ICON_FILES)
 foreach(icon IN ITEMS Icon-29@2x.png Icon-29@3x.png Icon-40@2x.png Icon-40@3x.png Icon-60@2x.png Icon-60@3x.png)
     list(APPEND NECTAR_IOS_ICON_FILES "${CMAKE_CURRENT_SOURCE_DIR}/icons/${NECTAR_IOS_GAME}/${icon}")
 endforeach()
-add_custom_command(TARGET ${NECTAR_GAME_TARGET} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${NECTAR_IOS_ICON_FILES} "$<TARGET_BUNDLE_DIR:${NECTAR_GAME_TARGET}>"
-    COMMENT "Bundle game-specific iPhone icons" VERBATIM)
+# The game executable is created in a child directory, so a TARGET-form
+# custom command here is invalid. Native bundle resources work across target
+# directories and let both Xcode and Makefiles copy icons into the flat iOS app.
+target_sources(${NECTAR_GAME_TARGET} PRIVATE ${NECTAR_IOS_ICON_FILES})
+set_property(TARGET ${NECTAR_GAME_TARGET} APPEND PROPERTY RESOURCE ${NECTAR_IOS_ICON_FILES})
 message(STATUS "Experimental iOS target: ${NECTAR_GAME_TARGET} (${NECTAR_IOS_GAME})")

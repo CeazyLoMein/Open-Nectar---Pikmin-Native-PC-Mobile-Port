@@ -1,4 +1,4 @@
-"""Write a short compiler/linker error index without changing build exit status."""
+"""Write a short configuration/compiler/linker error index without changing build exit status."""
 from pathlib import Path
 import os
 import re
@@ -11,7 +11,7 @@ def summarize(log):
     for line in log.splitlines():
         # Normalize Actions timestamps before recognizing Apple linker symbols.
         line = re.sub(r'^\d{4}-\d\d-\d\dT\S+\s+', '', line).strip()
-        diagnostic = re.search(r'\b(?:fatal )?error:|Undefined symbols for|undefined reference|^ld:', line)
+        diagnostic = re.search(r'\b(?:fatal )?error:|Undefined symbols for|undefined reference|^ld:|^CMake Error\b|TARGET .+ was not created in this directory', line)
         symbol = line.startswith(('"', "'")) and line.endswith('referenced from:')
         if not diagnostic and not symbol:
             continue
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     dest = Path(sys.argv[2])
     if source.exists():
         errors = summarize(source.read_text(encoding='utf-8', errors='replace'))
-        heading = f'{len(errors)} distinct compiler/linker error lines'
+        heading = f'{len(errors)} distinct configuration/compiler/linker error lines'
         detail = '\n'.join(errors[:200]) if errors else 'No recognized error lines. See full log and job result.'
         if len(errors) > 200:
             detail += '\n[First 200 shown; full log retained.]'

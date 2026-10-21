@@ -1,6 +1,6 @@
 # P1 navigation v2 — next phone test
 
-BUILD38 IN PROGRESS — run39664622876, source2d1e2800d2e3d42908914bdd63bba91707ac684d. NOT READY TO INSTALL: new native Apple compilation and IPA generation pending. Build37 compiled successfully but FAILED this crossing/return test, including at100% speed. Do not reinstall Build37 expecting these new source fixes. P2 stays on working Build32.
+BUILD38 FAILED during icon packaging configuration; no IPA produced. Correction locally verified, replacement native build pending. Do not reinstall Build37 expecting navigation v2. Phone crossing/return validation remains pending.
 
 When the next IPA is ready, update existing Pikmin1 using the same Sideloadly account; keep the app installed. No new assets, save reset or settings replacement required. Build35 and37 rollback IPAs and an8-file consistent phone save/settings backup are preserved in folder5.
 
