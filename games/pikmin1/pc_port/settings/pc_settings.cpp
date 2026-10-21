@@ -141,7 +141,8 @@ struct PcConfig {
     int holdToPluck = 0;
     // Mod: unstick Pikmin that stop making progress along a route (0=off, 1=on).
     int betterPathfinding = 0;
-    int recallAll = 0; // optional solo global whistle, off by default
+    int recallAll = 0; // show dedicated solo recall button, off by default
+    int pikiSpeedPct = 100;
     // Mod: a non-blue Pikmin that wanders into water on its own is pushed back
     // to dry land instead of drowning. Being thrown in still drowns it.
     int bluesOnlyWater = 0;
@@ -287,6 +288,7 @@ struct PcConfig {
         holdToPluck = 0;
         betterPathfinding = 0;
         recallAll = 0;
+        pikiSpeedPct = 100;
         bluesOnlyWater = 0;
         idleCounter = 0;
         naviHealthPct = 100;
@@ -1219,6 +1221,7 @@ void saveConfig() {
     out << "holdToPluck = " << sConfig.holdToPluck << "\n";
     out << "betterPathfinding = " << sConfig.betterPathfinding << "\n";
     out << "recallAll = " << sConfig.recallAll << "\n";
+    out << "pikiSpeedPct = " << sConfig.pikiSpeedPct << "\n";
     out << "bluesOnlyWater = " << sConfig.bluesOnlyWater << "\n";
     out << "idleCounter = " << sConfig.idleCounter << "\n";
     out << "naviHealthPct = " << sConfig.naviHealthPct << "\n";
@@ -1492,6 +1495,7 @@ void loadConfig() {
         else if (key == "pikiInvincible") sConfig.pikiInvincible = atoi(val.c_str()) ? 1 : 0;
         else if (key == "allFlowers") sConfig.allFlowers = atoi(val.c_str()) ? 1 : 0;
         else if (key == "carrySpeedPct") sConfig.carrySpeedPct = clampSpeedPct(atoi(val.c_str()));
+        else if (key == "pikiSpeedPct") sConfig.pikiSpeedPct = clampSpeedPct(atoi(val.c_str()));
         else if (key == "naviSpeedPct") sConfig.naviSpeedPct = clampSpeedPct(atoi(val.c_str()));
         else if (key == "unlockZones") sConfig.unlockZones = atoi(val.c_str()) ? 1 : 0;
         else if (key == "noDayAdvance") sConfig.noDayAdvance = atoi(val.c_str()) ? 1 : 0;
@@ -2888,6 +2892,9 @@ void modsRowChange(int row, bool left, bool right) {
     }
     else if (row == 40) {
         if (left || right) sPending.eternalNight = sPending.eternalNight ? 0 : 1;
+    }
+    else if (row == 43) {
+        if (left || right) sPending.pikiSpeedPct = stepPct(sPending.pikiSpeedPct, kSpeedPcts, kSpeedPctCount, left);
     }
     else if (row == 42) {
         if (left || right) sPending.recallAll = !sPending.recallAll;
@@ -7064,6 +7071,15 @@ int pc_settings_get_chain_actions(void) { if (pc_speedrun_active()) return 0;
     return sConfig.chainActions;
 }
 
+float pc_settings_get_piki_speed_scale(void) {
+#if PIKI_P2_HOST
+    return 1.0f;
+#else
+    return !pc_speedrun_active() && !pc_hardmode_active() && !pc_coop_active()
+        && !pc_vs_active() && !pc_netplay_deterministic() ? sConfig.pikiSpeedPct / 100.0f : 1.0f;
+#endif
+}
+
 int pc_settings_get_recall_all(void) {
     return !pc_speedrun_active() && !pc_hardmode_active() && !pc_coop_active()
         && !pc_vs_active() && !pc_netplay_deterministic() ? sConfig.recallAll : 0;
@@ -7497,6 +7513,7 @@ void modsRowValue(int i, char* value, size_t n) {
     case 39: snprintf(value, n, "%s", sPending.p2Selection ? "On" : "Off"); break;
     case 40: snprintf(value, n, "%s", sPending.eternalNight ? "On" : "Off (original)"); break;
     case 41: snprintf(value, n, "%s", sPending.fireflies ? "On" : "Off (original)"); break;
+    case 43: snprintf(value, n, "%d%%", sPending.pikiSpeedPct); break;
     case 42: snprintf(value, n, "%s", sPending.recallAll ? "On" : "Off (original)"); break;
     case 38: snprintf(value, n, sPending.freeCamPadPct == 100 ? "%d%%  (original)" : "%d%%", sPending.freeCamPadPct); break;
     case 28: speedPctLabel(sPending.carrySpeedPct, value, n); break;
@@ -7659,13 +7676,16 @@ const GroupRow kCheatsRows[] = {
     { SRC_MODS, 4, "Pikmin Limit", "Most Pikmin on the field at once. 100 is the original; more costs performance." },
     { SRC_MODS, 21, "Throw Speed", "How fast Olimar grabs and throws Pikmin. 100% is the original." },
 #if !PIKI_P2_HOST
-    { SRC_MODS, 42, "Recall All Pikmin", "Solo cheat: your normal whistle calls eligible Pikmin anywhere in the current area back to your captain. They walk back; no teleport, revival or sprout plucking. Working Pikmin stop their task. Terrain and hazards still matter. Off in Hard, Speedrun and multiplayer." },
+    { SRC_MODS, 42, "Recall All Pikmin", "Shows a separate group-icon Recall All button. Tap it to call eligible Pikmin across the current area, including workers. Normal whistle keeps its usual range. Pikmin walk back; no teleport, revival or plucking. Off in Hard, Speedrun and multiplayer." },
 #endif
     { SRC_MODS, 20, "Whistle Radius", "Size of the whistle circle at full charge. 100% is the original." },
     { SRC_MODS, 26, "Invincible Pikmin", "Pikmin never die: no attacks, fire, water, gas or crushing." },
     { SRC_MODS, 27, "All Flowers", "Every Pikmin grows a flower as soon as it is plucked or born." },
     { SRC_MODS, 28, "Carry Speed", "How fast Pikmin carry pellets, parts and bodies." },
     { SRC_MODS, 29, "Olimar Speed", "How fast Olimar walks and runs." },
+#if !PIKI_P2_HOST
+    { SRC_MODS, 43, "Pikmin Speed", "Walking and running speed, as a percentage of the original. Leaves, buds and flowers keep their relative speeds. Does not speed up attacks, work or carried loads (use Carry Speed). 100% is original. Solo only; off in Hard, Speedrun and multiplayer." },
+#endif
     { SRC_MODS, 30, "Unlock All Zones", "Opens every area on the map. Saved into your game." },
     { SRC_MODS, 31, "No Day Limit", "The day counter never advances, so the 30-day limit never comes." },
     { SRC_MODS, 32, "All Onions", "Red, Yellow and Blue Onions from the start. Saved into your game." },
@@ -7863,6 +7883,8 @@ const char* disabledReason(const GroupRow& r) {
         if (r.idx >= 7 && r.idx <= 9 && !sPending.colourGrading) return "Turn on Colour Adjustments first.";
         break;
     case SRC_MODS:
+        if ((r.idx == 42 || r.idx == 43) && (pc_speedrun_active() || pc_hardmode_active()
+            || pc_coop_active() || pc_vs_active() || pc_netplay_deterministic())) return "Solo cheat: unavailable in this mode.";
         if (r.idx == 16 && !sPending.lockOn) return "Turn on Lock-On first.";
         break;
     case SRC_DATA:

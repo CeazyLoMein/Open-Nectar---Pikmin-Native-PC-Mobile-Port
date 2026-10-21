@@ -1,3 +1,61 @@
+<!-- P1_RECALL_SPEED_CURRENT -->
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-21 10:10 EDT
+
+**Overall project status:** User phone-tested Build35: Aim, Soft Assist, charge whistle and normal save/reload pass. P1 separate Recall All and Pikmin Speed implemented/local verified; P1-only standard build pending commit/push/dispatch. New Apple/IPA/runtime validation pending. P2 paused at working baseline.
+
+### Pikmin 1
+
+- Current objective: Separate intentional all-area recall from ordinary whistle, add adjustable Pikmin walking speed, preserve confirmed Build35 behavior.
+- What was investigated: User's numbered phone results,32.71s clip (9-14s raised cardboard/ramp crossing), actual formation/route/water rescue/movement/control/settings code.
+- Root cause or leading hypothesis: Recall setting globally widened every callPikis; changed to explicit action with false default. Raised crossing still exposes falling/stranded followers; terrain-only guard does not cover dynamic platforms. Dormant follower route starter has no callers; route validity/nearest-waypoint null handling needs work before enabling. Video does not establish exact collider/internal state.
+- Files changed: Navi.h/navi.cpp explicit recall/dispatcher; touch pc_touch.cpp/.h appended button/unique key/group-whistle badge/one-shot queue; settings pc_settings.cpp/.h persistent pikiSpeedPct; piki.cpp scales all four walking entry points; command and speed fixtures; experimental P1 workflow; journals/test and stranded-follower plan.
+- Tests and results:82 actual command/recall/aim/edge scenarios PASS;283 walking/config scenarios PASS in P1 and283 shared-P2 stock-speed control PASS; MSVC/Clang checks PASS. Existing58+58+7 campaign variants and shared P2menu188/198 PASS. Apple compile/IPA/new phone result pending.
+- Confirmed working: User Build35 Aim, Soft Assist, charge/whistle recall and day-end save/reload. All-area recall calls workers successfully. Current video confirms raised-crossing problem persists. Baseline IPA hash-verified in folder5.
+- Remaining issues: Rare clam cutscene unverified, stranded followers not fixed, all new changes need phone retest. No teleport policy selected/implemented. Autosave/co-op unchanged and deferred per plan.
+
+### Pikmin 2
+
+- Current objective: Preserve working Build32 while focusing P1.
+- What was investigated: Shared menu/touch compatibility and new speed getter's P2 original-speed control only.
+- Root cause or leading hypothesis: No new P2 failure reported.
+- Files changed: No P2 game-specific source; shared P1 touch/settings keep new controls hidden/neutral in P2.
+- Tests and results: P2menu188/198 and stock walking-speed control283 PASS locally; no new P2 build/phone result.
+- Confirmed working: Previous user's positive runtime/audio feedback, not full campaign certification.
+- Remaining issues: Stronger later P2 readiness tests and selective upstream audit follow-up.
+
+### GitHub
+
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
+- Branch: ios-experimental.
+- Starting commit: a7a12cffd437d09c7e13966a6fde054447331bc8; clean, remote fetched, no divergence.
+- Latest source/commit/build: P1-only standard build pending commit/push/dispatch.
+- Commits created / changes pushed: P1-only recall/speed batch; exact source and final documentation commit recorded after push.
+- Uncommitted changes: This batch while preparing; commit before ending and record final clean status.
+- GitHub Actions run IDs: Build35/run39548476790 SUCCESS, source01d7e7ed. Next: P1-only standard build pending commit/push/dispatch.
+- Build results: Build35 Apple/IPA PASS and user representative phone tests now PASS. New batch Apple/IPA unverified.
+- Artifacts produced: No new IPA yet. Build35 original-ID IPA preserved; SHA256 eab4b43ccaeda4de25137e010342592a4e0fc6d2cd328be9b66d365d10e3cc89.
+
+### Next steps
+
+- Next Pikmin 1 task: Finish P1-only build and verify/stage new IPA; follow short recall/speed checklist. Keep Build35 installed until ready. Continue existing normal save; no reset needed.
+- Next Pikmin 2 task: Stay paused, no rebuild required.
+- GitHub/build task: Record one dispatch; no idle waiting/polling. Retrieve new result when user reports completion or asks.
+- Anything requiring my involvement: No phone connection now. Later user installs/retests; no game assets or settings recopy needed. Await decisions on stuck-follower rescue, no mandatory user technical task.
+
+### ChatGPT continuation notes
+
+- What another conversation needs to know: User's Build35 tests1,2,3,7 passed;4rare clam untested;5recall functional but must be separate button, workers MUST remain included in that explicit action;6terrain following better but raised crossing strand persists;8Pikmin speed requested. Test speed/cheat values were not specified, do not invent them.
+- Important source-file locations: Navi::pcUpdateRecallAll/callPikis, pc_touch_take_recall_request, pcTouchRequestRecall/pcTouchAgeRecallRequest, Piki::getSpeed and3setSpeed overloads, pc_settings_get_piki_speed_scale; ios/PIKMIN1_RECALL_SPEED_TEST.md and ios/PIKMIN1_STRANDED_FOLLOWERS_PLAN.md.
+- Relevant logs: outputs/P1-Build35-Ledge-Review/contact.jpg/metadata.json; folder2 copied clip; work/p1-runtime-batch-state.json; next build dispatch once saved.
+- Unverified fixes: New button/whistle split and speed setting source/local checked only. Stranded follower plan is proposal, no implementation. Full campaign/rare scene unverified.
+- Risks and warnings: High movement speeds can worsen ledge collisions; no promise speed fixes navigation. Only living eligible Pikmin called; no revival/pluck/teleport. No online/autosave feature enabled. Preserve Build35 baseline, phone content/settings/saves and spoilers constraint.
+- Exact next actions: Verify new Apple build, original P1 identity/STANDARD variant and expected labels; stage and retest local whistle leaving distant workers alone, separate global button including workers, speed150/200/default/persistence. Later test surface-aware narrowing/validated routes before optional stalled-only rescue. Full campaign not certified by sample passes.
+
+**END PROGRESS REPORT**
+<!-- END_P1_RECALL_SPEED_CURRENT -->
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** 2026-10-21 01:43 EDT

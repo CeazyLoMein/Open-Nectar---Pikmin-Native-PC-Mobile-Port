@@ -1404,6 +1404,17 @@ static bool pcGroundChargeTarget(Creature* target)
     return true;
 }
 
+void Navi::pcUpdateRecallAll()
+{
+#if PIKI_PC_TOUCH
+    // Consume even when unavailable: a menu/cutscene press must not fire later.
+    if (mNaviID != 0 || !pc_touch_take_recall_request()) return;
+    if (!pc_settings_get_recall_all() || !playerState || playerState->inDayEnd()
+        || (gameflow.mMoviePlayer && gameflow.mMoviePlayer->mIsActive)) return;
+    callPikis(1.0f, true);
+#endif
+}
+
 void Navi::pcUpdateLockOn()
 {
 	// Se consume siempre, esté activo el mod o no, para que una pulsación no
@@ -2301,6 +2312,7 @@ void Navi::update()
 	pcApplySyncedCursorRotate(this);
 	pcUpdateLockOn();
 	pcUpdateBombCommand();
+    pcUpdateRecallAll();
 #endif
 	if (!mGroundTriangle) {
 		f32 maxY = mapMgr->getMaxY(mSRT.t.x, mSRT.t.z, true);
@@ -2499,11 +2511,14 @@ void Navi::animationKeyUpdated(immut PaniAnimKeyEvent& event)
 /**
  * @todo: Documentation
  */
-void Navi::callPikis(f32 radius)
+void Navi::callPikis(f32 radius, bool recallAll)
 {
 #if defined(PIKI_PC_PORT)
     mPcChargeTime = 0.0f; // recalled Pikmin must not be sent back on the next tick
-    const bool recallAll = pc_settings_get_recall_all() != 0;
+    // Only the dedicated command may expand the range, even when enabled.
+    recallAll = recallAll && pc_settings_get_recall_all() != 0;
+#else
+    recallAll = false;
 #endif
 	Vector3f unused = mCursorWorldPos - mSRT.t;
 	STACK_PAD_VAR(4);
@@ -2595,7 +2610,7 @@ void Navi::callPikis(f32 radius)
 			piki->getState();
 		}
 
-		if (AICONST.mDoPluckWithCursor() && (mNaviID == piki->mPlayerId || piki->mPlayerId == -1) && piki->isBuried()
+		if (!recallAll && AICONST.mDoPluckWithCursor() && (mNaviID == piki->mPlayerId || piki->mPlayerId == -1) && piki->isBuried()
 		    && piki->getState() == PIKISTATE_Bury && dist < radius) {
 			piki->mNavi = this;
 			piki->mFSM->transit(piki, PIKISTATE_AutoNuki);
@@ -2604,6 +2619,8 @@ void Navi::callPikis(f32 radius)
 		}
 	}
 
+    // Global recall affects existing Pikmin only, never sprouts or enemies.
+    if (recallAll) return;
 	Iterator iterSprout(itemMgr->getPikiHeadMgr());
 	CI_LOOP(iterSprout)
 	{

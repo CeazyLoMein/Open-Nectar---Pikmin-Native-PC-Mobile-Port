@@ -2393,6 +2393,9 @@ void Piki::setSpeed(f32 speedRatio)
 	f32 min = pikiMgr->mPikiParms->mPikiParms.mMinMoveSpeed() * scale;
 
 	mMoveSpeed = (max - min) * speedRatio + min;
+#if defined(PIKI_PC_PORT)
+    mMoveSpeed *= pc_settings_get_piki_speed_scale();
+#endif
 }
 
 /**
@@ -2410,7 +2413,11 @@ f32 Piki::getSpeed(f32 speedRatio)
 
 	f32 min = pikiMgr->mPikiParms->mPikiParms.mMinMoveSpeed() * scale;
 
-	return (max - min) * speedRatio + min;
+	f32 speed = (max - min) * speedRatio + min;
+#if defined(PIKI_PC_PORT)
+    speed *= pc_settings_get_piki_speed_scale();
+#endif
+    return speed;
 }
 
 /**
@@ -2428,6 +2435,9 @@ void Piki::setSpeed(f32 speedRatio, immut Vector3f& direction)
 	}
 
 	mMoveSpeed      = (max - min) * speedRatio + min;
+#if defined(PIKI_PC_PORT)
+    mMoveSpeed *= pc_settings_get_piki_speed_scale();
+#endif
 	mTargetVelocity = mMoveSpeed * direction;
 }
 
@@ -2447,6 +2457,9 @@ void Piki::setSpeed(f32 speedRatio, f32 angle)
 	f32 min = pikiMgr->mPikiParms->mPikiParms.mMinMoveSpeed() * scale;
 
 	mMoveSpeed = (max - min) * speedRatio + min;
+#if defined(PIKI_PC_PORT)
+    mMoveSpeed *= pc_settings_get_piki_speed_scale();
+#endif
 	mTargetVelocity.set(mMoveSpeed * cosf(angle), 0.0f, mMoveSpeed * sinf(angle));
 }
 

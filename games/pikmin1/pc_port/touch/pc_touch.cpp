@@ -59,6 +59,7 @@ enum ButtonId {
 	BTN_BACK,
 	BTN_MENU_CONFIRM,
 	BTN_AIM, // appended: old saved button IDs/layout names stay stable
+	BTN_RECALL_ALL, // appended; preserve every existing saved layout key
 	BTN_COUNT
 };
 
@@ -93,6 +94,7 @@ const ButtonSpec kButtons[BTN_COUNT] = {
 	{ "back", 0.10f, 0.84f, false, 0.055f, PAD_BUTTON_B },
 	{ nullptr, 0.10f, 0.84f, true, 0.055f, PAD_BUTTON_A },
 	{ "aim", 0.45f, 0.52f, true, 0.045f, 0 },
+	{ "recall_all", 0.68f, 0.72f, true, 0.045f, 0 },
 };
 
 constexpr float kStickRadius = 0.115f; // fracción de H
@@ -142,7 +144,7 @@ unsigned sContext = 0; // pc_touch_set_context: lo que el juego dice de este fra
 bool button_modded_off(int i)
 {
 #if PIKI_P2_HOST
-	if (i == BTN_AIM) return true; // P1 control change; P2 remains unchanged
+	if (i == BTN_AIM || i == BTN_RECALL_ALL) return true; // P1 control change; P2 remains unchanged
 #endif
 	// La cruceta ↑/↓ sale cuando hace algo: en P2, con Pikmin en la mano
 	// (madurez) o con el spray de ese lado; en P1, con el mod de selección y
@@ -171,6 +173,7 @@ bool button_modded_off(int i)
 	if (i == BTN_GYRO) return pc_settings_get_gyro_enabled() == 0;
 	if (i == BTN_LOCKON) return pc_settings_get_lock_on() == 0;
 	if (i == BTN_CHARGE) return pc_settings_get_charge() == 0;
+	if (i == BTN_RECALL_ALL) return pc_settings_get_recall_all() == 0;
 #if PIKI_P2_HOST
 	if (i == BTN_PHOTO) return true; // sin modo foto en Pikmin 2
 #endif
@@ -387,7 +390,7 @@ void ensure_art()
 		sArt.white = pc_gfx_overlay_texture_create(1, 1, px);
 	}
 	for (int i = 0; i < BTN_COUNT; ++i)
-		sArt.glyph[i] = kButtons[i].art ? load_texture(i == BTN_AIM ? "lock_on" : kButtons[i].art) : 0;
+		sArt.glyph[i] = kButtons[i].art ? load_texture(i == BTN_AIM ? "lock_on" : i == BTN_RECALL_ALL ? "disband" : kButtons[i].art) : 0;
 #if PIKI_P2_HOST
 	sArt.swapCaptain = load_texture("swap_captain");
 	sArt.sprayBitter = load_texture("spray_bitter");
@@ -689,6 +692,37 @@ bool pc_touch_aim_active(void)
 }
 
 // ── Entrada ──────────────────────────────────────────────────────────────────
+// Short-lived command, not a held PAD_B input. Menus/editing cancel it.
+static int sRecallRequestFrames = 0;
+static void pcTouchRequestRecall(int button)
+{
+#if !PIKI_P2_HOST
+    if (button == BTN_RECALL_ALL && !sEditMode && sGameMenuClaimFrames <= 0
+        && sPortMenuClaimFrames <= 0 && pc_settings_get_recall_all()) sRecallRequestFrames = 2;
+#else
+    (void)button;
+#endif
+}
+
+static void pcTouchAgeRecallRequest()
+{
+    if (sEditMode || sGameMenuClaimFrames > 0 || sPortMenuClaimFrames > 0) sRecallRequestFrames = 0;
+    else if (sRecallRequestFrames > 0) --sRecallRequestFrames;
+}
+
+bool pc_touch_take_recall_request(void)
+{
+    const bool requested = sRecallRequestFrames > 0;
+    sRecallRequestFrames = 0;
+#if PIKI_P2_HOST
+    (void)requested;
+    return false;
+#else
+    return requested && !sEditMode && sGameMenuClaimFrames <= 0
+        && sPortMenuClaimFrames <= 0 && pc_settings_get_recall_all();
+#endif
+}
+
 void pc_touch_on_finger(long long fingerId, PcTouchPhase phase, float x, float y)
 {
 	int w = 0, h = 0;
@@ -733,6 +767,7 @@ void pc_touch_on_finger(long long fingerId, PcTouchPhase phase, float x, float y
 				if (btn == BTN_PHOTO && sGameMenuClaimFrames <= 0) pc_photo_mode_request_toggle();
 				if (btn == BTN_LOCKON && sGameMenuClaimFrames <= 0) pc_window_request_lockon_press(0);
 				if (btn == BTN_CHARGE && sGameMenuClaimFrames <= 0) pc_window_request_charge_press(0);
+                pcTouchRequestRecall(btn);
 #if !PIKI_P2_HOST
 				if (btn == BTN_BOMB && sGameMenuClaimFrames <= 0) pc_window_request_bomb_press(0);
 #endif
@@ -887,6 +922,7 @@ void pc_touch_last_pad(u16* buttons, s8* stickX, s8* stickY, s8* substickX, s8* 
 
 bool pc_touch_merge_pad(u16* button, s8* stickX, s8* stickY, s8* substickX, s8* substickY)
 {
+    pcTouchAgeRecallRequest();
 #if !PIKI_P2_HOST
 	// P1 no avisa de si hay un Pikmin en la mano: con el táctil, A sujeto es
 	// el dedo en lanzar, que es cuando la cruceta cambia el tipo.
@@ -1170,6 +1206,11 @@ void pc_touch_draw(void)
 		sprite(pressed ? sArt.bubblePressed : sArt.bubble, b.cx, b.cy, d, kLayerAlpha);
 		// El glifo un poco más pequeño que la burbuja, y "hundido" al pulsar.
 		sprite(glyph_for(i), b.cx, b.cy + (pressed ? d * 0.02f : 0.0f), d * (pressed ? 0.62f : 0.66f), kLayerAlpha);
+        if (i == BTN_RECALL_ALL) {
+            // Group plus whistle badge distinguishes recall from Disband.
+            sprite(sArt.bubble, b.cx + d * 0.24f, b.cy - d * 0.24f, d * 0.44f, 1.0f);
+            sprite(glyph_for(BTN_WHISTLE), b.cx + d * 0.24f, b.cy - d * 0.24f, d * 0.32f, 1.0f);
+        }
 	}
 	if (sEditMode) {
 		// Barra de herramientas: cuadrícula, −, +, restablecer. Los glifos se

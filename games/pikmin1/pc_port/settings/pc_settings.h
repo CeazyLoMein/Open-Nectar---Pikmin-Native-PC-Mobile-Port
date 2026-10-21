@@ -102,6 +102,7 @@ int pc_settings_get_instant_whistle(void);
 int pc_settings_get_piki_invincible(void);
 int pc_settings_get_all_flowers(void);
 float pc_settings_get_carry_speed_scale(void); ///< 1 = original
+float pc_settings_get_piki_speed_scale(void); ///< Solo walking speed; carry load speed stays separate.
 float pc_settings_get_navi_speed_scale(void);  ///< 1 = original
 int pc_settings_get_unlock_zones(void);        ///< abre todas las zonas en la partida
 int pc_settings_get_no_day_advance(void);

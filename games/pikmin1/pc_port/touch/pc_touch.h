@@ -40,6 +40,8 @@ void pc_touch_set_visible(bool visible);
 bool pc_touch_visible(void);
 /** P1 dedicated free-aim pad held: do not reacquire lock or rotate camera. */
 bool pc_touch_aim_active(void);
+/** P1 one-shot Recall All button, separate from ordinary whistle. */
+bool pc_touch_take_recall_request(void);
 /** Estado de mando que vio el juego en el último frame (táctil incluido),
  *  en el formato de GameCube: botones PAD_* y sticks -127..127 (Y arriba). */
 void pc_touch_last_pad(u16* buttons, s8* stickX, s8* stickY, s8* substickX, s8* substickY);

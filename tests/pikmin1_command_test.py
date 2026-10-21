@@ -35,12 +35,21 @@ pieces=[extract(piki,'void Piki::pcChargeAt('),
  extract(crowd,'void ActCrowd::pcProtectFormationEdge(', 'void ActCrowd::pcProtectFormationEdge(Vector3f&) {}'),
  extract(settings,'int pc_settings_get_recall_all(', 'int pc_settings_get_recall_all() {return 0;}')]
 call=extract(nav,'void Navi::callPikis(')
+call_decl=re.search(r'void callPikis\([^;]+;',read('games/pikmin1/include/Navi.h'))[0]
+if 'pcUpdateRecallAll' in nav:
+ assert 'bool recallAll = false' in call_decl, 'ordinary whistle must default to local range'
+ pieces += [extract(touch,'static void pcTouchRequestRecall('),
+            extract(touch,'static void pcTouchAgeRecallRequest('),
+            extract(touch,'bool pc_touch_take_recall_request('),
+            extract(nav,'void Navi::pcUpdateRecallAll(')]
+call_prefix=call[call.index('{')+1:call.index('\tVector3f unused =')]
+
 eligibility=re.search(r'if \((callable &&.*?dist < radius)\) \{',call,re.S)[1]
 distance=call[call.index('\t\tVector3f sep ='):call.index('\n\t\tint state =')].replace('continue;','return false;')
 pieces += [extract(touch,'static void pcTouchButtonCursorDrag(', 'static void pcTouchButtonCursorDrag(int button,float dx,float dy) {if(button==BTN_THROW||button==BTN_WHISTLE)pc_window_add_cursor_delta(dx,dy);}'),extract(touch,'bool pc_touch_aim_active(', 'bool pc_touch_aim_active() {return false;}')]
 pieces.append('bool Navi::eligible(Piki* piki,float dist,float radius) {\n'
  'const int state=piki->getState();\nbool callable=piki->mNavi==this || !piki->mNavi || piki->mMode!=PikiMode::FormationMode;\nreturn '+eligibility+';\n}')
-pieces.append('bool Navi::inRange(Piki* piki,float radius,bool recallAll) {(void)recallAll;\n'+distance+'\nreturn true;}')
+pieces.append('bool Navi::inRange(Piki* piki,float radius,bool recallAll) {(void)recallAll;\n'+call_prefix+distance+'\nreturn true;}')
 code=r'''
 #include <cmath>
 #include <cstdint>
@@ -49,6 +58,7 @@ code=r'''
 #include <vector>
 #include <algorithm>
 #define PIKI_PC_PORT 1
+#define PIKI_PC_TOUCH 1
 using f32=float;
 struct Vector3f {float x=0,y=0,z=0; Vector3f()=default;Vector3f(float a,float b,float c):x(a),y(b),z(c){}
  Vector3f operator+(Vector3f b)const{return {x+b.x,y+b.y,z+b.z};}
@@ -79,8 +89,14 @@ struct Navi:Creature {Controller controller;Controller*mKontroller=&controller;i
  Creature*mPcLockTarget=nullptr,*mPcLockIgnore=nullptr;float mPcChargeTime=0,mCursorNaviDist=0,mCursorMaxRadius=200;
  Vector3f mPcAimOffset,mPcPinnedOffset,mCursorPosition,mCursorTargetPosition,mCursorWorldPos;bool mIsCStickNeutral=true;
  void pcReleaseLockOn();void pcUpdateLockOn();void pcPinCursorToLock();void pcPinCursorFirstPerson(){}int getStandType(){return stand;}
- bool eligible(Piki*,float,float);bool inRange(Piki*,float,bool);
+ bool eligible(Piki*,float,float);bool inRange(Piki*,float,bool=false);
+ void pcUpdateRecallAll();int recalls=0;bool recalledAll=false;
+ CALL_DECL
+
 };
+void Navi::callPikis(float,bool all){++recalls;recalledAll=all;}
+struct Movie {bool mIsActive=false;}movie;
+struct Gameflow {Movie*mMoviePlayer=&movie;}gameflow;
 struct PlayerState {bool end=false;bool inDayEnd(){return end;}} player;PlayerState*playerState=&player;
 struct System {float getFrameTime(){return 1.f/60;}} hostSystem;System*gsys=&hostSystem;
 int lockMode=1,chargeOn=1,better=1;bool lockPress=false,chargePress=false,det=false,coop=false,vs=false,speedrun=false,hard=false;
@@ -107,9 +123,9 @@ struct Map {bool hole=false,drop=false;int queries=0;
  float getMinY(float x,float,bool){++queries;return drop&&x>8?0.0f:50.0f;}
 } map;Map*mapMgr=&map;
 struct ActCrowd {Piki*mPiki;void pcProtectFormationEdge(Vector3f&);};
-enum {BTN_THROW,BTN_WHISTLE,BTN_AIM,BTN_CHARGE,BTN_COUNT};
+enum {BTN_THROW,BTN_WHISTLE,BTN_AIM,BTN_CHARGE,BTN_RECALL_ALL,BTN_COUNT};
 struct Button {long long finger=-1;}sButtons[BTN_COUNT];
-int sLayoutH=1290,sGameMenuClaimFrames=0,sPortMenuClaimFrames=0;bool sEditMode=false;
+int sLayoutH=1290,sGameMenuClaimFrames=0,sPortMenuClaimFrames=0;bool sEditMode=false;int sRecallRequestFrames=0;
 float cursorDx=0,cursorDy=0;void pc_window_add_cursor_delta(float x,float y){cursorDx+=x;cursorDy+=y;}
 FUNCTIONS
 int checks=0,failures=0;void check(bool ok,const char*n){++checks;if(!ok){++failures;std::printf("FAIL: %s\n",n);}}
@@ -141,7 +157,7 @@ int main(){
  for(int type:{TEKI_Shell,TEKI_Pearl,TEKI_Rocpe}){foe.mTekiType=type;n.mPcLockTarget=&foe;chargePress=true;n.pcUpdateLockOn();check(n.mPcChargeTime==0&&p.mMode==PikiMode::FormationMode,"raised clam target does not ground-charge");}
  foe.mTekiType=0;p.mSRT.t={70,0,0};n.mPcLockTarget=&foe;chargePress=true;n.pcUpdateLockOn();check(p.mMode==PikiMode::AttackMode,"ordinary enemy still charges");
  p.mMode=PikiMode::FreeMode;p.mSRT.t={10000,0,0};n.mCursorWorldPos={0,0,0};
- check(!n.inRange(&p,100,false),"normal whistle retains range");check(n.inRange(&p,100,true),"recall reaches distant Pikmin");
+ sConfig.recallAll=1; check(!n.inRange(&p,100,false),"normal whistle retains range");check(n.inRange(&p,100,true),"recall reaches distant Pikmin");
  p.mMode=PikiMode::FormationMode;check(!n.eligible(&p,0,100),"already following Pikmin not reset repeatedly");p.mMode=PikiMode::AttackMode;
  p.buried=true;check(!n.eligible(&p,0,100),"recall never plucks buried Pikmin");p.buried=false;
  p.kinoko=true;check(!n.eligible(&p,0,100),"recall excludes transformed Pikmin");p.kinoko=false;
@@ -177,8 +193,30 @@ int main(){
  sButtons[BTN_AIM].finger=2;check(pc_touch_aim_active(),"dedicated aim owns only its finger");
  sEditMode=true;check(!pc_touch_aim_active(),"layout editing cannot steer gameplay");sEditMode=false;
  sButtons[BTN_AIM].finger=-1;check(!pc_touch_aim_active(),"releasing aim ends override");
+
+ sConfig.recallAll=1;n.mNaviID=0;player.end=false;movie.mIsActive=false;
+ p.mSRT.t={1000,0,0};n.mCursorWorldPos={0,0,0};
+ check(!n.inRange(&p,100),"enabled global option leaves normal whistle range local");
+ check(n.inRange(&p,100,true),"explicit Recall All reaches distant worker");
+ sConfig.recallAll=0;check(!n.inRange(&p,100,true),"disabled cheat cannot expand even explicit request");sConfig.recallAll=1;
+ n.callPikis(100);check(!n.recalledAll,"actual API defaults ordinary whistle to local");
+ pcTouchRequestRecall(BTN_WHISTLE);check(!pc_touch_take_recall_request(),"ordinary whistle button never queues global recall");
+ pcTouchRequestRecall(BTN_AIM);check(!pc_touch_take_recall_request(),"aim button never queues global recall");
+ int calls=n.recalls;pcTouchRequestRecall(BTN_RECALL_ALL);n.pcUpdateRecallAll();
+ check(n.recalls==calls+1&&n.recalledAll,"separate button invokes explicit global recall");
+ n.pcUpdateRecallAll();check(n.recalls==calls+1,"holding/rechecking does not repeat global recall");
+ sGameMenuClaimFrames=3;pcTouchRequestRecall(BTN_RECALL_ALL);check(!pc_touch_take_recall_request(),"game menu cannot queue recall");sGameMenuClaimFrames=0;
+ sPortMenuClaimFrames=3;pcTouchRequestRecall(BTN_RECALL_ALL);check(!pc_touch_take_recall_request(),"advanced menu cannot queue recall");sPortMenuClaimFrames=0;
+ sEditMode=true;pcTouchRequestRecall(BTN_RECALL_ALL);check(!pc_touch_take_recall_request(),"layout editor cannot queue recall");sEditMode=false;
+ sConfig.recallAll=0;pcTouchRequestRecall(BTN_RECALL_ALL);check(!pc_touch_take_recall_request(),"disabled cheat cannot queue recall");sConfig.recallAll=1;
+ pcTouchRequestRecall(BTN_RECALL_ALL);pcTouchAgeRecallRequest();check(pc_touch_take_recall_request(),"quick tap survives one input merge");
+ pcTouchRequestRecall(BTN_RECALL_ALL);pcTouchAgeRecallRequest();pcTouchAgeRecallRequest();check(!pc_touch_take_recall_request(),"unconsumed request expires rather than firing later");
+ pcTouchRequestRecall(BTN_RECALL_ALL);sGameMenuClaimFrames=3;pcTouchAgeRecallRequest();sGameMenuClaimFrames=0;check(!pc_touch_take_recall_request(),"opening menu cancels pending request");
+ calls=n.recalls;movie.mIsActive=true;pcTouchRequestRecall(BTN_RECALL_ALL);n.pcUpdateRecallAll();movie.mIsActive=false;n.pcUpdateRecallAll();check(n.recalls==calls,"cutscene drops recall instead of deferring it");
+ player.end=true;pcTouchRequestRecall(BTN_RECALL_ALL);n.pcUpdateRecallAll();player.end=false;n.pcUpdateRecallAll();check(n.recalls==calls,"day end drops pending recall");
+ for(bool*flag:{&det,&coop,&vs,&speedrun,&hard}){*flag=true;pcTouchRequestRecall(BTN_RECALL_ALL);n.pcUpdateRecallAll();check(n.recalls==calls,"recall command disabled outside permitted solo context");*flag=false;}
  std::printf("%d P1 command/recall/cursor/edge scenarios; %d failures\n",checks,failures);return failures?1:0;
 }
-'''.replace('FUNCTIONS','\n\n'.join(pieces))
+'''.replace('FUNCTIONS','\n\n'.join(pieces)).replace('CALL_DECL',call_decl)
 out=Path(sys.argv[1]);out.parent.mkdir(parents=True,exist_ok=True);out.write_text(code,encoding='utf-8')
 print('Generated real P1 command scenarios'+(' from '+old_ref if old_ref else ''))

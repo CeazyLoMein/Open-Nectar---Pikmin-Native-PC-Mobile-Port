@@ -110,7 +110,7 @@ public:
 	void startMotion(immut PaniMotionInfo&, immut PaniMotionInfo&);
 	void enableMotionBlend();
 	void updateWalkAnimation();
-	void callPikis(f32);
+	void callPikis(f32, bool recallAll = false);
 	void callDebugs(f32);
 	void releasePikis();
 	bool procActionButton();
@@ -218,6 +218,7 @@ public:
 	Vector3f mCursorWorldPos;             // _6F0, also cursor related?
 #if defined(PIKI_PC_PORT)
 	void pcUpdateLockOn();
+	void pcUpdateRecallAll(); ///< Consume the separate touch recall command in solo gameplay.
 	void pcReleaseLockOn(); ///< Restore free aim for manual, lost-target and setting-off exits.
 	void pcUpdateBombCommand();
 	void pcPinCursorToLock();
