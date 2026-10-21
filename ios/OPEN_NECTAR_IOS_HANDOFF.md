@@ -1,5 +1,71 @@
 # OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
 
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-20 21:15 EDT
+
+**Overall project status:** P1-only Build33 PASSED. Verified current-app update IPA staged with an exact phone checklist; installation and runtime tests pending. Pre-update working IPA/settings/layout/save backup remains intact. P2 Build32 has positive user phone feedback. No online co-op code implemented. Do not rebuild or poll CI without a new reason.
+
+### Pikmin 1
+
+- Current objective: Install the authorized existing-app solo-readiness experiment, preserving settings/assets; run the short spoiler-free systems sample.
+- What was investigated: Build33 full job log, source identity, artifact ZIP, plist/executable, Mach-O CPU/platform/load commands, original bundle identity, compiled test-save/log/no-finale markers, and rollback IPA hash.
+- Root cause or leading hypothesis: Previous separate-app install hit the free-profile three-app cap. User authorized updating the original P1 after verified backup. Build33 retains its original identity and uses existing settings/assets with separate test cards.
+- Files changed in source commit: ios/app_variant.cmake, ios/CMakeLists.txt, ios/verify_bundle_info.py, ios/ios_storage.mm, ios/pikmin1_solo_app_policy.h, pc_solo_test_game.h, cardSelect.cpp fresh-file hooks, settings/pc_settings.cpp new-game label, tests and experimental workflow. This result checkpoint changes only documentation.
+- Tests and results: Apple ARM64 compile/link/package SUCCESS. Runner: 27 bundle/storage checks,27 identity/settings policy,47 update preset/profile,47 separate preset,7 standard control,169 profile,19 bridge,30 performance and mod/archive checks PASS. Prior local tests also included actual backed-up settings/signed identity. Downloaded IPA ZIP/plist/device/load-command/marker checks PASS; staged copy SHA256 matched. This is not phone runtime proof.
+- Verified IPA: C:\Users\chazz\Documents\Open Nectar\1 - Install on iPhone\Pikmin 1 - Build 33 - UPDATE Current App - Solo Test.ipa
+- IPA SHA256: c04abe4dad2a9ecfada89ddfa53e24aa40c6a272696df1d6dd45bdc32fd7916b; bytes 2578066; executable UUID be51571f-c725-3ede-a13e-bbcbd74f9a87; ARM64 iPhoneOS15+, unsigned for Sideloadly. Bundle org.opennectar.experimental.pikmin1; executable Nectar-pikmin1; variant solo-update.
+- Implemented behavior: Documents/pikmin1 retains assets/art/Load/config/touch layout. Test cards use save-solo-test; original save is retained. Startup leaves nonempty current config unchanged. Fresh test slots: Day2, Main Engine credited, three booted Onions/100 leaf per color, four earlier areas open. All update slots disable finale fixture. Saved loads must not refill inventory/reset progress.
+- Confirmed working: Older P1 gameplay/audio/readable menus/camera/60FPS and GPI textures are the phone baseline. New Build33 Apple build and IPA checks passed. Installation, settings/content retention and test-card gameplay/save behavior are NOT yet phone verified.
+- Backup: C:\Users\chazz\Documents\Open Nectar\5 - Archives\P1 Restore Point Before In-App Test - 2026-10-20 203541. Saved Build16 working IPA SHA256 02041fc3c82b757b6a0cfc62592bf855c8b6e4deca63ca4ba64eb0704747bec6 rechecked intact now; six current phone settings/layout/save files previously copied/hash checked and reread for consistency. No phone writes in this session. Large assets remain in app, not duplicated. Restore IPA is saved unsigned working build, not extracted signed binary; same-account signing needed.
+- Remaining issues/coverage: User must install/test Build33. Full campaign, normal unlock/tutorial progression and finale remain unverified. Optional invincibility bypasses damage/death coverage. No finale test required and no final-boss spoilers.
+
+### Pikmin 2
+
+- Current objective: Preserve working Build32; continue ordinary play and report concrete regressions.
+- What was investigated: No new P2 code or logs this result checkpoint.
+- Root cause or leading hypothesis: Prior native scalar-layout/mixer fixes restored ambience; opening cutscene could leave Pikmin/enemy categories muted. Native opening-exit cleanup shipped in Build32 (90785c36, included in 1f04dd8f).
+- Files changed: None now.
+- Tests and results: Build32 Apple build/IPA and36 cleanup/12 audit/48 scalar/28 route tests passed. User now says 'P2 is working now' in audio-test context. No fresh phone report or individual sound checklist collected.
+- Confirmed working: Positive Build32 phone runtime/audio feedback; Build31 previously confirmed winter ambience and clearer HUD. Restoration of specific Pikmin/enemy effects is inferred from context, not separately itemized evidence.
+- Remaining coverage: Other colors/effects, ship/Louie proximity, caves/area transitions and full campaign. No immediate USB session or rebuild required.
+
+### GitHub
+
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; branch ios-experimental.
+- Starting/latest verified local and remote before this documentation checkpoint: 604808c042fb6770eca98d7d6b911a6d8b84dec1, clean and fetched.
+- P1 source commit: 8e8138684fd5e36595a89058d090240217fe66ae. This is the exact source in Build33; later skip-ci journal commits do not change its binary.
+- Commits created/changes pushed: Current result/checklist documentation committed with [skip ci]; exact final documentation HEAD is in friendly 'Pikmin 1 - Current App Update Checkpoint.json'. No new source modification or build needed.
+- Uncommitted changes: Only this documentation checkpoint during preparation; verify clean after commit.
+- GitHub Actions: Build33/run39523034602, P1 job118971161411 SUCCESS, artifact12311259642 nectar-pikmin1-solo-update. https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39523034602
+- Prior Build32/run39518825366 BOTH SUCCESS, source1f04dd8f0117b91c0e5cc6e80cd61384943603e9; P2 job118957403187/artifact12309879326. P1 Build32 is the older separate-app variant and must NOT be used for the current-app update.
+- Artifacts: Build33 verified update staged as above. P2 Build32 staged in folder1/Pikmin 2 - Build 32 - Pikmin and Enemy Audio Fix.ipa (SHA256 db79c3587cb2e5bbf5acfd2f355021d490acd5d49a2369143f3aa2a004003c8a). No proprietary assets included/uploaded.
+
+### Next steps
+
+- Next Pikmin 1 task/user involvement: Follow folder1 'Pikmin 1 - Build 33 - TEST THIS.md': install using same Sideloadly account/normal ID over current P1, never uninstall. Check settings/packs; NEW slot A Normal/Standard; movement/camera/menus; exact Onion accounting; real enemy/carry/part; large squad; pause/background; real sunset save and close/reload. Visit four earlier areas across days. Report pass/fail/untested; no finale needed.
+- Next Pikmin 2 task: Normal play on working Build32; capture a specific new symptom if any.
+- GitHub/build task: None pending. No idle polling, no redundant CI. On next turn read phone results before proposing changes.
+- Phone: Can disconnect after installing; no need to leave game running/USB connected during ordinary testing. Request connection only for a concrete log/data task, then explicitly release it.
+
+### ChatGPT continuation notes
+
+- User explicitly superseded separate-app-only restriction after app cap; original P1 update now authorized AFTER rollback. Preserve settings and installed private content. No account/security changes, force push, main merge or app deletion.
+- Save roots: original Documents/pikmin1/save; experiment Documents/pikmin1/save-solo-test. Never present missing old card slots as data loss without checking these separate roots. Presets execute only on NEW files. No timed mid-day autosave implemented; backgrounding is not a save guarantee.
+- Settings baseline in private backup: enhanced/HUD enabled, renderScale1, fpsMode2 (runs60 on phone), health100, invincibility0, unlockZones0, allOnions0, GPI active. Values intentionally untouched for settings preservation; user dropped120FPS pursuit. Don't overwrite config for new defaults.
+- Important source: ios/pikmin1_solo_app_policy.h signed-ID policy supports exact base, valid team suffix and matching wrapper; original variant rejects separate identity. ios_storage.mm gates storage and assigns card root. pc_solo_test_game.h seeds only new-file fixture. pc_solo_test_log.h writes bounded64KiB p1-solo-test-events.txt, distinguishing preset setup from actual events.
+- Relevant logs: workspace work/build33-result.json, work/build33-jobs.json, work/build33-artifacts.json, work/build33-p1-job.log, work/build33-verification.json. Extracted IPA: outputs/Build33-Pikmin1-Current-App-Update. Friendly folder2 has successful log/verification. Private backup metadata work/p1-before-update-backup.json; no private contents in GitHub.
+- Unverified fixes: Build33 in-place install/retention/new card/save/reload/runtime. Never call sampled/full campaign complete from fixture/CI results. Finale remains deferred by user choice; do not spoil it.
+- Co-op: Notes in ios/ONLINE_COOP_DESIGN_NOTES.md. Together-only host-owned shared campaign; independent screens/cameras/squads and individual allowances; shared Onion counts; forced group area/cave transitions acceptable; mainly health scaling. Networking implementation not started. Assess test feedback before prototype work.
+- Exact resumption: Read current checkpoint/checklist and user results. If installation fails, inspect exact Sideloadly error; don't remove working apps. If runtime regresses, reproduce narrow step and collect bounded event/crash logs when connected. If settings changed, compare exact backed-up config/touch hashes before targeted restore. Use saved Build16 same-identity IPA for rollback if needed. No new build just for reporting.
+
+**END PROGRESS REPORT**
+
+
+## Prior checkpoint history (superseded where different)
+
+# OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
+
 ## Earlier spoiler preference (still applies; newer update authorization in report)
 
 The user does not want the final boss identified, shown or required for this

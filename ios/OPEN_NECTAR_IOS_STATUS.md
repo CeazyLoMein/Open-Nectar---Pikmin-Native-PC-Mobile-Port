@@ -1,3 +1,6 @@
+CURRENT - 2026-10-20 21:15 EDT: P1-only Build33/run39523034602/source8e813868 SUCCESS. Original-ID solo-update IPA verified/staged; SHA256 c04abe4dad2a9ecfada89ddfa53e24aa40c6a272696df1d6dd45bdc32fd7916b.
+Backup intact; exact install/checklist in folder1. Phone install/settings/save/runtime unverified. P2 Build32 positive user feedback. No new build needed; await test results.
+
 CURRENT - 2026-10-20 20:49 EDT: User reports "P2 is working now" after Build32. This is a positive phone runtime/audio retest in the context of the missing Pikmin/enemy sounds. Individual effects, other colors, distance attenuation, caves/area transitions and the full campaign were not separately confirmed. No new phone audio report was retrieved; do not describe every sound as independently verified.
 P1-only Build33/run39523034602 remains pending at last observation; no CI polling performed.
 P1 rollback backup remains verified; phone may disconnect. Documentation-only update, no build.
