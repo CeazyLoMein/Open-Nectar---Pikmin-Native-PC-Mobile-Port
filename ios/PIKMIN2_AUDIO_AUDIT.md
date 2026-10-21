@@ -1,3 +1,9 @@
+## Build32 positive phone feedback - 2026-10-20 20:49 EDT
+
+User reports "P2 is working now" after Build32. This is a positive phone runtime/audio retest in the context of the missing Pikmin/enemy sounds. Individual effects, other colors, distance attenuation, caves/area transitions and the full campaign were not separately confirmed. No new phone audio report was retrieved; do not describe every sound as independently verified.
+
+Build32/run39518825366/source1f04dd8f0117b91c0e5cc6e80cd61384943603e9. No additional audio patch or rebuild is needed from this report alone. Earlier pending-test entries below are historical.
+
 ## Build32 result
 
 Both jobs PASSED; P2 artifact12309879326/job118957403187 verified/staged.

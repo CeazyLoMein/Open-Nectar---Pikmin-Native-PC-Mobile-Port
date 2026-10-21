@@ -19,9 +19,9 @@ test app but is optional and must not be selected for this user's short test.
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-20 20:44 EDT
+**Date/time:** 2026-10-20 20:49 EDT
 
-**Overall project status:** Both Build32 jobs passed and IPAs were verified/staged. Separate P1 test installation was rejected by the phone's free-profile three-app limit (P1/P2/KartPad already installed). The user now explicitly authorizes putting the solo-readiness experiment into the current P1 app after a rollback backup, prioritizing current settings. This overrides the earlier separate-app requirement for this experiment. No purchase, KartPad removal, account change or LiveContainer installation was performed. Verified backup completed BEFORE source modification; new P1-only update source is implemented and locally checked, Apple build pending. No co-op networking code started.
+**Overall project status:** Both Build32 jobs passed and IPAs were verified/staged. User now reports P2 working on phone; full campaign remains unverified. Separate P1 test installation was rejected by the phone's free-profile three-app limit (P1/P2/KartPad already installed). The user now explicitly authorizes putting the solo-readiness experiment into the current P1 app after a rollback backup, prioritizing current settings. This overrides the earlier separate-app requirement for this experiment. No purchase, KartPad removal, account change or LiveContainer installation was performed. Verified backup completed BEFORE source modification; new P1-only update source is implemented and locally checked, Apple build pending. No co-op networking code started.
 
 ### Pikmin 1
 
@@ -39,13 +39,13 @@ test app but is optional and must not be selected for this user's short test.
 
 ### Pikmin 2
 
-- Current objective: Await Build32 phone audio feedback; do not rebuild unchanged P2 for this P1 packaging change.
+- Current objective: Preserve the positive Build32 phone result; do not rebuild unchanged P2 for this P1 packaging change.
 - What was investigated: No new P2 source/audio investigation in this batch.
-- Root cause or leading hypothesis: Build31 restored snow/winter ambience, but all observed Pikmin/enemy gains were zero; opening-cutscene category mute cleanup shipped in verified Build32. Audibility after that cleanup is still unreported.
+- Root cause or leading hypothesis: Build31 restored snow/winter ambience, but all observed Pikmin/enemy gains were zero; opening-cutscene category mute cleanup shipped in verified Build32. User now reports "P2 is working now": positive runtime/audio feedback in this context, without itemized sound coverage.
 - Files changed: None in this batch.
-- Tests and results: Build32 Apple compile/link/package,36 cleanup/12 audit/48 scalar/28 routes passed previously. Verified P2 IPA remains in folder1. No new hardware result claimed.
-- Confirmed working: Build31 user-confirmed winter ambience and clearer HUD; prior limited gameplay. Build32 new audio report/runtime retest pending.
-- Remaining issues: Pikmin/enemy calls, attacks/damage/death, ship/Louie proximity, other colors/areas/caves and long campaign stability.
+- Tests and results: Build32 Apple compile/link/package,36 cleanup/12 audit/48 scalar/28 routes passed previously. Verified P2 IPA remains in folder1. New hardware feedback: user reports "P2 is working now". No new diagnostic report collected.
+- Confirmed working: Build31 user-confirmed winter ambience and clearer HUD; Build32 now has positive user phone feedback ("P2 is working now"). Restoration of Pikmin/enemy audio is inferred from context, not an itemized confirmation of every sound or the full campaign.
+- Remaining coverage: Individual Pikmin/enemy effects, ship/Louie proximity, other colors/areas/caves and long campaign stability were not separately confirmed. These are unverified checks, not newly reported failures.
 
 ### GitHub
 
@@ -63,7 +63,7 @@ test app but is optional and must not be selected for this user's short test.
 ### Next steps
 
 - Next Pikmin 1 task: P1-only Build33 dispatched. After success inspect IPA original bundle/executable identity, iPhone target and update/test-save marker; stage clearly in folder1. Install over current P1 with same Apple account/identity, never delete app. Verify current settings/Load content, new test card and slot fixtures. Retain rollback package.
-- Next Pikmin 2 task: User can update existing P2 with verified Build32 (does not need a fourth slot), perform effects/proximity test and connect for report retrieval afterward.
+- Next Pikmin 2 task: Continue normal play on working Build32. If another audio issue appears, identify the specific effect/location and retrieve its report. Other colors, ship/Louie distance, caves and campaign completion remain unverified; no immediate USB collection or rebuild required.
 - GitHub/build task: Build33/run39523034602 dispatched with source8e813868. Stop consuming usage while GitHub runs; user reports completion. No idle polling or redundant P2 run.
 - Anything requiring my involvement: None during build. P1 backup collection finished; user told they can close P1/disconnect. New IPA installation and short phone test are needed after successful build. Explicitly release phone after any future collection.
 
