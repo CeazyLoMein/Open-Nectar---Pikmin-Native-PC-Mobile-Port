@@ -1,6 +1,6 @@
 # P1 navigation v2 — next phone test
 
-BUILD38 FAILED during icon packaging configuration; no IPA produced. Correction locally verified, replacement native build pending. Do not reinstall Build37 expecting navigation v2. Phone crossing/return validation remains pending.
+BUILD38 FAILED during icon packaging configuration; no IPA produced. Correction locally verified. Build39/run39666676388, sourcea7075569c07b75655ea78a151a8940303ad354ba, observed QUEUED; no new IPA ready. Do not reinstall Build37 expecting navigation v2. Phone crossing/return validation remains pending.
 
 When the next IPA is ready, update existing Pikmin1 using the same Sideloadly account; keep the app installed. No new assets, save reset or settings replacement required. Build35 and37 rollback IPAs and an8-file consistent phone save/settings backup are preserved in folder5.
 

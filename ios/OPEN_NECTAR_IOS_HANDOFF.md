@@ -2,7 +2,7 @@
 
 **Date/time:** 2026-10-21 16:01 EDT
 
-**Overall project status:** Build38 failed during CMake configuration, before native game compilation. Exact icon-packaging cause corrected locally; one replacement P1-only build pending dispatch. Navigation source retained. Installed P1/P2 apps untouched.
+**Overall project status:** Build38 failed during CMake configuration, before native game compilation. Exact icon-packaging cause corrected locally; replacement P1-only standard Build39 dispatched, observed queued. Navigation source retained. Installed P1/P2 apps untouched.
 
 ### Pikmin 1
 
@@ -29,19 +29,19 @@
 - Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental
 - Starting commit: dfc632b66386dbca088ae1105387c13ab1d9fd66, fetched and matched origin.
-- Latest commit: dfc632b66386dbca088ae1105387c13ab1d9fd66 before correction commit.
-- Commits created: Packaging/error-index/regression correction pending commit.
-- Changes pushed: None yet this correction batch.
-- Uncommitted changes: Shared iOS icon packaging, configuration regression/CI step, error summary and journal/checklist only. Navigation code unchanged from2d1e2800d2e3d42908914bdd63bba91707ac684d.
-- GitHub Actions run IDs: Build38=39664622876 FAILED, source2d1e2800d2e3d42908914bdd63bba91707ac684d, job119446251421. Build37=39617967156 SUCCESS but phone pathing FAIL; Build36 CANCELLED; P2 working32=39518825366.
-- Build results: Configuration error only; not a compiled-game or runtime result. Replacement native build pending.
+- Latest commit: a7075569c07b75655ea78a151a8940303ad354ba correction/build source, pushed; documentation dispatch record follows [skip ci].
+- Commits created: a7075569c07b75655ea78a151a8940303ad354ba — icon resource correction, real directory regression and configuration error index.
+- Changes pushed: Correction pushed to ios-experimental.
+- Uncommitted changes: Code committed/pushed; documentation dispatch record being saved. Navigation code unchanged from2d1e2800d2e3d42908914bdd63bba91707ac684d.
+- GitHub Actions run IDs: Build39=39666676388 QUEUED sourcea7075569c07b75655ea78a151a8940303ad354ba; Build38=39664622876 FAILED, source2d1e2800d2e3d42908914bdd63bba91707ac684d, job119446251421. Build37=39617967156 SUCCESS but phone pathing FAIL; Build36 CANCELLED; P2 working32=39518825366.
+- Build results: Configuration error only; not a compiled-game or runtime result. Replacement Build39 queued; native compile/IPA/phone pending.
 - Artifacts produced: No Build38 IPA; failed-job log preserved. Existing P1Build35/37 and P2Build32 IPA backups unchanged.
 
 ### Next steps
 
 - Next Pikmin 1 task: Verify replacement build/artifact, stage original-ID IPA in folder1, repeat normal-speed crossing/Recall checklist. Retrieve p1-navigation-report.txt if it fails.
 - Next Pikmin 2 task: Keep working baseline; no rebuild in this batch.
-- GitHub/build task: Push one [ios-build] [ios-p1-only] correction, record actual new run/source, stop idle polling. User reports completion.
+- GitHub/build task: Build39/run39666676388 sourcea7075569c07b75655ea78a151a8940303ad354ba dispatched. Stop idle polling; user reports completion.
 - Anything requiring my involvement: Nothing now; phone not needed until installation or a requested log collection.
 
 ### ChatGPT continuation notes
@@ -51,7 +51,7 @@
 - Relevant logs: work/build38-full-job.log and build38-jobs.json; corrected build38-error-summary.md; accessible folder2/Build38 - Full Failed Job Log.txt and Build38 - Configuration Error.md. Private video/phone backups remain in folder2/folder5 as recorded in prior report.
 - Unverified fixes: Native Apple resource copying after this correction, full navigation game compilation and phone crossing behavior. Host CMake regressions prove directory setup, not iOS runtime.
 - Risks and warnings: No installed app changes or lost progress. Shared icon resource setup changed for both games but P1-only build planned. CMake documents native RESOURCE files for flat iOS bundles: https://cmake.org/cmake/help/latest/prop_tgt/RESOURCE.html . Existing route limitations remain; no guaranteed recovery if graph lacks a safe path. Keep spoilers excluded.
-- Exact next actions: Commit/push corrected setup and journal; record new run, stop waiting. When user reports completion, retrieve full log, fix any actual compiler error or verify native ARM64 bundle/identity/icons/standard variant, stage accessible IPA, then phone test. P2 remains paused; solo/autosave/co-op plans remain unchanged.
+- Exact next actions: Build39 dispatch recorded; stop waiting. When user reports completion, retrieve full log, fix any actual compiler error or verify native ARM64 bundle/identity/icons/standard variant, stage accessible IPA, then phone test. P2 remains paused; solo/autosave/co-op plans remain unchanged.
 
 **END PROGRESS REPORT**
 
