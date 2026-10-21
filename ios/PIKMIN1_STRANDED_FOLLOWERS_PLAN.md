@@ -1,7 +1,7 @@
 <!-- CURRENT_FOLLOW_IMPLEMENTATION -->
 # P1 narrow crossing and route recovery — source implemented, phone test pending
 
-Updated 2026-10-21 10:33 EDT. User requested Build36 be scrapped/cancelled and a combined patch with crossing/route work plus the already implemented separate Recall All and Pikmin Speed. Build36/run39614665805 confirmed CANCELLED. Nothing installed or removed on phone. New combined P1-only standard build pending commit/push.
+Updated 2026-10-21 10:34 EDT. User requested Build36 be scrapped/cancelled and a combined patch with crossing/route work plus the already implemented separate Recall All and Pikmin Speed. Build36/run39614665805 confirmed CANCELLED. Nothing installed or removed on phone. New Build37/run39617967156, sourceabd06b6216f0d09bc13361ddbff693f58640a21f, observedqueued.
 
 Evidence: Build35 user footage ScreenRecording_10-21-2026 09-47-51_1.mov,32.71s,9-14s raised cardboard/ramp crossing. Footage shows falling/stranded followers; exact collider/internal action state was not recorded. Build35 ordinary Aim/Soft Assist/charge whistle/save-reload passed user tests; clam cutscene unverified. Working IPA backup verified in folder5. P2 remains paused.
 

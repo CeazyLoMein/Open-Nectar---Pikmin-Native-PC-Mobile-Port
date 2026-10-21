@@ -1,6 +1,6 @@
 # P1 combined update — Crossing, routes, Recall All and speed
 
-NOT READY TO INSTALL YET. combined P1-only standard build pending commit/push. Build36 CANCELLED: do not install it. Codex must verify/stage the successful combined IPA first. Keep Build35 installed for now.
+NOT READY TO INSTALL YET. Build37/run39617967156, sourceabd06b6216f0d09bc13361ddbff693f58640a21f, observedqueued. Build36 CANCELLED: do not install it. Codex must verify/stage the successful combined IPA first. Keep Build35 installed for now.
 
 When ready: update existing P1 with the same Sideloadly account; do not uninstall. Continue your normal test save. Settings/private graphics content should remain; no asset transfer or save reset needed. Working Build35 IPA remains in folder5. No new phone-save backup taken this turn.
 

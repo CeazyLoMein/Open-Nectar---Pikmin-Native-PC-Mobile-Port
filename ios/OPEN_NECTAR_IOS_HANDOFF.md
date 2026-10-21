@@ -1,9 +1,9 @@
 <!-- P1_COMBINED_FOLLOW_CURRENT -->
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-21 10:33 EDT
+**Date/time:** 2026-10-21 10:34 EDT
 
-**Overall project status:** User cancelled standalone Build36 and authorized combined narrow-crossing/return-route improvements plus its Recall All/speed changes. Build36 confirmed CANCELLED. Combined source implemented/local checks pass; combined P1-only standard build pending commit/push. No new IPA installed or phone-tested; Build35 baseline retained. P2 paused.
+**Overall project status:** User cancelled standalone Build36 and authorized combined narrow-crossing/return-route improvements plus its Recall All/speed changes. Build36 confirmed CANCELLED. Combined source implemented/local checks pass; Build37/run39617967156, sourceabd06b6216f0d09bc13361ddbff693f58640a21f, observedqueued. No new IPA installed or phone-tested; Build35 baseline retained. P2 paused.
 
 ### Pikmin 1
 
@@ -30,10 +30,10 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental.
 - Starting commit: 8a5a157ef50708d35d7ef3843c11bf6d95fd3351, fetched remote/clean/no divergence before edits.
-- Latest source/commit/build: combined P1-only standard build pending commit/push.
+- Latest source/commit/build: Build37/run39617967156, sourceabd06b6216f0d09bc13361ddbff693f58640a21f, observedqueued.
 - Commits created / changes pushed: Combined follower patch pending or dispatched as above; previous472937e5 recall/speed retained. Final documentation commit recorded after push.
 - Uncommitted changes: This source/report batch while preparing; commit and record final clean state before ending.
-- GitHub Actions run IDs: Build35/run39548476790 SUCCESS; Build36/run39614665805 CANCELLED per user; next combined P1-only standard build pending commit/push.
+- GitHub Actions run IDs: Build35/run39548476790 SUCCESS; Build36/run39614665805 CANCELLED per user; next Build37/run39617967156, sourceabd06b6216f0d09bc13361ddbff693f58640a21f, observedqueued.
 - Build results: New combined Apple/IPA pending; do not call cancelled Build36 successful or deploy it.
 - Artifacts produced: No new combined IPA yet. Build35 original-ID verified backup preserved; SHA256 eab4b43ccaeda4de25137e010342592a4e0fc6d2cd328be9b66d365d10e3cc89.
 

@@ -1,3 +1,5 @@
+CURRENT - 2026-10-21 10:34 EDT: Build36 CANCELLED at user request. Combined crossing/route+Recall All/Pikmin Speed source localPASS63/82/283; Build37/run39617967156, sourceabd06b6216f0d09bc13361ddbff693f58640a21f, observedqueued. New Apple/IPA/phone pending. Build35 rollback intact, P2 paused. No teleport or phone writes.
+
 CURRENT - 2026-10-21 10:33 EDT: Build36 CANCELLED at user request. Combined crossing/route+Recall All/Pikmin Speed source localPASS63/82/283; combined P1-only standard build pending commit/push. New Apple/IPA/phone pending. Build35 rollback intact, P2 paused. No teleport or phone writes.
 
 CURRENT - 2026-10-21 10:11 EDT: Build35 phone Aim/SoftAssist/charge whistle/save-reload PASS; clam untested, raised crossing stranded followers persist. Separate recall button +Pikmin Speed localPASS82/283, Build36/run39614665805, source472937e505eef2a14d00b0c923620dbaee4bd9cd, observed in_progress. New Apple/IPA/phone pending; no stuck-rescue/teleport implementation; P2 paused.
