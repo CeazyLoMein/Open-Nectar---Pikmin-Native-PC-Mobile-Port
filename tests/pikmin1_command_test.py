@@ -19,6 +19,10 @@ def extract(s,signature,default=''):
   i+=1
  return s[at:i]
 nav=read('games/pikmin1/src/plugPikiKando/navi.cpp')
+# Extracted behavior tests supply engine types below. Check the owning source's
+# real dependency too, so that seam cannot hide a missing compiler declaration.
+if 'KeyConfig::' in nav:
+ assert '#include "KeyConfig.h"' in nav, 'navi.cpp must include its KeyConfig dependency'
 piki=read('games/pikmin1/src/plugPikiKando/piki.cpp')
 crowd=read('games/pikmin1/src/plugPikiKando/aiCrowd.cpp')
 settings=read('games/pikmin1/pc_port/settings/pc_settings.cpp')

@@ -1,3 +1,11 @@
+## Build 34 compiler correction — 2026-10-21 01:14 EDT
+
+- Build 34 / run 39545404613 / source ff57b9ffc71b9fcd87c444630b2454bcbe4e4110 FAILED. Full job 119042338355 log inspected: one compiler error, navi.cpp:1539 undeclared KeyConfig. No new IPA was produced. Installed P1/P2 remain unchanged.
+- Cause: new whistle-priority code used the correct existing binding API but navi.cpp lacked its direct KeyConfig.h include. The extracted host fixture supplied that type and missed this integration dependency.
+- Correction: add the direct include; generator now rejects source using KeyConfig without that header. Negative control on Build 34 source fails with the expected dependency message.
+- Local verification: 60 command/aim/recall/edge scenarios PASS; preset update/separate/standard 58/58/7 PASS; Clang checks PASS; git diff --check PASS. Apple compilation and phone runtime still pending.
+- Next build is P1-only STANDARD normal campaign, original app identity, all previous fixes retained; no P2 change, no synthetic campaign, no autosave/network feature enabled. Verified restore backups remain intact. After dispatch, record run/source and stop waiting; user will report completion.
+
 # OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT

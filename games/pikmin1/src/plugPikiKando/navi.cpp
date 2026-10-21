@@ -53,6 +53,7 @@ static f32 pcNaviHurt(f32 damage) { return damage; }
 #include "Interface.h"
 #include "ItemMgr.h"
 #include "KIO.h"
+#include "KeyConfig.h"
 #include "Kontroller.h"
 #include "MapCode.h"
 #include "MemStat.h"
