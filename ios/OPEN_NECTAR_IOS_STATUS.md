@@ -1,3 +1,9 @@
+CURRENT - 2026-10-20 20:03 EDT: Combined Build32 DISPATCHED, run39518825366, observedqueued.
+Source 1f04dd8f0117b91c0e5cc6e80cd61384943603e9; includes90785c36 P2 mute cleanup.
+P1 is the separate solo-test app; P2 retains standard identity. Local checks PASS;
+new Apple results/IPAs/phone tests pending. Original P1 untouched. Phone released.
+No idle polling: user reports completion. Exact source/run in current handoff.
+
 CURRENT - 2026-10-20 20:01 EDT: P1 solo-test source/presets and P2 opening mute cleanup locally verified.
 Original P1 app untouched. New test IPA/phone scenarios pending. P2 Build31 snow
 ambience restored; Pikmin/enemy audio still silent. Report retrieved; nearby gains

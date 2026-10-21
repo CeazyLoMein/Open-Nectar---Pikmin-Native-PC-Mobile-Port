@@ -2,7 +2,7 @@
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-20 20:01 EDT
+**Date/time:** 2026-10-20 20:03 EDT
 
 **Overall project status:** Working P1 installation preserved. The user authorized starting the separate P1 solo-readiness test app. Its source and two disposable campaign presets are implemented and locally checked; Apple build/IPA and phone tests are pending. P2 Build31 is installed: user confirms winter/snow ambience restored, but Pikmin attacks/voices and Bulborb/death effects remain silent. The first audio report was collected directly over USB. A scoped opening-cutscene cleanup is implemented and locally tested; new hardware result is pending.
 
@@ -34,19 +34,19 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental
 - Starting commit: e645e01416a3d0061ab2ba0303bae06cbed6b881 (local and remote clean at start, fetched).
-- Latest commit: Source batch currently being committed; exact hashes and dispatched run will be appended after push.
-- Commits created: Pending this checkpoint; keep P2 audio and P1 isolation changes distinct, push together.
-- Changes pushed: Not yet for this batch. Previous Build31 source dc73a84887e60d4e3b7911b1e46ed64ab4a764b9 already pushed.
-- Uncommitted changes: Scoped P1/P2 source/tests/workflow and this documentation checkpoint; no unrelated user changes found.
-- GitHub Actions run IDs: Build31/run39514971137 SUCCESS, source dc73a84887e60d4e3b7911b1e46ed64ab4a764b9. New combined run pending dispatch.
-- Build results: New batch locally verified; Apple compile/link pending. Use [ios-build] [ios-p1-test] on the final batch commit: only P1 switches to solo-test; P2 remains its standard app.
+- Latest source commit: 1f04dd8f0117b91c0e5cc6e80cd61384943603e9; local and remote matched after push. This report accompanies a skip-ci documentation checkpoint.
+- Commits created: 90785c36d4fa335ddd061e80f6be5d4a43398752 (P2 opening audio cleanup); 1f04dd8f0117b91c0e5cc6e80cd61384943603e9 (P1 test app/presets and combined workflow), both pushed together.
+- Changes pushed: P1 solo-test isolation/presets and P2 opening category cleanup, tests/workflow/docs. Previous Build31 source dc73a84887e60d4e3b7911b1e46ed64ab4a764b9 already pushed.
+- Uncommitted changes: No source changes; this dispatched-build documentation checkpoint is being saved with skip ci.
+- GitHub Actions run IDs: Build31/run39514971137 SUCCESS, source dc73a84887e60d4e3b7911b1e46ed64ab4a764b9. New combined Build32/run39518825366, source 1f04dd8f0117b91c0e5cc6e80cd61384943603e9, observed queued: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39518825366
+- Build results: New batch locally verified; Apple compile/link pending. Dispatched with [ios-build] [ios-p1-test]: only P1 switches to solo-test; P2 remains its standard app.
 - Artifacts produced: No new batch IPA. Build31 P2 IPA verified/staged in folder1, hash3ef2e4c9513821f3504efe1afd5250bb568d0c9c32f8300cab4e6f96f9c71028. Its audio remains partial as described above.
 
 ### Next steps
 
 - Next Pikmin 1 task: After successful CI, verify test IPA bundle identity/device architecture, stage it clearly apart from regular apps, install as a new app. Prepare only its assets/art/Load locally; do not copy a real save. Run area/combat/part/sunset/save-reload checks in A; real final-boss/last-delivery/ending in B. Record untested portions honestly.
 - Next Pikmin 2 task: After successful CI, update existing P2 with the same identity; check Pikmin calls/attacks/carrying/plucking and enemy attacks/damage/death after normal opening and skipped opening. Retest wind and near/far ship/Louie effects; collect updated report over USB.
-- GitHub/build task: Commit/push one combined batch, record exact run ID and source. Do not idle-poll GitHub; user reports completion.
+- GitHub/build task: Build32/run39518825366 dispatched and recorded. Do not idle-poll GitHub; user reports completion.
 - Anything requiring my involvement: None during compilation. Phone report collection finished; user explicitly told they can close P2 and disconnect. Tell user when phone is needed and explicitly release it after collection. Sound the requested notification when a new phone test is ready.
 
 ### ChatGPT continuation notes
@@ -56,7 +56,7 @@
 - Relevant logs: workspace work/p2-audio-clips/phone/p2-audio-report.txt, copied to Documents/Open Nectar/2 - Progress and ChatGPT Handoff/Pikmin 2 - Audio Evidence - 2026-10-20/Build 31 - Audio Report.txt; SHA256 a61ffb03cbab4a372d7a1beff016db0ef7fe072a4819e60fcdd261b87a004f88. Build31 full job log work/build31-job.log. No phone writes performed during report collection.
 - Unverified fixes: P1 test-app full Apple compilation and runtime isolation/scenarios; P2 audible effects after cleanup; exact category disabled-bit observation (new counter added). Do not call either campaign fully playable from host tests.
 - Risks and warnings: Preserve16-byte new alignment, native allocator scopes and working SDL display framebuffer. No private assets/saves in GitHub. Keep distinct Sideloadly bundle IDs; never replace P1 with test app or import its real save. Artificial29-part fixture cannot certify earlier progression/unlock logic. Full game playthrough remains useful later.
-- Exact next actions: Finish combined build dispatch/checkpoint; stop consuming usage while CI runs. When user reports completion, retrieve both jobs/logs/artifacts, verify identities and stage both IPAs. Then perform short P2 audio and separate P1 readiness phone tests with USB evidence collection.
+- Exact next actions: Build32 is dispatched; stop consuming usage while CI runs. When user reports completion, retrieve both jobs/logs/artifacts, verify identities and stage both IPAs. Then perform short P2 audio and separate P1 readiness phone tests with USB evidence collection.
 
 **END PROGRESS REPORT**
 
