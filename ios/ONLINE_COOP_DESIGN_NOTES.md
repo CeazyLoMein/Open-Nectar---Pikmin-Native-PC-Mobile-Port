@@ -1,3 +1,15 @@
+## Current user authorization - 2026-10-20 20:43 EDT
+
+After the free-profile fourth-app install failed, the user explicitly authorized
+backing up current working P1 and putting the solo experiment into that app as an
+update. This supersedes the separate-app requirement for this test. Existing game
+settings should be preserved. No purchase or KartPad removal requested.
+Verified rollback IPA and six current phone settings/layout/save files are in
+folder5; no phone writes performed. New solo-update source retains the original
+app identity/assets/settings with separate save-solo-test cards. All new slots
+use the familiar-area fixture; finale preset disabled and final area not unlocked.
+New Apple build/installation/runtime tests pending; online code remains unstarted.
+
 # Future online co-op - agreed design notes
 
 Updated 2026-10-20 14:31 EDT. Design discussion only; no online implementation started.

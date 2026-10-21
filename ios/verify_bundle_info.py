@@ -6,7 +6,7 @@ import re
 
 
 def validate(plist_path, game, require_binary=False, variant="standard"):
-    if variant not in ("standard", "solo-test") or (variant == "solo-test" and game != "pikmin1"):
+    if variant not in ("standard", "solo-test", "solo-update") or (variant != "standard" and game != "pikmin1"):
         raise ValueError("Unsupported game/variant")
     with Path(plist_path).open('rb') as stream:
         info = plistlib.load(stream)
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     parser.add_argument('plist', type=Path)
     parser.add_argument('--game', required=True, choices=['pikmin1', 'pikmin2'])
     parser.add_argument('--require-binary', action='store_true')
-    parser.add_argument('--variant', choices=['standard', 'solo-test'], default='standard')
+    parser.add_argument('--variant', choices=['standard', 'solo-test', 'solo-update'], default='standard')
     args = parser.parse_args()
     try:
         info = validate(args.plist, args.game, args.require_binary, args.variant)

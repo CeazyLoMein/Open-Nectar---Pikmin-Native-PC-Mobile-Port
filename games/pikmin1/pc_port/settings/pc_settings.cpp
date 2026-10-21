@@ -5086,7 +5086,9 @@ void pc_newgame_prompt_draw(void) {
 
     drawPikminPanel(gfx, panelX, panelY, panelW, panelH, 22);
     const bool randomizer = pc_randomizer_menu_pending();
-#if NECTAR_P1_SOLO_TEST
+#if NECTAR_P1_SOLO_UPDATE
+    drawPikminHeader(gfx, panelX, panelY, panelW, "Solo systems test (no finale)");
+#elif NECTAR_P1_SOLO_TEST
     drawPikminHeader(gfx, panelX, panelY, panelW, "Solo Test: A/C areas, B finale");
 #else
     drawPikminHeader(gfx, panelX, panelY, panelW, randomizer ? "New Randomizer Game" : "New Game");

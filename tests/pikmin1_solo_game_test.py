@@ -35,6 +35,7 @@ struct PlayerState {
  void setDisplayPikiCount(int c) { mDisplayPikiFlag |= 1<<c; }
 };
 struct PikiInfMgr { int mPikiCounts[PikiColorCount][PikiHappaCount]{}; };
+struct TestPlayState { unsigned flags=0; void openStage(int id){flags|=1u<<id;} };
 #include "pc_solo_test_game.h"
 int checks=0,failed=0;
 void check(bool ok,const char* name){++checks;if(!ok){++failed;std::printf("FAIL %s\n",name);}}
@@ -47,11 +48,21 @@ int main(){
  auto kept=nectar_ios::apply_pikmin1_solo_test_profile(custom);
  check(!kept.changed&&kept.text==custom,"existing custom test settings preserved");
 #if NECTAR_P1_SOLO_TEST
+ TestPlayState play;pc_solo_test_unlock_areas(play);
+#if NECTAR_P1_SOLO_UPDATE
+ check(play.flags==15,"update unlocks four earlier areas, finale left closed");
+#else
+ check(play.flags==31,"separate test has five selectable areas");
+#endif
  std::remove("p1-solo-test-events.txt");
  for(int slot=0;slot<3;++slot){
   PlayerState p;PikiInfMgr b;
   pc_solo_test_prepare_new_campaign(p,b,slot);
+#if NECTAR_P1_SOLO_UPDATE
+  const bool finale=false;
+#else
   const bool finale=slot==1;
+#endif
   check(p.mCurrParts==(finale?29:1),"part count");
   check(p.mRequiredUfoPartCount==(finale?25:1),"required count");
   check(p.mUfoParts[UFO_SecretSafe].mPartVisType==0,"Secret Safe remains real pickup");

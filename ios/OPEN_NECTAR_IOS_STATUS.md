@@ -1,3 +1,8 @@
+CURRENT - 2026-10-20 20:43 EDT: P1 current-app test update authorized; verified rollback
+IPA/settings/layout/save backup completed first. New solo-update source locally
+PASS, Apple build pending. Reuses assets/settings, separate test cards, no finale.
+P2 unchanged; Build32 audio phone result pending. No phone writes or new install.
+
 CURRENT - 2026-10-20 20:26 EDT: Build32 BOTH PASSED, run39518825366, source1f04dd8f.
 P1 Solo Test and P2 IPAs verified/staged in folder1; neither new app phone test confirmed.
 Original P1 untouched; finale deferred. Next: P2 audio retest, separate P1 install

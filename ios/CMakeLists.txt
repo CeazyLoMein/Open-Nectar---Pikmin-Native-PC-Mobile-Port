@@ -102,11 +102,16 @@ elseif(NECTAR_IOS_GAME STREQUAL "pikmin2")
     target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE "-framework UniformTypeIdentifiers")
 endif()
 
-if(NECTAR_IOS_VARIANT STREQUAL "solo-test")
+if(NOT NECTAR_IOS_VARIANT STREQUAL "standard")
     # Test code is absent from ordinary P1 and every P2 build.
     target_compile_definitions(nectar_ios_storage PRIVATE NECTAR_P1_SOLO_TEST=1)
     target_compile_definitions(${NECTAR_GAME_TARGET} PRIVATE NECTAR_P1_SOLO_TEST=1)
     target_compile_definitions(pikmin_legacy PRIVATE NECTAR_P1_SOLO_TEST=1)
+    if(NECTAR_IOS_VARIANT STREQUAL "solo-update")
+        target_compile_definitions(nectar_ios_storage PRIVATE NECTAR_P1_SOLO_UPDATE=1)
+        target_compile_definitions(${NECTAR_GAME_TARGET} PRIVATE NECTAR_P1_SOLO_UPDATE=1)
+        target_compile_definitions(pikmin_legacy PRIVATE NECTAR_P1_SOLO_UPDATE=1)
+    endif()
 endif()
 
 target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE nectar_ios_storage)

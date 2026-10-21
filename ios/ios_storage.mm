@@ -5,6 +5,7 @@
 #include "pikmin1_ios_profile.h"
 #if NECTAR_P1_SOLO_TEST
 #include "pikmin1_solo_test_profile.h"
+#include "pikmin1_solo_app_policy.h"
 #endif
 #if NECTAR_IOS_P2_FEATURES
 #include "pikmin2_ios_profile.h"
@@ -94,14 +95,18 @@ extern "C" int nectar_ios_prepare_storage(const char* game)
         NSString* gameName = [NSString stringWithUTF8String:game];
         NSString* storageName = gameName;
 #if NECTAR_P1_SOLO_TEST
-        // Signing must retain the separate test identity. This guard also
-        // prevents test setup from running under a regular app identity.
-        if (![gameName isEqualToString:@"pikmin1"] ||
-            ![[NSBundle mainBundle].bundleIdentifier isEqualToString:@"org.opennectar.experimental.pikmin1.solotest"]) {
+#if NECTAR_P1_SOLO_UPDATE
+        constexpr bool updateExisting=true;
+#else
+        constexpr bool updateExisting=false;
+#endif
+        const char* actualID=[NSBundle mainBundle].bundleIdentifier.UTF8String;
+        if (![gameName isEqualToString:@"pikmin1"] || !actualID ||
+            !nectar_ios::solo_bundle_matches(actualID, nectar_ios::solo_bundle_id(updateExisting))) {
             fprintf(stderr, "[P1 Solo Test] Wrong bundle identity; storage preparation refused.\n");
             return 0;
         }
-        storageName = @"pikmin1-solo-test";
+        storageName = [NSString stringWithUTF8String:nectar_ios::solo_storage_name(updateExisting)];
 #endif
         NSString* directory = [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"]
                                   stringByAppendingPathComponent:storageName];
@@ -119,17 +124,16 @@ extern "C" int nectar_ios_prepare_storage(const char* game)
         }
 #if NECTAR_P1_SOLO_TEST
         // Pin cards inside the disposable root; bypass desktop legacy-card discovery.
-        NSString* cardRoot = [directory stringByAppendingPathComponent:@"save"];
+        NSString* cardRoot = [directory stringByAppendingPathComponent:
+            [NSString stringWithUTF8String:nectar_ios::solo_card_directory(updateExisting)]];
         if (setenv("NECTAR_SAVE_DIR", cardRoot.fileSystemRepresentation, 1) != 0) return 0;
         NSString* notice = [directory stringByAppendingPathComponent:@"P1 SOLO TEST - READ ME.txt"];
         if (![[NSFileManager defaultManager] fileExistsAtPath:notice]) {
-            [@"P1 Solo Test: separate disposable app. Do not import a real save.\n"
-              "Start a NEW Normal/Standard story: slot A or C = areas and systems; slot B = 29-part finale preset.\n"
-              "All areas are selectable; 100 leaf Pikmin per Onion are supplied once per new test file.\n"
-              "Slot B leaves the real final boss, Secret Safe delivery and ending to play normally.\n"
-              "Save normally at sunset and reload: stocks must not reset on reload.\n"
-              "Test-only setup is not evidence of normal unlock progression or full campaign completion.\n"
-              "Assets/art/Load must be copied locally into this test folder. Keep the original app alone.\n"
+            [@"P1 solo systems test. Normal/Standard new files supply Day2, the engine and 100 leaf Pikmin per Onion.\n"
+              "The update uses existing assets/settings with a separate save-solo-test card folder.\n"
+              "Use familiar earlier areas. Final boss/ending testing is deferred to preserve your surprise.\n"
+              "End the day, save normally, reload and compare inventory: no new-file refills should occur.\n"
+              "Artificial presets do not verify normal unlock progression or full campaign completion.\n"
               writeToFile:notice atomically:YES encoding:NSUTF8StringEncoding error:nil];
         }
 #endif

@@ -3,7 +3,8 @@ name: Experimental native iOS game build (unsigned)
 # A workflow_dispatch workflow must exist on the default branch to be run manually
 # in GitHub's UI. This candidate is intentionally on ios-experimental instead.
 # To enable controlled runs without changing main, use the commit marker [ios-build].
-# Add [ios-p2-only] for a P2-only correction; ordinary marked pushes build both.
+# Add [ios-p2-only] for P2 only; [ios-p1-update] builds only P1's test update.
+# [ios-p1-test] selects the separate P1 test app. Other marked pushes build both.
 on:
   push:
     branches:
@@ -18,7 +19,7 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        game: ${{ contains(github.event.head_commit.message, '[ios-p2-only]') && fromJSON('["pikmin2"]') || fromJSON('["pikmin1","pikmin2"]') }}
+        game: ${{ contains(github.event.head_commit.message, '[ios-p1-update]') && fromJSON('["pikmin1"]') || contains(github.event.head_commit.message, '[ios-p2-only]') && fromJSON('["pikmin2"]') || fromJSON('["pikmin1","pikmin2"]') }}
     # Build12 never acquired an ARM host because of GitHub capacity. Xcode
     # cross-compiles the same iphoneos ARM64 target on this standard Intel host.
     runs-on: macos-15-intel
@@ -27,7 +28,7 @@ jobs:
       contents: read
     env:
       GAME: ${{ matrix.game }}
-      IOS_VARIANT: ${{ matrix.game == 'pikmin1' && contains(github.event.head_commit.message, '[ios-p1-test]') && 'solo-test' || 'standard' }}
+      IOS_VARIANT: ${{ matrix.game == 'pikmin1' && (contains(github.event.head_commit.message, '[ios-p1-update]') && 'solo-update' || contains(github.event.head_commit.message, '[ios-p1-test]') && 'solo-test') || 'standard' }}
     steps:
       - uses: actions/checkout@v4
       - name: Tool versions
@@ -146,6 +147,10 @@ jobs:
           ROOT="$GITHUB_WORKSPACE"
           python3 tests/pikmin1_solo_app_test.py --cmake "$(command -v cmake)"
           python3 tests/pikmin1_solo_game_test.py "$RUNNER_TEMP/p1-solo-game-test.cpp"
+          c++ -std=c++17 -Wall -Wextra -Werror -I"$ROOT/ios" "$ROOT/tests/pikmin1_solo_app_policy_test.cpp" -o "$RUNNER_TEMP/p1-solo-policy-test"
+          "$RUNNER_TEMP/p1-solo-policy-test"
+          c++ -std=c++17 -Wall -Wextra -Werror -DNECTAR_P1_SOLO_TEST=1 -DNECTAR_P1_SOLO_UPDATE=1 -I"$ROOT/games/pikmin1/pc_port" "$RUNNER_TEMP/p1-solo-game-test.cpp" -o "$RUNNER_TEMP/p1-solo-update-test"
+          (cd "$RUNNER_TEMP" && ./p1-solo-update-test)
           c++ -std=c++17 -Wall -Wextra -Werror -DNECTAR_P1_SOLO_TEST=1 -I"$ROOT/games/pikmin1/pc_port" "$RUNNER_TEMP/p1-solo-game-test.cpp" -o "$RUNNER_TEMP/p1-solo-game-test"
           (cd "$RUNNER_TEMP" && ./p1-solo-game-test)
           c++ -std=c++17 -Wall -Wextra -Werror -I"$ROOT/games/pikmin1/pc_port" "$RUNNER_TEMP/p1-solo-game-test.cpp" -o "$RUNNER_TEMP/p1-solo-standard-test"
@@ -231,7 +236,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: nectar-${{ env.GAME }}-${{ env.IOS_VARIANT == 'solo-test' && 'solo-test' || 'experimental' }}
+          name: nectar-${{ env.GAME }}-${{ env.IOS_VARIANT != 'standard' && env.IOS_VARIANT || 'experimental' }}
           path: |
             ios-build.log
             ios-build-errors.md

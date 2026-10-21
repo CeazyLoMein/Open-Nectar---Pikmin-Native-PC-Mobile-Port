@@ -547,7 +547,8 @@ struct CardSelectSetupSection : public Node {
 							pc_randomizer_begin_new_run();
 #if NECTAR_P1_SOLO_TEST
 							pc_solo_test_prepare_new_campaign(*playerState, pikiInfMgr, gameflow.mGamePrefs.mMostRecentFileSlot);
-							pc_tutorial_skip_clear_pending();
+							pc_solo_test_unlock_areas(gameflow.mPlayState);
+                            pc_tutorial_skip_clear_pending();
 							gameflow.mWorldClock.mCurrentDay = 2;
 							gameflow.mPlayState.mSavedDay = 2;
 							gameflow.mPlayState.mShipPartsCount = playerState->mCurrParts;
@@ -573,7 +574,8 @@ struct CardSelectSetupSection : public Node {
 						pc_randomizer_begin_new_run();
 #if NECTAR_P1_SOLO_TEST
 						pc_solo_test_prepare_new_campaign(*playerState, pikiInfMgr, gameflow.mGamePrefs.mMostRecentFileSlot);
-						pc_tutorial_skip_clear_pending();
+						pc_solo_test_unlock_areas(gameflow.mPlayState);
+                            pc_tutorial_skip_clear_pending();
 						gameflow.mWorldClock.mCurrentDay = 2;
 						gameflow.mPlayState.mSavedDay = 2;
 						gameflow.mPlayState.mShipPartsCount = playerState->mCurrParts;

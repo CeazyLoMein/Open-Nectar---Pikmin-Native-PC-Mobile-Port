@@ -5,7 +5,12 @@
 // Do not call on load, stage entry or day transitions: no inventory refills.
 inline void pc_solo_test_prepare_new_campaign(PlayerState& state, PikiInfMgr& bank, int slot) {
     if (state.mTotalParts != UFO_COUNT || !state.mUfoParts) return;
+#if NECTAR_P1_SOLO_UPDATE
+    // Every update slot uses the familiar-area fixture; no accidental finale.
+    const bool finale = false;
+#else
     const bool finale = slot == 1;
+#endif
     for (int i=0; i<UFO_COUNT; ++i)
         state.mUfoParts[i].mPartVisType = (finale ? i != UFO_SecretSafe : i == UFO_MainEngine)
             ? (finale ? PARTVIS_Visible : PARTVIS_Invisible) : PARTVIS_Uncollected;
@@ -34,5 +39,15 @@ inline void pc_solo_test_prepare_new_campaign(PlayerState& state, PikiInfMgr& ba
     state.mPartsCollectedByDay[0]=state.mCurrParts;
     // Setup is explicitly logged, never counted as collected-in-game evidence.
     pc_solo_test::record("preset_new_file_slot_parts", slot, state.mCurrParts, 100, 100);
+}
+// Unlock in the disposable campaign state, not in the user's settings file.
+template<class PlayStateType>
+inline void pc_solo_test_unlock_areas(PlayStateType& play) {
+#if NECTAR_P1_SOLO_UPDATE
+    const int end=STAGE_Last; // finale deferred for this user's test
+#else
+    const int end=STAGE_COUNT;
+#endif
+    for(int stage=STAGE_START;stage<end;++stage) play.openStage(stage);
 }
 #endif
