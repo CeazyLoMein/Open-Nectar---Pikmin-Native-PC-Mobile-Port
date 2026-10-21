@@ -19,7 +19,7 @@ test app but is optional and must not be selected for this user's short test.
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-20 20:43 EDT
+**Date/time:** 2026-10-20 20:44 EDT
 
 **Overall project status:** Both Build32 jobs passed and IPAs were verified/staged. Separate P1 test installation was rejected by the phone's free-profile three-app limit (P1/P2/KartPad already installed). The user now explicitly authorizes putting the solo-readiness experiment into the current P1 app after a rollback backup, prioritizing current settings. This overrides the earlier separate-app requirement for this experiment. No purchase, KartPad removal, account change or LiveContainer installation was performed. Verified backup completed BEFORE source modification; new P1-only update source is implemented and locally checked, Apple build pending. No co-op networking code started.
 
@@ -52,19 +52,19 @@ test app but is optional and must not be selected for this user's short test.
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental
 - Starting commit: d9ede6a5882d1a22dd912247998ef943dc857ca4, local/remote clean and fetched before edits.
-- Latest commit: New source batch being committed; exact hash/run will be recorded after push.
-- Commits created: Pending source checkpoint.
-- Changes pushed: No new batch pushed yet. New [ios-p1-update] marker selects P1-only matrix/solo-update variant; regular P2 is excluded from this run.
-- Uncommitted changes: Scoped P1 source/tests/workflow and these journals; no unrelated user changes found.
-- GitHub Actions run IDs: Build32/run39518825366/source1f04dd8f0117b91c0e5cc6e80cd61384943603e9 BOTH SUCCESS. New P1 update run pending dispatch.
+- Latest source commit: 8e8138684fd5e36595a89058d090240217fe66ae, committed and pushed. This dispatch report accompanies a skip-ci documentation checkpoint.
+- Commits created: 8e8138684fd5e36595a89058d090240217fe66ae (P1 test update, signed-ID/storage policy and regression checks).
+- Changes pushed: Scoped P1 solo-update source, policy/tests, workflow and journals. New [ios-p1-update] marker selects P1-only matrix/solo-update variant; regular P2 is excluded from this run.
+- Uncommitted changes: No source changes; dispatch documentation checkpoint being saved with skip ci.
+- GitHub Actions run IDs: Build32/run39518825366/source1f04dd8f0117b91c0e5cc6e80cd61384943603e9 BOTH SUCCESS. New P1-only Build33/run39523034602, source 8e8138684fd5e36595a89058d090240217fe66ae, observed in_progress: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39523034602
 - Build results: New source locally checked, full Apple build pending. Build32 separate test compile success does not validate the changed update identity/storage path.
 - Artifacts produced: No new update IPA yet. Old Build32 P1 solo-test IPA must NOT be used for this in-place update. Working Build16 restore IPA and exact settings/layout backup are ready in folder5.
 
 ### Next steps
 
-- Next Pikmin 1 task: Commit/push one P1-only update build. After success inspect IPA original bundle/executable identity, iPhone target and update/test-save marker; stage clearly in folder1. Install over current P1 with same Apple account/identity, never delete app. Verify current settings/Load content, new test card and slot fixtures. Retain rollback package.
+- Next Pikmin 1 task: P1-only Build33 dispatched. After success inspect IPA original bundle/executable identity, iPhone target and update/test-save marker; stage clearly in folder1. Install over current P1 with same Apple account/identity, never delete app. Verify current settings/Load content, new test card and slot fixtures. Retain rollback package.
 - Next Pikmin 2 task: User can update existing P2 with verified Build32 (does not need a fourth slot), perform effects/proximity test and connect for report retrieval afterward.
-- GitHub/build task: Record new exact source/run, then stop consuming usage while GitHub runs. No idle polling or redundant P2 run.
+- GitHub/build task: Build33/run39523034602 dispatched with source8e813868. Stop consuming usage while GitHub runs; user reports completion. No idle polling or redundant P2 run.
 - Anything requiring my involvement: None during build. P1 backup collection finished; user told they can close P1/disconnect. New IPA installation and short phone test are needed after successful build. Explicitly release phone after any future collection.
 
 ### ChatGPT continuation notes
@@ -75,7 +75,7 @@ test app but is optional and must not be selected for this user's short test.
 - Relevant logs: workspace work/p1-before-update-backup.json (private actual ID and config); folder5 BACKUP MANIFEST.json/HOW TO RESTORE.txt. Prior Build32 logs/verification in work/build32-*. No private backup contents uploaded to GitHub.
 - Unverified fixes: New full Apple compilation, in-place installation behavior, actual settings/content retention and test save/reload on phone. No claim of campaign completeness from host fixture tests.
 - Risks and warnings: Same Apple account and original bundle identity required for update/rollback. Keep saved Build16 IPA and phone settings backup. Never delete current P1 or touch KartPad/P2 to install this update. Preserve working SDL framebuffer/native allocator fixes. Final boss/ending remain untested by choice.
-- Exact next actions: Dispatch P1-only update; record source/run; wait for user completion report. Then verify/stage IPA and guide in-place signing. Read back settings/layout hashes before/after install with P1 closed where practical; restore verified backup only if an actual change needs rollback. User performs spoiler-free systems checks using new test card.
+- Exact next actions: Build33 is dispatched and source/run recorded. Wait for user completion report. Then verify/stage IPA and guide in-place signing. Read back settings/layout hashes before/after install with P1 closed where practical; restore verified backup only if an actual change needs rollback. User performs spoiler-free systems checks using new test card.
 
 **END PROGRESS REPORT**
 

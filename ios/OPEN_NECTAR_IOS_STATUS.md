@@ -1,3 +1,9 @@
+CURRENT - 2026-10-20 20:44 EDT: P1-only Build33 dispatched, run39523034602,
+source8e8138684fd5e36595a89058d090240217fe66ae, observedin_progress.
+Verified rollback backup ready; current-app test update uses preserved settings/
+assets and separate test saves, no finale preset. New Apple/IPA/phone tests pending.
+User can disconnect. No idle polling; next inspect once user reports completion.
+
 CURRENT - 2026-10-20 20:43 EDT: P1 current-app test update authorized; verified rollback
 IPA/settings/layout/save backup completed first. New solo-update source locally
 PASS, Apple build pending. Reuses assets/settings, separate test cards, no finale.
