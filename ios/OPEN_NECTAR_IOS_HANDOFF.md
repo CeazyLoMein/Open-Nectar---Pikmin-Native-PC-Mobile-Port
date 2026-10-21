@@ -4,7 +4,7 @@
 
 **Date/time:** 2026-10-21 00:40 EDT
 
-**Overall project status:** Build33 installed and user tested. Real part/day-end card write and Day3 reload supported by read-only phone event journal. User reports most other behavior consistent, but charge recall, manual cursor release, clam cutscene and large-group ledges need fixes. Coordinated P1 source changes implemented and locally checked; new standard-campaign Apple build not dispatched at this checkpoint. User explicitly approves updating original P1 on a new normal save, then beginning co-op prototype; normal saving retained now. Exact-scene snapshot system will serve both solo autosaves/co-op later. P2 working user baseline retained.
+**Overall project status:** Build33 installed and user tested. Real part/day-end card write and Day3 reload supported by read-only phone event journal. User reports most other behavior consistent, but charge recall, manual cursor release, clam cutscene and large-group ledges need fixes. Coordinated P1 source changes implemented and locally checked; P1-only normal-campaign Build34/run39545404613 dispatched, last observed in_progress; Apple result/IPA/phone tests pending. User explicitly approves updating original P1 on a new normal save, then beginning co-op prototype; normal saving retained now. Exact-scene snapshot system will serve both solo autosaves/co-op later. P2 working user baseline retained.
 
 ### Pikmin 1
 
@@ -31,16 +31,17 @@
 
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; branch ios-experimental.
 - Starting local/remote:80e3f2b6b1bfae4980b57acdbfa6abcea3a1b1e2, clean before work and origin unchanged when refetched.
-- Latest source: current batch locally implemented, commit/push pending at this report. Exact created commits/final local+remote/run ID will be recorded in work/p1-runtime-batch-state.json and friendly P1 Runtime Fixes - Checkpoint.json.
+- Latest source: ff57b9ffc71b9fcd87c444630b2454bcbe4e4110, committed/pushed; includes upstream RNG commit baa8af2b83b33e36199a6785df652133ce5da65f. Working tree clean after source push. This dispatch checkpoint is a documentation-only skip-ci commit; final local/remote HEAD is recorded in work/p1-runtime-batch-state.json and friendly P1 Runtime Fixes - Checkpoint.json.
 - Changes: scoped P1 fixes/tests plus documented upstream RNG backport; no history rewrite/main merge/broad upstream merge. Upstream fetched70c5c938 (tag1.0.6). Working iOS framebuffer/allocator/presentation/settings/content roots preserved. Only one P1-standard build intended; no P2 rebuild.
+- Current Actions: Build34/run39545404613/sourceff57b9ff, observedin_progress, P1-only standard. https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39545404613
 - Prior Actions: Build33/run39523034602/source8e8138684fd5e36595a89058d090240217fe66ae SUCCESS (synthetic original-ID test app); Build32/run39518825366/source1f04dd8f0117b91c0e5cc6e80cd61384943603e9 BOTH SUCCESS.
 - Artifacts: No new normal-campaign IPA yet. Build33 restore SHA256 c04abe4dad2a9ecfada89ddfa53e24aa40c6a272696df1d6dd45bdc32fd7916b. Normal new build must omit synthetic preset/save-solo-test/solo-event markers and keep original identity. Do not install an artifact merely because its filename is P1.
 
 ### Next steps
 
-- P1: Commit/push one normal P1-only build, inspect Apple result/IPA when user reports completion, stage clearly in folder1 and follow PIKMIN1_NORMAL_CAMPAIGN_FIXES_TEST.md. New Normal/Standard file in empty original slot; old Build33 test save remains separate. First test at100% speed then repeat at user's200% choice. Check fresh intro/ordinary skip, textures/layout, Aim/Soft Assist/manual release, charge-whistle before enemy dies, clams with throws, recall, terrain edges and real day-end save/reload.
+- P1: Build34 is dispatched; inspect Apple result/IPA when user reports completion, stage clearly in folder1 and follow PIKMIN1_NORMAL_CAMPAIGN_FIXES_TEST.md. New Normal/Standard file in empty original slot; old Build33 test save remains separate. First test at100% speed then repeat at user's200% choice. Check fresh intro/ordinary skip, textures/layout, Aim/Soft Assist/manual release, charge-whistle before enemy dies, clams with throws, recall, terrain edges and real day-end save/reload.
 - P2: Keep working build. After P1 readiness/prototype work, adopt justified upstream batch and perform stronger area/cave/audio/save stress sample before co-op.
-- Build: Record dispatched source/run, stop consuming usage while CI runs; user will report completion. No idle polling.
+- Build: Source/run recorded; stop consuming usage while CI runs. User reports completion; no idle polling. The next IPA must be verified as original-ID STANDARD campaign with no synthetic preset/test-card/event markers before staging.
 - User involvement: None during CI. Phone can disconnect. Install and runtime checks required after IPA verification; no need to leave game running.
 
 ### ChatGPT continuation notes

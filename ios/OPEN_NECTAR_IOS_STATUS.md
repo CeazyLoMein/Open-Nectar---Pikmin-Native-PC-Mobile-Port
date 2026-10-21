@@ -1,3 +1,5 @@
+CURRENT - 2026-10-21 00:42 EDT: P1-only normal-campaign Build34/run39545404613 DISPATCHED, sourceff57b9ffc71b9fcd87c444630b2454bcbe4e4110, observedin_progress. Includes baa8af2b upstream RNG correction and locally checked command/aim/recall/edge batch. Apple/IPA/phone results pending. No new autosave/networking feature enabled. Phone may disconnect. No idle polling.
+
 CURRENT - 2026-10-21 00:40 EDT: Build33 phone test/save evidence collected. P1 charge/whistle/cursor, Aim/Soft Assist, recall and bounded ledge fixes implemented/local PASS60+58+58+7+27 checks; P2 shared menus188/198 PASS. Standard P1-only Apple build pending dispatch. Normal saving retained; shared exact-scene snapshot/co-op plan recorded. Upstream1.0.6 audited, isolated RNG fix adopted. Phone released; no phone writes.
 
 CURRENT - 2026-10-20 21:15 EDT: P1-only Build33/run39523034602/source8e813868 SUCCESS. Original-ID solo-update IPA verified/staged; SHA256 c04abe4dad2a9ecfada89ddfa53e24aa40c6a272696df1d6dd45bdc32fd7916b.
