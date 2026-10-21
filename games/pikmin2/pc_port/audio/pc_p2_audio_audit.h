@@ -19,7 +19,7 @@ enum class Event { CreatureRequest, Culled, SceneBlocked, Submitted, Started };
 enum class BankResult { Played, MissingBank, MissingInstrument, NoKeyRegion,
                         MissingWaveBank, MissingWave, MissingInfo, MissingData, NoChannel, PlayFailed, Count };
 void event(std::uint32_t sound, Event kind);
-void distance(std::uint32_t sound, float dist, float gain, unsigned listener);
+void distance(std::uint32_t sound, float dist, float gain, unsigned listener, bool categoryMuted = false);
 void bank(BankResult result);
 void source(unsigned format);
 void render(const std::int16_t* samples, std::size_t frames, unsigned voices, std::uint32_t milliseconds);

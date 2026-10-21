@@ -1,3 +1,17 @@
+## Build31 phone follow-up - 2026-10-20 20:01 EDT
+
+User: winter/snow ambience now audible; Pikmin voices/attacks and Bulborb death
+effects still silent. USB report now exists and was retrieved without phone writes.
+Pikmin zero_gain1186/1186, last_dist88; enemy325/325, last_dist201. No recorded
+bank failures (combined bank counters cannot attribute a particular sound).
+Opening x01_gamestart disables precisely Pikmin/enemy categories; onMessageEnd
+restores them, but onDemoEnd previously did not. Missing message callback reproduces
+silence in9/36 local checks. Added native-only opening exit cleanup passes36/36.
+New category_muted_checks diagnostic will distinguish this suspected mute from
+other zero-gain causes. Bounded report checks now12 PASS. Hardware fix unverified.
+Evidence hash a61ffb03cbab4a372d7a1beff016db0ef7fe072a4819e60fcdd261b87a004f88; friendly folder2 has Build31 report copy.
+Phone collection is finished; user told they may close/disconnect.
+
 ## Build31 result - 2026-10-20 19:43 EDT
 
 Run39514971137/source dc73a84887e60d4e3b7911b1e46ed64ab4a764b9 SUCCESS.

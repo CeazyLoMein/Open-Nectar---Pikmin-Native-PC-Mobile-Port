@@ -557,8 +557,24 @@ void Demo::onDemoFadeoutStart(u32 flag)
  * @note Address: 0x80466B6C
  * @note Size: 0x664
  */
+// Native playback may skip the opening message callback. The cutscene owns
+// these two category mutes, so also release them on its normal/skip exit.
+// Other demos and their audio policy are deliberately untouched.
+#ifdef PIKI_PC_PORT
+static void pcRestoreOpeningSeCategories(const char* name)
+{
+    if (!name || strcmp(name, "x01_gamestart")) return;
+    auto* cat = PSSystem::SingletonBase<PSGame::SoundTable::CategoryMgr>::getInstance();
+    PSSystem::getSoundCategoryInfo(cat, PSGame::SoundTable::CategoryMgr::SoundCat5_Enemy)->mDisabled = false;
+    PSSystem::getSoundCategoryInfo(cat, PSGame::SoundTable::CategoryMgr::SoundCat2_Piki)->mDisabled = false;
+}
+#endif
+
 void Demo::onDemoEnd()
 {
+#ifdef PIKI_PC_PORT
+    pcRestoreOpeningSeCategories(mCurrentDemoName);
+#endif
 	becomeSceneCamera();
 
 	static_cast<PSM::Scene_Game*>(PSMGetChildScene())->pauseOff_Demo();

@@ -14,7 +14,7 @@ constexpr std::uint32_t kDuration = 10 * 60 * 1000;
 struct Slot {
     std::atomic<unsigned> events[kEvents]{};
     std::atomic<unsigned> lastId{0}, observations{0}, silent{0};
-    std::atomic<unsigned> lastDistance{0}, lastGain{0}, listener{0};
+    std::atomic<unsigned> lastDistance{0}, lastGain{0}, listener{0}, categoryMuted{0};
 };
 Slot slots[kSlots];
 std::atomic<unsigned> banks[static_cast<unsigned>(BankResult::Count)]{};
@@ -60,11 +60,12 @@ void event(std::uint32_t id, Event kind)
     const int extra=special(id);
     if(extra>=0) increment(static_cast<unsigned>(extra),id,kind);
 }
-void distance(std::uint32_t id,float dist,float gain,unsigned listener)
+void distance(std::uint32_t id,float dist,float gain,unsigned listener,bool categoryMuted)
 {
     const unsigned cat=(id>>12)&255u;
     if(!enabled() || cat>=6) return;
     observe(cat,id,dist,gain,listener);
+    if(categoryMuted) slots[cat].categoryMuted.fetch_add(1,std::memory_order_relaxed);
     const int extra=special(id);
     if(extra>=0) observe(static_cast<unsigned>(extra),id,dist,gain,listener);
 }
@@ -105,7 +106,7 @@ void render(const std::int16_t* samples,std::size_t frames,unsigned voices,std::
         std::fprintf(log,"seconds=%u voices=%u output_peak=%d\n",elapsed/1000,voices,peak);
         for(unsigned i=0;i<kSlots;++i){
             auto& s=slots[i];
-            std::fprintf(log,"%s id=%04x request=%u cull=%u gate=%u submitted=%u started=%u distance_checks=%u zero_gain=%u last_dist=%u last_gain_permil=%u listener=%u\n",names[i],s.lastId.load(),s.events[0].load(),s.events[1].load(),s.events[2].load(),s.events[3].load(),s.events[4].load(),s.observations.load(),s.silent.load(),s.lastDistance.load(),s.lastGain.load(),s.listener.load());
+            std::fprintf(log,"%s id=%04x request=%u cull=%u gate=%u submitted=%u started=%u distance_checks=%u zero_gain=%u last_dist=%u last_gain_permil=%u listener=%u category_muted_checks=%u\n",names[i],s.lastId.load(),s.events[0].load(),s.events[1].load(),s.events[2].load(),s.events[3].load(),s.events[4].load(),s.observations.load(),s.silent.load(),s.lastDistance.load(),s.lastGain.load(),s.listener.load(),s.categoryMuted.load());
         }
         std::fprintf(log,"bank results [played,bank,instrument,keyregion,wavebank,wave,info,data,channel,play_failed]:");
         for(auto& count:banks)std::fprintf(log," %u",count.load());

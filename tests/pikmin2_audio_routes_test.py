@@ -83,7 +83,7 @@ int main(){
  std::vector<std::thread> workers;
  for(int i=0;i<4;++i)workers.emplace_back([]{for(int j=0;j<1000;++j)event(0x2802,Event::CreatureRequest);});
  for(auto& t:workers)t.join();
- event(0x2802,Event::Submitted);event(0x2802,Event::Started);
+ event(0x2802,Event::Submitted);event(0x2802,Event::Started);distance(0x2802,88,0,1,true);
  event(0x402d,Event::Submitted);distance(0x402d,0,0,0);
  event(0x3043,Event::Submitted);distance(0x3043,3000,0,1);
  bank(BankResult::MissingData);source(9);
@@ -96,6 +96,7 @@ int main(){
  check(log.find("wind-402d id=402d")!=std::string::npos,"wind tracked separately from other environment sounds");
  check(log.find("ship-3043 id=3043")!=std::string::npos,"ship tracked separately");
  check(log.find("last_dist=3000 last_gain_permil=0 listener=1")!=std::string::npos,"distance, volume and Louie listener recorded");
+ check(log.find("category_muted_checks=1")!=std::string::npos,"category mute reason recorded");
  check(log.find("source_frames: 9=1")!=std::string::npos,"DSP source formats recorded");
  check(log.find("output_peak=1234")!=std::string::npos,"output peak recorded without audio dump");
  check(read("p2-audio-previous.txt")=="previous launch","previous launch log retained");
