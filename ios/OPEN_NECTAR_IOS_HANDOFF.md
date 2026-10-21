@@ -1,9 +1,9 @@
 <!-- P1_RECALL_SPEED_CURRENT -->
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-21 10:10 EDT
+**Date/time:** 2026-10-21 10:11 EDT
 
-**Overall project status:** User phone-tested Build35: Aim, Soft Assist, charge whistle and normal save/reload pass. P1 separate Recall All and Pikmin Speed implemented/local verified; P1-only standard build pending commit/push/dispatch. New Apple/IPA/runtime validation pending. P2 paused at working baseline.
+**Overall project status:** User phone-tested Build35: Aim, Soft Assist, charge whistle and normal save/reload pass. P1 separate Recall All and Pikmin Speed implemented/local verified; Build36/run39614665805, source472937e505eef2a14d00b0c923620dbaee4bd9cd, observed in_progress. New Apple/IPA/runtime validation pending. P2 paused at working baseline.
 
 ### Pikmin 1
 
@@ -30,10 +30,10 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental.
 - Starting commit: a7a12cffd437d09c7e13966a6fde054447331bc8; clean, remote fetched, no divergence.
-- Latest source/commit/build: P1-only standard build pending commit/push/dispatch.
+- Latest source/commit/build: Build36/run39614665805, source472937e505eef2a14d00b0c923620dbaee4bd9cd, observed in_progress.
 - Commits created / changes pushed: P1-only recall/speed batch; exact source and final documentation commit recorded after push.
 - Uncommitted changes: This batch while preparing; commit before ending and record final clean status.
-- GitHub Actions run IDs: Build35/run39548476790 SUCCESS, source01d7e7ed. Next: P1-only standard build pending commit/push/dispatch.
+- GitHub Actions run IDs: Build35/run39548476790 SUCCESS, source01d7e7ed. Next: Build36/run39614665805, source472937e505eef2a14d00b0c923620dbaee4bd9cd, observed in_progress.
 - Build results: Build35 Apple/IPA PASS and user representative phone tests now PASS. New batch Apple/IPA unverified.
 - Artifacts produced: No new IPA yet. Build35 original-ID IPA preserved; SHA256 eab4b43ccaeda4de25137e010342592a4e0fc6d2cd328be9b66d365d10e3cc89.
 

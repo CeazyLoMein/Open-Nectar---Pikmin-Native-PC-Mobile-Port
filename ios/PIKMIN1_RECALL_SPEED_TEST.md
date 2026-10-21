@@ -1,6 +1,6 @@
 # P1 next update — Separate Recall All and Pikmin Speed
 
-NOT READY TO INSTALL YET. P1-only standard build pending commit/push/dispatch. Codex must verify a successful IPA and stage it first. Keep phone-tested Build35 installed in the meantime. P2 is unchanged.
+NOT READY TO INSTALL YET. Build36/run39614665805, source472937e505eef2a14d00b0c923620dbaee4bd9cd, observed in_progress. Codex must verify a successful IPA and stage it first. Keep phone-tested Build35 installed in the meantime. P2 is unchanged.
 
 Build35 user feedback: Aim PASS, Soft Assist PASS, charge/whistle PASS, day-end save/reload PASS; global Recall functional but user wants a separate action. Rare clam cutscene UNTESTED. Better Pathfinding improved ordinary following, but raised crossing failures remain. New footage retained in folder2.
 

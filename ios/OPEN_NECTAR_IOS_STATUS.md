@@ -1,3 +1,5 @@
+CURRENT - 2026-10-21 10:11 EDT: Build35 phone Aim/SoftAssist/charge whistle/save-reload PASS; clam untested, raised crossing stranded followers persist. Separate recall button +Pikmin Speed localPASS82/283, Build36/run39614665805, source472937e505eef2a14d00b0c923620dbaee4bd9cd, observed in_progress. New Apple/IPA/phone pending; no stuck-rescue/teleport implementation; P2 paused.
+
 CURRENT - 2026-10-21 10:10 EDT: Build35 phone Aim/SoftAssist/charge whistle/save-reload PASS; clam untested, raised crossing stranded followers persist. Separate recall button +Pikmin Speed localPASS82/283, P1-only standard build pending commit/push/dispatch. New Apple/IPA/phone pending; no stuck-rescue/teleport implementation; P2 paused.
 
 CURRENT - 2026-10-21 01:43 EDT: P1 Build35/run39548476790 SUCCESS, source01d7e7ed18df04cb0856ae5cab77b6df62101e39. STANDARD original-ID ARM64 device IPA verified/staged in folder1; SHA256 eab4b43ccaeda4de25137e010342592a4e0fc6d2cd328be9b66d365d10e3cc89. Phone installation/runtime pending; P2 unchanged. No new build needed; await normal-save test feedback.
