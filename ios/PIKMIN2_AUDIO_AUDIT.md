@@ -1,3 +1,11 @@
+## Build32 result
+
+Both jobs PASSED; P2 artifact12309879326/job118957403187 verified/staged.
+Native ARM64 compile/link plus36 cleanup,12 audit,48 scalar,28 route checks passed.
+Both actual new operators retain16-byte alignment; category_muted_checks string
+present in app. Opening-cleanup audibility and report counters still need phone
+validation. Build31 snow restored; Pikmin/enemy silence is the last hardware result.
+
 ## Build31 phone follow-up - 2026-10-20 20:01 EDT
 
 User: winter/snow ambience now audible; Pikmin voices/attacks and Bulborb death

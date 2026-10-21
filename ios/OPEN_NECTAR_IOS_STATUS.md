@@ -1,3 +1,9 @@
+CURRENT - 2026-10-20 20:26 EDT: Build32 BOTH PASSED, run39518825366, source1f04dd8f.
+P1 Solo Test and P2 IPAs verified/staged in folder1; neither new app phone test confirmed.
+Original P1 untouched; finale deferred. Next: P2 audio retest, separate P1 install
+and private content preparation over USB, then spoiler-free A/C checks.
+No new build needed; see current master handoff and folder1 instructions.
+
 CURRENT - 2026-10-20 20:05 EDT: User requests spoiler-free P1 testing. Final boss/ending
 coverage deferred; not a prerequisite for separate co-op prototype. Use A/C and
 familiar earlier areas, avoid B/final area. Invincibility optional; skipped death/

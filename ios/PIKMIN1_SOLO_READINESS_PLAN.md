@@ -1,3 +1,10 @@
+## Build32 result
+
+Apple compile/link, packaging and preset/profile/isolation checks PASSED.
+Verified P1 Solo Test IPA staged in folder1/Pikmin 1 Solo Test - Build 32.
+Installation and private content preparation pending; use new slot A/C only.
+Finale deferred. No hardware/scenario success claimed.
+
 ## Latest user preference - preserve the finale surprise
 
 The user does not want the final boss identified, shown or required for this
