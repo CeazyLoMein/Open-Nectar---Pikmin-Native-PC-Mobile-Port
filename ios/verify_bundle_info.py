@@ -5,7 +5,9 @@ import plistlib
 import re
 
 
-def validate(plist_path, game, require_binary=False):
+def validate(plist_path, game, require_binary=False, variant="standard"):
+    if variant not in ("standard", "solo-test") or (variant == "solo-test" and game != "pikmin1"):
+        raise ValueError("Unsupported game/variant")
     with Path(plist_path).open('rb') as stream:
         info = plistlib.load(stream)
     expected = {
@@ -14,6 +16,10 @@ def validate(plist_path, game, require_binary=False):
         'CFBundleDisplayName': f'Open Nectar Pikmin {1 if game == "pikmin1" else 2}',
         'CFBundlePackageType': 'APPL',
     }
+    if variant == "solo-test":
+        expected.update(CFBundleExecutable="Nectar-pikmin1-solo-test",
+                        CFBundleIdentifier="org.opennectar.experimental.pikmin1.solotest",
+                        CFBundleDisplayName="P1 Solo Test")
     for key, value in expected.items():
         if info.get(key) != value:
             raise ValueError(f'{key}: expected {value!r}, got {info.get(key)!r}')
@@ -40,9 +46,10 @@ if __name__ == '__main__':
     parser.add_argument('plist', type=Path)
     parser.add_argument('--game', required=True, choices=['pikmin1', 'pikmin2'])
     parser.add_argument('--require-binary', action='store_true')
+    parser.add_argument('--variant', choices=['standard', 'solo-test'], default='standard')
     args = parser.parse_args()
     try:
-        info = validate(args.plist, args.game, args.require_binary)
+        info = validate(args.plist, args.game, args.require_binary, args.variant)
     except (ValueError, OSError, plistlib.InvalidFileException) as error:
         parser.exit(1, f'iOS bundle validation failed: {error}\n')
     print(f'Validated {args.game} metadata: {info["CFBundleExecutable"]}')

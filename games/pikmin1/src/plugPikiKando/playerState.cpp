@@ -1,4 +1,7 @@
 #include "PlayerState.h"
+#if NECTAR_P1_SOLO_TEST
+#include "pc_solo_test_log.h"
+#endif
 #include "AIConstant.h"
 #include "AIPerf.h"
 #include "DebugLog.h"
@@ -1222,6 +1225,9 @@ void PlayerState::getUfoParts(u32 partID, bool isInvisiblePart)
 		parts->mPartVisType = PARTVIS_Invisible;
 	}
 	mCurrParts++;
+#if NECTAR_P1_SOLO_TEST
+    pc_solo_test::record("part_collected_id_count_invisible", int(partID), mCurrParts, int(isInvisiblePart));
+#endif
 	BUGPRINT("ufo parts %d/%d", mRequiredUfoPartCount, mCurrParts);
 	for (int i = 0; i < 33; i++) {
 		PRINT("ufoPartsCount = %d\n", mCurrParts);

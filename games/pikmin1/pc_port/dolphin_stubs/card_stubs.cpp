@@ -1,5 +1,6 @@
 /** Native filesystem implementation of the GameCube memory-card API. */
 #include "Dolphin/card.h"
+#include "pc_solo_test_log.h"
 #include "dolphin_stubs/pc_card_paths.h"
 #include "Dolphin/dvd.h"
 #include "pc_speedrun.h"
@@ -505,6 +506,9 @@ s32 CARDRead(CARDFileInfo* info, void* address, s32 length, s32 offset)
 	input.seekg(offset);
 	if (!input.read(static_cast<char*>(address), length)) return finish(info->chan, CARD_RESULT_IOERROR);
 	info->offset = offset + length; sTransferred[info->chan] = length;
+#if NECTAR_P1_SOLO_TEST
+    pc_solo_test::record("card_read_channel_offset_bytes", info->chan, offset, length);
+#endif
 	return finish(info->chan, CARD_RESULT_READY);
 }
 s32 CARDReadAsync(CARDFileInfo* info, void* address, s32 length, s32 offset, CARDCallback callback)
@@ -520,6 +524,9 @@ s32 CARDWrite(CARDFileInfo* info, void* address, s32 length, s32 offset)
 	output.seekp(offset);
 	if (!output.write(static_cast<const char*>(address), length)) return finish(info->chan, CARD_RESULT_IOERROR);
 	output.flush();
+#if NECTAR_P1_SOLO_TEST
+    if (output) pc_solo_test::record("card_write_flushed_channel_offset_bytes", info->chan, offset, length);
+#endif
 	info->offset = offset + length; info->length = std::max(info->length, info->offset); sTransferred[info->chan] = length;
 	CARDStat stat = loadStat(info->chan, name); stat.length = info->length; stat.time = cardTimeNow(); saveStat(info->chan, name, stat);
 	return finish(info->chan, CARD_RESULT_READY);

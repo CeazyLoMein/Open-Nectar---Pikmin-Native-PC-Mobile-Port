@@ -13,6 +13,7 @@ if(NOT NECTAR_IOS_GAME STREQUAL "pikmin1" AND NOT NECTAR_IOS_GAME STREQUAL "pikm
     message(FATAL_ERROR "NECTAR_IOS_GAME must be pikmin1 or pikmin2")
 endif()
 set(NECTAR_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")
+include("${CMAKE_CURRENT_SOURCE_DIR}/app_variant.cmake")
 
 # SDL2's bundled source includes its UIKit/OpenGLES backend. Statically link it
 # into the game, with one intentional custom UIApplication entry point.
@@ -37,15 +38,11 @@ if(NECTAR_IOS_GAME STREQUAL "pikmin1")
     set(PIKMIN_NATIVE_JAUDIO ON CACHE BOOL "" FORCE)
     add_subdirectory("${NECTAR_ROOT}/games/pikmin1" "${CMAKE_CURRENT_BINARY_DIR}/pikmin1")
     set(NECTAR_GAME_TARGET pikmin_pc)
-    set(NECTAR_IOS_LABEL "Open Nectar Pikmin 1")
-    set(NECTAR_IOS_BUNDLE_ID "org.opennectar.experimental.pikmin1")
 else()
     set(PIKMIN_GAME_VERSION "VERSION_GPVE01" CACHE STRING "" FORCE)
     set(PIKMIN_NATIVE_JAUDIO OFF CACHE BOOL "" FORCE)
     add_subdirectory("${NECTAR_ROOT}/games/pikmin2" "${CMAKE_CURRENT_BINARY_DIR}/pikmin2")
     set(NECTAR_GAME_TARGET pikmin2_pc)
-    set(NECTAR_IOS_LABEL "Open Nectar Pikmin 2")
-    set(NECTAR_IOS_BUNDLE_ID "org.opennectar.experimental.pikmin2")
 endif()
 
 # CMake compiles the decompiled native game directly into the .app executable.
@@ -105,6 +102,13 @@ elseif(NECTAR_IOS_GAME STREQUAL "pikmin2")
     target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE "-framework UniformTypeIdentifiers")
 endif()
 
+if(NECTAR_IOS_VARIANT STREQUAL "solo-test")
+    # Test code is absent from ordinary P1 and every P2 build.
+    target_compile_definitions(nectar_ios_storage PRIVATE NECTAR_P1_SOLO_TEST=1)
+    target_compile_definitions(${NECTAR_GAME_TARGET} PRIVATE NECTAR_P1_SOLO_TEST=1)
+    target_compile_definitions(pikmin_legacy PRIVATE NECTAR_P1_SOLO_TEST=1)
+endif()
+
 target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE nectar_ios_storage)
 target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE
     "-framework UIKit"
@@ -115,7 +119,6 @@ target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE
     "-framework GameController")
 
 # Resolve bundle metadata with CMake for every generator, including Makefiles.
-set(NECTAR_IOS_EXECUTABLE "Nectar-${NECTAR_IOS_GAME}")
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
     "${CMAKE_CURRENT_BINARY_DIR}/Nectar-${NECTAR_IOS_GAME}-Info.plist" @ONLY)
 set_target_properties(${NECTAR_GAME_TARGET} PROPERTIES

@@ -5086,7 +5086,11 @@ void pc_newgame_prompt_draw(void) {
 
     drawPikminPanel(gfx, panelX, panelY, panelW, panelH, 22);
     const bool randomizer = pc_randomizer_menu_pending();
+#if NECTAR_P1_SOLO_TEST
+    drawPikminHeader(gfx, panelX, panelY, panelW, "Solo Test: A/C areas, B finale");
+#else
     drawPikminHeader(gfx, panelX, panelY, panelW, randomizer ? "New Randomizer Game" : "New Game");
+#endif
 
     const char* titles[kNgRowCount] = { "Difficulty", "Game mode", "Skip tutorial" };
     const char* options[kNgRowCount][2] = {

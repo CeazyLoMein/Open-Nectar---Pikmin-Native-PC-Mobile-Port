@@ -1,3 +1,20 @@
+# Implementation checkpoint
+
+Source implemented and locally verified; full Apple build and hardware tests
+pending. Original P1 app/data untouched. New app name P1 Solo Test, bundle
+org.opennectar.experimental.pikmin1.solotest, root Documents/pikmin1-solo-test.
+Use a new Normal/Standard story: A/C = area/system fixture (Day2/Main Engine),
+B =29-part finale fixture with Secret Safe remaining. All Onions booted with100
+leaf Pikmin each, seeded only on new files. Regular loads do not refill inventory.
+Finale is synthetic test setup; normal final-boss/last-delivery/ending still need
+real play. Original unlock progression and tutorials are not certified by presets.
+Bounded64KiB p1-solo-test-events.txt distinguishes preset setup from actual events.
+Signing must retain the distinct test identity. Do not overwrite original P1.
+Next: combined CI; verify IPA identity; install separately; copy only private
+assets/art/Load into the test app; execute the checklist and record missing coverage.
+
+## Original agreed plan (implementation status above supersedes planning status)
+
 # P1 - Short Solo Campaign Readiness Experiment
 
 Status: agreed test approach; no separate test IPA or scenario harness has been

@@ -1,3 +1,9 @@
+CURRENT - 2026-10-20 20:01 EDT: P1 solo-test source/presets and P2 opening mute cleanup locally verified.
+Original P1 app untouched. New test IPA/phone scenarios pending. P2 Build31 snow
+ambience restored; Pikmin/enemy audio still silent. Report retrieved; nearby gains
+zero only in those categories. Opening exit cleanup candidate implemented/tested.
+Combined P1 test/P2 standard build pending dispatch. See latest master handoff.
+
 CURRENT - 2026-10-20 19:43 EDT: Build31 P2-only PASSED, run39514971137, sourcedc73a848.
 Verified IPA staged in folder1. New audio/proximity/report phone test pending.
 P1 working app untouched. Separate solo-readiness test approach accepted;

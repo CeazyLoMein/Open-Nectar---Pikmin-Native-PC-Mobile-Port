@@ -1,3 +1,9 @@
+#if NECTAR_P1_SOLO_TEST
+#include "PlayerState.h"
+#include "BaseInf.h"
+#include "Pellet.h"
+#include "pc_solo_test_game.h"
+#endif
 #include "CardSelectSection.h"
 
 #include "BaseInf.h"
@@ -539,6 +545,16 @@ struct CardSelectSetupSection : public Node {
 							pc_permadeath_begin_new_run();
 							pc_hardmode_begin_new_run();
 							pc_randomizer_begin_new_run();
+#if NECTAR_P1_SOLO_TEST
+							pc_solo_test_prepare_new_campaign(*playerState, pikiInfMgr, gameflow.mGamePrefs.mMostRecentFileSlot);
+							pc_tutorial_skip_clear_pending();
+							gameflow.mWorldClock.mCurrentDay = 2;
+							gameflow.mPlayState.mSavedDay = 2;
+							gameflow.mPlayState.mShipPartsCount = playerState->mCurrParts;
+							gameflow.mPlayState.mRedPikiCount = 100;
+							gameflow.mPlayState.mYellowPikiCount = 100;
+							gameflow.mPlayState.mBluePikiCount = 100;
+#endif
 #endif
 						}
 
@@ -555,12 +571,25 @@ struct CardSelectSetupSection : public Node {
 						pc_permadeath_begin_new_run();
 						pc_hardmode_begin_new_run();
 						pc_randomizer_begin_new_run();
+#if NECTAR_P1_SOLO_TEST
+						pc_solo_test_prepare_new_campaign(*playerState, pikiInfMgr, gameflow.mGamePrefs.mMostRecentFileSlot);
+						pc_tutorial_skip_clear_pending();
+						gameflow.mWorldClock.mCurrentDay = 2;
+						gameflow.mPlayState.mSavedDay = 2;
+						gameflow.mPlayState.mShipPartsCount = playerState->mCurrParts;
+						gameflow.mPlayState.mRedPikiCount = 100;
+						gameflow.mPlayState.mYellowPikiCount = 100;
+						gameflow.mPlayState.mBluePikiCount = 100;
+#endif
 #endif
 
 						// next subsection will be the new game intro cutscene
 						gameflow.mNextOnePlayerSectionID = ONEPLAYER_IntroGame;
 					}
 
+#if NECTAR_P1_SOLO_TEST
+					if (!playerState->isTutorial()) gameflow.mNextOnePlayerSectionID = ONEPLAYER_MapSelect;
+#endif
 					if (playerState->isTutorial()) {
 						// we're in day 1, do things a bit differently
 						StageInfo* stage       = (StageInfo*)flowCont.mStageList.mChild;

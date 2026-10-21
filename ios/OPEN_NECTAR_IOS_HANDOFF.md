@@ -2,60 +2,61 @@
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-20 19:43 EDT
+**Date/time:** 2026-10-20 20:01 EDT
 
-**Overall project status:** P1 preserved. Build30's performance display is clearer on the user's iPhone, but Pikmin voices, enemy effects and winter/wind audio remain missing. Louie's breathing and the ship can be heard from across the map. A newly reproduced native parameter-layout defect and report-activation defect are corrected locally; P2-only Build31/run39514971137 PASSED; its IPA is verified and staged. Installation, audio/proximity retest and report output on the phone remain pending.
+**Overall project status:** Working P1 installation preserved. The user authorized starting the separate P1 solo-readiness test app. Its source and two disposable campaign presets are implemented and locally checked; Apple build/IPA and phone tests are pending. P2 Build31 is installed: user confirms winter/snow ambience restored, but Pikmin attacks/voices and Bulborb/death effects remain silent. The first audio report was collected directly over USB. A scoped opening-cutscene cleanup is implemented and locally tested; new hardware result is pending.
 
 ### Pikmin 1
 
-- Current objective: Preserve working app, save and graphics; prepare a separate solo-readiness experiment before co-op.
-- What was investigated: Existing area unlock and practice/debug shortcuts. Area unlock changes saves; later practice days require existing checkpoints; tracker shortcuts do not exercise real campaign completion.
-- Root cause or leading hypothesis: No new P1 defect reported.
-- Files changed: Documentation only: ios/PIKMIN1_SOLO_READINESS_PLAN.md and ONLINE_COOP_DESIGN_NOTES.md. No P1 source/app/save changed.
-- Tests and results: Prior GPI screenshot confirms354 replaced textures,0 failed; no new P1 hardware test.
-- Confirmed working: User-reported native gameplay/audio/menu/camera/60FPS and active textures.
-- Remaining issues: Full campaign validation; model visuals not independently confirmed. Accepted separate online prototype approach is saved in ios/ONLINE_COOP_DESIGN_NOTES.md; no online code started.
+- Current objective: Short representative solo campaign readiness check before co-op, using a separate app. Eventually validated co-op should go into the original app; do not update/replace that working installation now.
+- What was investigated: iOS bundle/config generation, app-private storage, save-root discovery, new-file versus load paths, Onion inventories and ship-part flags/area counts. Existing tracker-only debug shortcuts cannot prove real campaign completion.
+- Root cause or leading hypothesis: No new P1 gameplay defect claimed. Need coverage of representative later-game systems without a full story run and without risking real progress.
+- Files changed: ios/app_variant.cmake, ios/CMakeLists.txt, ios/verify_bundle_info.py, ios/ios_storage.mm, ios/pikmin1_solo_test_profile.h; games/pikmin1/pc_port/pc_solo_test_game.h and pc_solo_test_log.h; cardSelect.cpp, gameCoreSection.cpp, playerState.cpp, card_stubs.cpp, settings/pc_settings.cpp; two new tests and experimental workflow.
+- Tests and results: 21 metadata/configure/identity/storage-wiring checks PASS; 46 actual preset/profile helper checks PASS; standard variant control 7 checks PASS; Clang parser PASS. These are host checks, not a real app installation or campaign result. Apple SDK/full native compilation pending.
+- Implemented test behavior: P1 Solo Test, bundle org.opennectar.experimental.pikmin1.solotest; Documents/pikmin1-solo-test, explicit save root under that disposable folder, runtime wrong-identity guard. Standard game IDs/names remain unchanged. No app group/shared data access added.
+- Disposable scenarios: New Normal/Standard slot A or C starts Day2 with Main Engine and all three Onions, 100 leaf Pikmin each; slot B sets a 29-part finale fixture leaving Secret Safe uncollected. Initial stage counts/required parts agree with fixture totals. Area selection is unlocked through existing cheat. The last boss, last-part delivery and ending still use normal game code. These presets are artificial test setup, not evidence of collecting earlier parts/unlocking areas naturally.
+- Inventory preservation: Presets run only in fresh-file paths, not saved-file load, stage entry or day transition. A bounded64KiB event journal records setup separately from stage initialization, actual collection, day-end and card IO. Those events are partial evidence; complete save/reload and visual correctness still require phone tests.
+- Confirmed working: Prior user-reported P1 gameplay/audio/menu/camera/60FPS and active GPI textures. Current original P1 app, save, settings and content were not modified. No new P1 hardware test.
+- Remaining issues: Test IPA, signing/installation with separate ID, copying private assets/art/mod content into only the new app, phone scenario validation, normal unlock/tutorial coverage gaps, long campaign stability. No online code started.
 
 ### Pikmin 2
 
-- Current objective: Repair missing effects and broken distance attenuation; retain clearer HUD.
-- What was investigated: Build30 feedback, connected phone's P2 folder/settings, actual JAI scalar setters, parameter layout and consumer. No p2-audio-report.txt or previous report was present on phone. All142 phone audio files matched extracted originals in the preceding audit.
-- Root cause or leading hypothesis: Confirmed ABI defect: PlayerParameter::PortArg contains a pointer and becomes8 bytes on ARM64, while JASPortArgs scalar members remain4 bytes after its native pointer. Array-index writes therefore target the wrong fields. For example a volume update writes pan; update flags overwrite volume. Stop interrupts can miss their field. This provides a concrete mechanism for missing sounds and distance changes not taking effect; restoration of the reported audio still needs hardware evidence.
-- Additional confirmed defect: The report depended on SDL's __IPHONEOS__ macro without including SDL. Build30 contains the desktop-only opt-in string and wrote no report. The helper now uses Apple's TargetConditionals platform identity, with an SDK compile assertion added.
-- Files changed: games/pikmin2/pikmin2-decomp/src/JSystem/JAudio/JAI/JAISystemInterface.cpp; games/pikmin2/pc_port/audio/pc_p2_audio_audit.cpp/.h; tests/pikmin2_audio_parameters_test.py; experimental CI and docs.
-- Tests and results: Original native setters failed13 of37 checks. Corrected producer/layout/actual-consumer fixture now passes48, including repeated near/far volume, other scalar values and stop interrupts. Platform activation control failed6 of11 before correction and passes11 afterward. Existing28 mixer route checks and original DSP suite PASS; Clang parser checks PASS. Build31 Apple ARM64/SDK compile/link, regression suite and IPA packaging PASSED.
-- Confirmed working: Build30 installed; HUD clearer per user. Startup/gameplay and settings had limited positive results; full campaign not verified.
-- Remaining issues: Pikmin/enemy/wind sounds, ship/Louie proximity. Ship previously disappeared then returned, so the earlier mixer fixes did not establish a runtime resolution. No speculative camera/listener remapping was applied.
+- Current objective: Restore Pikmin/enemy effects while retaining working ambience and distance attenuation.
+- What was investigated: Build31 user feedback and captured report; real PSM category distance curves; opening cutscene mute, message callback and movie-end cleanup paths.
+- Root cause or leading hypothesis: Report shows every observed Pikmin distance gain zero (1186/1186 checks, last distance88), enemy zero325/325 (last distance201), while other categories play. Bank note results show no recorded lookup/data/channel failures, but are combined music/effects counters. Opening x01_gamestart explicitly disables exactly categories2/Pikmin and5/enemy; restoration previously depended on onMessageEnd, while onDemoEnd did not restore them. This reproduces the same silent categories if the message callback is skipped. The captured Build31 report does not expose the disabled bit, so hardware confirmation of that specific cause remains pending.
+- Files changed: PSMainSide_Demo.cpp adds native-only opening exit cleanup; PSMainSide_Sound.cpp and pc_p2_audio_audit.cpp/.h expose category_muted_checks; tests/pikmin2_demo_audio_test.py and the bounded audit fixture; workflow.
+- Tests and results: Old missing-cleanup control fails9/36 checks. Actual opening mute, category initialization, distance curves and corrected cleanup pass36/36, including unrelated-demo/category preservation and repeated cleanup. Updated bounded/concurrent audit passes12 checks; actual mixer/logger Clang checks PASS. Full new iOS build and audio retest pending.
+- Confirmed working: Build31 compile/package and installation. Winter/snow ambience restored per user. Build30/31 HUD clearer per earlier user feedback. New report now appears on phone. Existing142-file audio asset audit matched originals; no game assets modified in this batch.
+- Remaining issues: Pikmin voices/attacks and Bulborb/enemy effects remain missing in installed Build31. New cleanup is not yet on phone. Other colors/enemies/areas/caves, ship/Louie distance and full campaign need runtime coverage.
 
 ### GitHub
 
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental
-- Starting commit: d1a869ea03178e42b8ee76c07337f2f369a216af
-- Latest source commit: dc73a84887e60d4e3b7911b1e46ed64ab4a764b9, committed and pushed. This report accompanies its documentation checkpoint.
-- Commits created: dc73a84887e60d4e3b7911b1e46ed64ab4a764b9, native audio parameter/report corrections.
-- Changes pushed: P2 scalar parameter fix, report platform fix, regression fixture and experimental CI checks; P1 unchanged.
-- Uncommitted changes: No source changes; this successful-build and P1 planning documentation checkpoint is being saved with skip ci.
-- GitHub Actions run IDs: Build30/run39509564730 SUCCESS, sourcee9a06bebd443e3eb5d8943a5c01c53e186512423; new Build31/run39514971137, source dc73a84887e60d4e3b7911b1e46ed64ab4a764b9, SUCCESS: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39514971137
-- Build results: Build31 completed SUCCESS; 48 parameter, 28 mixer route, 11 audit and existing DSP checks passed; SDK platform assertion passed. Build30 compiled but failed the reported audio phone test; HUD improved.
-- Artifacts produced: Build31 artifact12307549326/job118944827327. New unsigned IPA staged as Pikmin 2 - Build 31 - Audio Parameters Fix.ipa; SHA256 3ef2e4c9513821f3504efe1afd5250bb568d0c9c32f8300cab4e6f96f9c71028; UUID cc5cb878-2369-3e8a-9c1b-80bb40180385; iPhoneOS ARM64 min15, both new operators aligned16 bytes, no private assets. Installation/runtime pending. Build30 verified IPA remains in folder1; SHA2568fc3a729b92376747b48b98b9cb37d07affe166efbfada616195f7addc92f72d, UUID9a174ddb-184b-3713-a0ab-f869e15277cd. Keep older P2 backups and P1 app.
+- Starting commit: e645e01416a3d0061ab2ba0303bae06cbed6b881 (local and remote clean at start, fetched).
+- Latest commit: Source batch currently being committed; exact hashes and dispatched run will be appended after push.
+- Commits created: Pending this checkpoint; keep P2 audio and P1 isolation changes distinct, push together.
+- Changes pushed: Not yet for this batch. Previous Build31 source dc73a84887e60d4e3b7911b1e46ed64ab4a764b9 already pushed.
+- Uncommitted changes: Scoped P1/P2 source/tests/workflow and this documentation checkpoint; no unrelated user changes found.
+- GitHub Actions run IDs: Build31/run39514971137 SUCCESS, source dc73a84887e60d4e3b7911b1e46ed64ab4a764b9. New combined run pending dispatch.
+- Build results: New batch locally verified; Apple compile/link pending. Use [ios-build] [ios-p1-test] on the final batch commit: only P1 switches to solo-test; P2 remains its standard app.
+- Artifacts produced: No new batch IPA. Build31 P2 IPA verified/staged in folder1, hash3ef2e4c9513821f3504efe1afd5250bb568d0c9c32f8300cab4e6f96f9c71028. Its audio remains partial as described above.
 
 ### Next steps
 
-- Next Pikmin 1 task: Prepare separately identified solo test app and disposable scenarios per PIKMIN1_SOLO_READINESS_PLAN.md. Later validated co-op is intended for the original app. No test app/co-op code built yet.
-- Next Pikmin 2 task: On next successful IPA, test Pikmin/enemy/wind sounds and compare near/far ship and breathing after switching both captains. Leave HUD/settings unchanged for comparison.
-- GitHub/build task: Build31 result/log/artifact verified and staged. No new build or polling needed for this checkpoint.
-- Anything requiring my involvement: Install Build31 over P2 with the usual app identity; run the short audio/proximity test in folder1; connect/unlock for direct report retrieval afterward. Do not delete P2/reinstall assets; leave P1 alone.
+- Next Pikmin 1 task: After successful CI, verify test IPA bundle identity/device architecture, stage it clearly apart from regular apps, install as a new app. Prepare only its assets/art/Load locally; do not copy a real save. Run area/combat/part/sunset/save-reload checks in A; real final-boss/last-delivery/ending in B. Record untested portions honestly.
+- Next Pikmin 2 task: After successful CI, update existing P2 with the same identity; check Pikmin calls/attacks/carrying/plucking and enemy attacks/damage/death after normal opening and skipped opening. Retest wind and near/far ship/Louie effects; collect updated report over USB.
+- GitHub/build task: Commit/push one combined batch, record exact run ID and source. Do not idle-poll GitHub; user reports completion.
+- Anything requiring my involvement: None during compilation. Phone report collection finished; user explicitly told they can close P2 and disconnect. Tell user when phone is needed and explicitly release it after collection. Sound the requested notification when a new phone test is ready.
 
 ### ChatGPT continuation notes
 
-- Do not say Build30 fixed audio. Only its HUD improvement is confirmed. New parameter fix passed local and Apple CI checks, but is not yet heard on hardware.
-- Important source: JAISystemInterface.cpp setSeqPortargsF32/U32 now address named fields on PIKI_PC_PORT; original console array path retained. All active setter call sites were inspected. The unused PS16 helper was not changed.
-- Reports cover all six SE categories plus dedicated wind/ship rows, bank failures, source formats and mixed peak. 'started' means a sequencer trigger, not proof of sound. Existing report bounds are ten minutes and one previous launch.
-- Relevant evidence: workspace work/read_p2_audio_logs.py; no phone report collected because none existed. outputs/P2-Phone-Audio-Assets-Audit.json confirms all142 audio files matched. Build30 job log work/build30-job.log; actual-code regression tests under tests/.
-- Unverified fixes: Actual iPhone audibility, attenuation and newly enabled report output. Apple compile/link and IPA inspection passed. P1 solo test scenarios/IPA have not been implemented or played.
-- Risks and warnings: Keep16-byte scalar/array new alignment, host allocator scopes, SDL display FBO, separate P1 app/data. The earlier rear-bus/reverb corrections are retained but did not resolve the named missing effects. Never upload private game assets or saves.
-- Exact next actions: Build31 IPA is verified in Documents/Open Nectar/1 - Install on iPhone. After phone test, retrieve both p2-audio report files directly. If audio remains missing, use category/bank/source/gain observations to choose the next fix.
+- P1 co-op remains unimplemented. The separate app is temporary experiment isolation; the eventual goal is supported co-op in the original app, preserving solo play and real saves. Shared campaign/Onion, own screens/squads/allowances, together-only play, group area travel and conservative health-based difficulty remain saved in ONLINE_COOP_DESIGN_NOTES.md.
+- Important source-file locations: ios/app_variant.cmake and ios_storage.mm for isolation; pc_solo_test_game.h and fresh-file calls in cardSelect.cpp for presets; PSM onDemoTop/onMessageEnd/onDemoEnd in PSMainSide_Demo.cpp for the two-category mute.
+- Relevant logs: workspace work/p2-audio-clips/phone/p2-audio-report.txt, copied to Documents/Open Nectar/2 - Progress and ChatGPT Handoff/Pikmin 2 - Audio Evidence - 2026-10-20/Build 31 - Audio Report.txt; SHA256 a61ffb03cbab4a372d7a1beff016db0ef7fe072a4819e60fcdd261b87a004f88. Build31 full job log work/build31-job.log. No phone writes performed during report collection.
+- Unverified fixes: P1 test-app full Apple compilation and runtime isolation/scenarios; P2 audible effects after cleanup; exact category disabled-bit observation (new counter added). Do not call either campaign fully playable from host tests.
+- Risks and warnings: Preserve16-byte new alignment, native allocator scopes and working SDL display framebuffer. No private assets/saves in GitHub. Keep distinct Sideloadly bundle IDs; never replace P1 with test app or import its real save. Artificial29-part fixture cannot certify earlier progression/unlock logic. Full game playthrough remains useful later.
+- Exact next actions: Finish combined build dispatch/checkpoint; stop consuming usage while CI runs. When user reports completion, retrieve both jobs/logs/artifacts, verify identities and stage both IPAs. Then perform short P2 audio and separate P1 readiness phone tests with USB evidence collection.
 
 **END PROGRESS REPORT**
 

@@ -1,4 +1,7 @@
 #include "GameCoreSection.h"
+#if NECTAR_P1_SOLO_TEST
+#include "pc_solo_test_log.h"
+#endif
 #if defined(PIKI_PC_PORT)
 #include <SDL.h>
 #include <cstdlib>
@@ -630,6 +633,9 @@ void GameCoreSection::cleanupDayEnd()
 		playerState->mResultFlags.setOn(zen::RESFLAG_Collect10Parts);
 	}
 	int day = playerState->getCurrDay();
+#if NECTAR_P1_SOLO_TEST
+    pc_solo_test::record("day_end_stage_day_parts", flowCont.mCurrentStage->mStageID, day, playerState->getCurrParts());
+#endif
 	playerState->setDayCollectCount(day, playerState->getCurrParts());
 	playerState->setDayPowerupCount(day, playerState->getNextPowerupNumber());
 
@@ -2067,6 +2073,10 @@ void GameCoreSection::initStage()
 	}
 
 	naviMgr->getNavi(0)->startKontroller();
+#if NECTAR_P1_SOLO_TEST
+    pc_solo_test::record("stage_initialized_stage_day_parts", flowCont.mCurrentStage->mStageID,
+                         gameflow.mWorldClock.mCurrentDay, playerState->getCurrParts(), int(GameStat::allPikis));
+#endif
 	PRINT("init stage done\n");
 }
 

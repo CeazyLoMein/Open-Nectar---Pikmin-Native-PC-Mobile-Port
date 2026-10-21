@@ -27,6 +27,7 @@ jobs:
       contents: read
     env:
       GAME: ${{ matrix.game }}
+      IOS_VARIANT: ${{ matrix.game == 'pikmin1' && contains(github.event.head_commit.message, '[ios-p1-test]') && 'solo-test' || 'standard' }}
     steps:
       - uses: actions/checkout@v4
       - name: Tool versions
@@ -128,6 +129,9 @@ jobs:
           ./audit-test
           c++ -std=c++17 -Wall -Wextra -Werror parameters-test.cpp -o parameters-test
           ./parameters-test
+          python3 "$ROOT/tests/pikmin2_demo_audio_test.py" "$CHECKS/demo-test.cpp"
+          c++ -std=c++17 -Wall -Wextra -Werror demo-test.cpp -o demo-test
+          ./demo-test
           # SDK platform detection must work without including SDL first.
           printf '#include "audio/pc_p2_audio_audit.h"\nstatic_assert(p2_audio_audit::kAutomaticallyEnabled, "iPhone audit must auto-enable without SDL");\n' > platform-test.cpp
           xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
@@ -140,6 +144,13 @@ jobs:
         run: |
           set -euo pipefail
           ROOT="$GITHUB_WORKSPACE"
+          python3 tests/pikmin1_solo_app_test.py --cmake "$(command -v cmake)"
+          python3 tests/pikmin1_solo_game_test.py "$RUNNER_TEMP/p1-solo-game-test.cpp"
+          c++ -std=c++17 -Wall -Wextra -Werror -DNECTAR_P1_SOLO_TEST=1 -I"$ROOT/games/pikmin1/pc_port" "$RUNNER_TEMP/p1-solo-game-test.cpp" -o "$RUNNER_TEMP/p1-solo-game-test"
+          (cd "$RUNNER_TEMP" && ./p1-solo-game-test)
+          c++ -std=c++17 -Wall -Wextra -Werror -I"$ROOT/games/pikmin1/pc_port" "$RUNNER_TEMP/p1-solo-game-test.cpp" -o "$RUNNER_TEMP/p1-solo-standard-test"
+          (cd "$RUNNER_TEMP" && ./p1-solo-standard-test)
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -DNECTAR_P1_SOLO_TEST=1 -I"$ROOT/games/pikmin1/pc_port" -fsyntax-only "$RUNNER_TEMP/p1-solo-game-test.cpp"
           mkdir -p "$RUNNER_TEMP/nectar-ios-checks"
           cd "$RUNNER_TEMP/nectar-ios-checks"
           c++ -std=c++17 -I"$ROOT/ios" "$ROOT/tests/pikmin1_ios_profile_test.cpp" -o profile-test
@@ -173,12 +184,13 @@ jobs:
             -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0
             -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO
             -DNECTAR_IOS_GAME="$GAME"
+            -DNECTAR_IOS_VARIANT="$IOS_VARIANT"
             -DCMAKE_CXX_FLAGS="-ferror-limit=80")
           if [ "$GAME" = pikmin2 ] && command -v gmake >/dev/null 2>&1; then
             CONFIGURE_COMMAND+=("-DCMAKE_MAKE_PROGRAM=$(command -v gmake)")
           fi
           "${CONFIGURE_COMMAND[@]}"
-          python3 ios/verify_bundle_info.py "$RUNNER_TEMP/nectar-build/Nectar-${GAME}-Info.plist" --game "$GAME"
+          python3 ios/verify_bundle_info.py "$RUNNER_TEMP/nectar-build/Nectar-${GAME}-Info.plist" --game "$GAME" --variant "$IOS_VARIANT"
       - name: Compile native game
         shell: bash
         run: |
@@ -207,21 +219,21 @@ jobs:
           APP="$(find "$RUNNER_TEMP/nectar-build" -type d -name 'Nectar-*.app' | head -n 1)"
           test -n "$APP"
           test -f "$APP/Info.plist"
-          python3 ios/verify_bundle_info.py "$APP/Info.plist" --game "$GAME" --require-binary
+          python3 ios/verify_bundle_info.py "$APP/Info.plist" --game "$GAME" --variant "$IOS_VARIANT" --require-binary
           EXECUTABLE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist")
           lipo "$APP/$EXECUTABLE" -verify_arch arm64
           lipo -info "$APP/$EXECUTABLE"
           mkdir -p "$RUNNER_TEMP/ios-ipa/Payload"
           ditto "$APP" "$RUNNER_TEMP/ios-ipa/Payload/$(basename "$APP")"
           cd "$RUNNER_TEMP/ios-ipa"
-          zip -qr "$GITHUB_WORKSPACE/Nectar-${GAME}-unsigned.ipa" Payload
+          zip -qr "$GITHUB_WORKSPACE/${EXECUTABLE}-unsigned.ipa" Payload
       - name: Keep build logs and any IPA
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: nectar-${{ env.GAME }}-experimental
+          name: nectar-${{ env.GAME }}-${{ env.IOS_VARIANT == 'solo-test' && 'solo-test' || 'experimental' }}
           path: |
             ios-build.log
             ios-build-errors.md
-            Nectar-${{ env.GAME }}-unsigned.ipa
+            Nectar-*-unsigned.ipa
           if-no-files-found: warn
