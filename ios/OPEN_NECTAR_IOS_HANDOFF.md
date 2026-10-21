@@ -1,3 +1,61 @@
+<!-- P1_COMBINED_FOLLOW_CURRENT -->
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-21 10:33 EDT
+
+**Overall project status:** User cancelled standalone Build36 and authorized combined narrow-crossing/return-route improvements plus its Recall All/speed changes. Build36 confirmed CANCELLED. Combined source implemented/local checks pass; combined P1-only standard build pending commit/push. No new IPA installed or phone-tested; Build35 baseline retained. P2 paused.
+
+### Pikmin 1
+
+- Current objective: One normal-campaign update combining crossing prevention, walking route recovery, separate Recall All and adjustable walking speed.
+- What was investigated: User clip9-14s raised crossing; platform collision queries; ActCrowd formation failure/unused route starter; real route graph/findSync flags and movement code; waypoint availability and null/index hazards.
+- Root cause or leading hypothesis: Terrain-only guard excluded platforms; wide formation side steering can still pull followers off raised crossings. Ordinary formation never starts its dormant return route. Missing waypoints could be dereferenced; old dynamic route may finish close horizontally on wrong floor; spline segment denominator can be zero. These source issues support targeted improvements but do not prove every clip failure's internal cause.
+- Files changed: pc_follow_trail.h new bounded policy; Navi.h/navi.cpp record footsteps/search budget; PikiAI.h/aiCrowd.cpp lane following/stall recovery; Piki.h/piki.cpp optional guarded route setup and separate safe waypoint walker; settings help; command/new follower fixture; experimental workflow; journals/checklists/plan. Earlier recall/speed source remains included.
+- Tests and results:63 real-method crossing/route scenarios PASS;82 command/recall/cursor/edge PASS;283 walking/config P1 and283 P2 stock-speed control PASS;58/58/7 campaign variants PASS; MSVC/Clang PASS; diff check PASS. Engine seams are not real map/physics or phone validation. Apple build/IPA/new phone result pending.
+- Confirmed working: User Build35 Aim, Soft Assist, charge/whistle and save/reload PASS; global recall functional but now separated in untested new source. Working Build35 IPA backup SHA256 rechecked.
+- Remaining issues: Exact crossing, high-speed/crowd collision and performance runtime unverified; routes may not exist; rare clam cutscene and full campaign unverified. No teleport/autosave/networking added.
+
+### Pikmin 2
+
+- Current objective: Preserve working Build32; focus P1 per user.
+- What was investigated: No new P2 investigation in this crossing batch.
+- Root cause or leading hypothesis: No new failure reported.
+- Files changed: No P2 game source.
+- Tests and results: Shared speed control still283 PASS; no new P2 build/hardware test.
+- Confirmed working: Prior user-positive audio/runtime baseline, not full campaign certification.
+- Remaining issues: Stronger P2 readiness tests/select upstream candidates later.
+
+### GitHub
+
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
+- Branch: ios-experimental.
+- Starting commit: 8a5a157ef50708d35d7ef3843c11bf6d95fd3351, fetched remote/clean/no divergence before edits.
+- Latest source/commit/build: combined P1-only standard build pending commit/push.
+- Commits created / changes pushed: Combined follower patch pending or dispatched as above; previous472937e5 recall/speed retained. Final documentation commit recorded after push.
+- Uncommitted changes: This source/report batch while preparing; commit and record final clean state before ending.
+- GitHub Actions run IDs: Build35/run39548476790 SUCCESS; Build36/run39614665805 CANCELLED per user; next combined P1-only standard build pending commit/push.
+- Build results: New combined Apple/IPA pending; do not call cancelled Build36 successful or deploy it.
+- Artifacts produced: No new combined IPA yet. Build35 original-ID verified backup preserved; SHA256 eab4b43ccaeda4de25137e010342592a4e0fc6d2cd328be9b66d365d10e3cc89.
+
+### Next steps
+
+- Next Pikmin 1 task: Complete new Apple build, verify STANDARD original-ID IPA, stage in folder1, then test exact cardboard crossing and return routes at100% captain/Pikmin speed before faster cheats; test retained separate recall/speed.
+- Next Pikmin 2 task: Stay paused, no new build.
+- GitHub/build task: One combined P1-only run; record source/run once then stop idle polling. User reports finish or requests check.
+- Anything requiring my involvement: No phone connection now; later normal Sideloadly update and short phone checklist. Do not uninstall current P1 or recopy private content.
+
+### ChatGPT continuation notes
+
+- Another conversation needs to know: Build36 explicitly cancelled/superseded; user wants one combined update, no isolated recall/speed install. New recovery is optional under existing Better Pathfinding, solo only. No teleport. Normal whistle local, explicit global Recall includes workers by request. Workers/healthy parked squad excluded from autonomous follower recovery.
+- Important source-file locations: Navi::pcUpdateFollowTrail/pcTakeFollowerRouteBudget, ActCrowd::pcProtectFormationEdge/pcRecoverFollower, Piki::initRouteTrace recovery option/pcMoveFollowerRoute; ios/PIKMIN1_CROSSING_RECALL_SPEED_TEST.md; ios/PIKMIN1_STRANDED_FOLLOWERS_PLAN.md.
+- Relevant logs: work/build36-cancel-result.json; work/p1-follow-test.cpp and compiled fixture; outputs/P1-Build35-Ledge-Review; folder2 copied clip and checkpoint. Next dispatch saved once pushed.
+- Unverified fixes: Combined crossing/route and earlier recall/speed source/local validated only; no new Apple/hardware milestone yet.
+- Risks and warnings: Same-floor trail, rate limits, waypoint guards and no teleport reduce risk but no guarantee every map/crowd reconnects. Missing/disconnected route may strand followers. Closed waypoint/water rechecked during walking. Route ends/abandons if stalled, captain moved far or8seconds elapsed. Normal carrier spline path unchanged. Keep Build35 rollback and full campaign/finale spoilers constraint.
+- Exact next actions: Verify new build/IPA, stage and update over original P1 with same account. Test crossing both directions, wait for walking recovery if a follower remains, locally whistle if it went idle, confirm distant workers unaffected until explicit Recall All. Compare speeds/performance and regressions/save. Only after representative pass advance co-op prototype/shared snapshot plan.
+
+**END PROGRESS REPORT**
+<!-- END_P1_COMBINED_FOLLOW_CURRENT -->
+
 <!-- P1_RECALL_SPEED_CURRENT -->
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 

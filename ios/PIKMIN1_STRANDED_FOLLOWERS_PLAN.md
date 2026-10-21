@@ -1,3 +1,23 @@
+<!-- CURRENT_FOLLOW_IMPLEMENTATION -->
+# P1 narrow crossing and route recovery — source implemented, phone test pending
+
+Updated 2026-10-21 10:33 EDT. User requested Build36 be scrapped/cancelled and a combined patch with crossing/route work plus the already implemented separate Recall All and Pikmin Speed. Build36/run39614665805 confirmed CANCELLED. Nothing installed or removed on phone. New combined P1-only standard build pending commit/push.
+
+Evidence: Build35 user footage ScreenRecording_10-21-2026 09-47-51_1.mov,32.71s,9-14s raised cardboard/ramp crossing. Footage shows falling/stranded followers; exact collider/internal action state was not recorded. Build35 ordinary Aim/Soft Assist/charge whistle/save-reload passed user tests; clam cutscene unverified. Working IPA backup verified in folder5. P2 remains paused.
+
+Implemented first pass under Better Pathfinding (solo):
+- Navi records a bounded64-point recent grounded footstep trail,12-unit spacing, no heap/entity references. Relocation>96units or large height jump resets it; air/cutscene/swarm/moving platform and multiplayer discard it. Captured platform markers activate a narrow lane through the crossing and immediate exit; ordinary ground retains normal formation. Followers choose nearby same-floor footsteps, not a point above/below them. This is movement steering, never position replacement.
+- Terrain/platform edge sampling includes platform collision, rejects nearby drops and unreachable upward steps. Recorded crossing lane bypasses normal side circling/slot widening, while moving platforms and commanded swarms keep ordinary handling. Healthy parked formations are not classified stuck.
+- ActCrowd monitors only living, normal-state, grounded followers actually trying to move (or blocked/different floor). After1.25s without8units of movement, it may request a return route; no worker/carrier/attacker/free/buried/dead/thrown/drowning/swallowed rescue. Tripping/damage/held objects/cutscenes/day-end/moving platform contexts are excluded. No automatic recall of workers beyond the explicit global Recall button.
+- Searches use the existing PathFinder waypoint graph: null/count/index/open/nearby-height endpoint guards, no cached Onion/other-colour path, no closed-waypoint bypass, non-blue AvoidWater. Max10 new searches/second shared per captain and2-second per-follower backoff. Route abandonment on stall,8seconds or captain movement>100units allows later retry. Does not promise a route where none exists.
+- The dormant spline driver divides by segment length and can treat horizontal closeness as arrival. Recovery uses a separate bounded waypoint walker instead: coincident points skip safely, active waypoint openness/water rechecked, wrong-floor destination cannot finish,4 coincident skips per update, no teleport. Generic carrier/spline driver is unchanged; ordinary initRouteTrace gained safe null/count guards and an optional false-default recovery argument.
+- Separate Recall All button (workers included) and100/150/200/250/300/400/500% Pikmin walking-speed cheat retained from cancelled Build36 source. Normal whistle remains local. No autosave/network feature added.
+
+Validation:63 scenarios execute real trail/progress, recovery dispatcher, route setup and waypoint-walking methods with host engine seams;82 existing command/recall/aim/edge scenarios PASS;283 movement/config scenarios each P1 and P2 stock-speed control PASS;58+58+7 campaign variant checks PASS; MSVC and Clang diagnostics PASS. CI now runs the new follower fixture and iPhoneSDK syntax check, followed by full native P1 build. This is not a physics/map/hardware simulation: exact cardboard collision, crowded lanes, high speed and performance need phone evidence.
+
+Limits: no guarantee all followers recover or no more falls; disconnected waypoints, missing ramp links, no safe route or collisions may leave a Pikmin stranded. Idle/disbanded Pikmin are untouched: local whistle first if one left formation. No teleportation fallback selected or implemented. Raised terrain without a platform trail only receives edge protection/recovery; surface-aware lane is an initial bounded approach, not an all-map navigation rewrite. Full campaign and rare clam event remain unverified.
+<!-- END_CURRENT_FOLLOW_IMPLEMENTATION -->
+
 # P1 stranded-followers investigation
 
 User Build35 clip: ScreenRecording_10-21-2026 09-47-51_1.mov, 32.711667s,1562x720. Relevant interval9-14s: raised cardboard/ramp crossing, some followers remain below while others cross. It shows the symptom, not collider IDs or internal AI state. User movement speed/cheat settings for this clip were not specified.

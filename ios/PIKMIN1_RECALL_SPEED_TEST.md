@@ -1,3 +1,5 @@
+SUPERSEDED: user cancelled Build36 and requested the combined crossing/route update. See PIKMIN1_CROSSING_RECALL_SPEED_TEST.md. Do not install Build36.
+
 # P1 next update — Separate Recall All and Pikmin Speed
 
 NOT READY TO INSTALL YET. Build36/run39614665805, source472937e505eef2a14d00b0c923620dbaee4bd9cd, observed in_progress. Codex must verify a successful IPA and stage it first. Keep phone-tested Build35 installed in the meantime. P2 is unchanged.

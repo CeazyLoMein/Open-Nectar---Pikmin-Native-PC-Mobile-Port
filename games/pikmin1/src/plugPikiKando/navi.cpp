@@ -686,6 +686,8 @@ void Navi::reset()
 	mCursorTargetPosition = mCursorPosition;
 	mCursorWorldPos.set(0.0f, 0.0f, 0.0f);
 #if defined(PIKI_PC_PORT)
+	mPcFollowTrail.clear();
+    mPcFollowRouteCooldown = 0.0f;
 	mPcLockTarget = nullptr;
 	mPcLockIgnore = nullptr;
 	mPcChargeTime = 0.0f;
@@ -1401,6 +1403,29 @@ static bool pcGroundChargeTarget(Creature* target)
         const int type = static_cast<Teki*>(target)->mTekiType;
         if (type == TEKI_Shell || type == TEKI_Pearl || type == TEKI_Rocpe) return false;
     }
+    return true;
+}
+
+void Navi::pcUpdateFollowTrail()
+{
+    const f32 dt = gsys->getFrameTime();
+    if (mPcFollowRouteCooldown > 0.0f) mPcFollowRouteCooldown -= dt < 0.1f ? dt : 0.1f;
+    if (!pc_settings_get_better_pathfinding() || pc_netplay_deterministic()
+        || pc_coop_active() || pc_vs_active() || !isAlive() || isStickTo()
+        || getStandType() == STANDTYPE_Air || !mIsCStickNeutral
+        || (gameflow.mMoviePlayer && gameflow.mMoviePlayer->mIsActive)) {
+        mPcFollowTrail.clear();
+        return;
+    }
+    // Do not record moving rideable platforms as a static safe trail.
+    if (mPlatformAdjustDelta.length() > 0.5f) {mPcFollowTrail.clear();return;}
+    mPcFollowTrail.record({mSRT.t.x,mSRT.t.y,mSRT.t.z,getStandType()!=STANDTYPE_Ground});
+}
+
+bool Navi::pcTakeFollowerRouteBudget()
+{
+    if (mPcFollowRouteCooldown > 0.0f) return false;
+    mPcFollowRouteCooldown = 0.1f; // at most ten new searches/second, not per Pikmin
     return true;
 }
 
@@ -2313,6 +2338,7 @@ void Navi::update()
 	pcUpdateLockOn();
 	pcUpdateBombCommand();
     pcUpdateRecallAll();
+    pcUpdateFollowTrail();
 #endif
 	if (!mGroundTriangle) {
 		f32 maxY = mapMgr->getMaxY(mSRT.t.x, mSRT.t.z, true);

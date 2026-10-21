@@ -147,6 +147,10 @@ jobs:
           set -euo pipefail
           ROOT="$GITHUB_WORKSPACE"
           python3 tests/pikmin1_solo_app_test.py --cmake "$(command -v cmake)"
+          python3 tests/pikmin1_follow_routes_test.py "$RUNNER_TEMP/p1-follow-test.cpp"
+          c++ -std=c++17 -Wall -Wextra -Werror "$RUNNER_TEMP/p1-follow-test.cpp" -o "$RUNNER_TEMP/p1-follow-test"
+          "$RUNNER_TEMP/p1-follow-test"
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/p1-follow-test.cpp"
           python3 tests/pikmin1_walk_speed_test.py "$RUNNER_TEMP/p1-speed-test.cpp"
           c++ -std=c++17 -Wall -Wextra -Werror "$RUNNER_TEMP/p1-speed-test.cpp" -o "$RUNNER_TEMP/p1-speed-test"
           "$RUNNER_TEMP/p1-speed-test"

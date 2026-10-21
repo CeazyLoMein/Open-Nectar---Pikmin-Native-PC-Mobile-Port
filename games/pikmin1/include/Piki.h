@@ -123,6 +123,7 @@ public:
 #if defined(PIKI_PC_PORT)
 	bool pcStepOutOfWater();
 	void pcChargeAt(Creature* target);
+    int pcMoveFollowerRoute(); ///< Walk validated waypoints without dormant spline divisions.
 	Vector3f mPcLastDryPos;
 	bool mPcHasDryPos = false;
 	int mPcRescueStreak = 0; ///< issue #69: rescates seguidos sin asentarse en seco
@@ -163,7 +164,7 @@ public:
 	f32 getAttackPower();
 	int findRoute(int, int, bool, bool);
 	int moveRouteTraceDynamic(f32);
-	bool initRouteTrace(immut Vector3f&, bool);
+	bool initRouteTrace(immut Vector3f&, bool, bool followerRecovery = false);
 	int moveRouteTrace(f32);
 	bool hasBomb();
 	void startFire();

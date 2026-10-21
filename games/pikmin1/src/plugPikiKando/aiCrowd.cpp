@@ -13,6 +13,9 @@
 #if defined(PIKI_PC_PORT)
 #include "MapCode.h"
 #include "MapMgr.h"
+#include "PikiState.h"
+#include "pc_coop.h"
+#include "netplay/pc_netplay_det.h"
 #include "settings/pc_settings.h"
 #endif
 #include <stdlib.h>
@@ -68,6 +71,9 @@ void ActCrowd::startSort()
  */
 void ActCrowd::init(Creature* target)
 {
+#if defined(PIKI_PC_PORT)
+    pcResetFollowerRecovery();
+#endif
 	mMode      = 5;
 	mPrevMode        = 5;
 	mNearSlotCounter = 0;
@@ -219,6 +225,9 @@ void ActCrowd::procAnimMsg(Piki* piki, MsgAnim* msg)
  */
 void ActCrowd::cleanup()
 {
+#if defined(PIKI_PC_PORT)
+    pcResetFollowerRecovery();
+#endif
 	if (mPiki->mRouteHandle) {
 		routeMgr->getPathFinder('test')->releaseHandle(mPiki->mRouteHandle);
 	}
@@ -249,15 +258,23 @@ void ActCrowd::cleanup()
  * solo se paran los que ya están junto a la orilla, no los que vienen de
  * lejos.
  */
-// Better Pathfinding: keep a wide following slot from pulling a grounded
-// Pikmin over a nearby terrain drop while its captain stays on this level.
-// No new path search or per-Pikmin allocations. Dynamic platforms and commanded
-// swarms retain their original behavior; intentional descents remain possible.
+// Better Pathfinding: protect static terrain/platform edges, keep followers
+// on a recent captain crossing lane, then try bounded route recovery when
+// separated followers stop moving. No teleport or per-tick path searches.
+// Moving platforms and commanded swarms retain ordinary behavior.
 void ActCrowd::pcProtectFormationEdge(Vector3f& slot)
 {
+    mPcFollowingTrail=false;
+    mPcLaneBlocked=false;
     if (!pc_settings_get_better_pathfinding() || !mPiki->mNavi || !mapMgr
-        || !mPiki->mNavi->mIsCStickNeutral || mPiki->getStandType() != STANDTYPE_Ground
-        || mPiki->mNavi->getStandType() != STANDTYPE_Ground) return;
+        || !mPiki->mNavi->mIsCStickNeutral || pc_netplay_deterministic() || pc_coop_active() || pc_vs_active()
+        || mPiki->getStandType() == STANDTYPE_Air || mPiki->mNavi->getStandType() == STANDTYPE_Air
+        || mPiki->mPlatformAdjustDelta.length()>0.5f || mPiki->mNavi->mPlatformAdjustDelta.length()>0.5f) return;
+    PcFollowTrail::Point goal;
+    const Vector3f position=mPiki->mSRT.t, leader=mPiki->mNavi->mSRT.t;
+    const bool trail=mPiki->mNavi->mPcFollowTrail.target({position.x,position.y,position.z,false},
+        {leader.x,leader.y,leader.z,false},mPiki->getStandType()!=STANDTYPE_Ground,goal);
+    if (trail) slot.set(goal.x,goal.y,goal.z);
     const Vector3f here = mPiki->mSRT.t;
     const Vector3f captain = mPiki->mNavi->mSRT.t;
     if (captain.y < here.y - 25.0f) return;
@@ -270,12 +287,70 @@ void ActCrowd::pcProtectFormationEdge(Vector3f& slot)
         dir = dir * (reach / length);
         for (int i=1; i<=2; ++i) {
             const Vector3f probe = here + dir * (0.5f * i);
-            if (!mapMgr->getCurrTri(probe.x, probe.z, true)
-                || mapMgr->getMinY(probe.x, probe.z, true) < here.y - 30.0f) return false;
+            if (!mapMgr->getCurrTri(probe.x, probe.z, true)) return false;
+            const f32 height=mapMgr->getMinY(probe.x,probe.z,true);
+            if (height<here.y-30.0f || height>here.y+30.0f) return false;
         }
         return true;
     };
-    if (!safeStep(slot)) slot = safeStep(captain) ? captain : here;
+    if (!safeStep(slot)) {
+        const bool towardCaptain=safeStep(captain);
+        slot=towardCaptain?captain:here;
+        mPcLaneBlocked=!towardCaptain;
+    }
+    // On a recorded crossing, use the narrow lane without the normal lateral
+    // circling/slot reassignment that would fan followers back over the edge.
+    mPcFollowingTrail=trail;
+}
+
+void ActCrowd::pcResetFollowerRecovery()
+{
+    mPcFollowerProgress.reset();
+    mPcFollowingTrail=false;
+    mPcLaneBlocked=false;
+    mPcRecoveryRoute=false;
+    mPcRecoveryRouteAge=0.0f;
+}
+
+bool ActCrowd::pcRecoverFollower()
+{
+    Navi* captain=mPiki->mNavi;
+    if (!pc_settings_get_better_pathfinding() || pc_netplay_deterministic() || pc_coop_active() || pc_vs_active()
+        || !captain || !captain->mIsCStickNeutral || !mPiki->isAlive() || mPiki->getState()!=PIKISTATE_Normal
+        || mPiki->mMode!=PikiMode::FormationMode || mPiki->isHolding() || mPiki->isDamaged() || mPiki->isStickTo()
+        || mPiki->getStandType()==STANDTYPE_Air || mPiki->mPlatformAdjustDelta.length()>0.5f
+        || captain->mPlatformAdjustDelta.length()>0.5f || mIsTripping || playerState->inDayEnd()
+        || (gameflow.mMoviePlayer && gameflow.mMoviePlayer->mIsActive)
+        || (pc_settings_get_blues_only_water() && mPiki->mColor!=Blue && captain->mIsInWater)) {
+        pcResetFollowerRecovery();return false;
+    }
+    const Vector3f here=mPiki->mSRT.t, goal=captain->mSRT.t;
+    const Vector3f delta=goal-here;
+    const bool separated=delta.x*delta.x+delta.z*delta.z>60.0f*60.0f || delta.y>25.0f || delta.y< -25.0f;
+    if (!separated) {pcResetFollowerRecovery();return false;}
+    const f32 dt=gsys->getFrameTime();
+    // A legitimately parked wide formation is not stuck. Require actual
+    // intended movement, a blocked lane, or separation onto another floor.
+    const bool needsMove=mPcRecoveryRoute || mPiki->mTargetVelocity.length()>5.0f
+        || mPcLaneBlocked || delta.y>25.0f || delta.y< -25.0f;
+    const bool stalled=mPcFollowerProgress.stalled(here.x,here.y,here.z,dt,needsMove);
+    if (mPcRecoveryRoute) {
+        mPcRecoveryRouteAge+=dt<0.1f?dt:0.1f;
+        const Vector3f movedGoal=goal-mPcRecoveryGoal;
+        if (!stalled && mPcRecoveryRouteAge<8.0f && movedGoal.length()<100.0f) {
+            const int result=mPiki->pcMoveFollowerRoute();
+            if (result==2) {mLostChildTimer=0.0f;return true;}
+        }
+        mPcRecoveryRoute=false;mPcFollowerProgress.attempted();
+        return false;
+    }
+    if (!stalled || !captain->pcTakeFollowerRouteBudget()) return false;
+    mPcFollowerProgress.attempted();
+    if (!mPiki->initRouteTrace(goal,false,true)) return false;
+    mPcRecoveryRoute=true;mPcRecoveryRouteAge=0.0f;mPcRecoveryGoal=goal;
+    mIsWaiting=false;mLostChildTimer=0.0f;
+    mPiki->startMotion(PaniMotionInfo(PIKIANIM_Run),PaniMotionInfo(PIKIANIM_Run));
+    return mPiki->pcMoveFollowerRoute()==2;
 }
 
 bool ActCrowd::pcWaterAhead()
@@ -313,6 +388,9 @@ int ActCrowd::exec()
 {
 	mPrevMode = mMode;
 	mMode = 5;
+#if defined(PIKI_PC_PORT)
+    if (pcRecoverFollower()) return ACTOUT_Continue;
+#endif
 	if (mHasRoute) {
 		exeRouteMove();
 		if (mPiki->mUseAsyncPathfinding) {
@@ -433,6 +511,16 @@ int ActCrowd::exec()
 
 #if defined(PIKI_PC_PORT)
 	pcProtectFormationEdge(platePos);
+    if (mPcFollowingTrail) {
+        Vector3f lane=platePos-mPiki->mSRT.t;
+        lane.y=0.0f;
+        const f32 distance=lane.normalise();
+        if (distance>6.0f) mPiki->setSpeed(1.0f,lane);
+        else mPiki->mTargetVelocity.set(0.0f,0.0f,0.0f);
+        if (mIsWaiting) mPiki->startMotion(PaniMotionInfo(PIKIANIM_Walk),PaniMotionInfo(PIKIANIM_Walk));
+        mIsWaiting=false;mLostChildTimer=0.0f;
+        return ACTOUT_Continue;
+    }
 #endif
 	Vector3f plateDir = platePos - mPiki->mSRT.t;
 	f32 plateDist2D   = sqrtf(plateDir.x * plateDir.x + plateDir.z * plateDir.z);

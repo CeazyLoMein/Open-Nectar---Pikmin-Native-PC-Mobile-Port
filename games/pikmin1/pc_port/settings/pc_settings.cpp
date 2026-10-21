@@ -7659,7 +7659,7 @@ const GroupRow kCameraRows[] = {
 const GroupRow kGameplayRows[] = {
     { SRC_MODS, 25, "Instant Whistle Response", "Whistled Pikmin join the squad at once, without stopping to turn and look first." },
     { SRC_MODS, 1, "Chain Pikmin Actions", "Pikmin that finish a task go on to the next one nearby." },
-    { SRC_MODS, 8, "Better Pathfinding", "Helps carriers get unstuck, calls idle thrown Pikmin back, and redirects following slots away from nearby terrain drops. Dynamic platforms and commanded swarms retain original behavior. Swarm to pull nectar grass." },
+    { SRC_MODS, 8, "Better Pathfinding", "Helps carriers get unstuck and calls idle thrown Pikmin back. Followers avoid nearby edges, use a narrow captain trail at raised crossings, and try a route back if stalled. No teleport. Moving platforms and commanded swarms keep their usual behavior. Swarm to pull nectar grass." },
     { SRC_MODS, 9, "Blues Only In Water", "Only blue Pikmin walk into water on their own." },
     { SRC_MODS, 23, "No Tripping", "Pikmin running in the squad never trip and fall behind." },
     { SRC_MODS, 40, "Eternal Night", "Always night, whatever the day length: night lighting, and the moon crosses the day bar instead of the sun." },

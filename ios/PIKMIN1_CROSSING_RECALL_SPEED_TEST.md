@@ -1,0 +1,14 @@
+# P1 combined update — Crossing, routes, Recall All and speed
+
+NOT READY TO INSTALL YET. combined P1-only standard build pending commit/push. Build36 CANCELLED: do not install it. Codex must verify/stage the successful combined IPA first. Keep Build35 installed for now.
+
+When ready: update existing P1 with the same Sideloadly account; do not uninstall. Continue your normal test save. Settings/private graphics content should remain; no asset transfer or save reset needed. Working Build35 IPA remains in folder5. No new phone-save backup taken this turn.
+
+1. Advanced settings > Gameplay > Better Pathfinding ON. First use Olimar Speed100% and Pikmin Speed100%. Bring a squad back across the raised cardboard/ramp crossing in your09:47 clip, both directions, making similar turns. Followers should try a narrow line through the crossing rather than fan out sideways. Try with and without a larger squad; watch collisions and frame rate. No deliberate swarm/C-stick for the initial trial.
+2. If a follower falls below, pause movement on safe ground and wait several seconds. A still-following, grounded Pikmin that stops progressing should try a walking route back, if one exists. If it became idle/disbanded, use the ordinary local whistle first. Never expect teleportation. Record whether it finds the ramp/route, stays below, circles, or causes slowdown; no usable map route is a valid limitation to report.
+3. Check ordinary flat-ground following, intentional descents and normal swarm still work. Leave distant workers on jobs: they should remain untouched by follower recovery and local whistle unless inside its normal radius. Do not test late-game spoilers or make hazardous forced falls.
+4. Cheats > Recall All ON: ordinary whistle remains local; new group-and-whistle button calls eligible living Pikmin throughout this area INCLUDING workers. It should not teleport or pluck them. Turn it OFF and confirm the button disappears. Layout editing and menus must not queue a delayed recall. Existing buttons retain saved positions.
+5. Cheats > Pikmin Speed: test150% or200%, then return100%; close/reopen settings to confirm saved value. Leaves/buds/flowers retain relative speeds. Walking only; attack/work timing unchanged, loaded carrying uses Carry Speed. After baseline crossing test optionally repeat at your preferred Olimar speed. Higher cheat speeds can still worsen collision/edge behavior.
+6. Quick regression: Aim/Soft Assist, charge+whistle before enemy dies, pause/background and normal day-end save/reload. No need to redo the full campaign. Rare clam cutscene remains unverified unless encountered naturally. No new mid-day autosave.
+
+Report crossing prevention, walking recovery, local/global whistle separation, speed, regressions and performance as PASS/FAIL/UNTESTED, with captain/Pikmin speeds, squad size and invincibility state. Can disconnect after install and play normally; no need to leave P1 open for Codex.

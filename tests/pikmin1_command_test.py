@@ -58,13 +58,14 @@ code=r'''
 #include <vector>
 #include <algorithm>
 #define PIKI_PC_PORT 1
+FOLLOW_HEADER
 #define PIKI_PC_TOUCH 1
 using f32=float;
 struct Vector3f {float x=0,y=0,z=0; Vector3f()=default;Vector3f(float a,float b,float c):x(a),y(b),z(c){}
  Vector3f operator+(Vector3f b)const{return {x+b.x,y+b.y,z+b.z};}
  Vector3f operator-(Vector3f b)const{return {x-b.x,y-b.y,z-b.z};}
  Vector3f operator*(float b)const{return {x*b,y*b,z*b};}
- float length()const{return std::sqrt(x*x+y*y+z*z);}void normalise(){float l=length();if(l>0){x/=l;y/=l;z/=l;}}
+ void set(float a,float b,float c){x=a;y=b;z=c;}float length()const{return std::sqrt(x*x+y*y+z*z);}void normalise(){float l=length();if(l>0){x/=l;y/=l;z/=l;}}
 };
 float speedy_sqrtf(float f){return std::sqrt(f);}
 enum {TEKI_Shell=10,TEKI_Pearl=13,TEKI_Rocpe=14};
@@ -72,7 +73,7 @@ enum {PIKISTATE_Normal,PIKISTATE_Emotion,PIKISTATE_Nukare,PIKISTATE_Swallowed,PI
 enum {STANDTYPE_Ground,STANDTYPE_TekiPlatform,STANDTYPE_Platform,STANDTYPE_Air};
 namespace PikiMode {enum {FreeMode,FormationMode,AttackMode};}
 namespace PikiAction {enum {Crowd,Attack};}
-struct Creature {struct {Vector3f t;}mSRT; bool alive=true;bool teki=true,boss=false;int mObjType=1;
+struct Creature {Vector3f mPlatformAdjustDelta;struct {Vector3f t;}mSRT; bool alive=true;bool teki=true,boss=false;int mObjType=1;
  bool isTeki(){return teki;}bool isBoss(){return boss;}Vector3f getCentre(){return mSRT.t;}};
 struct Teki:Creature {int mTekiType=0;};
 struct Navi;
@@ -85,7 +86,7 @@ struct Piki:Creature {Navi*mNavi=nullptr;int mMode=PikiMode::FormationMode;Actio
 };
 struct Controller {bool whistle=false;bool keyDown(int){return whistle;}};
 struct KeyConfig {struct {int mBind=1;}mSetCursorKey;static KeyConfig*_instance;};KeyConfig keyConfig;KeyConfig*KeyConfig::_instance=&keyConfig;
-struct Navi:Creature {Controller controller;Controller*mKontroller=&controller;int mNaviID=0,stand=STANDTYPE_Ground;
+struct Navi:Creature {PcFollowTrail mPcFollowTrail;Controller controller;Controller*mKontroller=&controller;int mNaviID=0,stand=STANDTYPE_Ground;
  Creature*mPcLockTarget=nullptr,*mPcLockIgnore=nullptr;float mPcChargeTime=0,mCursorNaviDist=0,mCursorMaxRadius=200;
  Vector3f mPcAimOffset,mPcPinnedOffset,mCursorPosition,mCursorTargetPosition,mCursorWorldPos;bool mIsCStickNeutral=true;
  void pcReleaseLockOn();void pcUpdateLockOn();void pcPinCursorToLock();void pcPinCursorFirstPerson(){}int getStandType(){return stand;}
@@ -122,7 +123,7 @@ struct Map {bool hole=false,drop=false;int queries=0;
  void*getCurrTri(float x,float,bool){++queries;return hole&&x>8?nullptr:this;}
  float getMinY(float x,float,bool){++queries;return drop&&x>8?0.0f:50.0f;}
 } map;Map*mapMgr=&map;
-struct ActCrowd {Piki*mPiki;void pcProtectFormationEdge(Vector3f&);};
+struct ActCrowd {Piki*mPiki;bool mPcFollowingTrail=false,mPcLaneBlocked=false;void pcProtectFormationEdge(Vector3f&);};
 enum {BTN_THROW,BTN_WHISTLE,BTN_AIM,BTN_CHARGE,BTN_RECALL_ALL,BTN_COUNT};
 struct Button {long long finger=-1;}sButtons[BTN_COUNT];
 int sLayoutH=1290,sGameMenuClaimFrames=0,sPortMenuClaimFrames=0;bool sEditMode=false;int sRecallRequestFrames=0;
@@ -182,7 +183,7 @@ int main(){
  map.drop=false;slot={50,50,0};a.pcProtectFormationEdge(slot);check(near(slot.x,50),"flat terrain unchanged");
  map.hole=true;slot={50,50,0};a.pcProtectFormationEdge(slot);check(near(slot.x,-30),"missing ground treated as edge");map.hole=false;map.drop=true;
  better=0;slot={50,50,0};a.pcProtectFormationEdge(slot);check(near(slot.x,50),"ledge guard follows existing setting");better=1;
- p.stand=STANDTYPE_Platform;a.pcProtectFormationEdge(slot);check(near(slot.x,50),"dynamic bridge platform not blocked");p.stand=STANDTYPE_Ground;
+ p.stand=STANDTYPE_Platform;a.pcProtectFormationEdge(slot);check(near(slot.x,-30),"platform edge is guarded too");slot={50,50,0};p.stand=STANDTYPE_Ground;
  n.mSRT.t.y=0;a.pcProtectFormationEdge(slot);check(near(slot.x,50),"intentional descent preserved");n.mSRT.t.y=50;
  n.mIsCStickNeutral=false;a.pcProtectFormationEdge(slot);check(near(slot.x,50),"explicit swarm behavior unchanged");
  pcTouchButtonCursorDrag(BTN_AIM,30,15);check(near(cursorDx,10)&&near(cursorDy,5),"dedicated aim DPI-normalized delta");
@@ -217,6 +218,6 @@ int main(){
  for(bool*flag:{&det,&coop,&vs,&speedrun,&hard}){*flag=true;pcTouchRequestRecall(BTN_RECALL_ALL);n.pcUpdateRecallAll();check(n.recalls==calls,"recall command disabled outside permitted solo context");*flag=false;}
  std::printf("%d P1 command/recall/cursor/edge scenarios; %d failures\n",checks,failures);return failures?1:0;
 }
-'''.replace('FUNCTIONS','\n\n'.join(pieces)).replace('CALL_DECL',call_decl)
+'''.replace('FUNCTIONS','\n\n'.join(pieces)).replace('CALL_DECL',call_decl).replace('FOLLOW_HEADER',read('games/pikmin1/pc_port/pc_follow_trail.h'))
 out=Path(sys.argv[1]);out.parent.mkdir(parents=True,exist_ok=True);out.write_text(code,encoding='utf-8')
 print('Generated real P1 command scenarios'+(' from '+old_ref if old_ref else ''))

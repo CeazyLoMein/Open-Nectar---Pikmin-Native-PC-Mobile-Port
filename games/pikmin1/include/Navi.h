@@ -1,6 +1,10 @@
 #ifndef _NAVI_H
 #define _NAVI_H
 
+#if defined(PIKI_PC_PORT)
+#include "pc_follow_trail.h"
+#endif
+
 #include "Creature.h"
 #include "Node.h"
 #include "PaniAnimator.h"
@@ -218,6 +222,10 @@ public:
 	Vector3f mCursorWorldPos;             // _6F0, also cursor related?
 #if defined(PIKI_PC_PORT)
 	void pcUpdateLockOn();
+	void pcUpdateFollowTrail();
+    bool pcTakeFollowerRouteBudget();
+    PcFollowTrail mPcFollowTrail;
+    f32 mPcFollowRouteCooldown = 0.0f;
 	void pcUpdateRecallAll(); ///< Consume the separate touch recall command in solo gameplay.
 	void pcReleaseLockOn(); ///< Restore free aim for manual, lost-target and setting-off exits.
 	void pcUpdateBombCommand();

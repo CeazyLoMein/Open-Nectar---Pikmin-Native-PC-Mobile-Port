@@ -368,8 +368,9 @@ int Piki::moveRouteTraceDynamic(f32 speedRatio)
 /**
  * @todo: Documentation
  */
-bool Piki::initRouteTrace(immut Vector3f& targetPos, bool p2)
+bool Piki::initRouteTrace(immut Vector3f& targetPos, bool p2, bool followerRecovery)
 {
+    if (!routeMgr || !mPathBuffers || !routeMgr->getPathFinder('test')) return false;
 	if (mRouteHandle) {
 		routeMgr->getPathFinder('test')->releaseHandle(mRouteHandle);
 		mRouteHandle = 0;
@@ -399,7 +400,18 @@ bool Piki::initRouteTrace(immut Vector3f& targetPos, bool p2)
 		nearestPikiWP = routeMgr->findNearestWayPoint('test', mSRT.t, onlyLand);
 	}
 
-	WayPoint* nearestTargetWP = routeMgr->findNearestWayPoint('test', targetPos, false);
+	WayPoint* nearestTargetWP = routeMgr->findNearestWayPoint('test', targetPos, followerRecovery && onlyLand);
+    if (!nearestPikiWP || !nearestTargetWP) return false;
+    if (followerRecovery) {
+        auto reachableEndpoint = [](WayPoint* wp, const Vector3f& pos) {
+            const Vector3f d=wp->mPosition-pos;
+            return wp->mIsOpen && d.y<40.0f && d.y> -40.0f && d.x*d.x+d.z*d.z<180.0f*180.0f;
+        };
+        const int count=routeMgr->getNumWayPoints('test');
+        if (nearestPikiWP->mIndex<0 || nearestPikiWP->mIndex>=count
+            || nearestTargetWP->mIndex<0 || nearestTargetWP->mIndex>=count
+            || !reachableEndpoint(nearestPikiWP,mSRT.t) || !reachableEndpoint(nearestTargetWP,targetPos)) return false;
+    }
 	mRouteStartPos            = mSRT.t;
 	mRouteGoalPos             = targetPos;
 
@@ -407,7 +419,15 @@ bool Piki::initRouteTrace(immut Vector3f& targetPos, bool p2)
 		PathFinder::setMode(PathFinderMode::AvoidWater);
 	}
 
-	mNumRoutePoints = findRoute(nearestPikiWP->mIndex, nearestTargetWP->mIndex, false, p2);
+    if (followerRecovery) {
+        // No cached Onion path or another colour's route, and no closed gates.
+        mRouteSourceIndex=nearestPikiWP->mIndex;
+        mRouteDestinationIndex=nearestTargetWP->mIndex;
+        mIsRetryPathfind=false;
+        mNumRoutePoints=routeMgr->getPathFinder('test')->findSync(mPathBuffers,mRouteSourceIndex,mRouteDestinationIndex,false);
+    } else {
+        mNumRoutePoints = findRoute(nearestPikiWP->mIndex, nearestTargetWP->mIndex, false, p2);
+    }
 
 	if (onlyLand) {
 		PathFinder::clearMode();
@@ -418,10 +438,11 @@ bool Piki::initRouteTrace(immut Vector3f& targetPos, bool p2)
 		return true;
 	}
 
-	if (mNumRoutePoints <= 0) {
+	if (mNumRoutePoints <= 0 || mNumRoutePoints > routeMgr->getNumWayPoints('test')) {
 		return false;
 	}
 
+    if (followerRecovery) {mCurrRoutePoint=0;return true;}
 	mCurrRoutePoint = -1;
 
 	Vector3f cr1 = crGetPoint(mCurrRoutePoint + 1);
@@ -447,6 +468,40 @@ bool Piki::initRouteTrace(immut Vector3f& targetPos, bool p2)
 /**
  * @todo: Documentation
  */
+#if defined(PIKI_PC_PORT)
+int Piki::pcMoveFollowerRoute()
+{
+    if (!routeMgr || !mPathBuffers || mNumRoutePoints<=0
+        || mNumRoutePoints>routeMgr->getNumWayPoints('test')) return 1;
+    // A small bounded skip handles coincident start/goal points without dividing
+    // by a zero-length spline or incorrectly treating another floor as arrival.
+    for (int skipped=0;skipped<4;++skipped) {
+        Vector3f target=mRouteGoalPos;
+        if (mCurrRoutePoint<0) mCurrRoutePoint=0;
+        if (mCurrRoutePoint<mNumRoutePoints) {
+            const int index=mPathBuffers[mCurrRoutePoint].mWayPointIdx;
+            if (index<0 || index>=routeMgr->getNumWayPoints('test')) return 1;
+            WayPoint* wp=routeMgr->getWayPoint('test',index);
+            if (!wp || !wp->mIsOpen || (mColor!=Blue && wp->inWater())) return 1;
+            target=wp->mPosition;
+        }
+        Vector3f direction=target-mSRT.t;
+        const f32 dy=direction.y;
+        direction.y=0.0f;
+        const f32 distance=direction.normalise();
+        if (distance<12.0f && dy<25.0f && dy> -25.0f) {
+            if (mCurrRoutePoint>=mNumRoutePoints) {mTargetVelocity.set(0.0f,0.0f,0.0f);return 0;}
+            ++mCurrRoutePoint;continue;
+        }
+        if (distance<1.0f) return 1;
+        setSpeed(1.0f,direction);
+        return 2;
+    }
+    mTargetVelocity.set(0.0f,0.0f,0.0f);
+    return 2;
+}
+#endif
+
 int Piki::moveRouteTrace(f32 speedRatio)
 {
 	if (AIPerf::useASync && mUseAsyncPathfinding) {

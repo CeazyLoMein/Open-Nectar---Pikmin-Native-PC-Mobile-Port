@@ -1,6 +1,10 @@
 #ifndef _PIKIAI_H
 #define _PIKIAI_H
 
+#if defined(PIKI_PC_PORT)
+#include "pc_follow_trail.h"
+#endif
+
 #include "PaniAnimator.h"
 #include "Piki.h"
 #include "Receiver.h"
@@ -840,6 +844,14 @@ protected:
 #if defined(PIKI_PC_PORT)
 	bool pcWaterAhead();
 	void pcProtectFormationEdge(Vector3f& slot);
+    bool pcRecoverFollower();
+    void pcResetFollowerRecovery();
+    PcFollowerProgress mPcFollowerProgress;
+    bool mPcFollowingTrail = false;
+    bool mPcLaneBlocked = false;
+    bool mPcRecoveryRoute = false;
+    f32 mPcRecoveryRouteAge = 0.0f;
+    Vector3f mPcRecoveryGoal;
 	bool mPcWaitAshore = false; ///< mod "Blues Only In Water": esperando a que el capitán salga del agua
 #endif
 };
