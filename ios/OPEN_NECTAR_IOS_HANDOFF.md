@@ -1,8 +1,8 @@
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-21 15:46 EDT
+**Date/time:** 2026-10-21 15:47 EDT
 
-**Overall project status:** P1 Build37 compilation passed but phone navigation failed even at100% speed. Navigation v2 batch implemented and locally verified; next P1-only Apple build pending commit/push. P2 working user baseline preserved, development paused.
+**Overall project status:** P1 Build37 compilation passed but phone navigation failed even at100% speed. Navigation v2 batch implemented and locally verified; P1-only standard Build38 dispatched and observed in progress. P2 working user baseline preserved, development paused.
 
 ### Pikmin 1
 
@@ -29,11 +29,11 @@
 - Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental
 - Starting commit: ee380c593633f8b6bc609c9e293377e79e2d9556
-- Latest commit: ee380c593633f8b6bc609c9e293377e79e2d9556 local and origin before this patch; fetched, no divergence.
-- Commits created: None yet in this navigation v2 batch.
-- Changes pushed: None yet in this batch.
-- Uncommitted changes: P1 navigation/test/workflow/help/documentation batch described above; no unrelated or private phone/video files staged.
-- GitHub Actions run IDs:37=39617967156 SUCCESS sourceabd06b6216f0d09bc13361ddbff693f58640a21f;36=39614665805 CANCELLED;35=39548476790 SUCCESS. No pending build observed before dispatch.
+- Latest commit: 2d1e2800d2e3d42908914bdd63bba91707ac684d local and origin for the build source; documentation-only run record follows [skip ci].
+- Commits created: 2d1e2800d2e3d42908914bdd63bba91707ac684d — P1 navigation v2 batch, [ios-build] [ios-p1-only].
+- Changes pushed: All locally verified P1 changes pushed to ios-experimental.
+- Uncommitted changes: No code changes left uncommitted; this documentation run record will be committed/pushed with [skip ci]. Private phone/videos never staged.
+- GitHub Actions run IDs:38=39664622876 IN_PROGRESS source2d1e2800d2e3d42908914bdd63bba91707ac684d;37=39617967156 SUCCESS sourceabd06b6216f0d09bc13361ddbff693f58640a21f;36=39614665805 CANCELLED;35=39548476790 SUCCESS. Build38 observed in progress; no completion polling scheduled.
 - Build results: New v2 Apple compilation PENDING. Do not confuse local fixture pass with hardware correctness.
 - Artifacts produced: No v2 IPA yet. Build37 artifact12354447804 preserved; named P1Build37 SHA2567e5837bbc83e40ae3f41736b0e00da1e292e546bedc4075aa2192884c74d5654. P2 named working32 and P1Build35 restore retained.
 
@@ -41,7 +41,7 @@
 
 - Next Pikmin 1 task: Run next original-ID standard P1-only build, verify IPA, place in folder1, retest exact crossing/Recall at100% then usual modest speed; use navigation report if it fails.
 - Next Pikmin 2 task: Remain on working build; resume planned stronger solo testing after P1 fixes.
-- GitHub/build task: Commit/push one [ios-build] [ios-p1-only] batch; record exact source/run, then stop waiting. User will report completion.
+- GitHub/build task: Build38/run39664622876 dispatched from2d1e2800d2e3d42908914bdd63bba91707ac684d. Stop waiting; user will report completion. Inspect full job log/artifact then.
 - Anything requiring my involvement: Nothing now; phone read complete, may disconnect. Next action will be installation/test once IPA is verified and staged.
 
 ### ChatGPT continuation notes
@@ -51,7 +51,7 @@
 - Relevant logs: Current two clips/contact sheets private folder2/P1 Build37 - Crossing and Recall Failures; consistent8-file phone backup in folder5/P1 Phone Backup - 2026-10-21 - Before Navigation v2. Historical solo events are Build33, not new navigation evidence. New p1-navigation-report.txt will exist only after new build runs and emits events.
 - Unverified fixes: All v2 phone navigation and source icon-copy pipeline native compilation. Unit fixtures do not simulate actual cardboard collision/crowd physics.
 - Risks and warnings: Route graph might lack a safe link; bounded candidate search may miss distant entrances; centerline probes do not solve all body/crowd collision. No positions overwritten. P2 source untouched. Private videos/saves/assets not uploaded.
-- Exact next actions: Finish commit/push, capture new run ID/source, stop idle polling. On completion inspect full logs/artifact; if success verify identity/ARM64/icons/variant and stage IPA; test checklist. If failed inspect actual compiler log before patching. If phone still fails retrieve navigation report before further diagnosis. Shared exact-scene saving/co-op recovery design remains later work in ios/SAVE_AND_COOP_RECOVERY_PLAN.md and ONLINE_COOP_DESIGN_NOTES.md.
+- Exact next actions: Build38 source/run recorded; stop idle polling. On completion inspect full logs/artifact; if success verify identity/ARM64/icons/variant and stage IPA; test checklist. If failed inspect actual compiler log before patching. If phone still fails retrieve navigation report before further diagnosis. Shared exact-scene saving/co-op recovery design remains later work in ios/SAVE_AND_COOP_RECOVERY_PLAN.md and ONLINE_COOP_DESIGN_NOTES.md.
 
 **END PROGRESS REPORT**
 

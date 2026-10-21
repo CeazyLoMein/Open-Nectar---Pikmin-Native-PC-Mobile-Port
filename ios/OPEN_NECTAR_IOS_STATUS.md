@@ -1,3 +1,5 @@
+CURRENT — 2026-10-21 15:47 EDT: P1 navigation v2 source2d1e2800d2e3d42908914bdd63bba91707ac684d PUSHED; Build38/run39664622876 observed IN_PROGRESS. Local87 route/17 surface/82 command/283+283 speed/58+58+7 campaign/27 identity checks PASS; Apple/IPA/phone PENDING. Build37 pathing FAILED at100% speed per user. Phone read finished, may disconnect. P2 unchanged. No idle polling.
+
 ## Navigation v2 work in progress — 2026-10-21 15:42 EDT
 
 Build37 phone pathing FAILED in both supplied 11:23/11:26 recordings. User repeated at Olimar100% and Pikmin100% and confirmed the same failure; later 200%/500% saved configuration was experimentation after playing, not proof of clip speed. User does not want500% optimization prioritized. Recall All itself works across map.
