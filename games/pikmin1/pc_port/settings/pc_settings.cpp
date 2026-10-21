@@ -141,6 +141,7 @@ struct PcConfig {
     int holdToPluck = 0;
     // Mod: unstick Pikmin that stop making progress along a route (0=off, 1=on).
     int betterPathfinding = 0;
+    int recallAll = 0; // optional solo global whistle, off by default
     // Mod: a non-blue Pikmin that wanders into water on its own is pushed back
     // to dry land instead of drowning. Being thrown in still drowns it.
     int bluesOnlyWater = 0;
@@ -199,6 +200,11 @@ struct PcConfig {
     int vsPellets = 1;   // cada 30 / 45 / 60 s / sin pastillas
     std::string vsMap;   // carpeta en user/maps/vs/; vacío = la arena de serie
     // Mods de Pikmin 3: fijar objetivo, y mandar el escuadrón contra él.
+#if PIKI_P2_HOST
+    static constexpr int lockOnModes = 3;
+#else
+    static constexpr int lockOnModes = 4;
+#endif
     int lockOn = 0;
     int charge = 0;
     // Mod: cerrar el relevo del lanzamiento con el capitán en marcha.
@@ -280,6 +286,7 @@ struct PcConfig {
         chainActions = 0;
         holdToPluck = 0;
         betterPathfinding = 0;
+        recallAll = 0;
         bluesOnlyWater = 0;
         idleCounter = 0;
         naviHealthPct = 100;
@@ -1211,6 +1218,7 @@ void saveConfig() {
     out << "chainActions = " << sConfig.chainActions << "\n";
     out << "holdToPluck = " << sConfig.holdToPluck << "\n";
     out << "betterPathfinding = " << sConfig.betterPathfinding << "\n";
+    out << "recallAll = " << sConfig.recallAll << "\n";
     out << "bluesOnlyWater = " << sConfig.bluesOnlyWater << "\n";
     out << "idleCounter = " << sConfig.idleCounter << "\n";
     out << "naviHealthPct = " << sConfig.naviHealthPct << "\n";
@@ -1394,6 +1402,7 @@ void loadConfig() {
         else if (key == "holdToPluck") {
             sConfig.holdToPluck = atoi(val.c_str()) ? 1 : 0;
         }
+        else if (key == "recallAll") { sConfig.recallAll = atoi(val.c_str()) ? 1 : 0; }
         else if (key == "betterPathfinding") {
             sConfig.betterPathfinding = atoi(val.c_str()) ? 1 : 0;
         }
@@ -1495,7 +1504,7 @@ void loadConfig() {
         else if (key == "vsPellets") sConfig.vsPellets = std::clamp(atoi(val.c_str()), 0, 3);
         else if (key == "lockOn") {
             // 0 = off, 1 = manual (lo que era "On"), 2 = automático.
-            sConfig.lockOn = std::clamp(atoi(val.c_str()), 0, 2);
+            sConfig.lockOn = std::clamp(atoi(val.c_str()), 0, PcConfig::lockOnModes - 1);
         }
         else if (key == "charge") {
             sConfig.charge = atoi(val.c_str()) ? 1 : 0;
@@ -2825,8 +2834,8 @@ void modsRowChange(int row, bool left, bool right) {
     }
     // Fijar objetivo.
     else if (row == 15) {
-        if (right) sPending.lockOn = (sPending.lockOn + 1) % 3;
-        if (left) sPending.lockOn = (sPending.lockOn + 2) % 3;
+        if (right) sPending.lockOn = (sPending.lockOn + 1) % PcConfig::lockOnModes;
+        if (left) sPending.lockOn = (sPending.lockOn + PcConfig::lockOnModes - 1) % PcConfig::lockOnModes;
     }
     // Mandar el escuadrón contra el objetivo fijado.
     else if (row == 16) {
@@ -2879,6 +2888,9 @@ void modsRowChange(int row, bool left, bool right) {
     }
     else if (row == 40) {
         if (left || right) sPending.eternalNight = sPending.eternalNight ? 0 : 1;
+    }
+    else if (row == 42) {
+        if (left || right) sPending.recallAll = !sPending.recallAll;
     }
     else if (row == 41) {
         if (left || right) sPending.fireflies = sPending.fireflies ? 0 : 1;
@@ -7052,6 +7064,11 @@ int pc_settings_get_chain_actions(void) { if (pc_speedrun_active()) return 0;
     return sConfig.chainActions;
 }
 
+int pc_settings_get_recall_all(void) {
+    return !pc_speedrun_active() && !pc_hardmode_active() && !pc_coop_active()
+        && !pc_vs_active() && !pc_netplay_deterministic() ? sConfig.recallAll : 0;
+}
+
 int pc_settings_get_better_pathfinding(void) { if (pc_speedrun_active()) return 0;
     return sConfig.betterPathfinding;
 }
@@ -7455,7 +7472,7 @@ void modsRowValue(int i, char* value, size_t n) {
         else snprintf(value, n, "%s", sPending.infiniteDay ? "On" : "Off (original)");
         break;
     case 14: snprintf(value, n, "%s", sPending.freeCamera ? "On" : "Off (original)"); break;
-    case 15: snprintf(value, n, "%s", sPending.lockOn == 2 ? "Automatic" : sPending.lockOn == 1 ? "Manual" : "Off (original)"); break;
+    case 15: snprintf(value, n, "%s", sPending.lockOn == 3 ? "Soft Assist" : sPending.lockOn == 2 ? "Automatic" : sPending.lockOn == 1 ? "Manual" : "Off (original)"); break;
     case 16:
         if (!sPending.lockOn) snprintf(value, n, "Needs Lock-On");
         else snprintf(value, n, "%s", sPending.charge ? "On" : "Off (original)");
@@ -7480,6 +7497,7 @@ void modsRowValue(int i, char* value, size_t n) {
     case 39: snprintf(value, n, "%s", sPending.p2Selection ? "On" : "Off"); break;
     case 40: snprintf(value, n, "%s", sPending.eternalNight ? "On" : "Off (original)"); break;
     case 41: snprintf(value, n, "%s", sPending.fireflies ? "On" : "Off (original)"); break;
+    case 42: snprintf(value, n, "%s", sPending.recallAll ? "On" : "Off (original)"); break;
     case 38: snprintf(value, n, sPending.freeCamPadPct == 100 ? "%d%%  (original)" : "%d%%", sPending.freeCamPadPct); break;
     case 28: speedPctLabel(sPending.carrySpeedPct, value, n); break;
     case 29: speedPctLabel(sPending.naviSpeedPct, value, n); break;
@@ -7599,8 +7617,8 @@ const GroupRow kControlsRows[] = {
     { SRC_MODS, 39, "Pikmin 2 Selection", "D-pad as in Pikmin 2. Left/Right chooses the colour for every throw. Hold A and press Up/Down to pick leaf, bud, flower or a Yellow with a bomb rock. Off: Left/Right only picks the next throw." },
     { SRC_MODS, 24, "Onion: Move 10 at a Time", "In the Onion menu, hold Y while pressing up or down to move 10 Pikmin at a time." },
     { SRC_MODS, 35, "Bomb Control", "Bomb button (B on keyboard, set a controller button in Controls): a Yellow with a bomb rock throws it at the cursor, or drops it at its feet if the cursor is too close. Yellows already thrown go first." },
-    { SRC_MODS, 15, "Lock-On", "Automatic: locks onto the nearest enemy or object as you approach. Manual: press the Lock-On button (set it in Controls)." },
-    { SRC_MODS, 16, "Charge", "With a target locked, send the whole squad at it." },
+    { SRC_MODS, 15, "Lock-On", "Soft Assist (P1): gently attracts the cursor to a nearby target and releases when you aim or walk away. Automatic: holds the target until released or far away. Manual: toggle with Lock-On. Hold the touch Aim pad for precise free aim." },
+    { SRC_MODS, 16, "Charge", "With a ground target locked, send the squad at it. Whistle cancels the charge. Clam pearls and raised parts need aimed throws instead." },
     { SRC_ADV, 1, "Stick Dead Zone", "Ignores tiny stick movements. Raise it if the cursor or Olimar moves on its own (stick drift)." },
     { SRC_ADV, 2, "Stick Invert", "Flips the movement stick: horizontal, vertical or both." },
     { SRC_ADV, 3, "Camera Stick Invert", "Flips the right stick (the GameCube C-Stick): horizontal, vertical or both." },
@@ -7624,7 +7642,7 @@ const GroupRow kCameraRows[] = {
 const GroupRow kGameplayRows[] = {
     { SRC_MODS, 25, "Instant Whistle Response", "Whistled Pikmin join the squad at once, without stopping to turn and look first." },
     { SRC_MODS, 1, "Chain Pikmin Actions", "Pikmin that finish a task go on to the next one nearby." },
-    { SRC_MODS, 8, "Better Pathfinding", "Smarter Pikmin: they get unstuck on their way, run back to the squad when thrown with nothing to do, and no longer stop to pull nectar grass they walk past (swarm them at it instead)." },
+    { SRC_MODS, 8, "Better Pathfinding", "Helps carriers get unstuck, calls idle thrown Pikmin back, and redirects following slots away from nearby terrain drops. Dynamic platforms and commanded swarms retain original behavior. Swarm to pull nectar grass." },
     { SRC_MODS, 9, "Blues Only In Water", "Only blue Pikmin walk into water on their own." },
     { SRC_MODS, 23, "No Tripping", "Pikmin running in the squad never trip and fall behind." },
     { SRC_MODS, 40, "Eternal Night", "Always night, whatever the day length: night lighting, and the moon crosses the day bar instead of the sun." },
@@ -7640,6 +7658,9 @@ const GroupRow kCheatsRows[] = {
     { SRC_MODS, 12, "Enemy Health", "Enemy toughness, as a share of the original. Insta Kill drops them in one hit." },
     { SRC_MODS, 4, "Pikmin Limit", "Most Pikmin on the field at once. 100 is the original; more costs performance." },
     { SRC_MODS, 21, "Throw Speed", "How fast Olimar grabs and throws Pikmin. 100% is the original." },
+#if !PIKI_P2_HOST
+    { SRC_MODS, 42, "Recall All Pikmin", "Solo cheat: your normal whistle calls eligible Pikmin anywhere in the current area back to your captain. They walk back; no teleport, revival or sprout plucking. Working Pikmin stop their task. Terrain and hazards still matter. Off in Hard, Speedrun and multiplayer." },
+#endif
     { SRC_MODS, 20, "Whistle Radius", "Size of the whistle circle at full charge. 100% is the original." },
     { SRC_MODS, 26, "Invincible Pikmin", "Pikmin never die: no attacks, fire, water, gas or crushing." },
     { SRC_MODS, 27, "All Flowers", "Every Pikmin grows a flower as soon as it is plucked or born." },

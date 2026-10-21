@@ -8,7 +8,9 @@ global_header = (ROOT/'games/pikmin1/include/GlobalGameOptions.h').read_text()
 pellet_header = (ROOT/'games/pikmin1/include/Pellet.h').read_text()
 enums = '\n'.join(re.search(r'enum '+name+r'\s*\{.*?\};',source,re.S)[0]
                   for name,source in [('StageID',global_header),('PikiColor',global_header),
-                                      ('PikiHappa',global_header),('UfoPartIndex',pellet_header)])
+                                      ('PikiHappa',global_header),('UfoPartIndex',pellet_header),('UfoPartID',pellet_header)])
+demo_header=(ROOT/'games/pikmin1/include/Demo.h').read_text()
+enums += '\n#define MAX_UFO_PARTS 30\n' + re.search(r'enum EDemoFlags\s*\{.*?\};',demo_header,re.S)[0]
 card = (ROOT/'games/pikmin1/src/plugPikiColin/cardSelect.cpp').read_text(encoding='utf-8')
 assert card.count('pc_solo_test_prepare_new_campaign(')==2
 core = (ROOT/'games/pikmin1/src/plugPikiKando/gameCoreSection.cpp').read_text(encoding='utf-8')
@@ -22,6 +24,10 @@ code = r'''
 ENUMS
 enum { PARTVIS_Uncollected, PARTVIS_Visible, PARTVIS_Invisible };
 struct PlayerState {
+ struct Flags { unsigned long long bits=0; bool isFlag(int n)const{return (bits & (1ull<<n))!=0;}
+  void setFlagOnly(int n){bits|=1ull<<n;} } mDemoFlags;
+ bool isTutorial() const {return mIsTutorialMode;}
+ bool hasUfoParts(unsigned) const {return mUfoParts && mUfoParts[UFO_MainEngine].mPartVisType!=0;}
  struct Part { int mPartVisType=0; } parts[UFO_COUNT];
  int mTotalParts=UFO_COUNT; Part* mUfoParts=parts;
  int mCurrParts=0,mRequiredUfoPartCount=0,mShipUpgradeLevel=0,mShipEffectPartFlag=8;
@@ -75,7 +81,16 @@ int main(){
   for(int c=0;c<PikiColorCount;++c)
    check(b.mPikiCounts[c][Leaf]==100&&b.mPikiCounts[c][Bud]==0&&b.mPikiCounts[c][Flower]==0,"bank inventory");
   check(p.mTotalBornPikiNum==300&&p.mPartsCollectedByDay[0]==p.mCurrParts,"summary");
+  check(p.mDemoFlags.isFlag(DEMOFLAG_ApproachEngine)&&p.mDemoFlags.isFlag(DEMOFLAG_CollectEngine),"engine tutorial already completed");
+  check(!pc_solo_test_repair_tutorial(p),"tutorial repair idempotent");
  }
+ PlayerState loaded;loaded.mIsTutorialMode=false;loaded.mUfoParts[UFO_MainEngine].mPartVisType=PARTVIS_Invisible;
+ loaded.mCurrParts=2;loaded.mLivingPikiNum=243;loaded.mStagePartsCollected[0]=2;
+ check(pc_solo_test_repair_tutorial(loaded),"old test card tutorial flags repaired");
+ check(loaded.mCurrParts==2&&loaded.mLivingPikiNum==243&&loaded.mStagePartsCollected[0]==2,"loaded progress not reset");
+ check(!loaded.mDemoFlags.isFlag(DEMOFLAG_UfoPartDiscoveryOffset+UFO_SecretSafe),"later discoveries remain untouched");
+ PlayerState tutorial;check(!pc_solo_test_repair_tutorial(tutorial)&&tutorial.mDemoFlags.bits==0,"real tutorial untouched");
+ PlayerState noEngine;noEngine.mIsTutorialMode=false;check(!pc_solo_test_repair_tutorial(noEngine),"missing engine untouched");
  PlayerState invalid;PikiInfMgr b;invalid.mTotalParts=1;
  pc_solo_test_prepare_new_campaign(invalid,b,1);
  check(invalid.mCurrParts==0&&b.mPikiCounts[Red][Leaf]==0,"invalid registry untouched");

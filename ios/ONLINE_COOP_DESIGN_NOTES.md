@@ -1,3 +1,5 @@
+CURRENT - 2026-10-21 00:40 EDT: User agrees to keep normal saving for this P1 fixes/fresh-save retest, then prototype co-op and build shared exact-scene snapshot recovery for solo/co-op. See SAVE_AND_COOP_RECOVERY_PLAN.md for source audit/research. Ship-return option superseded by exact-scene preference. After P1, stronger P2 cave/area/audio/save tests precede P2 co-op. No final-boss spoilers.
+
 ## Current user authorization - 2026-10-20 20:43 EDT
 
 After the free-profile fourth-app install failed, the user explicitly authorized

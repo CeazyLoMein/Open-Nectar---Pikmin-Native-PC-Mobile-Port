@@ -1,0 +1,20 @@
+# Next P1 normal-campaign build - phone checks after CI verification
+
+BUILD NOT READY YET. Wait for Codex to inspect the successful IPA and stage it. Do not reinstall the older Build33 fixture as the normal-campaign update.
+
+Install over current P1 in Sideloadly with the SAME account and normal P1 identity; never uninstall first. Existing settings, art, textures and models should remain. This build returns to the original save folder. Build33 test cards remain under save-solo-test and are not erased; they are not the normal campaign card.
+
+Start a NEW Normal/Standard single-player file in an empty slot. No forced Day2,300-Pikmin or unlocked-area fixture is expected. Skipping the tutorial uses the ordinary game's skip path; keeping it tests more of the opening. No final boss required. Normal saving is unchanged: complete sunset/day-end and save before closing. There is NO new mid-day autosave yet.
+
+1. Check settings/content/layout stayed as you configured them. Old lock-on/charge buttons keep their saved positions. A new Aim crosshair appears at the middle-right by default; it can be repositioned with the layout editor.
+2. Hold and DRAG Aim to move only the cursor; it must not throw, whistle or rotate the camera at the cursor edge. Try moving Olimar with the other thumb. Release Aim, then throw at the chosen spot. Existing throw/whistle drag aiming remains available.
+3. In advanced settings > Controls > Lock-On, select Soft Assist to try the P4-inspired option. Approach an ordinary target: cursor should be gently attracted, not fixed hard; aim or walk away and it should release. Hold Aim to override it. Your previous Manual choice is preserved until you change it. Try Manual again too: unlock once and the cursor should move immediately without camera tricks.
+4. Charge a familiar ordinary enemy, then WHISTLE BEFORE IT DIES. Pikmin should stop attacking and return; they must not be sent back by the remaining charge timer. Repeat while moving. For clams, ground charge is intentionally suppressed: use aimed throws into the mouth, then whistle them out before it closes. Note any stuck behavior. Do not seek a late encounter for the test.
+5. Optional: Cheats > Recall All Pikmin > On. Your normal whistle then calls eligible living Pikmin across the CURRENT area, including workers. They walk back to your captain. No teleport, revival or automatic plucking. Already-following Pikmin are not repeatedly reset; terrain/pathfinding can still delay a return. Turn it OFF afterward if you prefer normal local whistle. Solo only; off in Hard/Speedrun/multiplayer.
+6. Keep Better Pathfinding enabled. Walk a larger squad along a familiar terrain ledge, first at100% Olimar speed, then optionally your200% setting. Following slots should be less likely to pull Pikmin sideways off nearby drops. Dynamic platforms, intentional descents and commanded swarms are not covered by this guard; report remaining locations instead of treating it as complete pathfinding replacement.
+7. Check the clam/ship-part discovery scene if encountered normally: correct item visible, no engine-intro warp to unrelated rocks, and controls/squad recover. The prior clip does not show the scene; this still needs a real phone observation. Normal campaign and correct tutorial flags should avoid the synthetic preset mismatch.
+8. Collect/deliver a real part, check Onion withdrawal/return totals, finish/save a day, then close/relaunch and compare the day, parts and Pikmin inventory. Try pause/background/resume separately. Optional invincibility bypasses normal damage/death coverage.
+
+Report PASS / FAILED / UNTESTED for aim, soft assist/manual release, charge whistle, clam scene, global recall, ledges and save/reload. Tell us whether you used100% or200% speed and invincibility. A short screenshot/clip helps only if something fails. You can disconnect the phone after installing; no need to keep P1 running for Codex.
+
+Passing this sample supports starting the co-op prototype. It does not certify the full campaign or ending.

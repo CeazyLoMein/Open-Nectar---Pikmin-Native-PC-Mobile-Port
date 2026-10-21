@@ -249,6 +249,35 @@ void ActCrowd::cleanup()
  * solo se paran los que ya están junto a la orilla, no los que vienen de
  * lejos.
  */
+// Better Pathfinding: keep a wide following slot from pulling a grounded
+// Pikmin over a nearby terrain drop while its captain stays on this level.
+// No new path search or per-Pikmin allocations. Dynamic platforms and commanded
+// swarms retain their original behavior; intentional descents remain possible.
+void ActCrowd::pcProtectFormationEdge(Vector3f& slot)
+{
+    if (!pc_settings_get_better_pathfinding() || !mPiki->mNavi || !mapMgr
+        || !mPiki->mNavi->mIsCStickNeutral || mPiki->getStandType() != STANDTYPE_Ground
+        || mPiki->mNavi->getStandType() != STANDTYPE_Ground) return;
+    const Vector3f here = mPiki->mSRT.t;
+    const Vector3f captain = mPiki->mNavi->mSRT.t;
+    if (captain.y < here.y - 25.0f) return;
+    auto safeStep = [&](const Vector3f& goal) {
+        Vector3f dir = goal - here;
+        dir.y = 0.0f;
+        const f32 length = dir.length();
+        if (length < 1.0f) return true;
+        const f32 reach = length < 36.0f ? length : 36.0f;
+        dir = dir * (reach / length);
+        for (int i=1; i<=2; ++i) {
+            const Vector3f probe = here + dir * (0.5f * i);
+            if (!mapMgr->getCurrTri(probe.x, probe.z, true)
+                || mapMgr->getMinY(probe.x, probe.z, true) < here.y - 30.0f) return false;
+        }
+        return true;
+    };
+    if (!safeStep(slot)) slot = safeStep(captain) ? captain : here;
+}
+
 bool ActCrowd::pcWaterAhead()
 {
 	const f32 kShoreDistance = 60.0f;
@@ -402,6 +431,9 @@ int ActCrowd::exec()
 		mTravelDistance = 0.0f;
 	}
 
+#if defined(PIKI_PC_PORT)
+	pcProtectFormationEdge(platePos);
+#endif
 	Vector3f plateDir = platePos - mPiki->mSRT.t;
 	f32 plateDist2D   = sqrtf(plateDir.x * plateDir.x + plateDir.z * plateDir.z);
 	plateDir.normalise();

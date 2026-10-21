@@ -218,6 +218,7 @@ public:
 	Vector3f mCursorWorldPos;             // _6F0, also cursor related?
 #if defined(PIKI_PC_PORT)
 	void pcUpdateLockOn();
+	void pcReleaseLockOn(); ///< Restore free aim for manual, lost-target and setting-off exits.
 	void pcUpdateBombCommand();
 	void pcPinCursorToLock();
 	void pcDrawLockRing(Graphics& gfx);

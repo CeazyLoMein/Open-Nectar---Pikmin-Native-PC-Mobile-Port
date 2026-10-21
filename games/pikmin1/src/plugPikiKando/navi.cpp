@@ -1365,6 +1365,44 @@ static f32 pcLockDistXZ(Creature* c, immut Vector3f& pos)
  * El objetivo se valida cada frame recorriendo los managers, en vez de guardar
  * un puntero y confiar en él: puede morir y desaparecer entre frames.
  */
+static bool pcTouchAim(const Navi* navi)
+{
+#if PIKI_PC_TOUCH
+    return !pc_netplay_deterministic() && navi->mNaviID == 0 && pc_touch_aim_active();
+#else
+    (void)navi;
+    return false;
+#endif
+}
+
+// Every release path must leave a legal free cursor, including manual mode.
+void Navi::pcReleaseLockOn()
+{
+    Vector3f aim = mPcAimOffset;
+    aim.y = 0.0f;
+    const f32 limit = NAVI_PARM(mCursorMaxRadius);
+    if (aim.length() > limit) { aim.normalise(); aim = aim * limit; }
+    mPcLockTarget = nullptr;
+    mCursorPosition = aim;
+    mCursorTargetPosition = aim;
+    mPcAimOffset = aim;
+    mPcPinnedOffset = aim;
+    mCursorNaviDist = aim.length();
+    mPcChargeTime = 0.0f;
+}
+
+// A ground rush cannot reach a clam's raised pearl/part. Keep lock-on for
+// aimed throws, but do not commit the squad to an unreachable ground attack.
+static bool pcGroundChargeTarget(Creature* target)
+{
+    if (!target || (!target->isTeki() && !target->isBoss())) return false;
+    if (target->isTeki()) {
+        const int type = static_cast<Teki*>(target)->mTekiType;
+        if (type == TEKI_Shell || type == TEKI_Pearl || type == TEKI_Rocpe) return false;
+    }
+    return true;
+}
+
 void Navi::pcUpdateLockOn()
 {
 	// Se consume siempre, esté activo el mod o no, para que una pulsación no
@@ -1389,11 +1427,22 @@ void Navi::pcUpdateLockOn()
 	}
 
 	if (!mode) {
-		mPcLockTarget = nullptr;
+		if (mPcLockTarget) pcReleaseLockOn();
+		mPcChargeTime = 0.0f;
 		mPcLockIgnore = nullptr;
 		pc_settings_note_lock_on(0);
 		return;
 	}
+
+    if (pcTouchAim(this)) {
+        if (mPcLockTarget) {
+            mPcLockIgnore = mPcLockTarget;
+            pcReleaseLockOn();
+        }
+        mPcChargeTime = 0.0f;
+        pc_settings_note_lock_on(0);
+        return;
+    }
 
 	// Donde apunta el jugador. Con objetivo, el cursor visible está clavado en
 	// él y el libre sigue en mPcAimOffset.
@@ -1408,17 +1457,13 @@ void Navi::pcUpdateLockOn()
 			// cursor, así que la distancia va con la escala del juego.
 			Vector3f away  = target->mSRT.t - mSRT.t;
 			away.y         = 0.0f;
-			const f32 keep = NAVI_PARM(mCursorMaxRadius) * 2.0f + pc_lock_target_radius(target);
+			const f32 keep = NAVI_PARM(mCursorMaxRadius) * (mode == 3 ? 1.1f : 2.0f) + pc_lock_target_radius(target);
 			stillValid     = away.length() < keep;
+            if (mode == 3 && pcLockDistXZ(target, aim) > pc_lock_target_radius(target) + 35.0f)
+                stillValid = false; // deliberate aim-away releases the suggestion
 		}
 		if (!stillValid) {
-			mPcLockTarget = nullptr;
-			if (mode == 2) {
-				// El cursor vuelve a donde apuntaba el jugador.
-				mCursorPosition       = mPcAimOffset;
-				mCursorTargetPosition = mPcAimOffset;
-				mCursorNaviDist       = mPcAimOffset.length();
-			}
+			pcReleaseLockOn();
 		}
 	}
 
@@ -1463,14 +1508,14 @@ void Navi::pcUpdateLockOn()
 	if (lockPressed) {
 		if (mPcLockTarget) {
 			// Segunda pulsación suelta el objetivo.
-			if (mode == 2) {
+			if (mode >= 2) {
 				mPcLockIgnore = mPcLockTarget;
 			}
-			mPcLockTarget = nullptr;
+			pcReleaseLockOn();
 		} else {
 			acquired = pickNearest();
 		}
-	} else if (mode == 2 && !mPcLockTarget) {
+	} else if (mode >= 2 && !mPcLockTarget) {
 		acquired = pickNearest();
 	}
 	if (acquired) {
@@ -1490,7 +1535,9 @@ void Navi::pcUpdateLockOn()
 	pc_settings_note_lock_on(mPcLockTarget != nullptr);
 
 	// Cargar solo tiene sentido contra lo que se ataca.
-	const bool chargeable = mPcLockTarget && pc_settings_get_charge() && (mPcLockTarget->isTeki() || mPcLockTarget->isBoss());
+	// Whistle takes precedence over both a new charge and its remaining push.
+	const bool whistling = mKontroller && mKontroller->keyDown(KeyConfig::_instance->mSetCursorKey.mBind);
+	const bool chargeable = pcGroundChargeTarget(mPcLockTarget) && pc_settings_get_charge() && !whistling;
 	if (!chargeable) {
 		mPcChargeTime = 0.0f;
 		return;
@@ -2161,6 +2208,14 @@ void Navi::pcPinCursorToLock()
 
 	Vector3f offset = mPcLockTarget->getCentre() - mSRT.t;
 	offset.y        = 0.0f;
+    if (pc_settings_get_lock_on() == 3) {
+        // Keep most of the user's free cursor; assistance is a nudge, not a pin.
+        offset = mPcAimOffset * 0.55f + offset * 0.45f;
+        if (offset.length() > NAVI_PARM(mCursorMaxRadius)) {
+            offset.normalise();
+            offset = offset * NAVI_PARM(mCursorMaxRadius);
+        }
+    }
 	mPcPinnedOffset       = offset;
 	mCursorPosition       = offset;
 	mCursorTargetPosition = offset;
@@ -2445,6 +2500,10 @@ void Navi::animationKeyUpdated(immut PaniAnimKeyEvent& event)
  */
 void Navi::callPikis(f32 radius)
 {
+#if defined(PIKI_PC_PORT)
+    mPcChargeTime = 0.0f; // recalled Pikmin must not be sent back on the next tick
+    const bool recallAll = pc_settings_get_recall_all() != 0;
+#endif
 	Vector3f unused = mCursorWorldPos - mSRT.t;
 	STACK_PAD_VAR(4);
 
@@ -2458,6 +2517,11 @@ void Navi::callPikis(f32 radius)
 
 		Vector3f sep = piki->mSRT.t - mCursorWorldPos;
 		f32 dist     = speedy_sqrtf(sep.x * sep.x + sep.z * sep.z);
+#if defined(PIKI_PC_PORT)
+        // The optional solo cheat expands eligibility, not the drawn circle.
+        // Normal whistle safety/state checks below still apply; no teleport.
+        if (recallAll) dist = 0.0f;
+#endif
 		if (dist >= radius) {
 			continue;
 		}
@@ -3410,7 +3474,7 @@ void Navi::makeVelocity(bool isSunset)
 		pc_window_clear_mouse_cursor_delta();
 	}
 	if (mouseIsMine
-	    && (pc_window_get_control_mode() == PC_CONTROL_MOUSE_CURSOR
+	    && (pcTouchAim(this) || pc_window_get_control_mode() == PC_CONTROL_MOUSE_CURSOR
 	        || pc_window_get_mouse_cursor_delta_x() != 0.0f
 	        || pc_window_get_mouse_cursor_delta_y() != 0.0f)) {
 		// Direct mouse delta mode: use raw deltas, no normalization or frame time scaling
@@ -3448,7 +3512,7 @@ void Navi::makeVelocity(bool isSunset)
 			// un lado de la pantalla gira la cámara hacia ese lado (y el cursor
 			// gira con ella). Mismo sentido y acumulador que mantener Shift.
 			// Con objetivo fijado lo hace el cursor libre (más abajo).
-			if (pc_settings_get_free_camera() && !pc_first_person_active_for(mNaviID) && !mPcLockTarget) {
+			if (pc_settings_get_free_camera() && !pc_first_person_active_for(mNaviID) && !mPcLockTarget && !pcTouchAim(this)) {
 				const Vector3f excess = wanted - targetPos;
 				const f32 lateral     = excess.x * screenRight.x + excess.z * screenRight.z;
 				if (lateral != 0.0f) {
@@ -3462,7 +3526,7 @@ void Navi::makeVelocity(bool isSunset)
 		// Lock-On + Free Camera: el cursor visible está clavado en el objetivo,
 		// pero el libre (mPcAimOffset) sigue al ratón. Empujarlo contra su
 		// límite gira la cámara igual que sin objetivo, y el bloqueo se queda.
-		if (mPcLockTarget && pc_settings_get_free_camera() && !pc_first_person_active_for(mNaviID)) {
+		if (mPcLockTarget && pc_settings_get_free_camera() && !pc_first_person_active_for(mNaviID) && !pcTouchAim(this)) {
 			const Vector3f wanted = mPcAimOffset + mouseDelta;
 			const f32 maxRadius   = NAVI_PARM(mCursorMaxRadius);
 			const f32 len         = wanted.length();

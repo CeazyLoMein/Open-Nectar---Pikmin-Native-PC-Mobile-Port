@@ -2,6 +2,65 @@
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
+**Date/time:** 2026-10-21 00:40 EDT
+
+**Overall project status:** Build33 installed and user tested. Real part/day-end card write and Day3 reload supported by read-only phone event journal. User reports most other behavior consistent, but charge recall, manual cursor release, clam cutscene and large-group ledges need fixes. Coordinated P1 source changes implemented and locally checked; new standard-campaign Apple build not dispatched at this checkpoint. User explicitly approves updating original P1 on a new normal save, then beginning co-op prototype; normal saving retained now. Exact-scene snapshot system will serve both solo autosaves/co-op later. P2 working user baseline retained.
+
+### Pikmin 1
+
+- Current objective: Ship one P1-only normal-campaign update with the reported fixes and better mobile aiming. Preserve original app identity/settings/private content; no forced unlocked test fixture in this build.
+- What was investigated:44s phone video (cursor near16s versus26s),21s P4 aiming reference, live config/touch layout,8 small phone files and persistent events, actual charge/whistle/cursor/clam/tutorial/generator/save code, official upstream1.0.5/1.0.6 and related commits.
+- Root causes: pcChargeAt changed child action but left FormationMode, which callPikis excludes. Remaining2.5s charge push could resend recalled followers. Manual/lost/off lock exits failed to consistently restore free cursor state; out-of-range cursor can resist further input. Synthetic test file credited engine but omitted tutorial flags: starting-area discovery matches ANY ship part and plays fixed-position engine scene. This source mechanism supports the user's unrecorded missing-item/warp report, but no recording/runtime retest proves every consequence. Existing Better Pathfinding did not guard wide following slots at terrain drops.
+- Source implemented: AttackMode bookkeeping; whistle priority/timer cancellation; suppress ground charge on clam shell/pearl/part (keep aimed throws); uniform legal free-cursor restoration; dedicated Aim button with DPI-normalized drag, no pad action/camera rotation, manual/auto lock override; optional Soft Assist (gentle45% nudge, release on aim-away or walking away); optional Recall All Pikmin through ordinary whistle (off default, solo only, safety guards retained, no teleport); bounded following-slot terrain lookahead under Better Pathfinding; tutorial-flag repair only in synthetic test variant for new/old test files; exact upstream RNG fix/tests. Saved Manual lock choice/current settings not forcibly changed. Aim uses installed lock_on art with its own layout key; no new art transfer needed.
+- Important files/functions: Piki::pcChargeAt; Navi::pcReleaseLockOn/pcUpdateLockOn/pcPinCursorToLock/callPikis and cursor input path; ActCrowd::pcProtectFormationEdge; touch/pc_touch.cpp/.h; settings/pc_settings.cpp/.h; pc_solo_test_tutorial.h; GameCoreSection::initStage (test macro only); netplay/pc_sim_rng.h/.cpp/test.cpp; tests/pikmin1_command_test.py and updated preset fixture; experimental workflow [ios-p1-only] selects standard P1 matrix only.
+- Tests and results:60 real-code command/aim/recall/cursor/edge scenarios PASS; same pre-fix source fails25 checks (includes new features absent in old build).58 update/58 separate preset-and-loaded-flag checks PASS;7 standard control PASS;27 CMake/bundle/storage checks PASS; Clang parser PASS; upstream RNG tests PASS with a Windows mode seam (actual mode implementation linked by macOS CI). Shared P2 menu fixtures188 iOS/198 desktop PASS. Full Apple compilation, new IPA and phone behavior NOT yet verified.
+- Hardware evidence: User saved Day2 and then played Day3. Events show real part collected(count2), day end, card flush, stage2/Day3/count2. This supports real save/load without proving all quantities match. Current settings: fpsMode2(actual60FPS), Manual lock1,charge1,instantWhistle1,betterPathfinding1,naviSpeed200,naviHealth-1,pikiInvincible1. Eight files retrieved with app closed, local hashes verified, then reread from phone unchanged. No phone writes. Phone released; can disconnect.
+- Backups: Original pre-experiment Build16+six phone files still intact in folder5. Additional verified Build33 IPA+current eight-file snapshot: C:\Users\chazz\Documents\Open Nectar\5 - Archives\P1 Build 33 and Phone Checkpoint Before Normal Campaign Fixes - 2026-10-21. No proprietary assets or credentials uploaded. No settings restored/reset on phone.
+- Remaining issues/limits: New build/runtime pending; soft assist approximates reference, not a port of P4's algorithm. Terrain guard is not a full navigation rewrite and excludes dynamic platforms/explicit swarms/intentional descent. Recall is current-area walking, not an instant rescue. Clam cutscene unrecorded, invincibility already guards swallow/press in source; timing of prior losses versus cheat activation not established. Full campaign/finale unverified; no spoilers or mandatory finale test. Autosave deliberately unchanged per latest user decision.
+
+### Pikmin 2
+
+- Current objective: Preserve working Build32 while P1 is tested. Later perform stronger unlocked readiness test, then P2 co-op.
+- What was investigated: Upstream fixes compared to our current native audio, ARAM, adapters and renderer; see UPSTREAM_1_0_6_IOS_AUDIT.md.
+- Root cause/leading hypothesis: No new reported failure. Prior zero-gain Pikmin/enemy categories fixed by opening exit cleanup plus earlier scalar/mixer corrections; user reports working. Upstream contains additional distinct fixes and one specifically Android cancellation issue that should not be copied to Darwin.
+- Files changed: No P2-specific source. Shared settings/touch change gates new Aim and Soft Assist options to P1; menu regression fixtures pass. No new P2 build requested.
+- Tests/results: Build32(run39518825366) both jobs previously PASS. Positive user phone result, not full effects/proximity/cave/campaign certification.
+- Remaining: Audited ARAM/audio subframe queue, radar ordering, reused GXCopyTex memory, dialogue IDs/animations and60FPS constants should be considered in a tested P2 batch. Stronger later phone test: all sound categories/proximity, pause/radar, repeated caves/exits, area transfer, day transition/save/reload, heavy squads/combat at60FPS. No finale spoilers.
+
+### GitHub
+
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; branch ios-experimental.
+- Starting local/remote:80e3f2b6b1bfae4980b57acdbfa6abcea3a1b1e2, clean before work and origin unchanged when refetched.
+- Latest source: current batch locally implemented, commit/push pending at this report. Exact created commits/final local+remote/run ID will be recorded in work/p1-runtime-batch-state.json and friendly P1 Runtime Fixes - Checkpoint.json.
+- Changes: scoped P1 fixes/tests plus documented upstream RNG backport; no history rewrite/main merge/broad upstream merge. Upstream fetched70c5c938 (tag1.0.6). Working iOS framebuffer/allocator/presentation/settings/content roots preserved. Only one P1-standard build intended; no P2 rebuild.
+- Prior Actions: Build33/run39523034602/source8e8138684fd5e36595a89058d090240217fe66ae SUCCESS (synthetic original-ID test app); Build32/run39518825366/source1f04dd8f0117b91c0e5cc6e80cd61384943603e9 BOTH SUCCESS.
+- Artifacts: No new normal-campaign IPA yet. Build33 restore SHA256 c04abe4dad2a9ecfada89ddfa53e24aa40c6a272696df1d6dd45bdc32fd7916b. Normal new build must omit synthetic preset/save-solo-test/solo-event markers and keep original identity. Do not install an artifact merely because its filename is P1.
+
+### Next steps
+
+- P1: Commit/push one normal P1-only build, inspect Apple result/IPA when user reports completion, stage clearly in folder1 and follow PIKMIN1_NORMAL_CAMPAIGN_FIXES_TEST.md. New Normal/Standard file in empty original slot; old Build33 test save remains separate. First test at100% speed then repeat at user's200% choice. Check fresh intro/ordinary skip, textures/layout, Aim/Soft Assist/manual release, charge-whistle before enemy dies, clams with throws, recall, terrain edges and real day-end save/reload.
+- P2: Keep working build. After P1 readiness/prototype work, adopt justified upstream batch and perform stronger area/cave/audio/save stress sample before co-op.
+- Build: Record dispatched source/run, stop consuming usage while CI runs; user will report completion. No idle polling.
+- User involvement: None during CI. Phone can disconnect. Install and runtime checks required after IPA verification; no need to leave game running.
+
+### ChatGPT continuation notes
+
+- Current user order supersedes earlier autosave discussion: current fixes + normal saves/fresh-save retest -> P1 co-op prototype -> shared exact-scene snapshot system for solo persistence/co-op recovery -> intensive P2 readiness -> P2 co-op. Ship-return checkpoint briefly accepted but exact-scene preference superseded it. Do not silently substitute day-end autosave or claim mid-day protection exists.
+- SAVE_AND_COOP_RECOVERY_PLAN.md records actual save-state gaps and primary-source research (Mindustry host snapshots; Factorio joining/lockstep complexity). Existing8-byte Gekko frame handles are NOT world saves. PC_ONLINE_ENABLED0 / iOS NECTAR_ONLINE OFF remain. No online multiplayer enabled or external server deployed by this patch.
+- Evidence: workspace work/p1-phone-feedback-latest.json and private snapshot folder; bounded p1-solo-test-events.txt plus config/touch/save files. Phone video in Downloads (44s) and P4 reference in Videos/NVIDIA/Desktop (21s). Exact timestamp/frame sheets under outputs/P1-Build33-Phone-Review and outputs/Pikmin4-Aiming-Reference. Videos/assets not committed.
+- Local scripts: work/check_p1_commands.cmd, check_p1_command_clang.cmd, check_p1_before.cmd, check_p1_rng.cmd; actual fixtures generated under work. Windows RNG mode seam only replaces mode toggling for local compiler compatibility; CI runs real mode source.
+- Important caveat: returning standard variant uses Documents/pikmin1/save again. Test fixture card remains Documents/pikmin1/save-solo-test. Startup keeps existing config/art/Load/models; do not replace or recopy content without need. Use same original account/bundle ID for update/rollback; never uninstall working apps.
+- Report untested items honestly. No full-campaign certification from host fixtures or a short sample. Keep final boss/ending deferred and unspoiled. Any future experimental snapshot must preserve original normal card, validate IDs/relationships and atomically rotate checksummed files before exposing restore UI.
+
+**END PROGRESS REPORT**
+
+
+## Older checkpoint history (superseded where different)
+
+# OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
 **Date/time:** 2026-10-20 21:15 EDT
 
 **Overall project status:** P1-only Build33 PASSED. Verified current-app update IPA staged with an exact phone checklist; installation and runtime tests pending. Pre-update working IPA/settings/layout/save backup remains intact. P2 Build32 has positive user phone feedback. No online co-op code implemented. Do not rebuild or poll CI without a new reason.

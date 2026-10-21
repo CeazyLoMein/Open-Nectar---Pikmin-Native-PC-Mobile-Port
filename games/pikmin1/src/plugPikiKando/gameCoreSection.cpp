@@ -72,6 +72,9 @@
 #include "PikiState.h"
 #include "PlantMgr.h"
 #include "PlayerState.h"
+#if NECTAR_P1_SOLO_TEST
+#include "pc_solo_test_tutorial.h"
+#endif
 #include "RadarInfo.h"
 #include "RumbleMgr.h"
 #include "SoundMgr.h"
@@ -1610,6 +1613,10 @@ void GameCoreSection::initStage()
 	STACK_PAD_VAR(2);
 #endif
 	playerState->setDayEnd(false);
+#if NECTAR_P1_SOLO_TEST
+    if (!playerState->isChallengeMode() && pc_solo_test_repair_tutorial(*playerState))
+        pc_solo_test::record("test_tutorial_flags_repaired", gameflow.mWorldClock.mCurrentDay, playerState->getCurrParts());
+#endif
 	if (playerState->isChallengeMode()) {
 		pikiInfMgr.initGame();
 	}

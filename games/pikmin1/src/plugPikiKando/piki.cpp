@@ -2964,6 +2964,9 @@ void Piki::pcChargeAt(Creature* target)
 		return;
 	}
 	mActiveAction->abandon(nullptr);
+	// Whistle and formation bookkeeping read mMode, not the child action.
+	// Keeping FormationMode here made charged attackers impossible to call.
+	mMode = PikiMode::AttackMode;
 	mActiveAction->mCurrActionIdx = PikiAction::Attack;
 	mActiveAction->mChildActions[mActiveAction->mCurrActionIdx].initialise(target);
 }

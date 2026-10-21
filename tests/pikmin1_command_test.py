@@ -1,0 +1,180 @@
+"""Host scenarios executing the actual P1 charge, release, recall and ledge code."""
+from pathlib import Path
+import re,sys,subprocess
+ROOT=Path(__file__).resolve().parents[1]
+if not (ROOT/'games').exists(): ROOT=Path(r'C:\Dev\Open-Nectar---Pikmin-Native-PC-Mobile-Port')
+old_ref=sys.argv[2] if len(sys.argv)>2 else None
+def read(p):
+ if old_ref:return subprocess.check_output(['git','show',old_ref+':'+p],cwd=ROOT).decode('utf-8')
+ return (ROOT/p).read_text(encoding='utf-8')
+def extract(s,signature,default=''):
+ at=s.find(signature)
+ if at<0:
+  assert default,signature
+  return default
+ start=s.index('{',at);level=1;i=start+1
+ while level:
+  if s[i]=='{':level+=1
+  if s[i]=='}':level-=1
+  i+=1
+ return s[at:i]
+nav=read('games/pikmin1/src/plugPikiKando/navi.cpp')
+piki=read('games/pikmin1/src/plugPikiKando/piki.cpp')
+crowd=read('games/pikmin1/src/plugPikiKando/aiCrowd.cpp')
+settings=read('games/pikmin1/pc_port/settings/pc_settings.cpp')
+touch=read('games/pikmin1/pc_port/touch/pc_touch.cpp')
+pieces=[extract(piki,'void Piki::pcChargeAt('),
+ extract(nav,'void Navi::pcReleaseLockOn(', 'void Navi::pcReleaseLockOn() {}'),
+ extract(nav,'static bool pcGroundChargeTarget(', '[[maybe_unused]] static bool pcGroundChargeTarget(Creature*) {return true;}'),
+ extract(nav,'void Navi::pcUpdateLockOn('),
+ extract(nav,'void Navi::pcPinCursorToLock('),
+ extract(crowd,'void ActCrowd::pcProtectFormationEdge(', 'void ActCrowd::pcProtectFormationEdge(Vector3f&) {}'),
+ extract(settings,'int pc_settings_get_recall_all(', 'int pc_settings_get_recall_all() {return 0;}')]
+call=extract(nav,'void Navi::callPikis(')
+eligibility=re.search(r'if \((callable &&.*?dist < radius)\) \{',call,re.S)[1]
+distance=call[call.index('\t\tVector3f sep ='):call.index('\n\t\tint state =')].replace('continue;','return false;')
+pieces += [extract(touch,'static void pcTouchButtonCursorDrag(', 'static void pcTouchButtonCursorDrag(int button,float dx,float dy) {if(button==BTN_THROW||button==BTN_WHISTLE)pc_window_add_cursor_delta(dx,dy);}'),extract(touch,'bool pc_touch_aim_active(', 'bool pc_touch_aim_active() {return false;}')]
+pieces.append('bool Navi::eligible(Piki* piki,float dist,float radius) {\n'
+ 'const int state=piki->getState();\nbool callable=piki->mNavi==this || !piki->mNavi || piki->mMode!=PikiMode::FormationMode;\nreturn '+eligibility+';\n}')
+pieces.append('bool Navi::inRange(Piki* piki,float radius,bool recallAll) {(void)recallAll;\n'+distance+'\nreturn true;}')
+code=r'''
+#include <cmath>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <vector>
+#include <algorithm>
+#define PIKI_PC_PORT 1
+using f32=float;
+struct Vector3f {float x=0,y=0,z=0; Vector3f()=default;Vector3f(float a,float b,float c):x(a),y(b),z(c){}
+ Vector3f operator+(Vector3f b)const{return {x+b.x,y+b.y,z+b.z};}
+ Vector3f operator-(Vector3f b)const{return {x-b.x,y-b.y,z-b.z};}
+ Vector3f operator*(float b)const{return {x*b,y*b,z*b};}
+ float length()const{return std::sqrt(x*x+y*y+z*z);}void normalise(){float l=length();if(l>0){x/=l;y/=l;z/=l;}}
+};
+float speedy_sqrtf(float f){return std::sqrt(f);}
+enum {TEKI_Shell=10,TEKI_Pearl=13,TEKI_Rocpe=14};
+enum {PIKISTATE_Normal,PIKISTATE_Emotion,PIKISTATE_Nukare,PIKISTATE_Swallowed,PIKISTATE_Drown,PIKISTATE_Absorb,PIKISTATE_LookAt,PIKISTATE_Pressed};
+enum {STANDTYPE_Ground,STANDTYPE_TekiPlatform,STANDTYPE_Platform,STANDTYPE_Air};
+namespace PikiMode {enum {FreeMode,FormationMode,AttackMode};}
+namespace PikiAction {enum {Crowd,Attack};}
+struct Creature {struct {Vector3f t;}mSRT; bool alive=true;bool teki=true,boss=false;int mObjType=1;
+ bool isTeki(){return teki;}bool isBoss(){return boss;}Vector3f getCentre(){return mSRT.t;}};
+struct Teki:Creature {int mTekiType=0;};
+struct Navi;
+struct Child {Creature* target=nullptr;void initialise(Creature*t){target=t;}};
+struct Action {int mCurrActionIdx=PikiAction::Crowd;Child mChildActions[2];int abandoned=0;void abandon(void*){++abandoned;}};
+struct Piki:Creature {Navi*mNavi=nullptr;int mMode=PikiMode::FormationMode;Action action;Action*mActiveAction=&action;
+ bool callable=true,buried=false,kinoko=false;int state=PIKISTATE_Normal,stand=STANDTYPE_Ground;
+ bool mIsCallable=true;bool isKinoko(){return kinoko;}bool isBuried(){return buried;}bool isAlive(){return alive;}
+ int getState(){return state;}int getStandType(){return stand;}void pcChargeAt(Creature*);
+};
+struct Controller {bool whistle=false;bool keyDown(int){return whistle;}};
+struct KeyConfig {struct {int mBind=1;}mSetCursorKey;static KeyConfig*_instance;};KeyConfig keyConfig;KeyConfig*KeyConfig::_instance=&keyConfig;
+struct Navi:Creature {Controller controller;Controller*mKontroller=&controller;int mNaviID=0,stand=STANDTYPE_Ground;
+ Creature*mPcLockTarget=nullptr,*mPcLockIgnore=nullptr;float mPcChargeTime=0,mCursorNaviDist=0,mCursorMaxRadius=200;
+ Vector3f mPcAimOffset,mPcPinnedOffset,mCursorPosition,mCursorTargetPosition,mCursorWorldPos;bool mIsCStickNeutral=true;
+ void pcReleaseLockOn();void pcUpdateLockOn();void pcPinCursorToLock();void pcPinCursorFirstPerson(){}int getStandType(){return stand;}
+ bool eligible(Piki*,float,float);bool inRange(Piki*,float,bool);
+};
+struct PlayerState {bool end=false;bool inDayEnd(){return end;}} player;PlayerState*playerState=&player;
+struct System {float getFrameTime(){return 1.f/60;}} hostSystem;System*gsys=&hostSystem;
+int lockMode=1,chargeOn=1,better=1;bool lockPress=false,chargePress=false,det=false,coop=false,vs=false,speedrun=false,hard=false;
+bool pc_netplay_deterministic(){return det;}bool pc_netplay_ext_trace(){return false;}
+uint8_t pc_netplay_ext_bits(int){return 0;}unsigned pc_netplay_tick(){return 0;}
+namespace pc_input_log {enum {kExtLockOn=1,kExtCharge=2};}
+bool pc_window_take_lockon_press(int){bool b=lockPress;lockPress=false;return b;}
+bool pc_window_take_swarm_press(int){bool b=chargePress;chargePress=false;return b;}
+int pc_settings_get_lock_on(){return lockMode;}int pc_settings_get_charge(){return chargeOn;}
+int pc_settings_get_better_pathfinding(){return better;}void pc_settings_note_lock_on(int){}
+bool touchAim=false;bool pcTouchAim(const Navi*n){return touchAim&&!det&&n->mNaviID==0;}
+bool pc_coop_active(){return coop;}bool pc_vs_active(){return vs;}bool pc_speedrun_active(){return speedrun;}bool pc_hardmode_active(){return hard;}
+struct Config {int recallAll=0;}sConfig;
+std::vector<Creature*> targets;
+template<class F>bool pcForEachLockable(F f){for(auto*t:targets)if(t->alive&&f(t))return true;return false;}
+float pc_lock_target_radius(Creature*){return 10;}
+float pcLockDistXZ(Creature*c,Vector3f p){Vector3f d=c->mSRT.t-p;d.y=0;return d.length();}
+std::vector<Piki*> pikis;auto*pikiMgr=&pikis;
+struct Iterator {std::vector<Piki*>&items;unsigned index=0;Iterator(std::vector<Piki*>*p):items(*p){}Piki*operator*(){return items[index];}};
+#define CI_LOOP(i) for((i).index=0;(i).index<(i).items.size();++(i).index)
+#define NAVI_PARM(p) this->p
+struct Map {bool hole=false,drop=false;int queries=0;
+ void*getCurrTri(float x,float,bool){++queries;return hole&&x>8?nullptr:this;}
+ float getMinY(float x,float,bool){++queries;return drop&&x>8?0.0f:50.0f;}
+} map;Map*mapMgr=&map;
+struct ActCrowd {Piki*mPiki;void pcProtectFormationEdge(Vector3f&);};
+enum {BTN_THROW,BTN_WHISTLE,BTN_AIM,BTN_CHARGE,BTN_COUNT};
+struct Button {long long finger=-1;}sButtons[BTN_COUNT];
+int sLayoutH=1290,sGameMenuClaimFrames=0,sPortMenuClaimFrames=0;bool sEditMode=false;
+float cursorDx=0,cursorDy=0;void pc_window_add_cursor_delta(float x,float y){cursorDx+=x;cursorDy+=y;}
+FUNCTIONS
+int checks=0,failures=0;void check(bool ok,const char*n){++checks;if(!ok){++failures;std::printf("FAIL: %s\n",n);}}
+bool near(float a,float b){return std::fabs(a-b)<0.001f;}
+int main(){
+ Navi n;Piki p;p.mNavi=&n;Teki foe;foe.mSRT.t={80,0,0};targets={&foe};pikis={&p};
+ p.pcChargeAt(&foe);
+ check(p.mMode==PikiMode::AttackMode,"charge sets true attack mode");
+ check(p.mActiveAction->mCurrActionIdx==PikiAction::Attack&&p.action.mChildActions[1].target==&foe,"charge keeps chosen target");
+ check(n.eligible(&p,0,100),"charged attacker remains whistle eligible");
+ int old=p.action.abandoned;player.end=true;p.pcChargeAt(&foe);check(p.action.abandoned==old,"day end charge rejected");player.end=false;
+ p.pcChargeAt(nullptr);check(p.action.abandoned==old,"null target rejected");
+ // Manual release from a target beyond the normal cursor radius.
+ n.mPcLockTarget=&foe;n.mPcAimOffset={30,0,40};n.mCursorPosition={500,0,0};n.mPcPinnedOffset=n.mCursorPosition;n.mPcChargeTime=2;
+ lockPress=true;n.pcUpdateLockOn();
+ check(!n.mPcLockTarget&&near(n.mCursorPosition.x,30)&&near(n.mCursorPosition.z,40),"manual unlock restores free aim");
+ check(near(n.mCursorTargetPosition.x,30)&&near(n.mPcPinnedOffset.z,40)&&near(n.mCursorNaviDist,50),"all cursor state restored together");
+ check(n.mPcChargeTime==0,"unlock cancels remaining charge");
+ touchAim=true;n.mPcLockTarget=&foe;n.mPcAimOffset={12,0,15};n.pcUpdateLockOn();
+ check(!n.mPcLockTarget&&near(n.mCursorPosition.x,12),"dedicated aim releases target");
+ lockMode=2;n.pcUpdateLockOn();check(!n.mPcLockTarget,"dedicated aim blocks auto reacquire while held");touchAim=false;lockMode=1;
+ n.mCursorPosition={30,0,40};n.mCursorPosition.x+=5;check(near(n.mCursorPosition.x,35),"free cursor can move immediately");
+ n.mPcLockTarget=&foe;n.mPcAimOffset={500,0,0};n.pcReleaseLockOn();check(near(n.mCursorPosition.length(),200),"released cursor clamped to legal radius");
+ n.mPcLockTarget=&foe;n.mPcAimOffset={20,0,0};n.mCursorPosition={500,0,0};foe.alive=false;n.pcUpdateLockOn();
+ check(!n.mPcLockTarget&&near(n.mCursorPosition.x,20),"dead target release restores manual aim");foe.alive=true;
+ n.mPcLockTarget=&foe;n.mPcAimOffset={25,0,0};lockMode=0;n.pcUpdateLockOn();check(!n.mPcLockTarget&&near(n.mCursorPosition.x,25),"setting off releases cursor");lockMode=1;
+ n.mPcLockTarget=&foe;n.controller.whistle=true;n.mPcChargeTime=2;chargePress=true;p.mMode=PikiMode::FormationMode;p.action.mCurrActionIdx=PikiAction::Crowd;n.pcUpdateLockOn();
+ check(n.mPcChargeTime==0&&p.mMode==PikiMode::FormationMode,"whistle wins over new and ongoing charge");n.controller.whistle=false;
+ for(int type:{TEKI_Shell,TEKI_Pearl,TEKI_Rocpe}){foe.mTekiType=type;n.mPcLockTarget=&foe;chargePress=true;n.pcUpdateLockOn();check(n.mPcChargeTime==0&&p.mMode==PikiMode::FormationMode,"raised clam target does not ground-charge");}
+ foe.mTekiType=0;p.mSRT.t={70,0,0};n.mPcLockTarget=&foe;chargePress=true;n.pcUpdateLockOn();check(p.mMode==PikiMode::AttackMode,"ordinary enemy still charges");
+ p.mMode=PikiMode::FreeMode;p.mSRT.t={10000,0,0};n.mCursorWorldPos={0,0,0};
+ check(!n.inRange(&p,100,false),"normal whistle retains range");check(n.inRange(&p,100,true),"recall reaches distant Pikmin");
+ p.mMode=PikiMode::FormationMode;check(!n.eligible(&p,0,100),"already following Pikmin not reset repeatedly");p.mMode=PikiMode::AttackMode;
+ p.buried=true;check(!n.eligible(&p,0,100),"recall never plucks buried Pikmin");p.buried=false;
+ p.kinoko=true;check(!n.eligible(&p,0,100),"recall excludes transformed Pikmin");p.kinoko=false;
+ p.alive=false;check(!n.eligible(&p,0,100),"recall never revives");p.alive=true;
+ for(int state:{PIKISTATE_Nukare,PIKISTATE_Swallowed,PIKISTATE_Drown,PIKISTATE_Absorb,PIKISTATE_LookAt,PIKISTATE_Pressed}){p.state=state;check(!n.eligible(&p,0,100),"recall preserves unavailable-state guard");}p.state=PIKISTATE_Normal;
+ // Soft assist: approach acquires, aim-away and walk-away release it.
+ n.mPcLockTarget=nullptr;n.mPcLockIgnore=nullptr;n.mSRT.t={0,0,0};foe.mSRT.t={80,0,0};n.mCursorPosition={80,0,0};lockMode=3;
+ n.pcUpdateLockOn();check(n.mPcLockTarget==&foe,"soft assist acquires nearby target");
+ n.mPcAimOffset={60,0,0};n.mCursorPosition=n.mPcPinnedOffset;n.pcPinCursorToLock();
+ check(n.mCursorPosition.x>60&&n.mCursorPosition.x<80,"soft assist nudges rather than pins cursor");
+ n.mPcAimOffset={150,0,0};n.pcUpdateLockOn();check(!n.mPcLockTarget&&near(n.mCursorPosition.x,150),"aiming away releases soft target");
+ n.mPcLockTarget=&foe;n.mPcAimOffset={80,0,0};n.mSRT.t={-200,0,0};n.pcUpdateLockOn();check(!n.mPcLockTarget,"walking away releases soft target");
+ n.mSRT.t={0,0,0};n.mPcLockTarget=&foe;n.mCursorPosition={80,0,0};n.mPcAimOffset={80,0,0};lockPress=true;n.pcUpdateLockOn();
+ check(!n.mPcLockTarget&&n.mPcLockIgnore==&foe,"manual dismissal suppresses immediate soft reacquire");
+ lockMode=1;n.mPcLockTarget=&foe;n.mPcAimOffset={30,0,0};n.mPcPinnedOffset=n.mCursorPosition;n.pcPinCursorToLock();check(near(n.mCursorPosition.x,80),"manual hard lock still pins correctly");
+ lockMode=1;
+ sConfig.recallAll=1;check(pc_settings_get_recall_all()==1,"recall can be enabled solo");
+ for(bool*flag:{&det,&coop,&vs,&speedrun,&hard}){*flag=true;check(pc_settings_get_recall_all()==0,"recall disabled in competitive/multiplayer contexts");*flag=false;}
+ sConfig.recallAll=0;check(pc_settings_get_recall_all()==0,"recall disabled by default/off");
+ n.mSRT.t={-30,50,0};p.mSRT.t={0,50,0};ActCrowd a{&p};Vector3f slot(50,50,0);
+ map.drop=true;map.queries=0;a.pcProtectFormationEdge(slot);check(near(slot.x,-30),"unsafe following slot redirects toward captain");check(map.queries<=8,"ledge lookahead has bounded query cost");
+ map.drop=false;slot={50,50,0};a.pcProtectFormationEdge(slot);check(near(slot.x,50),"flat terrain unchanged");
+ map.hole=true;slot={50,50,0};a.pcProtectFormationEdge(slot);check(near(slot.x,-30),"missing ground treated as edge");map.hole=false;map.drop=true;
+ better=0;slot={50,50,0};a.pcProtectFormationEdge(slot);check(near(slot.x,50),"ledge guard follows existing setting");better=1;
+ p.stand=STANDTYPE_Platform;a.pcProtectFormationEdge(slot);check(near(slot.x,50),"dynamic bridge platform not blocked");p.stand=STANDTYPE_Ground;
+ n.mSRT.t.y=0;a.pcProtectFormationEdge(slot);check(near(slot.x,50),"intentional descent preserved");n.mSRT.t.y=50;
+ n.mIsCStickNeutral=false;a.pcProtectFormationEdge(slot);check(near(slot.x,50),"explicit swarm behavior unchanged");
+ pcTouchButtonCursorDrag(BTN_AIM,30,15);check(near(cursorDx,10)&&near(cursorDy,5),"dedicated aim DPI-normalized delta");
+ cursorDx=cursorDy=0;pcTouchButtonCursorDrag(BTN_THROW,30,15);check(near(cursorDx,30)&&near(cursorDy,15),"throw drag behavior preserved");
+ cursorDx=cursorDy=0;pcTouchButtonCursorDrag(BTN_CHARGE,30,15);check(cursorDx==0&&cursorDy==0,"charge button never moves cursor");
+ sGameMenuClaimFrames=1;pcTouchButtonCursorDrag(BTN_AIM,30,15);check(cursorDx==0&&cursorDy==0,"game menus suppress aim");sGameMenuClaimFrames=0;
+ sPortMenuClaimFrames=1;pcTouchButtonCursorDrag(BTN_AIM,30,15);check(cursorDx==0&&cursorDy==0,"advanced menus suppress aim");sPortMenuClaimFrames=0;
+ sButtons[BTN_AIM].finger=2;check(pc_touch_aim_active(),"dedicated aim owns only its finger");
+ sEditMode=true;check(!pc_touch_aim_active(),"layout editing cannot steer gameplay");sEditMode=false;
+ sButtons[BTN_AIM].finger=-1;check(!pc_touch_aim_active(),"releasing aim ends override");
+ std::printf("%d P1 command/recall/cursor/edge scenarios; %d failures\n",checks,failures);return failures?1:0;
+}
+'''.replace('FUNCTIONS','\n\n'.join(pieces))
+out=Path(sys.argv[1]);out.parent.mkdir(parents=True,exist_ok=True);out.write_text(code,encoding='utf-8')
+print('Generated real P1 command scenarios'+(' from '+old_ref if old_ref else ''))

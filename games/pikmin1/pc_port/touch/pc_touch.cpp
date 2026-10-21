@@ -58,6 +58,7 @@ enum ButtonId {
 	BTN_GYRO,         // recentrar giroscopio
 	BTN_BACK,
 	BTN_MENU_CONFIRM,
+	BTN_AIM, // appended: old saved button IDs/layout names stay stable
 	BTN_COUNT
 };
 
@@ -91,6 +92,7 @@ const ButtonSpec kButtons[BTN_COUNT] = {
 	{ "gyro_recenter", 0.73f, 0.09f, false, 0.045f, 0 },
 	{ "back", 0.10f, 0.84f, false, 0.055f, PAD_BUTTON_B },
 	{ nullptr, 0.10f, 0.84f, true, 0.055f, PAD_BUTTON_A },
+	{ "aim", 0.45f, 0.52f, true, 0.045f, 0 },
 };
 
 constexpr float kStickRadius = 0.115f; // fracción de H
@@ -139,6 +141,9 @@ unsigned sContext = 0; // pc_touch_set_context: lo que el juego dice de este fra
 
 bool button_modded_off(int i)
 {
+#if PIKI_P2_HOST
+	if (i == BTN_AIM) return true; // P1 control change; P2 remains unchanged
+#endif
 	// La cruceta ↑/↓ sale cuando hace algo: en P2, con Pikmin en la mano
 	// (madurez) o con el spray de ese lado; en P1, con el mod de selección y
 	// un Pikmin en la mano (tipo).
@@ -382,7 +387,7 @@ void ensure_art()
 		sArt.white = pc_gfx_overlay_texture_create(1, 1, px);
 	}
 	for (int i = 0; i < BTN_COUNT; ++i)
-		sArt.glyph[i] = kButtons[i].art ? load_texture(kButtons[i].art) : 0;
+		sArt.glyph[i] = kButtons[i].art ? load_texture(i == BTN_AIM ? "lock_on" : kButtons[i].art) : 0;
 #if PIKI_P2_HOST
 	sArt.swapCaptain = load_texture("swap_captain");
 	sArt.sprayBitter = load_texture("spray_bitter");
@@ -663,6 +668,26 @@ float pinch_distance()
 
 } // namespace
 
+// Button-owned drags never become camera gestures or synthesize another pad
+// action. The dedicated aim pad normalizes physical pixels across iPhone DPI.
+static void pcTouchButtonCursorDrag(int button, float dx, float dy)
+{
+    if (sGameMenuClaimFrames > 0 || sPortMenuClaimFrames > 0) return;
+    if (button != BTN_THROW && button != BTN_WHISTLE && button != BTN_AIM) return;
+    const float scale = button == BTN_AIM && sLayoutH > 0 ? 430.0f / float(sLayoutH) : 1.0f;
+    pc_window_add_cursor_delta(dx * scale, dy * scale);
+}
+
+bool pc_touch_aim_active(void)
+{
+#if PIKI_P2_HOST
+    return false;
+#else
+    return !sEditMode && sGameMenuClaimFrames <= 0
+        && sPortMenuClaimFrames <= 0 && sButtons[BTN_AIM].finger >= 0;
+#endif
+}
+
 // ── Entrada ──────────────────────────────────────────────────────────────────
 void pc_touch_on_finger(long long fingerId, PcTouchPhase phase, float x, float y)
 {
@@ -775,9 +800,7 @@ void pc_touch_on_finger(long long fingerId, PcTouchPhase phase, float x, float y
 			ButtonState& b = sButtons[i];
 			if (b.finger != fingerId) continue;
 			// Lanzar y silbar conservan el botón mientras el mismo pulgar apunta.
-			if (i == BTN_THROW || i == BTN_WHISTLE) {
-				pc_window_add_cursor_delta(x - b.lastX, y - b.lastY);
-			}
+			pcTouchButtonCursorDrag(i, x - b.lastX, y - b.lastY);
 			if (i == BTN_DISBAND && sLayoutH > 0) {
 				float dx = x - sGroupDrag.ax, dy = y - sGroupDrag.ay;
 				const float len = std::sqrt(dx * dx + dy * dy);

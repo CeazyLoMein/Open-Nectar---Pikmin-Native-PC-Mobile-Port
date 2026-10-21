@@ -1,6 +1,7 @@
 #pragma once
 #if NECTAR_P1_SOLO_TEST
 #include "pc_solo_test_log.h"
+#include "pc_solo_test_tutorial.h"
 // Call ONLY from the fresh-file path, after ordinary new-game initialization.
 // Do not call on load, stage entry or day transitions: no inventory refills.
 inline void pc_solo_test_prepare_new_campaign(PlayerState& state, PikiInfMgr& bank, int slot) {
@@ -37,6 +38,7 @@ inline void pc_solo_test_prepare_new_campaign(PlayerState& state, PikiInfMgr& ba
     state.mTotalBornPikiNum=300;
     state.mTotalPluckedPikiCount=300;
     state.mPartsCollectedByDay[0]=state.mCurrParts;
+    pc_solo_test_repair_tutorial(state);
     // Setup is explicitly logged, never counted as collected-in-game evidence.
     pc_solo_test::record("preset_new_file_slot_parts", slot, state.mCurrParts, 100, 100);
 }

@@ -4,6 +4,7 @@ name: Experimental native iOS game build (unsigned)
 # in GitHub's UI. This candidate is intentionally on ios-experimental instead.
 # To enable controlled runs without changing main, use the commit marker [ios-build].
 # Add [ios-p2-only] for P2 only; [ios-p1-update] builds only P1's test update.
+# [ios-p1-only] builds P1 standard campaign only.
 # [ios-p1-test] selects the separate P1 test app. Other marked pushes build both.
 on:
   push:
@@ -19,7 +20,7 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        game: ${{ contains(github.event.head_commit.message, '[ios-p1-update]') && fromJSON('["pikmin1"]') || contains(github.event.head_commit.message, '[ios-p2-only]') && fromJSON('["pikmin2"]') || fromJSON('["pikmin1","pikmin2"]') }}
+        game: ${{ (contains(github.event.head_commit.message, '[ios-p1-update]') || contains(github.event.head_commit.message, '[ios-p1-only]')) && fromJSON('["pikmin1"]') || contains(github.event.head_commit.message, '[ios-p2-only]') && fromJSON('["pikmin2"]') || fromJSON('["pikmin1","pikmin2"]') }}
     # Build12 never acquired an ARM host because of GitHub capacity. Xcode
     # cross-compiles the same iphoneos ARM64 target on this standard Intel host.
     runs-on: macos-15-intel
@@ -146,6 +147,12 @@ jobs:
           set -euo pipefail
           ROOT="$GITHUB_WORKSPACE"
           python3 tests/pikmin1_solo_app_test.py --cmake "$(command -v cmake)"
+          python3 tests/pikmin1_command_test.py "$RUNNER_TEMP/p1-command-test.cpp"
+          c++ -std=c++17 -Wall -Wextra -Werror "$RUNNER_TEMP/p1-command-test.cpp" -o "$RUNNER_TEMP/p1-command-test"
+          "$RUNNER_TEMP/p1-command-test"
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/p1-command-test.cpp"
+          c++ -std=c++17 -pthread -I"$ROOT/games/pikmin1/pc_port" "$ROOT/games/pikmin1/pc_port/netplay/pc_sim_rng_test.cpp" "$ROOT/games/pikmin1/pc_port/netplay/pc_sim_rng.cpp" "$ROOT/games/pikmin1/pc_port/netplay/pc_netplay_det.cpp" -o "$RUNNER_TEMP/p1-rng-test"
+          "$RUNNER_TEMP/p1-rng-test"
           python3 tests/pikmin1_solo_game_test.py "$RUNNER_TEMP/p1-solo-game-test.cpp"
           c++ -std=c++17 -Wall -Wextra -Werror -I"$ROOT/ios" "$ROOT/tests/pikmin1_solo_app_policy_test.cpp" -o "$RUNNER_TEMP/p1-solo-policy-test"
           "$RUNNER_TEMP/p1-solo-policy-test"
