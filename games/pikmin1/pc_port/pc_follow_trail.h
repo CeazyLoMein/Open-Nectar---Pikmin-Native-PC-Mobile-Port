@@ -49,7 +49,7 @@ struct PcFollowTrail {
 struct PcFollowerProgress {
     float x=0,y=0,z=0,elapsed=0,cooldown=0;
     bool seeded=false;
-    void reset() {seeded=false;elapsed=0;cooldown=0;}
+    void reset() {seeded=false;goalSeeded=false;elapsed=0;cooldown=0;}
     bool stalled(float px,float py,float pz,float dt,bool needsMove) {
         if(dt<0)dt=0;
         if(dt>.1f)dt=.1f; // background/pause time is not failed movement
@@ -60,6 +60,24 @@ struct PcFollowerProgress {
         elapsed+=dt;
         return elapsed>=1.25f && cooldown<=0;
     }
-    void attempted() {elapsed=0;cooldown=2.0f;seeded=false;}
+    float goalX=0,goalY=0,goalZ=0,bestDistance=0;
+    bool goalSeeded=false;
+    bool stalledToward(float px,float py,float pz,float dt,bool needsMove,float gx,float gy,float gz) {
+        if(dt<0)dt=0;if(dt>.1f)dt=.1f;
+        if(cooldown>0)cooldown-=dt;
+        const float dx=gx-px,dy=gy-py,dz=gz-pz;
+        const float distance=dx*dx+dy*dy+dz*dz;
+        const float tx=gx-goalX,ty=gy-goalY,tz=gz-goalZ;
+        if(!goalSeeded || !seeded || !needsMove || tx*tx+ty*ty+tz*tz>24.0f*24.0f) {
+            goalX=gx;goalY=gy;goalZ=gz;bestDistance=distance;elapsed=0;seeded=true;goalSeeded=true;return false;
+        }
+        // Squared-distance threshold equivalent to about four units closer.
+        if(distance+16.0f<bestDistance && (bestDistance-distance)*(bestDistance-distance)>64.0f*bestDistance) {
+            bestDistance=distance;elapsed=0;return false;
+        }
+        elapsed+=dt;return elapsed>=1.25f && cooldown<=0;
+    }
+    void attempted() {elapsed=0;cooldown=2.0f;seeded=false;goalSeeded=false;}
+
 };
 #endif

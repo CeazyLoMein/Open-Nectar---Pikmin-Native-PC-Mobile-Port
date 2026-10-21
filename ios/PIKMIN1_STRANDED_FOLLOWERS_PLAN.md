@@ -1,3 +1,21 @@
+## Navigation v2 — source implemented, local checks passed, Apple/phone pending
+
+Build37 native build/run39617967156/sourceabd06b6216f0d09bc13361ddbff693f58640a21f passed compilation/package, but user phone crossing/return FAILED. New11:23 and11:26 recordings show stranded/lost followers; exact action states/collider IDs were not recorded. User repeated at both speeds100% and confirmed failure. Current saved200% captain/500% Pikmin were later experimentation; do not attribute the recordings to500%. User does not want500% prioritized.
+
+Source defects found and corrected:
+- Old watchdog accepted any8-unit displacement, so circling reset its timer. New stalledToward checks actual reduction in distance to its current route waypoint/captain; moving goals reset observation appropriately.
+- Ordinary formation could fail/release distant recalled followers; a route failure returned to that same logic. ActCrowd now retains a return intent until back nearby, interrupted by a real action/state change or disabled enhancement. Failed first steps, retries and exhausted shared budget hold safely instead of losing the assignment.
+- Old nearest-waypoint endpoint cutoff180XZ/40Y assumed geometric nearness meant reachable. New bounded search considers six candidate endpoints each side within600XZ/100Y, validates walking access on actual collision layers and tries up to six graph pairs. Closed waypoints and non-blue water remain excluded. Generic carrier routing is preserved.
+- Old getMinY actually returns highest floor, including overhead surfaces. New pc_follow_surface helpers follow nearest valid floor to actor height, sample12-unit steps and reject cliffs, holes, non-blue water and wall crossings. Normal slot reassignment no longer overrides protected steering. This is not a full navigation mesh rewrite.
+- Following narrow/recovery paths uses original maturity-based walking pace with arrival braking, preserving vertical physics. Open-ground configured speed/work/attack/carry behavior retains prior settings. This is local crossing safety, not a500% development target.
+- Shared per-captain new searches capped at2/sec; each tries at most6 pairs. Per-follower retry2s; active route up to30s or captain relocation256units; checks current graph/walkability during movement. No teleport or forced worker recruitment outside explicit Recall All.
+- Bounded per-launch p1-navigation-report.txt captures first4 events/reason, max128 lines, coordinates/reason only. Collect over USB after a failed test; no current phone report exists for v2 yet.
+
+Verification:87 actual-method trail/progress/route/recovery scenarios PASS;17 real layered floor/wall helper numeric scenarios PASS;82 command/recall/aim/edge scenarios PASS;283 walking/config scenarios P1 and283 P2 stock control PASS; campaign58/58/7 and app/storage/icon27 PASS. MSVC warnings-as-errors and independent Clang diagnostics PASS. Fixtures use engine seams and synthetic surfaces, not full map physics. CI runs the new surface fixture on host and iPhoneSDK plus full native P1 build. No Apple or phone success claimed for v2.
+
+Limitations: only six candidate endpoints each side, graph may lack a ramp/link, collision probes are local centerline checks, crowds/dynamic obstacles can still defeat movement. Large remote groups share a route budget. Requires exact-crossing phone retest and frame-rate observation; logs should guide any next fix. Moving platforms, commanded swarms, damaged/thrown/working/etc contexts retain ordinary behavior. Multiplayer disabled for this enhancement pending coordinated deterministic design. Full campaign and rare clam cutscene unverified.
+
+
 <!-- CURRENT_FOLLOW_IMPLEMENTATION -->
 # P1 narrow crossing and route recovery — source implemented, phone test pending
 

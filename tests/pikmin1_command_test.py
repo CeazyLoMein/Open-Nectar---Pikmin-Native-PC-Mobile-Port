@@ -65,7 +65,7 @@ struct Vector3f {float x=0,y=0,z=0; Vector3f()=default;Vector3f(float a,float b,
  Vector3f operator+(Vector3f b)const{return {x+b.x,y+b.y,z+b.z};}
  Vector3f operator-(Vector3f b)const{return {x-b.x,y-b.y,z-b.z};}
  Vector3f operator*(float b)const{return {x*b,y*b,z*b};}
- void set(float a,float b,float c){x=a;y=b;z=c;}float length()const{return std::sqrt(x*x+y*y+z*z);}void normalise(){float l=length();if(l>0){x/=l;y/=l;z/=l;}}
+ void set(float a,float b,float c){x=a;y=b;z=c;}float length()const{return std::sqrt(x*x+y*y+z*z);}float normalise(){float l=length();if(l>0){x/=l;y/=l;z/=l;}return l;}
 };
 float speedy_sqrtf(float f){return std::sqrt(f);}
 enum {TEKI_Shell=10,TEKI_Pearl=13,TEKI_Rocpe=14};
@@ -82,7 +82,7 @@ struct Action {int mCurrActionIdx=PikiAction::Crowd;Child mChildActions[2];int a
 struct Piki:Creature {Navi*mNavi=nullptr;int mMode=PikiMode::FormationMode;Action action;Action*mActiveAction=&action;
  bool callable=true,buried=false,kinoko=false;int state=PIKISTATE_Normal,stand=STANDTYPE_Ground;
  bool mIsCallable=true;bool isKinoko(){return kinoko;}bool isBuried(){return buried;}bool isAlive(){return alive;}
- int getState(){return state;}int getStandType(){return stand;}void pcChargeAt(Creature*);
+ int getState(){return state;}int getStandType(){return stand;}void pcChargeAt(Creature*);bool pcFollowerSegmentClear(const Vector3f&);
 };
 struct Controller {bool whistle=false;bool keyDown(int){return whistle;}};
 struct KeyConfig {struct {int mBind=1;}mSetCursorKey;static KeyConfig*_instance;};KeyConfig keyConfig;KeyConfig*KeyConfig::_instance=&keyConfig;
@@ -123,6 +123,8 @@ struct Map {bool hole=false,drop=false;int queries=0;
  void*getCurrTri(float x,float,bool){++queries;return hole&&x>8?nullptr:this;}
  float getMinY(float x,float,bool){++queries;return drop&&x>8?0.0f:50.0f;}
 } map;Map*mapMgr=&map;
+bool Piki::pcFollowerSegmentClear(const Vector3f& to){for(int i=1;i<=2;++i){float x=mSRT.t.x+(to.x-mSRT.t.x)*i*.5f;float z=mSRT.t.z+(to.z-mSRT.t.z)*i*.5f;if(!mapMgr->getCurrTri(x,z,true))return false;float h=mapMgr->getMinY(x,z,true);if(h<mSRT.t.y-30||h>mSRT.t.y+30)return false;}return true;}
+
 struct ActCrowd {Piki*mPiki;bool mPcFollowingTrail=false,mPcLaneBlocked=false;void pcProtectFormationEdge(Vector3f&);};
 enum {BTN_THROW,BTN_WHISTLE,BTN_AIM,BTN_CHARGE,BTN_RECALL_ALL,BTN_COUNT};
 struct Button {long long finger=-1;}sButtons[BTN_COUNT];

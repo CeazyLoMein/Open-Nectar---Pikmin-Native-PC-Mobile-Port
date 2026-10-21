@@ -850,6 +850,7 @@ protected:
     bool mPcFollowingTrail = false;
     bool mPcLaneBlocked = false;
     bool mPcRecoveryRoute = false;
+    bool mPcReturning = false;
     f32 mPcRecoveryRouteAge = 0.0f;
     Vector3f mPcRecoveryGoal;
 	bool mPcWaitAshore = false; ///< mod "Blues Only In Water": esperando a que el capitán salga del agua

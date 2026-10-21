@@ -16,9 +16,11 @@
 #include "PikiState.h"
 #include "pc_coop.h"
 #include "netplay/pc_netplay_det.h"
+#include "pc_follow_report.h"
 #include "settings/pc_settings.h"
 #endif
 #include <stdlib.h>
+#include <cmath>
 #if defined(PIKI_PC_PORT)
 #include "settings/pc_settings.h"
 #endif
@@ -84,6 +86,10 @@ void ActCrowd::init(Creature* target)
 	}
 
 	Navi* navi    = static_cast<Navi*>(target);
+#if defined(PIKI_PC_PORT)
+    const Vector3f returnDelta=navi->mSRT.t-mPiki->mSRT.t;
+    mPcReturning=returnDelta.length()>100.0f;
+#endif
 	mPlateMgr     = navi->mPlateMgr;
 	mCPlateSlotID = mPlateMgr->getSlot(mPiki, this);
 	if (mCPlateSlotID == -1) {
@@ -278,29 +284,22 @@ void ActCrowd::pcProtectFormationEdge(Vector3f& slot)
     const Vector3f here = mPiki->mSRT.t;
     const Vector3f captain = mPiki->mNavi->mSRT.t;
     if (captain.y < here.y - 25.0f) return;
-    auto safeStep = [&](const Vector3f& goal) {
-        Vector3f dir = goal - here;
-        dir.y = 0.0f;
-        const f32 length = dir.length();
-        if (length < 1.0f) return true;
-        const f32 reach = length < 36.0f ? length : 36.0f;
-        dir = dir * (reach / length);
-        for (int i=1; i<=2; ++i) {
-            const Vector3f probe = here + dir * (0.5f * i);
-            if (!mapMgr->getCurrTri(probe.x, probe.z, true)) return false;
-            const f32 height=mapMgr->getMinY(probe.x,probe.z,true);
-            if (height<here.y-30.0f || height>here.y+30.0f) return false;
-        }
-        return true;
+    auto safeStep = [&](const Vector3f& target) {
+        Vector3f direction=target-here;direction.y=0.0f;
+        const f32 distance=direction.normalise();
+        Vector3f step=here+direction*(distance<36.0f?distance:36.0f);
+        step.y=here.y+(target.y-here.y)*(distance>36.0f?36.0f/distance:1.0f);
+        return mPiki->pcFollowerSegmentClear(step);
     };
-    if (!safeStep(slot)) {
+    const bool redirected=!safeStep(slot);
+    if (redirected) {
         const bool towardCaptain=safeStep(captain);
         slot=towardCaptain?captain:here;
         mPcLaneBlocked=!towardCaptain;
     }
     // On a recorded crossing, use the narrow lane without the normal lateral
     // circling/slot reassignment that would fan followers back over the edge.
-    mPcFollowingTrail=trail;
+    mPcFollowingTrail=trail||redirected;
 }
 
 void ActCrowd::pcResetFollowerRecovery()
@@ -309,6 +308,7 @@ void ActCrowd::pcResetFollowerRecovery()
     mPcFollowingTrail=false;
     mPcLaneBlocked=false;
     mPcRecoveryRoute=false;
+    mPcReturning=false;
     mPcRecoveryRouteAge=0.0f;
 }
 
@@ -333,24 +333,46 @@ bool ActCrowd::pcRecoverFollower()
     // intended movement, a blocked lane, or separation onto another floor.
     const bool needsMove=mPcRecoveryRoute || mPiki->mTargetVelocity.length()>5.0f
         || mPcLaneBlocked || delta.y>25.0f || delta.y< -25.0f;
-    const bool stalled=mPcFollowerProgress.stalled(here.x,here.y,here.z,dt,needsMove);
+    if(delta.length()>160.0f || std::fabs(delta.y)>25.0f)mPcReturning=true;
+    Vector3f progressGoal=goal;
+    if(mPcRecoveryRoute && routeMgr && mPiki->mPathBuffers && mPiki->mCurrRoutePoint>=0 && mPiki->mCurrRoutePoint<mPiki->mNumRoutePoints){
+        const int index=mPiki->mPathBuffers[mPiki->mCurrRoutePoint].mWayPointIdx;
+        if(index>=0&&index<routeMgr->getNumWayPoints('test')){
+            WayPoint* wp=routeMgr->getWayPoint('test',index);if(wp)progressGoal=wp->mPosition;
+        }
+    }
+    const bool stalled=mPcFollowerProgress.stalledToward(here.x,here.y,here.z,dt,needsMove,
+        progressGoal.x,progressGoal.y,progressGoal.z);
+    if(stalled)mPcReturning=true;
     if (mPcRecoveryRoute) {
         mPcRecoveryRouteAge+=dt<0.1f?dt:0.1f;
         const Vector3f movedGoal=goal-mPcRecoveryGoal;
-        if (!stalled && mPcRecoveryRouteAge<8.0f && movedGoal.length()<100.0f) {
+        if (!stalled && mPcRecoveryRouteAge<30.0f && movedGoal.length()<256.0f) {
             const int result=mPiki->pcMoveFollowerRoute();
             if (result==2) {mLostChildTimer=0.0f;return true;}
         }
         mPcRecoveryRoute=false;mPcFollowerProgress.attempted();
-        return false;
+        mPiki->pcSteerFollowerGoal(here);
+        return mPcReturning;
     }
-    if (!stalled || !captain->pcTakeFollowerRouteBudget()) return false;
+    if(!mPcReturning)return false;
+    if(mPcFollowerProgress.cooldown>0.0f || !captain->pcTakeFollowerRouteBudget()){
+        mPiki->pcSteerFollowerGoal(here);mLostChildTimer=0.0f;return true;
+    }
     mPcFollowerProgress.attempted();
-    if (!mPiki->initRouteTrace(goal,false,true)) return false;
+    if (!mPiki->initRouteTrace(goal,false,true)) {
+        pc_follow_note("return_wait",here.x,here.y,here.z,goal.x,goal.y,goal.z);
+        mPiki->pcSteerFollowerGoal(here);mLostChildTimer=0.0f;return true;
+    }
     mPcRecoveryRoute=true;mPcRecoveryRouteAge=0.0f;mPcRecoveryGoal=goal;
     mIsWaiting=false;mLostChildTimer=0.0f;
     mPiki->startMotion(PaniMotionInfo(PIKIANIM_Run),PaniMotionInfo(PIKIANIM_Run));
-    return mPiki->pcMoveFollowerRoute()==2;
+    if (mPiki->pcMoveFollowerRoute()!=2) {
+        mPcRecoveryRoute=false;
+        mPiki->pcSteerFollowerGoal(here);
+        pc_follow_note("route_step_blocked",here.x,here.y,here.z,goal.x,goal.y,goal.z);
+    }
+    return true;
 }
 
 bool ActCrowd::pcWaterAhead()
@@ -512,11 +534,7 @@ int ActCrowd::exec()
 #if defined(PIKI_PC_PORT)
 	pcProtectFormationEdge(platePos);
     if (mPcFollowingTrail) {
-        Vector3f lane=platePos-mPiki->mSRT.t;
-        lane.y=0.0f;
-        const f32 distance=lane.normalise();
-        if (distance>6.0f) mPiki->setSpeed(1.0f,lane);
-        else mPiki->mTargetVelocity.set(0.0f,0.0f,0.0f);
+        mPiki->pcSteerFollowerGoal(platePos);
         if (mIsWaiting) mPiki->startMotion(PaniMotionInfo(PIKIANIM_Walk),PaniMotionInfo(PIKIANIM_Walk));
         mIsWaiting=false;mLostChildTimer=0.0f;
         return ACTOUT_Continue;

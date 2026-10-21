@@ -123,6 +123,9 @@ public:
 #if defined(PIKI_PC_PORT)
 	bool pcStepOutOfWater();
 	void pcChargeAt(Creature* target);
+    bool pcFollowerSegmentClear(const Vector3f& goal);
+    bool pcBuildFollowerRoute(const Vector3f& goal);
+    void pcSteerFollowerGoal(const Vector3f& goal);
     int pcMoveFollowerRoute(); ///< Walk validated waypoints without dormant spline divisions.
 	Vector3f mPcLastDryPos;
 	bool mPcHasDryPos = false;

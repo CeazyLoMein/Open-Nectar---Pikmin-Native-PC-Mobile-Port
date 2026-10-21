@@ -1,5 +1,63 @@
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
+**Date/time:** 2026-10-21 15:46 EDT
+
+**Overall project status:** P1 Build37 compilation passed but phone navigation failed even at100% speed. Navigation v2 batch implemented and locally verified; next P1-only Apple build pending commit/push. P2 working user baseline preserved, development paused.
+
+### Pikmin 1
+
+- Current objective: Reliable narrow-crossing following and walking returns after explicit Recall All.
+- What was investigated: Both11:23/11:26 clips, actual formation/progress/route/terrain code, consistent read-only8-file phone backup. User100%/100% retest confirms same failure.
+- Root cause or leading hypothesis: Confirmed code defects: circling counted as progress; route failure/distance could release returning followers; geometrically nearest route entrances were not validated for walkability; highest-floor queries confuse overhead platforms. Which specific failure occurred in each clip is not internally logged. Speed is not the root-cause conclusion.
+- Files changed: pc_follow_trail.h, new pc_follow_surface.h/pc_follow_report.h; Piki.h/PikiAI.h; aiCrowd.cpp/Piki helpers in piki.cpp/Navi route budget in navi.cpp; settings help; command/route/surface fixtures; experimental workflow; journals/checklist.
+- Tests and results:87 route/recovery,17 layered floor/wall,82 commands,283 speed P1 plus283 P2 stock control,58/58/7 campaign and27 identity/storage/icon checks PASS. MSVC and Clang checks PASS. Full Apple build, new IPA and phone validation PENDING.
+- Confirmed working: User previously passed Aim/Soft Assist/charge-whistle/save-reload; separate global Recall button works. Build37 generated an IPA. New pathing is not confirmed fixed.
+- Remaining issues: Crossing falls/stranded return; v2 real-map physics, route availability, crowd cost. Rare clam scene/full campaign unverified. No teleport, mid-day autosave or online feature added.
+
+### Pikmin 2
+
+- Current objective: Preserve user-confirmed working Build32; resume broader testing after P1.
+- What was investigated: No new P2 gameplay investigation; shared speed fixture run as stock behavior control.
+- Root cause or leading hypothesis: No new P2 bug diagnosis in this batch.
+- Files changed: No P2 game source changes. Existing approved name/icon source remains inherited from ee380c59.
+- Tests and results:283 P2 stock-speed control checks PASS; no new native P2 build/phone test.
+- Confirmed working: User reported P2 working after audio fixes. This is a representative test, not full-campaign certification.
+- Remaining issues: Thorough spoiler-free campaign/transition test later, then separately scoped co-op work.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: ios-experimental
+- Starting commit: ee380c593633f8b6bc609c9e293377e79e2d9556
+- Latest commit: ee380c593633f8b6bc609c9e293377e79e2d9556 local and origin before this patch; fetched, no divergence.
+- Commits created: None yet in this navigation v2 batch.
+- Changes pushed: None yet in this batch.
+- Uncommitted changes: P1 navigation/test/workflow/help/documentation batch described above; no unrelated or private phone/video files staged.
+- GitHub Actions run IDs:37=39617967156 SUCCESS sourceabd06b6216f0d09bc13361ddbff693f58640a21f;36=39614665805 CANCELLED;35=39548476790 SUCCESS. No pending build observed before dispatch.
+- Build results: New v2 Apple compilation PENDING. Do not confuse local fixture pass with hardware correctness.
+- Artifacts produced: No v2 IPA yet. Build37 artifact12354447804 preserved; named P1Build37 SHA2567e5837bbc83e40ae3f41736b0e00da1e292e546bedc4075aa2192884c74d5654. P2 named working32 and P1Build35 restore retained.
+
+### Next steps
+
+- Next Pikmin 1 task: Run next original-ID standard P1-only build, verify IPA, place in folder1, retest exact crossing/Recall at100% then usual modest speed; use navigation report if it fails.
+- Next Pikmin 2 task: Remain on working build; resume planned stronger solo testing after P1 fixes.
+- GitHub/build task: Commit/push one [ios-build] [ios-p1-only] batch; record exact source/run, then stop waiting. User will report completion.
+- Anything requiring my involvement: Nothing now; phone read complete, may disconnect. Next action will be installation/test once IPA is verified and staged.
+
+### ChatGPT continuation notes
+
+- What another ChatGPT conversation needs to know:100% speed reproduced;500% saved config was later experimentation. Do not restart or claim pathing is solved. No teleport selected. Regular whistle local, explicit Recall All includes workers. Preserve original app/settings/private assets and spoiler preference.
+- Important source-file locations: games/pikmin1/src/plugPikiKando/aiCrowd.cpp pcRecoverFollower/pcProtectFormationEdge/exec; piki.cpp pcBuildFollowerRoute/pcMoveFollowerRoute/pcSteerFollowerGoal/pcFollowerSegmentClear; pc_port/pc_follow_trail.h stalledToward; pc_follow_surface.h; pc_follow_report.h; navi.cpp pcTakeFollowerRouteBudget. Full technical notes in ios/PIKMIN1_STRANDED_FOLLOWERS_PLAN.md.
+- Relevant logs: Current two clips/contact sheets private folder2/P1 Build37 - Crossing and Recall Failures; consistent8-file phone backup in folder5/P1 Phone Backup - 2026-10-21 - Before Navigation v2. Historical solo events are Build33, not new navigation evidence. New p1-navigation-report.txt will exist only after new build runs and emits events.
+- Unverified fixes: All v2 phone navigation and source icon-copy pipeline native compilation. Unit fixtures do not simulate actual cardboard collision/crowd physics.
+- Risks and warnings: Route graph might lack a safe link; bounded candidate search may miss distant entrances; centerline probes do not solve all body/crowd collision. No positions overwritten. P2 source untouched. Private videos/saves/assets not uploaded.
+- Exact next actions: Finish commit/push, capture new run ID/source, stop idle polling. On completion inspect full logs/artifact; if success verify identity/ARM64/icons/variant and stage IPA; test checklist. If failed inspect actual compiler log before patching. If phone still fails retrieve navigation report before further diagnosis. Shared exact-scene saving/co-op recovery design remains later work in ios/SAVE_AND_COOP_RECOVERY_PLAN.md and ONLINE_COOP_DESIGN_NOTES.md.
+
+**END PROGRESS REPORT**
+
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
 **Date/time:** 2026-10-21 11:00 EDT
 
 **Overall project status:** Combined P1 Build37 PASSED. Original artifact verified and preserved; app names/icons added locally to P1Build37 and working P2Build32, both ready to sign/install. New Home Screen and P1 gameplay runtime checks pending. Generated artwork explicitly approved by user. No new build required for cosmetic metadata/resources.

@@ -1,3 +1,9 @@
+## Navigation v2 work in progress — 2026-10-21 15:42 EDT
+
+Build37 phone pathing FAILED in both supplied 11:23/11:26 recordings. User repeated at Olimar100% and Pikmin100% and confirmed the same failure; later 200%/500% saved configuration was experimentation after playing, not proof of clip speed. User does not want500% optimization prioritized. Recall All itself works across map.
+
+Current uncommitted P1 changes: progress toward destination rather than any displacement; durable follower return intent across failed routes; reachable route endpoints with layered floor/wall queries; preservation of protected crossing steering; bounded retries and per-run p1-navigation-report.txt. Local synthetic checks are in progress; no new Apple build or runtime result. No teleport, phone writes or P2 source change. Phone read completed with consistent8-file backup at work/p1-phone-feedback-2026-10-21 153224. User may disconnect. Latest remote/source baseline ee380c593633f8b6bc609c9e293377e79e2d9556.
+
 CURRENT - 2026-10-21 11:00 EDT: Build37 P1 SUCCESS; combined app verified. User-approved generated names/icons packaged into original-ID P1Build37 and P2Build32 with executable/all non-Info original entries unchanged. Both named/icon IPAs staged in folder1, phone test pending.27 CMake metadata/icon checks PASS. No new CI build.
 
 CURRENT - 2026-10-21 10:34 EDT: Build36 CANCELLED at user request. Combined crossing/route+Recall All/Pikmin Speed source localPASS63/82/283; Build37/run39617967156, sourceabd06b6216f0d09bc13361ddbff693f58640a21f, observedqueued. New Apple/IPA/phone pending. Build35 rollback intact, P2 paused. No teleport or phone writes.

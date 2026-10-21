@@ -24,6 +24,10 @@
 #include "WeedsItem.h"
 #include "WorkObject.h"
 #include "settings/pc_settings.h"
+#if defined(PIKI_PC_PORT)
+#include "pc_follow_surface.h"
+#include "pc_follow_report.h"
+#endif
 #include "timing/pc_anim_timing.h"
 #include "pc_coop.h"
 #include "bugprint.h"
@@ -371,6 +375,9 @@ int Piki::moveRouteTraceDynamic(f32 speedRatio)
 bool Piki::initRouteTrace(immut Vector3f& targetPos, bool p2, bool followerRecovery)
 {
     if (!routeMgr || !mPathBuffers || !routeMgr->getPathFinder('test')) return false;
+#if defined(PIKI_PC_PORT)
+    if(followerRecovery)return pcBuildFollowerRoute(targetPos);
+#endif
 	if (mRouteHandle) {
 		routeMgr->getPathFinder('test')->releaseHandle(mRouteHandle);
 		mRouteHandle = 0;
@@ -469,6 +476,66 @@ bool Piki::initRouteTrace(immut Vector3f& targetPos, bool p2, bool followerRecov
  * @todo: Documentation
  */
 #if defined(PIKI_PC_PORT)
+bool Piki::pcFollowerSegmentClear(const Vector3f& goal)
+{
+    return pcFollowWalkLine(mSRT.t,goal,mColor==Blue);
+}
+
+void Piki::pcSteerFollowerGoal(const Vector3f& goal)
+{
+    Vector3f direction=goal-mSRT.t;direction.y=0.0f;
+    const f32 distance=direction.normalise();
+    const f32 dt=gsys->getFrameTime()>0.0f?gsys->getFrameTime():1.0f/60.0f;
+    const f32 scale=pc_settings_get_piki_speed_scale();
+    const f32 stock=getSpeed(1.0f)/(scale>0.0f?scale:1.0f);
+    const f32 arrival=distance/(2.0f*dt);
+    const f32 speed=distance<4.0f?0.0f:(stock<arrival?stock:arrival);
+    mMoveSpeed=speed;mTargetVelocity=direction*speed;
+    const f32 horizontal=std::sqrt(mVelocity.x*mVelocity.x+mVelocity.z*mVelocity.z);
+    if(horizontal>speed && horizontal>0.0f){mVelocity.x*=speed/horizontal;mVelocity.z*=speed/horizontal;}
+}
+
+bool Piki::pcBuildFollowerRoute(const Vector3f& goal)
+{
+    if(!routeMgr || !mPathBuffers)return false;
+    PathFinder* finder=routeMgr->getPathFinder('test');if(!finder)return false;
+    if(mRouteHandle){finder->releaseHandle(mRouteHandle);mRouteHandle=0;}
+    mUseAsyncPathfinding=false;
+    struct Candidate {WayPoint* wp=nullptr;f32 score=0;};
+    Candidate starts[6],ends[6];int ns=0,ne=0;
+    const int count=routeMgr->getNumWayPoints('test');
+    auto insert=[](Candidate* array,int& size,WayPoint* wp,f32 score){
+        int at=0;while(at<size&&array[at].score<=score)++at;if(at>=6)return;
+        if(size<6)++size;for(int j=size-1;j>at;--j)array[j]=array[j-1];array[at]={wp,score};
+    };
+    for(int i=0;i<count;++i){
+        WayPoint* wp=routeMgr->getWayPoint('test',i);
+        if(!wp || wp->mIndex<0 || wp->mIndex>=count || !wp->mIsOpen || (mColor!=Blue&&wp->inWater()))continue;
+        const Vector3f a=wp->mPosition-mSRT.t,b=wp->mPosition-goal;
+        if(std::fabs(a.y)<100.0f&&a.x*a.x+a.z*a.z<600.0f*600.0f)insert(starts,ns,wp,a.x*a.x+a.y*a.y+a.z*a.z);
+        if(std::fabs(b.y)<100.0f&&b.x*b.x+b.z*b.z<600.0f*600.0f)insert(ends,ne,wp,b.x*b.x+b.y*b.y+b.z*b.z);
+    }
+    auto visible=[&](Candidate* candidates,int size,const Vector3f& origin){
+        int valid=0;for(int i=0;i<size;++i)if(pcFollowWalkLine(origin,candidates[i].wp->mPosition,mColor==Blue))candidates[valid++]=candidates[i];return valid;
+    };
+    ns=visible(starts,ns,mSRT.t);ne=visible(ends,ne,goal);
+    if(!ns||!ne){pc_follow_note("no_walkable_endpoint",mSRT.t.x,mSRT.t.y,mSRT.t.z,goal.x,goal.y,goal.z,ns*10+ne);return false;}
+    int attempts=0;
+    // Try alternatives when the geometrically closest pair is disconnected.
+    for(int rank=0;rank<ns+ne-1&&attempts<6;++rank)for(int a=0;a<ns&&attempts<6;++a){
+        const int b=rank-a;if(b<0||b>=ne)continue;++attempts;
+        if(mColor!=Blue)PathFinder::setMode(PathFinderMode::AvoidWater);
+        const int length=finder->findSync(mPathBuffers,starts[a].wp->mIndex,ends[b].wp->mIndex,false);
+        if(mColor!=Blue)PathFinder::clearMode();
+        if(length<=0||length>count)continue;
+        mRouteStartPos=mSRT.t;mRouteGoalPos=goal;mNumRoutePoints=length;mCurrRoutePoint=0;
+        mRouteSourceIndex=starts[a].wp->mIndex;mRouteDestinationIndex=ends[b].wp->mIndex;
+        mUseAsyncPathfinding=false;mIsRetryPathfind=false;
+        pc_follow_note("route_built",mSRT.t.x,mSRT.t.y,mSRT.t.z,goal.x,goal.y,goal.z,length);return true;
+    }
+    pc_follow_note("graph_disconnected",mSRT.t.x,mSRT.t.y,mSRT.t.z,goal.x,goal.y,goal.z,attempts);return false;
+}
+
 int Piki::pcMoveFollowerRoute()
 {
     if (!routeMgr || !mPathBuffers || mNumRoutePoints<=0
@@ -494,7 +561,13 @@ int Piki::pcMoveFollowerRoute()
             ++mCurrRoutePoint;continue;
         }
         if (distance<1.0f) return 1;
-        setSpeed(1.0f,direction);
+        Vector3f step=mSRT.t+direction*(distance<36.0f?distance:36.0f);
+        step.y=target.y;
+        // Follow the local slope rather than demand the distant target height.
+        const f32 fraction=distance<36.0f?1.0f:36.0f/distance;
+        step.y=mSRT.t.y+dy*fraction;
+        if(!pcFollowerSegmentClear(step))return 1;
+        pcSteerFollowerGoal(target);
         return 2;
     }
     mTargetVelocity.set(0.0f,0.0f,0.0f);

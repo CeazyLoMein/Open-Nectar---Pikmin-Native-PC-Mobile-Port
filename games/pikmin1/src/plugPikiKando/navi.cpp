@@ -1425,7 +1425,7 @@ void Navi::pcUpdateFollowTrail()
 bool Navi::pcTakeFollowerRouteBudget()
 {
     if (mPcFollowRouteCooldown > 0.0f) return false;
-    mPcFollowRouteCooldown = 0.1f; // at most ten new searches/second, not per Pikmin
+    mPcFollowRouteCooldown = 0.5f; // at most two bounded multi-endpoint searches/second
     return true;
 }
 
