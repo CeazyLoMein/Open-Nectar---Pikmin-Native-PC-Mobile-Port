@@ -136,4 +136,13 @@ set_target_properties(${NECTAR_GAME_TARGET} PROPERTIES
     OUTPUT_NAME "${NECTAR_IOS_EXECUTABLE}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/app"
 )
+# Loose PNG icons also work with the Makefiles P2 generator and existing
+# unsigned packages. Keep bundle IDs and executable names stable for updates.
+set(NECTAR_IOS_ICON_FILES)
+foreach(icon IN ITEMS Icon-29@2x.png Icon-29@3x.png Icon-40@2x.png Icon-40@3x.png Icon-60@2x.png Icon-60@3x.png)
+    list(APPEND NECTAR_IOS_ICON_FILES "${CMAKE_CURRENT_SOURCE_DIR}/icons/${NECTAR_IOS_GAME}/${icon}")
+endforeach()
+add_custom_command(TARGET ${NECTAR_GAME_TARGET} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${NECTAR_IOS_ICON_FILES} "$<TARGET_BUNDLE_DIR:${NECTAR_GAME_TARGET}>"
+    COMMENT "Bundle game-specific iPhone icons" VERBATIM)
 message(STATUS "Experimental iOS target: ${NECTAR_GAME_TARGET} (${NECTAR_IOS_GAME})")

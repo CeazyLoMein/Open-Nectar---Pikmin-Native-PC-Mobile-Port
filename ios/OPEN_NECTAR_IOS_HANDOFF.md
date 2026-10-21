@@ -1,3 +1,62 @@
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-21 11:00 EDT
+
+**Overall project status:** Combined P1 Build37 PASSED. Original artifact verified and preserved; app names/icons added locally to P1Build37 and working P2Build32, both ready to sign/install. New Home Screen and P1 gameplay runtime checks pending. Generated artwork explicitly approved by user. No new build required for cosmetic metadata/resources.
+
+### Pikmin 1
+
+- Current objective: Install decorated Build37 over existing P1, then exact raised-crossing/return-route and recall/speed test.
+- What was investigated: Full successful job119283713514 log, artifact12354447804, unsigned ARM64 app metadata/load commands/variant markers; original versus decorated ZIP entries/executable hashes; generated icon resources.
+- Root cause or leading hypothesis: Previous crossing/route fixes implemented as documented below; Apple compilation now passed. No new gameplay issue diagnosed this turn. App previously lacked iOS icon declarations/resources and had a long OpenNectar label.
+- Files changed: ios/app_variant.cmake labels; Info.plist.in CFBundleName/icons; CMakeLists.txt post-build icon copy; verify_bundle_info.py metadata/dimension/opaquePNG checks; icons assets/provenance/prompts; bundle fixture copies icon resources; journal/checklists. No gameplay source changes this turn.
+- Tests and results: Build37 CI63 crossing/routes,82 command/recall,283 speed P1 and283P2 stock-speed control, campaign checks and native compile/package PASS.27 actual local CMake/identity/storage/icon-wiring checks PASS. Decorated IPA ZIP/metadata/icons and every unchanged source entry compared byte-for-byte; executable hash unchanged. Future CMake icon-copy pipeline configured, not Apple-compiled yet; local decorated IPA checked directly.
+- Confirmed working: Build35 user-tested controls/save baseline; Build37 Apple compile and IPA generated. Decorated app not phone-installed or runtime-tested yet.
+- Remaining issues: Exact cardboard crossing/crowd/route return, recall separation, speed and regressions need phone evidence. No teleport, mid-day autosave or online feature. Rare clam scene/full campaign remain unverified.
+
+### Pikmin 2
+
+- Current objective: Cosmetic rename/icon only; preserve working game baseline.
+- What was investigated: Existing verified unsigned Build32 IPA and all original ZIP entries; no new game source/audio audit.
+- Root cause or leading hypothesis: Old long label/no dedicated Home Screen icon metadata, now addressed in package/source.
+- Files changed: Shared iOS metadata/resource pipeline and P2-specific generated icon assets. P2 game executable byte-identical to Build32.
+- Tests and results: Repacked unsigned IPA integrity, original identity/minOS and opaque icons PASS; all original payload except Info.plist byte-identical; executable hash unchanged. No P2 recompile or new phone test.
+- Confirmed working: Previous user-positive Build32 runtime/audio baseline retained in identical executable.
+- Remaining issues: Phone Home Screen/startup/save/settings cosmetic-update check; broader future P2 readiness tests still queued.
+
+### GitHub
+
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
+- Branch: ios-experimental.
+- Starting commit: bb619e65a7421e92b64bf80309d579e489d9cd60, clean/fetched/no divergence.
+- Latest source: P1Build37 abd06b6216f0d09bc13361ddbff693f58640a21f; P2Build32 1f04dd8f0117b91c0e5cc6e80cd61384943603e9. Cosmetic source commit recorded after push; no game executable patched.
+- Commits created / changes pushed: Persistent names/icons/verifier and result journal, skip-ci commit follows.
+- Uncommitted changes: This cosmetic source/report while recording; commit before ending and append final clean commit.
+- GitHub Actions run IDs: Build37/run39617967156 SUCCESS/job119283713514/artifact12354447804. Build36 cancelled. P2 baseline Build32/run39518825366.
+- Build results: P1Build37 full Apple PASS. No extra CI build for local names/icons or P2.
+- Artifacts produced: Original P1Build37 IPA2583201bytes SHA256afe1995feb5e285c40ade15e266bdf33229d34cfa0b0b323f89945f42b0df12a, archived in folder5/P1Build37 original artifact. Decorated P1 2809938bytes SHA2567e5837bbc83e40ae3f41736b0e00da1e292e546bedc4075aa2192884c74d5654; decorated P2 4124652bytes SHA256824fb84bbc2ddb255cb114077612e6b521922db62126e03ebf7beeceafe65291.
+
+### Next steps
+
+- Next Pikmin 1 task: Folder1/Pikmin1 Build37 Named App and Game Icon IPA; update over current P1 with same signing account, no uninstall. Test exact cardboard crossing at100% captain/Pikmin speed with Better Pathfinding ON, route return, ordinary/global whistle split and speed. Then prefered higher speeds/regressions/save.
+- Next Pikmin 2 task: Optional current-app update from folder1/Pikmin2 Build32 Named App and Game Icon IPA; check icon/name/launch and retained content/settings/save. No new P2 gameplay changes.
+- GitHub/build task: Commit cosmetic pipeline/journal with skip-ci. No polling or new build needed. Future native build must exercise new resource-copy step; current IPAs already directly verified.
+- Anything requiring my involvement: User signs/installs both usual Sideloadly updates and tests. USB needed only for install, then can disconnect. No phone files accessed/written by Codex this turn.
+
+### ChatGPT continuation notes
+
+- Another conversation needs to know: User requested short names Pikmin1/Pikmin2 and game pictures; AI-generated art shown and explicitly accepted. Built-in image_gen used, exact prompts in ios/icons/prompts.json, masters in ios/icons/pikmin1/Artwork.png and pikmin2/Artwork.png, six opaque standard-sizePNG assets each. No extracted proprietary asset uploaded/committed.
+- Important source-file locations: ios/app_variant.cmake, Info.plist.in, CMakeLists.txt, verify_bundle_info.py, icons/README.md; prior follower code and combined checklist remain current.
+- Relevant logs: work/build37-pikmin1.log; work/build37-verification.json original; work/named-apps-verification.json authoritative decorated packages; output/Named-Game-Apps metadata. Package helper work/package_named_apps.py verifies executable and all non-Info original entries unchanged.
+- Unverified fixes: New names/icons on actual iPhone and all Build37 movement runtime behavior. No claim hardware bug resolution. Future build pipeline resource copy not yet Apple compiled; actual local decorated package verified.
+- Risks and warnings: Keep bundle IDs/executables/signing account stable. Original P1Build37 archive and Build35 rollback retained. Historical strict verifier expects old names; preserve archived verification records. Cosmetic packages require signing as usual; do not uninstall or erase saves/private content. P2 remains game-code baseline.
+- Exact next actions: Install the two clearly named IPAs in folder1, check Home Screen/launch and P1 combined checklist. Report results before co-op work. No further build currently required.
+
+**END PROGRESS REPORT**
+
+
+---
+
 <!-- P1_COMBINED_FOLLOW_CURRENT -->
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 

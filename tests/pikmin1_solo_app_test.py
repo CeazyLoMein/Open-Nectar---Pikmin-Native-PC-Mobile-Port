@@ -5,6 +5,7 @@ from pathlib import Path
 import plistlib
 import subprocess
 import tempfile
+import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -39,6 +40,8 @@ configure_file("{(ROOT/'ios/Info.plist.in').as_posix()}" "{(target/'Info.plist')
             else:
                 raise AssertionError('missing executable accepted')
             (target/info['CFBundleExecutable']).write_bytes(b'test-binary')
+            for icon in (ROOT/'ios/icons'/game).glob('Icon-*.png'):
+                shutil.copy2(icon,target/icon.name)
             module.validate(target/'Info.plist',game,True,variant)
             wrong = dict(info,CFBundleIdentifier='org.opennectar.experimental.pikmin1')
             if variant == 'solo-test':

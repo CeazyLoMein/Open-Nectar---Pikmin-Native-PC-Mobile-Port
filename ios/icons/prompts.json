@@ -1,0 +1,8 @@
+{
+  "mode": "built-in image_gen",
+  "transparent_background": false,
+  "prompts": {
+    "pikmin1": "Create a polished square iPhone home screen icon for a personal Pikmin 1 game port. A charming red Pikmin with a green leaf sprouting from its head, next to smaller blue and yellow Pikmin, on a vibrant green forest-floor backdrop with white daisy flowers. Recognizable game characters in cheerful high-quality 3D game illustration style. Bold close-up composition readable at tiny sizes, subjects centered with generous safe margin. Small clear numeral '1' in lower right. Fully opaque edge-to-edge square image, no rounded corners, no phone mockup, no border, no extra lettering.",
+    "pikmin2": "Create a polished square iPhone home screen icon for a personal Pikmin 2 game port. A charming large purple Pikmin and a smaller white Pikmin with red eyes and a flower growing from its head, on a lush blue-green garden backdrop with small treasures and daisies. Recognizable game characters in cheerful high-quality 3D game illustration style, matching a forest Pikmin game icon series. Bold close-up composition readable at tiny sizes, subjects centered with generous safe margin. Small clear numeral '2' in lower right. Fully opaque edge-to-edge square image, no rounded corners, no phone mockup, no border, no extra lettering."
+  }
+}

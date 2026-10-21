@@ -1,6 +1,6 @@
 # P1 combined update — Crossing, routes, Recall All and speed
 
-NOT READY TO INSTALL YET. Build37/run39617967156, sourceabd06b6216f0d09bc13361ddbff693f58640a21f, observedqueued. Build36 CANCELLED: do not install it. Codex must verify/stage the successful combined IPA first. Keep Build35 installed for now.
+BUILD37 READY. Native Apple build/run39617967156 SUCCESS. Verified original-ID ARM64 app, now named Pikmin1 with game icon. Install **Pikmin 1 - Build 37 - Named App and Game Icon.ipa** from folder1. SHA256 7e5837bbc83e40ae3f41736b0e00da1e292e546bedc4075aa2192884c74d5654. Cosmetic package keeps the exact compiled executable. Phone test pending. Build36 was cancelled.
 
 When ready: update existing P1 with the same Sideloadly account; do not uninstall. Continue your normal test save. Settings/private graphics content should remain; no asset transfer or save reset needed. Working Build35 IPA remains in folder5. No new phone-save backup taken this turn.
 

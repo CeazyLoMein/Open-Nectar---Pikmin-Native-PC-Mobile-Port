@@ -13,7 +13,7 @@ def validate(plist_path, game, require_binary=False, variant="standard"):
     expected = {
         'CFBundleExecutable': f'Nectar-{game}',
         'CFBundleIdentifier': f'org.opennectar.experimental.{game}',
-        'CFBundleDisplayName': f'Open Nectar Pikmin {1 if game == "pikmin1" else 2}',
+        'CFBundleDisplayName': f'Pikmin {1 if game == "pikmin1" else 2}',
         'CFBundlePackageType': 'APPL',
     }
     if variant == "solo-test":
@@ -34,10 +34,24 @@ def validate(plist_path, game, require_binary=False, variant="standard"):
             for item in value:
                 check_values(item)
     check_values(info)
+    if info.get('CFBundleName') != expected['CFBundleDisplayName']:
+        raise ValueError('CFBundleName must match the short app label')
+    primary = info.get('CFBundleIcons', {}).get('CFBundlePrimaryIcon', {})
+    if primary.get('CFBundleIconFiles') != ['Icon-60', 'Icon-40', 'Icon-29']:
+        raise ValueError('Missing expected primary iPhone icon declarations')
     if require_binary:
         binary = Path(plist_path).parent / expected['CFBundleExecutable']
         if not binary.is_file() or binary.stat().st_size == 0:
             raise ValueError(f'Bundle executable missing or empty: {binary}')
+        import struct
+        for name, size in [('Icon-29@2x.png',58),('Icon-29@3x.png',87),('Icon-40@2x.png',80),('Icon-40@3x.png',120),('Icon-60@2x.png',120),('Icon-60@3x.png',180)]:
+            image = Path(plist_path).parent / name
+            data = image.read_bytes()
+            if len(data)<33 or data[:8]!=b'\x89PNG\r\n\x1a\n' or data[12:16]!=b'IHDR':
+                raise ValueError(f'Invalid PNG icon: {name}')
+            w,h,depth,colour = struct.unpack('>IIBB',data[16:26])
+            if (w,h,depth,colour)!=(size,size,8,2):
+                raise ValueError(f'Icon must be opaque 8-bit RGB {size}x{size}: {name}')
     return info
 
 
