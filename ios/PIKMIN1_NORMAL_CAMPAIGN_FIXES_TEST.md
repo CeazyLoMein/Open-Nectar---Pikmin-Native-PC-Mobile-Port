@@ -1,6 +1,6 @@
-# Next P1 normal-campaign build - phone checks after CI verification
+# Pikmin 1 Build 35 — normal-campaign phone test
 
-BUILD NOT READY YET. Wait for Codex to inspect the successful IPA and stage it. Do not reinstall the older Build33 fixture as the normal-campaign update.
+BUILD 35 READY. Install Pikmin 1 - Build 35 - Normal Campaign and Controls.ipa from this folder. Apple build, IPA identity and ARM64 device checks passed. Phone runtime still untested. Do not select the older Build33 synthetic test IPA. Source: 01d7e7ed18df04cb0856ae5cab77b6df62101e39; run39548476790. SHA256: eab4b43ccaeda4de25137e010342592a4e0fc6d2cd328be9b66d365d10e3cc89.
 
 Install over current P1 in Sideloadly with the SAME account and normal P1 identity; never uninstall first. Existing settings, art, textures and models should remain. This build returns to the original save folder. Build33 test cards remain under save-solo-test and are not erased; they are not the normal campaign card.
 

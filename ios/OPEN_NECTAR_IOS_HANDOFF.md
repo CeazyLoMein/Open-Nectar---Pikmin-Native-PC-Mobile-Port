@@ -1,5 +1,65 @@
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
+**Date/time:** 2026-10-21 01:43 EDT
+
+**Overall project status:** P1 Build35 PASSED; normal-campaign original-ID IPA verified and staged for installation. New phone installation and gameplay still unverified. P2 working baseline unchanged.
+
+### Pikmin 1
+
+- Current objective: Install Build35 over current P1 and test reported fixes on a new Normal/Standard save.
+- What was investigated: Successful full job119051975776 log and artifact12322868802; ZIP integrity, Info.plist, Mach-O ARM64/iPhoneOS load commands, linked libraries and feature/variant markers.
+- Root cause: Build34's missing KeyConfig.h was corrected in source01d7e7ed; Build35 compiles successfully. Earlier charge/cursor issues and test-preset cutscene hypothesis remain described below in the full handoff.
+- Files changed: This result journal and ios/PIKMIN1_NORMAL_CAMPAIGN_FIXES_TEST.md readiness update only. Previous navi.cpp/header and regression correction already pushed.
+- Tests and results: CI60 command/aim/recall/edge,27 identity/storage,58+58 preset and7 standard checks PASS; Apple compile PASS; unsigned IPA generated. Original org.opennectar.experimental.pikmin1 identity, STANDARD variant, device ARM64/minimum iOS15 confirmed; synthetic save/event/preset markers absent; Soft Assist/Recall All labels present. Staged copy hash verified.
+- Confirmed working: Compiler/package milestones reached; existing phone baseline retained. No claim of new runtime fixes verified yet.
+- Remaining issues: Phone test aim/soft/manual lock, whistle during charge, clams/cutscene, Recall All, ledges, assets/settings and save/reload. No new mid-day autosave or online feature.
+
+### Pikmin 2
+
+- Current objective: Preserve working Build32; later stronger gameplay/audio/cave/save tests and selected upstream follow-up.
+- What was investigated: No new P2 source/runtime investigation this turn.
+- Root cause or leading hypothesis: No new P2 failure reported.
+- Files changed: None.
+- Tests and results: No P2 job in Build35.
+- Confirmed working: Previous user-positive runtime/audio feedback only, full campaign unverified.
+- Remaining issues: Broader representative readiness tests and upstream candidates remain queued.
+
+### GitHub
+
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
+- Branch: ios-experimental.
+- Starting commit: 395204b5e810400fd602dc2b9d308cc3419b5ab9, clean and remote synchronized.
+- Latest build source: 01d7e7ed18df04cb0856ae5cab77b6df62101e39; latest documentation commit recorded after this update.
+- Commits created / changes pushed: Result/checklist documentation only, skip-ci commit follows; no extra build needed.
+- Uncommitted changes: This result journal/checklist while recording; commit them before ending.
+- GitHub Actions run IDs: Build34/run39545404613 FAILED; Build35/run39548476790 SUCCESS, job119051975776.
+- Build results: Native P1 Apple compile and packaging passed. P2 not rebuilt.
+- Artifacts produced: nectar-pikmin1-experimental/artifact12322868802; P1 IPA 2579504bytes, SHA256 eab4b43ccaeda4de25137e010342592a4e0fc6d2cd328be9b66d365d10e3cc89; executable UUID fcc8e00b-be88-3972-af31-b4dc9e23e249.
+- Run: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/39548476790
+
+### Next steps
+
+- Next Pikmin 1 task: In Documents/Open Nectar/1 - Install on iPhone, install **Pikmin 1 - Build 35 - Normal Campaign and Controls.ipa** through Sideloadly with the same account, updating existing P1. Do not uninstall. Start a new normal file in an empty slot and follow **Pikmin 1 - START HERE.txt**. Existing settings/private content should remain; original save root returns, Build33 test card retained separately.
+- Next Pikmin 2 task: Leave working app as-is. Stronger test follows P1 representative pass/co-op prototype according to agreed order.
+- GitHub/build task: No further run or polling required. Await phone feedback.
+- Anything requiring my involvement: User installs and tests; USB needed only for installation, then can disconnect. No phone content writes were performed by Codex.
+
+### ChatGPT continuation notes
+
+- Another conversation needs to know: New P1 app is ready, not yet phone-tested. Charge/whistle/cursor, dedicated Aim, optional Soft Assist/Recall All and bounded following-edge work retained; upstream1.0.6 RNG fix included. No finale spoilers. Existing verified rollback backups remain in folder5.
+- Important source-file locations: ios/PIKMIN1_NORMAL_CAMPAIGN_FIXES_TEST.md; ios/UPSTREAM_1_0_6_IOS_AUDIT.md; ios/SAVE_AND_COOP_RECOVERY_PLAN.md; navi.cpp/piki.cpp/aiCrowd.cpp; settings/pc_settings.cpp; touch/pc_touch.cpp.
+- Relevant logs: work/build35-pikmin1.log; work/build35-result.json; work/build35-verification.json; work/p1-runtime-batch-state.json. Friendly checkpoint and copies are in folder2.
+- Unverified fixes: All new gameplay behavior still needs phone evidence; unrecorded clam scene hypothesis has no reproduction. Full campaign remains untested.
+- Risks and warnings: Install Build35 normal update, not Build33 synthetic fixture. Normal day-end saving unchanged; unfinished mid-day progress is not autosaved. Soft Assist and Recall All need manual opt-in; saved Manual lock-on remains preserved.
+- Exact next actions: User tests normal opening, dedicated Aim and Soft Assist, whistle while charged enemies still alive, clams, Recall All, ledges, day-end save/reload; reports PASS/FAIL/UNTESTED and speed/cheat settings. Then P1 co-op prototype and shared exact-scene persistence/recovery foundation; not prematurely claiming entire game complete.
+
+**END PROGRESS REPORT**
+
+
+---
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
 **Date/time:** 2026-10-21 01:15 EDT
 
 **Overall project status:** Build34 failed before packaging; no IPA. Missing header corrected, local checks passed, correction pushed. P1-only normal-campaign Build35 is in_progress at this single dispatch observation. Installed apps and private phone content unchanged.

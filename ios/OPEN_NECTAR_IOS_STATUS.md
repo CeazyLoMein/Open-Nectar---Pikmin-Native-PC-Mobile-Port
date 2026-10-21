@@ -1,3 +1,5 @@
+CURRENT - 2026-10-21 01:43 EDT: P1 Build35/run39548476790 SUCCESS, source01d7e7ed18df04cb0856ae5cab77b6df62101e39. STANDARD original-ID ARM64 device IPA verified/staged in folder1; SHA256 eab4b43ccaeda4de25137e010342592a4e0fc6d2cd328be9b66d365d10e3cc89. Phone installation/runtime pending; P2 unchanged. No new build needed; await normal-save test feedback.
+
 CURRENT - 2026-10-21 01:15 EDT: Build34 FAILED (missing KeyConfig.h), corrected/local checks PASS, source01d7e7ed18df04cb0856ae5cab77b6df62101e39. P1-only STANDARD Build35/run39548476790 in_progress at dispatch. No new IPA/phone result; P2 unchanged. No idle polling.
 
 ## Build 34 compiler correction — 2026-10-21 01:14 EDT
