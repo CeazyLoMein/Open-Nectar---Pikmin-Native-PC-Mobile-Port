@@ -1,3 +1,20 @@
+## Latest user preference - preserve the finale surprise
+
+The user does not want the final boss identified, shown or required for this
+readiness experiment. No final-boss/ending test is required before beginning the
+separate co-op proof of concept. Leave that coverage explicitly deferred until
+normal play reaches it. Use only a new slot A/C and familiar earlier areas;
+avoid the finale preset in slot B and the final area. Do not route the user into
+late encounters or spoil them in instructions/screenshots. Earlier requests for
+mandatory finale testing below are superseded by this preference.
+
+Existing advanced settings include Olimar Health = Infinite and Invincible
+Pikmin = On. These can make the exploration tests easier. Normal health/death,
+hazard consequences and real progression remain unverified where cheats bypass
+them. Do not treat those omissions as blockers to an exploratory co-op prototype.
+The current Build32 source is unchanged; the unused finale preset remains in the
+test app but is optional and must not be selected for this user's short test.
+
 # Implementation checkpoint
 
 Source implemented and locally verified; full Apple build and hardware tests

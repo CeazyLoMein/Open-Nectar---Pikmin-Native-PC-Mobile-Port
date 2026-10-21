@@ -1,3 +1,8 @@
+CURRENT - 2026-10-20 20:05 EDT: User requests spoiler-free P1 testing. Final boss/ending
+coverage deferred; not a prerequisite for separate co-op prototype. Use A/C and
+familiar earlier areas, avoid B/final area. Invincibility optional; skipped death/
+hazard behavior remains unverified. Build32 source unchanged; no extra build.
+
 CURRENT - 2026-10-20 20:03 EDT: Combined Build32 DISPATCHED, run39518825366, observedqueued.
 Source 1f04dd8f0117b91c0e5cc6e80cd61384943603e9; includes90785c36 P2 mute cleanup.
 P1 is the separate solo-test app; P2 retains standard identity. Local checks PASS;
