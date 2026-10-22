@@ -2,7 +2,7 @@
 
 **Date/time:** 2026-10-22 17:56 EDT
 
-**Overall project status:** P1 Build41 compiled/packaged successfully, but user reports slow stop/start normal following, single-file returns and unnecessary detours after running off a box. User explicitly clarified automatic TELEPORT RESCUE HAS NOT BEEN TESTED; do not mark it successful. New pacing correction source/local checks PASS; Apple/IPA/phone pending. No new build dispatched yet; one standard P1-only build planned after the scoped commit. P2 paused and preserved.
+**Overall project status:** P1 Build41 compiled/packaged successfully, but user reports slow stop/start normal following, single-file returns and unnecessary detours after running off a box. User explicitly clarified automatic TELEPORT RESCUE HAS NOT BEEN TESTED; do not mark it successful. New pacing correction source/local checks PASS; Apple/IPA/phone pending. Build42/run39861241129, sourcedbe796adb057d0d5c92b37ad9f5976143d5329ba, last observedin_progress; no conclusion yet. P2 paused and preserved.
 
 ### Pikmin 1
 
@@ -29,12 +29,12 @@
 - Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental
 - Starting commit:ca23d8a6de5e32a1933dfad5ca51d47f66c0e90a, clean and matched fetched origin before code edits.
-- Latest local commit:ca23d8a6de5e32a1933dfad5ca51d47f66c0e90a
-- Latest fetched remote commit:ca23d8a6de5e32a1933dfad5ca51d47f66c0e90a
-- Build source:Uncommitted pacing correction based on ca23d8a6de5e32a1933dfad5ca51d47f66c0e90a
-- Commits created/changes pushed:Pacing source/tests/journal locally implemented, not committed yet.
-- Uncommitted changes:Only scoped P1 pacing source/tests and current journal/checklist; private evidence never staged.
-- GitHub Actions run IDs:No new build dispatched yet; one standard P1-only build planned after the scoped commit. Prior41=39854014424 SUCCESS/source769880462e9b0b8d2d139e0404fad015a741709f;40=39784525620;37=39617967156; P2 working32=39518825366.
+- Latest local commit:dbe796adb057d0d5c92b37ad9f5976143d5329ba
+- Latest fetched remote commit:dbe796adb057d0d5c92b37ad9f5976143d5329ba
+- Build source:dbe796adb057d0d5c92b37ad9f5976143d5329ba
+- Commits created/changes pushed:Scoped pacing source commit pushed; documentation-only dispatch record follows[skip ci].
+- Uncommitted changes:Only this dispatch journal before its documentation commit; no private evidence staged.
+- GitHub Actions run IDs:Build42/run39861241129, sourcedbe796adb057d0d5c92b37ad9f5976143d5329ba, last observedin_progress; no conclusion yet. Prior41=39854014424 SUCCESS/source769880462e9b0b8d2d139e0404fad015a741709f;40=39784525620;37=39617967156; P2 working32=39518825366.
 - Build results:41 native/link/IPA PASS; phone normal-follow usability FAIL/too slow. Automatic teleport behavior UNVERIFIED per user clarification. New pacing Apple/IPA/phone pending.
 - Artifacts produced:No new pacing IPA. Existing verified41 IPA retained in folder1, SHA256cd359d0f475b8928bcef5290f6b04a592e8e78223d09150424b2e7b6a60e39b6, original P1 app ID.35/37/40 backups and P2 baseline intact.
 
@@ -42,7 +42,7 @@
 
 - Next Pikmin 1 task: Validate the new native build/package, stage verified original-ID IPA, then retest normal following, running off the same box and return pace before a separate genuine stuck/teleport test. Keep workers on jobs; avoid Recall All during the worker-preserving test.
 - Next Pikmin 2 task: Preserve current app; no update.
-- GitHub/build task:No new build dispatched yet; one standard P1-only build planned after the scoped commit. No idle polling or redundant builds; user reports completion.
+- GitHub/build task:Build42/run39861241129, sourcedbe796adb057d0d5c92b37ad9f5976143d5329ba, last observedin_progress; no conclusion yet. No idle polling or redundant builds; user reports completion.
 - Anything requiring my involvement: Nothing during build. Phone read finished; user may close P1/disconnect. New phone test only once the new IPA is verified and staged.
 
 ### ChatGPT continuation notes

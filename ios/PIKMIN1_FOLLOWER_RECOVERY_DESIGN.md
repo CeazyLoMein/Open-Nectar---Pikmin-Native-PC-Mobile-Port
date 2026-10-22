@@ -38,5 +38,5 @@ User reports ordinary stop/start following and single-file detours after a box d
 
 Measured-stall gating now lets ordinary following run before ANY new route request, while distance/height retain only assignment ownership. A deliberate lower captain leaves the original formation target untouched before selecting any old platform trail. Completed routes hand back normal movement and are not marked failures. Valid distant assignments survive that handoff; invalid slots and ordinary non-enhanced behavior retain failure rules. Search limits and eight-second rescue policy are unchanged.
 
-140 route/recovery/retention and105 command/edge/config checks PASS; real Build41 methods substituted into the new fixture fail8+1 cases.58/58/7 campaign and Clang PASS. Native/IPA/phone pending. No new build dispatched yet; one standard P1-only build planned after the scoped commit.
+140 route/recovery/retention and105 command/edge/config checks PASS; real Build41 methods substituted into the new fixture fail8+1 cases.58/58/7 campaign and Clang PASS. Native/IPA/phone pending. Build42/run39861241129, sourcedbe796adb057d0d5c92b37ad9f5976143d5329ba, last observedin_progress; no conclusion yet.
 <!-- END_PACING_UPDATE -->
