@@ -26,6 +26,7 @@
 #include "settings/pc_settings.h"
 #if defined(PIKI_PC_PORT)
 #include "pc_follow_surface.h"
+#include "ObjectMgr.h"
 #include "pc_follow_report.h"
 #endif
 #include "timing/pc_anim_timing.h"
@@ -493,6 +494,52 @@ void Piki::pcSteerFollowerGoal(const Vector3f& goal)
     mMoveSpeed=speed;mTargetVelocity=direction*speed;
     const f32 horizontal=std::sqrt(mVelocity.x*mVelocity.x+mVelocity.z*mVelocity.z);
     if(horizontal>speed && horizontal>0.0f){mVelocity.x*=speed/horizontal;mVelocity.z*=speed/horizontal;}
+}
+
+bool Piki::pcRescueFollowerNearCaptain(){
+    Navi* captain=mNavi;
+    if(!pc_settings_get_stuck_follower_rescue() || !captain || !pikiMgr || !mapMgr
+        || !isAlive() || !captain->isAlive() || mMode!=PikiMode::FormationMode || getState()!=PIKISTATE_Normal
+        || isHolding() || isDamaged() || isStickTo() || mRope || !mIsCallable
+        || captain->isStickTo() || captain->mRope || captain->getStandType()==STANDTYPE_Air
+        || getStandType()==STANDTYPE_Air || mPlatformAdjustDelta.length()>0.5f
+        || captain->mPlatformAdjustDelta.length()>0.5f || !captain->mGroundTriangle
+        || MapCode::getAttribute(captain->mGroundTriangle)==ATTR_Water
+        || MapCode::getAttribute(captain->mGroundTriangle)==ATTR_Hole)return false;
+    const Vector3f center=captain->mSRT.t;
+    auto hostileNearby=[&](ObjectMgr* manager){
+        if(!manager)return false;
+        Iterator it(manager);CI_LOOP(it){
+            Creature* creature=*it;
+            if(!creature || !creature->isAlive() || !creature->isVisible())continue;
+            if(manager==tekiMgr && creature->isTeki()){
+                const int type=static_cast<Teki*>(creature)->mTekiType;
+                if(type==TEKI_Palm || type==TEKI_Pearl || type==TEKI_Rocpe)continue;
+            }
+            if((creature->mSRT.t-center).length()<120.0f || (creature->mSRT.t-mSRT.t).length()<120.0f)return true;
+        }
+        return false;
+    };
+    if(hostileNearby(tekiMgr)||hostileNearby(bossMgr))return false;
+    for(int ring=0;ring<3;++ring)for(int slot=0;slot<16;++slot){
+        const f32 angle=6.2831853f*slot/16.0f,radius=22.0f+15.0f*ring;
+        const Vector3f candidate(center.x+std::cos(angle)*radius,center.y,center.z+std::sin(angle)*radius);
+        Vector3f landing;
+        if(!pcFollowRescueSpot(center,candidate,landing))continue;
+        bool occupied=false;Iterator peers(pikiMgr);CI_LOOP(peers){
+            Piki* other=static_cast<Piki*>(*peers);
+            if(!other || other==this || !other->isAlive() || other->isBuried())continue;
+            const Vector3f delta=other->mSRT.t-landing;
+            if(delta.x*delta.x+delta.z*delta.z<12.0f*12.0f && std::fabs(delta.y)<12.0f){occupied=true;break;}
+        }
+        if(occupied)continue;
+        resetPosition(landing);mLastAnimPosition=landing;mVelocity.set(0,0,0);mTargetVelocity.set(0,0,0);
+        mMoveSpeed=0;mGroundTriangle=nullptr;mPreviousTriangle=nullptr;mPikiPlatformTriangle=nullptr;
+        mPlatformAdjustDelta.set(0,0,0);
+        // Keep the same squad/action/counters. Normal physics reacquires ground.
+        return true;
+    }
+    return false;
 }
 
 bool Piki::pcBuildFollowerRoute(const Vector3f& goal)

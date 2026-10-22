@@ -1,3 +1,9 @@
+<!-- AUTO_RESCUE_PLAN_SUPERSEDES -->
+# Current decision — 2026-10-22
+
+Build40 phone pathing failed at100% speeds. User now explicitly approved optional AUTOMATIC rescue after about8s stalled and failed walking return, only existing followers. Older statements below saying no teleport selected/implemented are HISTORY and superseded. Source/local checks completed; Apple/IPA/phone pending. Actual-input guard corrected; idle ship recall remains undiagnosed. See [current design and primary references](PIKMIN1_FOLLOWER_RECOVERY_DESIGN.md), current status/handoff and crossing checklist. One P1-only standard build will be dispatched after the scoped source commit. No new run or IPA yet.
+<!-- END_AUTO_RESCUE_PLAN_SUPERSEDES -->
+
 ## Navigation v2 — source implemented, local checks passed, Apple/phone pending
 
 Build37 native build/run39617967156/sourceabd06b6216f0d09bc13361ddbff693f58640a21f passed compilation/package, but user phone crossing/return FAILED. New11:23 and11:26 recordings show stranded/lost followers; exact action states/collider IDs were not recorded. User repeated at both speeds100% and confirmed failure. Current saved200% captain/500% Pikmin were later experimentation; do not attribute the recordings to500%. User does not want500% prioritized.

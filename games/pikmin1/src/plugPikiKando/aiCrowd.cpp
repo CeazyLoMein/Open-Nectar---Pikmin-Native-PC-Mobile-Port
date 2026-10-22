@@ -273,7 +273,7 @@ void ActCrowd::pcProtectFormationEdge(Vector3f& slot)
     mPcFollowingTrail=false;
     mPcLaneBlocked=false;
     if (!pc_settings_get_better_pathfinding() || !mPiki->mNavi || !mapMgr
-        || !mPiki->mNavi->mIsCStickNeutral || pc_netplay_deterministic() || pc_coop_active() || pc_vs_active()
+        || mPiki->mNavi->mCStick.length()>0.05f || pc_netplay_deterministic() || pc_coop_active() || pc_vs_active()
         || mPiki->getStandType() == STANDTYPE_Air || mPiki->mNavi->getStandType() == STANDTYPE_Air
         || mPiki->mPlatformAdjustDelta.length()>0.5f || mPiki->mNavi->mPlatformAdjustDelta.length()>0.5f) return;
     PcFollowTrail::Point goal;
@@ -305,6 +305,7 @@ void ActCrowd::pcProtectFormationEdge(Vector3f& slot)
 void ActCrowd::pcResetFollowerRecovery()
 {
     mPcFollowerProgress.reset();
+    mPcStranded.reset();mPcReturnFailed=false;
     mPcFollowingTrail=false;
     mPcLaneBlocked=false;
     mPcRecoveryRoute=false;
@@ -314,9 +315,11 @@ void ActCrowd::pcResetFollowerRecovery()
 
 bool ActCrowd::pcRecoverFollower()
 {
+    const f32 step=gsys->getFrameTime()>0.1f?0.1f:gsys->getFrameTime();
+    if(mPcRescueCooldown>0)mPcRescueCooldown-=step>0?step:0;
     Navi* captain=mPiki->mNavi;
-    if (!pc_settings_get_better_pathfinding() || pc_netplay_deterministic() || pc_coop_active() || pc_vs_active()
-        || !captain || !captain->mIsCStickNeutral || !mPiki->isAlive() || mPiki->getState()!=PIKISTATE_Normal
+    if ((!pc_settings_get_better_pathfinding() && !pc_settings_get_stuck_follower_rescue()) || pc_netplay_deterministic() || pc_coop_active() || pc_vs_active()
+        || !captain || captain->mCStick.length()>0.05f || !mPiki->isAlive() || mPiki->getState()!=PIKISTATE_Normal
         || mPiki->mMode!=PikiMode::FormationMode || mPiki->isHolding() || mPiki->isDamaged() || mPiki->isStickTo()
         || mPiki->getStandType()==STANDTYPE_Air || mPiki->mPlatformAdjustDelta.length()>0.5f
         || captain->mPlatformAdjustDelta.length()>0.5f || mIsTripping || playerState->inDayEnd()
@@ -341,6 +344,17 @@ bool ActCrowd::pcRecoverFollower()
             WayPoint* wp=routeMgr->getWayPoint('test',index);if(wp)progressGoal=wp->mPosition;
         }
     }
+    const bool stranded=mPcStranded.update(here.x,here.y,here.z,dt,needsMove||mPcReturning,
+        progressGoal.x,progressGoal.y,progressGoal.z);
+    if(stranded && mPcReturnFailed && mPcRescueCooldown<=0
+        && pc_settings_get_stuck_follower_rescue() && captain->pcTakeFollowerRescueBudget()){
+        if(mPiki->pcRescueFollowerNearCaptain()){
+            pc_follow_note("rescued_follower",here.x,here.y,here.z,mPiki->mSRT.t.x,mPiki->mSRT.t.y,mPiki->mSRT.t.z);
+            pcResetFollowerRecovery();mPcRescueCooldown=12.0f;mLostChildTimer=0;return true;
+        }
+        mPcRescueCooldown=2.0f;
+        pc_follow_note("rescue_no_safe_spot",here.x,here.y,here.z,goal.x,goal.y,goal.z);
+    }
     const bool stalled=mPcFollowerProgress.stalledToward(here.x,here.y,here.z,dt,needsMove,
         progressGoal.x,progressGoal.y,progressGoal.z);
     if(stalled)mPcReturning=true;
@@ -351,6 +365,7 @@ bool ActCrowd::pcRecoverFollower()
             const int result=mPiki->pcMoveFollowerRoute();
             if (result==2) {mLostChildTimer=0.0f;return true;}
         }
+        mPcReturnFailed=true;
         mPcRecoveryRoute=false;mPcFollowerProgress.attempted();
         mPiki->pcSteerFollowerGoal(here);
         return mPcReturning;
@@ -361,6 +376,7 @@ bool ActCrowd::pcRecoverFollower()
     }
     mPcFollowerProgress.attempted();
     if (!mPiki->initRouteTrace(goal,false,true)) {
+        mPcReturnFailed=true;
         pc_follow_note("return_wait",here.x,here.y,here.z,goal.x,goal.y,goal.z);
         mPiki->pcSteerFollowerGoal(here);mLostChildTimer=0.0f;return true;
     }
@@ -368,6 +384,7 @@ bool ActCrowd::pcRecoverFollower()
     mIsWaiting=false;mLostChildTimer=0.0f;
     mPiki->startMotion(PaniMotionInfo(PIKIANIM_Run),PaniMotionInfo(PIKIANIM_Run));
     if (mPiki->pcMoveFollowerRoute()!=2) {
+        mPcReturnFailed=true;
         mPcRecoveryRoute=false;
         mPiki->pcSteerFollowerGoal(here);
         pc_follow_note("route_step_blocked",here.x,here.y,here.z,goal.x,goal.y,goal.z);

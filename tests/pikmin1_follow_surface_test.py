@@ -39,6 +39,14 @@ map.triangles={&low};map.queries=0;check(pcFollowWalkLine({0,0,0},{600,0,0},fals
 check(!pcFollowWalkLine({0,0,0},{601,0,0},false),"entry range bounded");
 map.triangles.clear();check(!pcFollowWalkLine({0,0,0},{10,0,0},false),"no ground rejects route");
 mapMgr=nullptr;check(!pcFollowWalkLine({0,0,0},{10,0,0},false),"missing map safe failure");
+
+mapMgr=&map;map.triangles={&low};Vector3f landing;
+check(pcFollowRescueSpot({0,0,0},{22,0,0},landing),"dry supported rescue point accepted");
+low.maxX=25;check(!pcFollowRescueSpot({0,0,0},{22,0,0},landing),"body clearance rejects point perched at ledge");low.maxX=1000;
+low.attr=ATTR_Water;check(!pcFollowRescueSpot({0,0,0},{22,0,0},landing),"rescue will not use water even for blue followers");low.attr=ATTR_Hole;check(!pcFollowRescueSpot({0,0,0},{22,0,0},landing),"hole cannot be a rescue landing");low.attr=0;
+map.triangles={&low,&wall};check(!pcFollowRescueSpot({0,0,0},{70,0,0},landing),"wall between captain and rescue point rejected");
+map.triangles={&low,&high};check(pcFollowRescueSpot({0,0,0},{22,0,0},landing)&&landing.y==0,"rescue uses captain floor below overhead platform");
+map.triangles={&high};check(!pcFollowRescueSpot({0,0,0},{22,0,0},landing),"rescue cannot invent a floor or climb to another level");
 std::printf("%d P1 layered-surface/wall route-entry scenarios; %d failures\n",checks,failures);return failures?1:0;
 }
 """

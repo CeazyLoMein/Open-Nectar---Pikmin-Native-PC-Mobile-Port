@@ -52,4 +52,18 @@ inline bool pcFollowWalkLine(const Vector3f& a,const Vector3f& b,bool allowWater
     }
     return std::fabs(previous.y-b.y)<25.0f;
 }
+// A rescue landing needs a dry walkable connection from the captain and
+// support around the body, not merely one point perched on a ledge.
+inline bool pcFollowRescueSpot(const Vector3f& captain,const Vector3f& candidate,Vector3f& out){
+    out=candidate;
+    if(!pcFollowFloor(out.x,out.z,captain.y,false,out.y)
+        || std::fabs(out.y-captain.y)>12.0f || !pcFollowWalkLine(captain,out,false))return false;
+    const float offsets[4][2]={{6,0},{-6,0},{0,6},{0,-6}};
+    for(int i=0;i<4;++i){
+        Vector3f edge(out.x+offsets[i][0],out.y,out.z+offsets[i][1]);
+        if(!pcFollowFloor(edge.x,edge.z,out.y,false,edge.y)
+            || std::fabs(edge.y-out.y)>6.0f || pcFollowWall(out,edge))return false;
+    }
+    return true;
+}
 #endif

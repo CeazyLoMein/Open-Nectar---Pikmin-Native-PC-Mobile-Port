@@ -33,14 +33,22 @@ Vector3f operator+(Vector3f p)const{return {x+p.x,y+p.y,z+p.z};}Vector3f operato
 enum {STANDTYPE_Ground,STANDTYPE_TekiPlatform,STANDTYPE_Platform,STANDTYPE_Air,PIKISTATE_Normal=20,PIKISTATE_Drown,Red=0,Blue=2};
 namespace PikiMode {enum {FormationMode,CarryMode,AttackMode,FreeMode};}
 enum {PIKIANIM_Run,PIKIANIM_Walk};int PaniMotionInfo(int x){return x;}
+bool rescueEnabled=false;bool pc_settings_get_stuck_follower_rescue(){return rescueEnabled;}
 bool better=true,det=false,coop=false,vs=false,blues=true;float pikiScale=1;float pc_settings_get_piki_speed_scale(){return pikiScale;}
 bool pc_settings_get_better_pathfinding(){return better;}bool pc_netplay_deterministic(){return det;}bool pc_coop_active(){return coop;}bool pc_vs_active(){return vs;}bool pc_settings_get_blues_only_water(){return blues;}
 struct System {float dt=1.f/60.f;float getFrameTime(){return dt;}}sys;System*gsys=&sys;
 struct Movie {bool mIsActive=false;}movie;struct Game {Movie*mMoviePlayer=&movie;}gameflow;
 struct State {bool end=false;bool inDayEnd(){return end;}}state;State*playerState=&state;
-struct Navi {struct {Vector3f t;}mSRT;Vector3f mPlatformAdjustDelta;bool alive=true,stick=false,mIsCStickNeutral=true,mIsInWater=false;int stand=STANDTYPE_Ground;
+struct Creature {struct {Vector3f t;}mSRT;Vector3f mLastPosition;bool alive=true,visibility=true,teki=false;bool isAlive(){return alive;}bool isVisible(){return visibility;}bool isTeki(){return teki;}void resetPosition(const Vector3f&p){mSRT.t=p;mLastPosition=p;}};
+struct Teki:Creature {Teki(){teki=true;}int mTekiType=0;};enum {TEKI_Palm=7,TEKI_Pearl=13,TEKI_Rocpe=14};
+struct CollTriInfo {int attr=0;};enum{ATTR_Water=5,ATTR_Hole=6};struct MapCode{static int getAttribute(CollTriInfo*t){return t->attr;}};CollTriInfo dryFloor;
+struct ObjectMgr {std::vector<Creature*> items;};
+struct Iterator {ObjectMgr*m;unsigned at=0;Iterator(ObjectMgr*p):m(p){}void first(){at=0;}bool isDone(){return at>=m->items.size();}void next(){++at;}Creature*operator*(){return m->items[at];}};
+#define CI_LOOP(i) for(i.first();!i.isDone();i.next())
+ObjectMgr pikiStore;ObjectMgr*pikiMgr=&pikiStore,*tekiMgr=nullptr,*bossMgr=nullptr;
+struct Navi:Creature {Vector3f mCStick;CollTriInfo*mGroundTriangle=&dryFloor;void*mRope=nullptr;Vector3f mPlatformAdjustDelta;bool stick=false,mIsCStickNeutral=true,mIsInWater=false;int stand=STANDTYPE_Ground;
 bool isAlive(){return alive;}bool isStickTo(){return stick;}int getStandType(){return stand;}
-PcFollowTrail mPcFollowTrail;float mPcFollowRouteCooldown=0;void pcUpdateFollowTrail();bool pcTakeFollowerRouteBudget();};
+PcFollowTrail mPcFollowTrail;float mPcFollowerRescueCooldown=0,mPcFollowRouteCooldown=0;bool pcTakeFollowerRescueBudget();void pcUpdateFollowTrail();bool pcTakeFollowerRouteBudget();};
 struct WayPoint {Vector3f mPosition;bool mIsOpen=true,water=false;int mIndex=0;bool inWater(){return water;}};
 namespace PathFinderMode {enum {AvoidWater=1};}
 struct Buffer {int mWayPointIdx=0;};
@@ -56,8 +64,8 @@ WayPoint*getWayPoint(int,int index){return index==0?(missingStart?nullptr:&first
 }route;Route*routeMgr=&route;
 struct Sphere {Sphere(Vector3f,float){}}; struct Tube {Tube(Vector3f,Vector3f,float,float){}bool collide(Sphere&,Vector3f&,float&){return false;}};
 
-struct Piki {struct {Vector3f t;}mSRT;Vector3f mPlatformAdjustDelta,mTargetVelocity;Navi*mNavi=nullptr;
-bool alive=true,holding=false,damaged=false,stick=false;int state=PIKISTATE_Normal,mMode=PikiMode::FormationMode,mColor=Red,stand=STANDTYPE_Ground;
+struct Piki:Creature {Vector3f mPlatformAdjustDelta,mTargetVelocity;Navi*mNavi=nullptr;
+bool holding=false,damaged=false,stick=false;bool mIsCallable=true;void*mRope=nullptr;CollTriInfo*mGroundTriangle=&dryFloor,*mPreviousTriangle=nullptr,*mPikiPlatformTriangle=nullptr;Vector3f mShadowPos,mEffectPos,mLastAnimPosition;bool isBuried(){return false;}void resetPosition(const Vector3f&);int state=PIKISTATE_Normal,mMode=PikiMode::FormationMode,mColor=Red,stand=STANDTYPE_Ground;
 bool isAlive(){return alive;}int getState(){return state;}bool isHolding(){return holding;}bool isDamaged(){return damaged;}bool isStickTo(){return stick;}int getStandType(){return stand;}
 Buffer buffer[8]={};Buffer*mPathBuffers=buffer;int mRouteHandle=0;bool mUseAsyncPathfinding=false,mIsRetryPathfind=false;
 int mNumRoutePoints=0,mRouteSourceIndex=-1,mRouteDestinationIndex=-1,mCurrRoutePoint=-1,sharedCalls=0,moves=0,moveResult=2;
@@ -66,10 +74,10 @@ bool initRouteTrace(const Vector3f&,bool,bool=false);
 int findRoute(int,int,bool,bool){++sharedCalls;return 2;}
 Vector3f crGetPoint(int){return {};}float crGetRadius(int){return 1;}bool crPointOpen(int){return true;}void crMakeRefs(){}
 float mMoveSpeed=0;Vector3f mVelocity;float getSpeed(float){return 100*pikiScale;}
-bool pcFollowerSegmentClear(const Vector3f&g);bool pcBuildFollowerRoute(const Vector3f&);void pcSteerFollowerGoal(const Vector3f&);
+bool pcRescueFollowerNearCaptain();bool pcFollowerSegmentClear(const Vector3f&g);bool pcBuildFollowerRoute(const Vector3f&);void pcSteerFollowerGoal(const Vector3f&);
 int pcMoveFollowerRoute();void setSpeed(float,Vector3f d){mTargetVelocity={d.x*100,d.y*100,d.z*100};++moves;}void startMotion(int,int){}
 };
-struct ActCrowd {Piki*mPiki;PcFollowerProgress mPcFollowerProgress;bool mPcFollowingTrail=false,mPcLaneBlocked=false,mPcRecoveryRoute=false,mPcReturning=false,mIsTripping=false,mIsWaiting=false;
+struct ActCrowd {Piki*mPiki;PcStuckFollowerMonitor mPcStranded;bool mPcReturnFailed=false;float mPcRescueCooldown=0;PcFollowerProgress mPcFollowerProgress;bool mPcFollowingTrail=false,mPcLaneBlocked=false,mPcRecoveryRoute=false,mPcReturning=false,mIsTripping=false,mIsWaiting=false;
 float mPcRecoveryRouteAge=0,mLostChildTimer=0;Vector3f mPcRecoveryGoal;
 void pcResetFollowerRecovery();bool pcRecoverFollower();};
 bool surfaceBlocked=false,localStepBlocked=false;int blockedEntry=-1;
@@ -78,6 +86,8 @@ bool pcFollowWalkLine(const Vector3f&a,const Vector3f&b,bool){
  if(blockedEntry>=0&&nearbyint(b.x)==blockedEntry)return false;
  return true;
 }
+bool mapAvailable=true;bool*mapMgr=&mapAvailable;bool landingAvailable=true;
+bool pcFollowRescueSpot(const Vector3f&,const Vector3f&candidate,Vector3f&out){out=candidate;return landingAvailable;}
 FUNCTIONS
 int checks=0,failures=0;void check(bool c,const char*n){++checks;if(!c){++failures;std::printf("FAIL %s\n",n);}}
 bool near(float a,float b){return std::fabs(a-b)<.001f;}
@@ -144,10 +154,56 @@ check(k.initRouteTrace({200,0,0},false,true)&&k.mRouteHandle==0&&pf.releases==re
 a.pcResetFollowerRecovery();n.mSRT.t={200,0,0};n.mPcFollowRouteCooldown=0;localStepBlocked=true;
 check(a.pcRecoverFollower()&&a.mPcReturning&&!a.mPcRecoveryRoute,"blocked first route step retains return ownership");
 check(k.mTargetVelocity.length()==0,"blocked first step brakes instead of falling into stock movement");localStepBlocked=false;
+
+// Conservative classifier: moving captain alone is not Pikmin progress, while
+// an actor walking toward each sampled goal is not stranded.
+for(int fps:{30,60,120}){
+ PcStuckFollowerMonitor stalledMonitor;bool early=false;
+ for(int j=0;j<int(fps*7.5f);++j)early=stalledMonitor.update(0,0,0,1.f/fps,true,300,0,0)||early;
+ check(!early,"automatic rescue never triggers before eight seconds");
+ bool ready=false;for(int j=0;j<fps;++j)ready=stalledMonitor.update(0,0,0,1.f/fps,true,300+float(j),0,0)||ready;
+ check(ready,"stuck detector survives moving captain and failed-search retries");
+ PcStuckFollowerMonitor healthy;bool falselyStuck=false;
+ for(int j=0;j<fps*12;++j)falselyStuck=healthy.update(j*60.f/fps,0,0,1.f/fps,true,400+j*60.f/fps,0,0)||falselyStuck;
+ check(!falselyStuck,"walking follower behind moving captain never rescued just for distance");
+ PcStuckFollowerMonitor spinning;bool circleReady=false;
+ for(int j=0;j<fps*9;++j){float angle=j*3.f/fps;circleReady=spinning.update(100*std::cos(angle),0,100*std::sin(angle),1.f/fps,true,0,0,0)||circleReady;}
+ check(circleReady,"circling without getting nearer counts as a sustained stall");
+ PcStuckFollowerMonitor parked;for(int j=0;j<fps*12;++j)parked.update(0,0,0,1.f/fps,false,300,0,0);
+ check(parked.seconds==0,"parked formations do not accumulate rescue time");
+}
+PcStuckFollowerMonitor pauseMonitor;check(!pauseMonitor.update(0,0,0,60,true,300,0,0),"pause/background delta cannot instantly cause a rescue");
+rescueEnabled=true;better=true;pf.blocked=true;surfaceBlocked=true;landingAvailable=true;
+n.mSRT.t={300,0,0};n.mCStick={0,0,0};n.mIsCStickNeutral=false;n.mGroundTriangle=&dryFloor;n.mPcFollowRouteCooldown=0;n.mPcFollowerRescueCooldown=0;
+k.mSRT.t={0,0,0};k.mTargetVelocity={50,0,0};pikiStore.items={&k};ActCrowd rescue{};rescue.mPiki=&k;
+wait(rescue,420);check(near(k.mSRT.t.x,0)&&rescue.mPcReturnFailed,"failed route at seven seconds has not teleported a follower");
+wait(rescue,100);check((k.mSRT.t-n.mSRT.t).length()<60,"stuck owned follower rescued after eight seconds despite stock non-neutral separation flag");
+check(k.mMode==PikiMode::FormationMode&&k.mNavi==&n,"rescue preserves squad ownership and action bookkeeping");
+check(near(k.mLastPosition.x,k.mSRT.t.x)&&near(k.mShadowPos.x,k.mSRT.t.x)&&near(k.mEffectPos.x,k.mSRT.t.x),"actual resetPosition synchronizes collision/shadow/effect positions");
+check(rescue.mPcRescueCooldown>0,"successful rescue starts per-follower cooldown");
+k.mSRT.t={0,0,0};wait(rescue,420);check(near(k.mSRT.t.x,0),"immediately repeated separation cannot produce teleport loop");
+for(int mode:{PikiMode::CarryMode,PikiMode::AttackMode,PikiMode::FreeMode}){
+ ActCrowd worker{};worker.mPiki=&k;k.mMode=mode;k.mSRT.t={0,0,0};wait(worker,600);
+ check(near(k.mSRT.t.x,0)&&!worker.mPcReturnFailed,"workers fighters and intentionally idle Pikmin never automatically rescued");
+}k.mMode=PikiMode::FormationMode;
+landingAvailable=false;k.mSRT.t={0,0,0};ActCrowd unsafe{};unsafe.mPiki=&k;wait(unsafe,650);
+check(near(k.mSRT.t.x,0),"no safe landing means wait rather than force teleport");landingAvailable=true;
+for(bool*flag:{&k.holding,&k.damaged,&k.stick}){*flag=true;check(!k.pcRescueFollowerNearCaptain(),"rescue method independently excludes held damaged or attached followers");*flag=false;}
+k.mRope=&k;check(!k.pcRescueFollowerNearCaptain(),"rope/onion transition cannot be rescued");k.mRope=nullptr;
+k.mIsCallable=false;check(!k.pcRescueFollowerNearCaptain(),"uncallable transition not bypassed by rescue");k.mIsCallable=true;
+k.stand=STANDTYPE_Air;check(!k.pcRescueFollowerNearCaptain(),"thrown/falling follower never rescued mid-air");k.stand=STANDTYPE_Ground;
+n.stand=STANDTYPE_Air;check(!k.pcRescueFollowerNearCaptain(),"airborne captain cannot define a landing");n.stand=STANDTYPE_Ground;
+dryFloor.attr=ATTR_Water;check(!k.pcRescueFollowerNearCaptain(),"swimming captain cannot teleport reds into water");dryFloor.attr=ATTR_Hole;check(!k.pcRescueFollowerNearCaptain(),"captain over hole is not a landing");dryFloor.attr=0;
+ObjectMgr enemies;Creature enemy;enemy.mSRT.t=n.mSRT.t;enemies.items={&enemy};tekiMgr=&enemies;check(!k.pcRescueFollowerNearCaptain(),"nearby hostile blocks rescue into combat");
+enemy.mSRT.t={0,0,0};check(!k.pcRescueFollowerNearCaptain(),"active combat at origin not escaped through rescue");
+Teki flower;flower.mTekiType=TEKI_Palm;flower.mSRT.t=n.mSRT.t;enemies.items={&flower};check(k.pcRescueFollowerNearCaptain(),"harmless pellet posy does not falsely block safe rescue");tekiMgr=nullptr;
+Piki crowded;crowded.mSRT.t={322,0,0};pikiStore.items={&k,&crowded};k.mSRT.t={0,0,0};check(k.pcRescueFollowerNearCaptain()&&(k.mSRT.t-crowded.mSRT.t).length()>=12,"rescue selects an unoccupied spot rather than stacking into a peer");
+rescueEnabled=false;k.mSRT.t={0,0,0};check(!k.pcRescueFollowerNearCaptain(),"rescue is opt-in and can be disabled");
+n.mCStick={1,0,0};ActCrowd commanded{};commanded.mPiki=&k;check(!wait(commanded,600),"actual swarm input retains player control and cancels rescue observation");n.mCStick={0,0,0};
 std::printf("%d P1 crossing/route recovery scenarios; %d failures\n",checks,failures);return failures?1:0;
 }
 """
 cpp=cpp.replace('REPORT_HEADER',(root/'games/pikmin1/pc_port/pc_follow_report.h').read_text(encoding='utf-8'))
 cpp=cpp.replace('HEADER',(root/'games/pikmin1/pc_port/pc_follow_trail.h').read_text(encoding='utf-8'))
-funcs=[fn(nav,'void Navi::pcUpdateFollowTrail('),fn(nav,'bool Navi::pcTakeFollowerRouteBudget('),fn(piki,'bool Piki::initRouteTrace('),fn(piki,'bool Piki::pcFollowerSegmentClear('),fn(piki,'void Piki::pcSteerFollowerGoal('),fn(piki,'bool Piki::pcBuildFollowerRoute('),fn(piki,'int Piki::pcMoveFollowerRoute('),fn(crowd,'void ActCrowd::pcResetFollowerRecovery('),fn(crowd,'bool ActCrowd::pcRecoverFollower(')]
+funcs=[fn(nav,'void Navi::pcUpdateFollowTrail('),fn(nav,'bool Navi::pcTakeFollowerRouteBudget('),fn(nav,'bool Navi::pcTakeFollowerRescueBudget('),fn(piki,'bool Piki::initRouteTrace('),fn(piki,'void Piki::resetPosition('),fn(piki,'bool Piki::pcRescueFollowerNearCaptain('),fn(piki,'bool Piki::pcFollowerSegmentClear('),fn(piki,'void Piki::pcSteerFollowerGoal('),fn(piki,'bool Piki::pcBuildFollowerRoute('),fn(piki,'int Piki::pcMoveFollowerRoute('),fn(crowd,'void ActCrowd::pcResetFollowerRecovery('),fn(crowd,'bool ActCrowd::pcRecoverFollower(')]
 Path(sys.argv[1]).write_text(cpp.replace('FUNCTIONS','\n'.join(funcs)),encoding='utf-8');print('Generated actual crossing, route setup and follower recovery fixture')

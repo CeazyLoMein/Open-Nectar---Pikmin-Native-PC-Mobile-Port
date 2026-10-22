@@ -224,6 +224,8 @@ public:
 	void pcUpdateLockOn();
 	void pcUpdateFollowTrail();
     bool pcTakeFollowerRouteBudget();
+    bool pcTakeFollowerRescueBudget();
+    f32 mPcFollowerRescueCooldown=0.0f;
     PcFollowTrail mPcFollowTrail;
     f32 mPcFollowRouteCooldown = 0.0f;
 	void pcUpdateRecallAll(); ///< Consume the separate touch recall command in solo gameplay.

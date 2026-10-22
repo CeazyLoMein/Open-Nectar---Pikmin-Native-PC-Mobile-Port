@@ -124,6 +124,7 @@ public:
 	bool pcStepOutOfWater();
 	void pcChargeAt(Creature* target);
     bool pcFollowerSegmentClear(const Vector3f& goal);
+    bool pcRescueFollowerNearCaptain();
     bool pcBuildFollowerRoute(const Vector3f& goal);
     void pcSteerFollowerGoal(const Vector3f& goal);
     int pcMoveFollowerRoute(); ///< Walk validated waypoints without dormant spline divisions.

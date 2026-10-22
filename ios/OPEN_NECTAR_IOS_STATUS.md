@@ -1,3 +1,7 @@
+<!-- P1_AUTO_RESCUE_CHECKPOINT -->
+CURRENT — 2026-10-22 17:02 EDT: Build40 PHONE NAVIGATION FAIL, including100% speeds. Actual-input recovery guard correction and optional Rescue Stuck Followers(defaultOFF) implemented. User approved auto rescue after~8s stalled+failed walk, existing followers only, safe dry landing/enemy/occupancy guards and cooldowns. Local128/24/103/283+283/58+58+7/39 checks and Clang PASS. Idle ship recall unresolved; diagnostics added. One P1-only standard build will be dispatched after the scoped source commit. No new run or IPA yet. No new Apple/IPA/phone success. P2 unchanged. Read-only phone collection finished; may disconnect. See PIKMIN1_FOLLOWER_RECOVERY_DESIGN.md.
+<!-- END_P1_AUTO_RESCUE_CHECKPOINT -->
+
 CURRENT — 2026-10-22 09:30 EDT: Build40 compiled/linked PASS; Xcode combined icons into TIFF, GitHub packaging FAIL. Exact compiled app recovered; locally verified original-ID standard ARM64 IPA READY in folder1, SHA25602d057e55a2e77a0779462f37e420c2a5e665fa01c6523ee6c4129f1e65f7cdd. Original executable/all original files unchanged, six PNGs added.39 packaging regression checks PASS. Phone test pending. Safeguard commit [skip ci], no new build needed; P2 untouched.
 
 

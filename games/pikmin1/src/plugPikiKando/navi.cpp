@@ -4,6 +4,7 @@
 #include <cstdlib>
 #if defined(PIKI_PC_PORT)
 #include "GameStat.h"
+#include "pc_follow_report.h"
 #include "pc_permadeath.h"
 #include "pc_record.h"
 #include "pc_coop.h"
@@ -1409,10 +1410,12 @@ static bool pcGroundChargeTarget(Creature* target)
 void Navi::pcUpdateFollowTrail()
 {
     const f32 dt = gsys->getFrameTime();
+    pc_follow_note("captain_tick",mSRT.t.x,mSRT.t.y,mSRT.t.z,mSRT.t.x,mSRT.t.y,mSRT.t.z,mCStick.length()>0.05f);
+    if(mPcFollowerRescueCooldown>0)mPcFollowerRescueCooldown-=dt<0.1f?dt:0.1f;
     if (mPcFollowRouteCooldown > 0.0f) mPcFollowRouteCooldown -= dt < 0.1f ? dt : 0.1f;
     if (!pc_settings_get_better_pathfinding() || pc_netplay_deterministic()
         || pc_coop_active() || pc_vs_active() || !isAlive() || isStickTo()
-        || getStandType() == STANDTYPE_Air || !mIsCStickNeutral
+        || getStandType() == STANDTYPE_Air || mCStick.length()>0.05f
         || (gameflow.mMoviePlayer && gameflow.mMoviePlayer->mIsActive)) {
         mPcFollowTrail.clear();
         return;
@@ -1427,6 +1430,11 @@ bool Navi::pcTakeFollowerRouteBudget()
     if (mPcFollowRouteCooldown > 0.0f) return false;
     mPcFollowRouteCooldown = 0.5f; // at most two bounded multi-endpoint searches/second
     return true;
+}
+
+bool Navi::pcTakeFollowerRescueBudget(){
+    if(mPcFollowerRescueCooldown>0)return false;
+    mPcFollowerRescueCooldown=0.25f;return true;
 }
 
 void Navi::pcUpdateRecallAll()
@@ -2543,6 +2551,7 @@ void Navi::callPikis(f32 radius, bool recallAll)
     mPcChargeTime = 0.0f; // recalled Pikmin must not be sent back on the next tick
     // Only the dedicated command may expand the range, even when enabled.
     recallAll = recallAll && pc_settings_get_recall_all() != 0;
+    if(recallAll)pc_follow_note("recall_requested",mSRT.t.x,mSRT.t.y,mSRT.t.z,mCursorWorldPos.x,mCursorWorldPos.y,mCursorWorldPos.z);
 #else
     recallAll = false;
 #endif
@@ -2569,6 +2578,12 @@ void Navi::callPikis(f32 radius, bool recallAll)
 		}
 
 		int state = piki->getState();
+#if defined(PIKI_PC_PORT)
+        if(recallAll && piki->mMode==PikiMode::FreeMode){
+            pc_follow_note("recall_idle_seen",piki->mSRT.t.x,piki->mSRT.t.y,piki->mSRT.t.z,mSRT.t.x,mSRT.t.y,mSRT.t.z,state);
+            if(!piki->mIsCallable)pc_follow_note("recall_idle_not_callable",piki->mSRT.t.x,piki->mSRT.t.y,piki->mSRT.t.z,mSRT.t.x,mSRT.t.y,mSRT.t.z,state);
+        }
+#endif
 		if (state == PIKISTATE_Drown) {
 			static_cast<PikiDrownState*>(piki->getCurrState())->mIsBeingWhistled = true;
 			PRINT("call drown piki\n");
@@ -2597,6 +2612,9 @@ void Navi::callPikis(f32 radius, bool recallAll)
 				}
 
 				piki->mNavi = this;
+#if defined(PIKI_PC_PORT)
+                if(recallAll)pc_follow_note("recall_joined",piki->mSRT.t.x,piki->mSRT.t.y,piki->mSRT.t.z,mSRT.t.x,mSRT.t.y,mSRT.t.z,state);
+#endif
 				if (state == PIKISTATE_Emotion) {
 					static_cast<PikiEmotionState*>(piki->getCurrState())->mCheerCount = 0;
 				}

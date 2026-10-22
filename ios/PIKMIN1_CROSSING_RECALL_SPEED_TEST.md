@@ -1,13 +1,14 @@
-# P1 Build40 — READY TO INSTALL AND TEST
+# P1 automatic follower rescue — next phone test
 
-Use **Pikmin 1 - Build 40 - Navigation Update.ipa** in this folder.
+The new IPA is NOT ready until its build and package are verified. Build40 is the previous app and does not contain this feature. No phone connection needed while the build runs.
 
-GitHub run39784525620 compiled the game successfully but failed icon packaging. Codex recovered its exact unsigned ARM64 app from the saved archive, added the approved six PNGs and verified the IPA locally. Every original app file, including executable and Info.plist, remains byte-identical. No new build needed. SHA256 02d057e55a2e77a0779462f37e420c2a5e665fa01c6523ee6c4129f1e65f7cdd.
+When a new verified IPA is staged here, update existing Pikmin 1 using the same Sideloadly account. Do not uninstall or reset settings/assets/saves.
 
-1. In Sideloadly, choose this IPA and update your existing Pikmin1 with the same account. Do not uninstall the app. No new asset transfer, settings replacement or save reset needed. Original-ID standard campaign; Build35/37 rollback and phone backup remain in folder5.
-2. Better Pathfinding ON. Olimar Speed100%, Pikmin Speed100% for this first retest. Repeat the same raised cardboard/ramp crossing in both directions, with turns and a normal/larger squad. Avoid deliberate swarm for this initial test.
-3. If some fall below or remain behind, stop on safe ground for10-15seconds. Watch whether they find a walking route back, circle, wait, or become idle. Try the separate Recall All button once with a distant group; it intentionally includes workers. No teleport expected. Large groups share a bounded search budget.
-4. Briefly check ordinary flat-ground following, local whistle, charge+whistle, Aim/Soft Assist, pause and frame rate. After the100% baseline use your usual modest speed;500% is not required. No late-game/finale test needed.
-5. Tell Codex whether crossing prevention and return routing passed separately. If still stuck, avoid repeatedly relaunching: the new p1-navigation-report.txt resets per launch and may help identify the actual failed route. Codex can collect it over USB when requested.
+1. Advanced settings > Cheats > Rescue Stuck Followers: ON. New option defaults OFF. Keep Better Pathfinding ON; Olimar Speed and Pikmin Speed at100% for this focused test. Keep normal60FPS.
+2. Leave a few Pikmin carrying or working on something safe. Take only your following squad over the same cardboard/ramp crossing. Do NOT press Recall All for this first attempt.
+3. If followers get stranded, stand on clear dry open ground away from enemies, near enough that you can watch where they were. Wait10-15 seconds. They should attempt walking first; if stalled and a return has failed, the optional fallback may move them beside you. Large groups can take longer because attempts are spaced out. Moving normally is not a rescue trigger.
+4. Check workers stayed on their jobs, following squad counts are consistent, no one stacks into or pushes Olimar, and recovered followers can move/throw/whistle normally. Walk the crossing both ways and check FPS.
+5. Turn Rescue Stuck Followers OFF briefly; confirm the option saves/reopens correctly and healthy ordinary movement still works. Turn it back ON if desired.
+6. Separately test the idle Pikmin near the ship: explicit Recall All is still a GLOBAL command including workers. This ignored-idle report is not claimed fixed. Note where it happens; if it fails, keep the app installed and avoid repeated relaunches so the bounded p1-navigation-report.txt can be collected when requested.
 
-Phone can be disconnected after installation; no need to leave the game running for Codex. Installation/runtime still unverified; local IPA validation is not proof the navigation is fixed. P2 remains on its working build. No mid-day autosave or online feature added.
+No finale/boss required. Rescue does not revive dead Pikmin or claim deliberately idle/unassigned Pikmin. Combat, unsafe terrain or missing landing space can postpone it. Normal saving remains unchanged; no mid-day autosave in this patch. Tell us whether rescue happened, whether any workers moved, and whether a healthy squad was relocated unexpectedly.

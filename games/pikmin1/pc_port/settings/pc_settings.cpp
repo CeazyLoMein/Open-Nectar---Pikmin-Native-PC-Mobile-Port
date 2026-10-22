@@ -141,6 +141,7 @@ struct PcConfig {
     int holdToPluck = 0;
     // Mod: unstick Pikmin that stop making progress along a route (0=off, 1=on).
     int betterPathfinding = 0;
+    int stuckFollowerRescue = 0; // optional safe automatic follower recovery
     int recallAll = 0; // show dedicated solo recall button, off by default
     int pikiSpeedPct = 100;
     // Mod: a non-blue Pikmin that wanders into water on its own is pushed back
@@ -287,6 +288,7 @@ struct PcConfig {
         chainActions = 0;
         holdToPluck = 0;
         betterPathfinding = 0;
+        stuckFollowerRescue = 0;
         recallAll = 0;
         pikiSpeedPct = 100;
         bluesOnlyWater = 0;
@@ -1220,6 +1222,7 @@ void saveConfig() {
     out << "chainActions = " << sConfig.chainActions << "\n";
     out << "holdToPluck = " << sConfig.holdToPluck << "\n";
     out << "betterPathfinding = " << sConfig.betterPathfinding << "\n";
+    out << "stuckFollowerRescue = " << sConfig.stuckFollowerRescue << "\n";
     out << "recallAll = " << sConfig.recallAll << "\n";
     out << "pikiSpeedPct = " << sConfig.pikiSpeedPct << "\n";
     out << "bluesOnlyWater = " << sConfig.bluesOnlyWater << "\n";
@@ -1405,6 +1408,7 @@ void loadConfig() {
         else if (key == "holdToPluck") {
             sConfig.holdToPluck = atoi(val.c_str()) ? 1 : 0;
         }
+        else if (key == "stuckFollowerRescue") { sConfig.stuckFollowerRescue = atoi(val.c_str()) ? 1 : 0; }
         else if (key == "recallAll") { sConfig.recallAll = atoi(val.c_str()) ? 1 : 0; }
         else if (key == "betterPathfinding") {
             sConfig.betterPathfinding = atoi(val.c_str()) ? 1 : 0;
@@ -2895,6 +2899,9 @@ void modsRowChange(int row, bool left, bool right) {
     }
     else if (row == 43) {
         if (left || right) sPending.pikiSpeedPct = stepPct(sPending.pikiSpeedPct, kSpeedPcts, kSpeedPctCount, left);
+    }
+    else if (row == 44) {
+        if (left || right) sPending.stuckFollowerRescue = !sPending.stuckFollowerRescue;
     }
     else if (row == 42) {
         if (left || right) sPending.recallAll = !sPending.recallAll;
@@ -7080,6 +7087,15 @@ float pc_settings_get_piki_speed_scale(void) {
 #endif
 }
 
+int pc_settings_get_stuck_follower_rescue(void) {
+#if PIKI_P2_HOST
+    return 0;
+#else
+    return !pc_speedrun_active() && !pc_hardmode_active() && !pc_coop_active()
+        && !pc_vs_active() && !pc_netplay_deterministic() ? sConfig.stuckFollowerRescue : 0;
+#endif
+}
+
 int pc_settings_get_recall_all(void) {
     return !pc_speedrun_active() && !pc_hardmode_active() && !pc_coop_active()
         && !pc_vs_active() && !pc_netplay_deterministic() ? sConfig.recallAll : 0;
@@ -7514,6 +7530,7 @@ void modsRowValue(int i, char* value, size_t n) {
     case 40: snprintf(value, n, "%s", sPending.eternalNight ? "On" : "Off (original)"); break;
     case 41: snprintf(value, n, "%s", sPending.fireflies ? "On" : "Off (original)"); break;
     case 43: snprintf(value, n, "%d%%", sPending.pikiSpeedPct); break;
+    case 44: snprintf(value,n,"%s",sPending.stuckFollowerRescue?"On":"Off (original)");break;
     case 42: snprintf(value, n, "%s", sPending.recallAll ? "On" : "Off (original)"); break;
     case 38: snprintf(value, n, sPending.freeCamPadPct == 100 ? "%d%%  (original)" : "%d%%", sPending.freeCamPadPct); break;
     case 28: speedPctLabel(sPending.carrySpeedPct, value, n); break;
@@ -7676,6 +7693,7 @@ const GroupRow kCheatsRows[] = {
     { SRC_MODS, 4, "Pikmin Limit", "Most Pikmin on the field at once. 100 is the original; more costs performance." },
     { SRC_MODS, 21, "Throw Speed", "How fast Olimar grabs and throws Pikmin. 100% is the original." },
 #if !PIKI_P2_HOST
+    { SRC_MODS, 44, "Rescue Stuck Followers", "Optional automatic rescue after about 8 seconds without progress and a failed walking return. Only existing followers: workers and idle Pikmin stay untouched. Needs clear dry ground beside a grounded captain, away from enemies. Safe spot/cooldown may delay rescue. Off in Hard, Speedrun and multiplayer." },
     { SRC_MODS, 42, "Recall All Pikmin", "Shows a separate group-icon Recall All button. Tap it to call eligible Pikmin across the current area, including workers. Normal whistle keeps its usual range. Pikmin walk back; no teleport, revival or plucking. Off in Hard, Speedrun and multiplayer." },
 #endif
     { SRC_MODS, 20, "Whistle Radius", "Size of the whistle circle at full charge. 100% is the original." },

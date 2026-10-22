@@ -1,5 +1,6 @@
 #ifndef PC_FOLLOW_TRAIL_H
 #define PC_FOLLOW_TRAIL_H
+#include <cmath>
 
 // Bounded recent grounded footsteps. No entity pointers, heap allocations,
 // save data, teleports or path requests. Coordinates are world-space units.
@@ -79,5 +80,30 @@ struct PcFollowerProgress {
     }
     void attempted() {elapsed=0;cooldown=2.0f;seeded=false;goalSeeded=false;}
 
+};
+// Separate from route retry timers: a failed search must not erase the
+// eight-second observation. Measure actor progress toward a sampled target,
+// not increasing separation caused merely by the captain moving away.
+struct PcStuckFollowerMonitor {
+    float seconds=0, sampleAge=0, goalX=0,goalY=0,goalZ=0,initialDistance=0;
+    bool seeded=false;
+    void reset(){seconds=0;sampleAge=0;seeded=false;}
+    bool update(float x,float y,float z,float dt,bool trying,float gx,float gy,float gz){
+        if(!trying){reset();return false;}
+        if(dt<0)dt=0;if(dt>0.1f)dt=0.1f;
+        auto distance=[](float ax,float ay,float az,float bx,float by,float bz){
+            const float dx=ax-bx,dy=ay-by,dz=az-bz;
+            return std::sqrt(dx*dx+dy*dy+dz*dz);
+        };
+        if(!seeded){goalX=gx;goalY=gy;goalZ=gz;initialDistance=distance(x,y,z,gx,gy,gz);seeded=true;}
+        seconds+=dt;sampleAge+=dt;
+        if(initialDistance-distance(x,y,z,goalX,goalY,goalZ)>=8.0f){
+            seconds=0;sampleAge=1.0f;
+        }
+        if(sampleAge>=1.0f){
+            goalX=gx;goalY=gy;goalZ=gz;initialDistance=distance(x,y,z,gx,gy,gz);sampleAge=0;
+        }
+        return seconds>=8.0f;
+    }
 };
 #endif

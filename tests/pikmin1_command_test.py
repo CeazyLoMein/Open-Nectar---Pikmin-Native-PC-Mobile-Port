@@ -34,6 +34,18 @@ pieces=[extract(piki,'void Piki::pcChargeAt('),
  extract(nav,'void Navi::pcPinCursorToLock('),
  extract(crowd,'void ActCrowd::pcProtectFormationEdge(', 'void ActCrowd::pcProtectFormationEdge(Vector3f&) {}'),
  extract(settings,'int pc_settings_get_recall_all(', 'int pc_settings_get_recall_all() {return 0;}')]
+pieces.append(extract(settings,'int pc_settings_get_stuck_follower_rescue('))
+assert settings.count('stuckFollowerRescue = 0;')==2, 'default and Reset must both be off'
+assert 'X(stuckFollowerRescue)' not in settings, 'solo rescue must not alter locked netplay schema'
+assert '#if !PIKI_P2_HOST\n    { SRC_MODS, 44, "Rescue Stuck Followers"' in settings
+parse=re.search(r'else if \(key == "stuckFollowerRescue"\) ([^\n]+)',settings)[1]
+save=re.search(r'out << "stuckFollowerRescue[^\n]+',settings)[0]
+change=extract(settings,'else if (row == 44)')[len('else '):]
+value=re.search(r'case 44: ([^\n]+)break;',settings)[1]
+pieces += ['void parseRescue(const std::string&val){'+parse+'}',
+           'std::string saveRescue(){std::ostringstream out;'+save+'return out.str();}',
+           'void changeRescue(int row,bool left,bool right){'+change+'}',
+           'std::string valueRescue(){char value[64];size_t n=sizeof(value);'+value+'return value;}']
 call=extract(nav,'void Navi::callPikis(')
 call_decl=re.search(r'void callPikis\([^;]+;',read('games/pikmin1/include/Navi.h'))[0]
 if 'pcUpdateRecallAll' in nav:
@@ -57,10 +69,13 @@ code=r'''
 #include <cstdlib>
 #include <vector>
 #include <algorithm>
+#include <string>
+#include <sstream>
 #define PIKI_PC_PORT 1
 FOLLOW_HEADER
 #define PIKI_PC_TOUCH 1
 using f32=float;
+void pc_follow_note(const char*,float,float,float,float,float,float,int=0){}
 struct Vector3f {float x=0,y=0,z=0; Vector3f()=default;Vector3f(float a,float b,float c):x(a),y(b),z(c){}
  Vector3f operator+(Vector3f b)const{return {x+b.x,y+b.y,z+b.z};}
  Vector3f operator-(Vector3f b)const{return {x-b.x,y-b.y,z-b.z};}
@@ -88,7 +103,7 @@ struct Controller {bool whistle=false;bool keyDown(int){return whistle;}};
 struct KeyConfig {struct {int mBind=1;}mSetCursorKey;static KeyConfig*_instance;};KeyConfig keyConfig;KeyConfig*KeyConfig::_instance=&keyConfig;
 struct Navi:Creature {PcFollowTrail mPcFollowTrail;Controller controller;Controller*mKontroller=&controller;int mNaviID=0,stand=STANDTYPE_Ground;
  Creature*mPcLockTarget=nullptr,*mPcLockIgnore=nullptr;float mPcChargeTime=0,mCursorNaviDist=0,mCursorMaxRadius=200;
- Vector3f mPcAimOffset,mPcPinnedOffset,mCursorPosition,mCursorTargetPosition,mCursorWorldPos;bool mIsCStickNeutral=true;
+ Vector3f mCStick,mPcAimOffset,mPcPinnedOffset,mCursorPosition,mCursorTargetPosition,mCursorWorldPos;bool mIsCStickNeutral=true;
  void pcReleaseLockOn();void pcUpdateLockOn();void pcPinCursorToLock();void pcPinCursorFirstPerson(){}int getStandType(){return stand;}
  bool eligible(Piki*,float,float);bool inRange(Piki*,float,bool=false);
  void pcUpdateRecallAll();int recalls=0;bool recalledAll=false;
@@ -110,7 +125,7 @@ int pc_settings_get_lock_on(){return lockMode;}int pc_settings_get_charge(){retu
 int pc_settings_get_better_pathfinding(){return better;}void pc_settings_note_lock_on(int){}
 bool touchAim=false;bool pcTouchAim(const Navi*n){return touchAim&&!det&&n->mNaviID==0;}
 bool pc_coop_active(){return coop;}bool pc_vs_active(){return vs;}bool pc_speedrun_active(){return speedrun;}bool pc_hardmode_active(){return hard;}
-struct Config {int recallAll=0;}sConfig;
+struct Config {int recallAll=0,stuckFollowerRescue=0;}sConfig,sPending;
 std::vector<Creature*> targets;
 template<class F>bool pcForEachLockable(F f){for(auto*t:targets)if(t->alive&&f(t))return true;return false;}
 float pc_lock_target_radius(Creature*){return 10;}
@@ -177,6 +192,18 @@ int main(){
  check(!n.mPcLockTarget&&n.mPcLockIgnore==&foe,"manual dismissal suppresses immediate soft reacquire");
  lockMode=1;n.mPcLockTarget=&foe;n.mPcAimOffset={30,0,0};n.mPcPinnedOffset=n.mCursorPosition;n.pcPinCursorToLock();check(near(n.mCursorPosition.x,80),"manual hard lock still pins correctly");
  lockMode=1;
+ check(pc_settings_get_stuck_follower_rescue()==0,"rescue off by default");
+ sConfig.stuckFollowerRescue=1;
+#if PIKI_P2_HOST
+ check(pc_settings_get_stuck_follower_rescue()==0,"P2 bridge cannot activate P1 rescue");
+#else
+ check(pc_settings_get_stuck_follower_rescue()==1,"rescue enabled for solo P1");
+#endif
+ for(bool*flag:{&det,&coop,&vs,&speedrun,&hard}){*flag=true;check(pc_settings_get_stuck_follower_rescue()==0,"rescue disabled in locked contexts");*flag=false;}
+ for(const char*text:{"0","1","-1","9","garbage"}){parseRescue(text);int expected=std::atoi(text)?1:0;check(sConfig.stuckFollowerRescue==expected,"rescue parses boolean");check(saveRescue()=="stuckFollowerRescue = "+std::to_string(expected)+"\n","rescue setting persists");}
+ check(valueRescue()=="Off (original)","rescue menu initially off");changeRescue(44,false,true);check(sPending.stuckFollowerRescue==1&&valueRescue()=="On","rescue row can turn on");
+ changeRescue(42,true,false);check(sPending.stuckFollowerRescue==1,"recall row cannot change rescue");changeRescue(44,true,false);check(!sPending.stuckFollowerRescue,"rescue row can turn off");
+ sConfig.stuckFollowerRescue=0;
  sConfig.recallAll=1;check(pc_settings_get_recall_all()==1,"recall can be enabled solo");
  for(bool*flag:{&det,&coop,&vs,&speedrun,&hard}){*flag=true;check(pc_settings_get_recall_all()==0,"recall disabled in competitive/multiplayer contexts");*flag=false;}
  sConfig.recallAll=0;check(pc_settings_get_recall_all()==0,"recall disabled by default/off");
@@ -187,7 +214,7 @@ int main(){
  better=0;slot={50,50,0};a.pcProtectFormationEdge(slot);check(near(slot.x,50),"ledge guard follows existing setting");better=1;
  p.stand=STANDTYPE_Platform;a.pcProtectFormationEdge(slot);check(near(slot.x,-30),"platform edge is guarded too");slot={50,50,0};p.stand=STANDTYPE_Ground;
  n.mSRT.t.y=0;a.pcProtectFormationEdge(slot);check(near(slot.x,50),"intentional descent preserved");n.mSRT.t.y=50;
- n.mIsCStickNeutral=false;a.pcProtectFormationEdge(slot);check(near(slot.x,50),"explicit swarm behavior unchanged");
+ n.mCStick={1,0,0};n.mIsCStickNeutral=false;a.pcProtectFormationEdge(slot);check(near(slot.x,50),"explicit swarm behavior unchanged");
  pcTouchButtonCursorDrag(BTN_AIM,30,15);check(near(cursorDx,10)&&near(cursorDy,5),"dedicated aim DPI-normalized delta");
  cursorDx=cursorDy=0;pcTouchButtonCursorDrag(BTN_THROW,30,15);check(near(cursorDx,30)&&near(cursorDy,15),"throw drag behavior preserved");
  cursorDx=cursorDy=0;pcTouchButtonCursorDrag(BTN_CHARGE,30,15);check(cursorDx==0&&cursorDy==0,"charge button never moves cursor");

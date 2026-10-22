@@ -67,6 +67,7 @@ int pc_settings_get_shadows(void);
 int pc_settings_get_chain_actions(void);
 int pc_settings_get_better_pathfinding(void);
 int pc_settings_get_recall_all(void);
+int pc_settings_get_stuck_follower_rescue(void);
 int pc_settings_get_blues_only_water(void);
 int pc_settings_get_idle_counter(void);
 /// Vida como porcentaje de la original (100 = sin cambio). Se aplica como
