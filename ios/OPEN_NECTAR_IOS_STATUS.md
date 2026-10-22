@@ -1,3 +1,6 @@
+CURRENT — 2026-10-22 09:09 EDT: Build39 native compile/link PASSED; strict packaging failed missing icons. TARGET_DIRECTORY resource scope corrected,6 real configuration/negative controls and27 metadata checks PASS. Replacement P1-only build pending. No phone or IPA v2 result; P2 untouched.
+
+
 CURRENT — 2026-10-21 16:01 EDT: Build39/run39666676388 QUEUED, sourcea7075569c07b75655ea78a151a8940303ad354ba. Build38 confirmed icon target-scope configuration failure corrected;4 real CMake regression/negative controls and27 metadata checks PASS. Navigation retained; Apple/IPA/phone pending. User reports completion; no idle polling. P2 untouched; phone not needed.
 
 CURRENT — 2026-10-21 16:01 EDT: Build38/run39664622876 FAILED at CMake configuration: icon POST_BUILD target created in child directory. Native game compile skipped, no IPA. Corrected to native RESOURCE files;4 real cross-directory checks with old-error negative controls and27 identity/storage checks PASS. Navigation source unchanged. Replacement P1-only build pending. Phone not needed, P2 installed baseline untouched.

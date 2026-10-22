@@ -72,6 +72,7 @@ include("{(ROOT/'ios/app_variant.cmake').as_posix()}")
     assert 'setenv("NECTAR_SAVE_DIR", cardRoot.fileSystemRepresentation, 1)' in storage
     assert storage.index('Wrong bundle identity') < storage.index('createDirectoryAtPath:directory')
     cmake = (ROOT/'ios/CMakeLists.txt').read_text(encoding='utf-8')
+    assert 'XCODE_ATTRIBUTE_COMPRESS_PNG_FILES "NO"' in cmake
     gate = cmake[cmake.index('if(NOT NECTAR_IOS_VARIANT STREQUAL "standard")'):]
     assert gate.index('NECTAR_P1_SOLO_TEST=1') < gate.index('endif()')
     print(f'PASS: {checks+6} actual bundle/configure, identity rejection and storage wiring checks')

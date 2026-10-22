@@ -133,6 +133,8 @@ set_target_properties(${NECTAR_GAME_TARGET} PROPERTIES
     XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1"
     XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO"
     XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
+    # Keep icon PNGs standard/byte-stable for the strict bundle verifier.
+    XCODE_ATTRIBUTE_COMPRESS_PNG_FILES "NO"
     OUTPUT_NAME "${NECTAR_IOS_EXECUTABLE}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/app"
 )
@@ -147,4 +149,10 @@ endforeach()
 # directories and let both Xcode and Makefiles copy icons into the flat iOS app.
 target_sources(${NECTAR_GAME_TARGET} PRIVATE ${NECTAR_IOS_ICON_FILES})
 set_property(TARGET ${NECTAR_GAME_TARGET} APPEND PROPERTY RESOURCE ${NECTAR_IOS_ICON_FILES})
+# Source properties are directory-scoped. Set the package location where the
+# executable was created; setting RESOURCE only on the parent target is not
+# sufficient for Xcode to add these files to its Copy Bundle Resources phase.
+set_source_files_properties(${NECTAR_IOS_ICON_FILES}
+    TARGET_DIRECTORY ${NECTAR_GAME_TARGET}
+    PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 message(STATUS "Experimental iOS target: ${NECTAR_GAME_TARGET} (${NECTAR_IOS_GAME})")

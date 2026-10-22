@@ -11,7 +11,7 @@ def summarize(log):
     for line in log.splitlines():
         # Normalize Actions timestamps before recognizing Apple linker symbols.
         line = re.sub(r'^\d{4}-\d\d-\d\dT\S+\s+', '', line).strip()
-        diagnostic = re.search(r'\b(?:fatal )?error:|Undefined symbols for|undefined reference|^ld:|^CMake Error\b|TARGET .+ was not created in this directory', line)
+        diagnostic = re.search(r'\b(?:fatal )?error:|Undefined symbols for|undefined reference|^ld:(?! warning:)|^CMake Error\b|TARGET .+ was not created in this directory', line)
         symbol = line.startswith(('"', "'")) and line.endswith('referenced from:')
         if not diagnostic and not symbol:
             continue

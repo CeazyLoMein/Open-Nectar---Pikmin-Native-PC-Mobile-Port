@@ -1,5 +1,7 @@
 """Configure the real iOS icon block with game targets created in child directories."""
 import argparse
+import hashlib
+import sys
 from pathlib import Path
 import subprocess
 import tempfile
@@ -25,7 +27,7 @@ def main():
             fixture = base/game
             (fixture/'game').mkdir(parents=True)
             (fixture/'game/dummy.c').write_text('int main(void) { return 0; }\n')
-            (fixture/'game/CMakeLists.txt').write_text(f'add_executable({target} dummy.c)\n')
+            (fixture/'game/CMakeLists.txt').write_text(f'add_executable({target} MACOSX_BUNDLE dummy.c)\n')
             prefix = f'''cmake_minimum_required(VERSION 3.24)
 project(IconScopeRegression LANGUAGES C)
 set(NECTAR_IOS_GAME "{game}")
@@ -45,12 +47,36 @@ foreach(icon IN LISTS icons)
     if(NOT EXISTS "${icon}" OR NOT icon IN_LIST sources)
         message(FATAL_ERROR "Icon missing from target: ${icon}")
     endif()
+    get_source_file_property(location "${icon}"
+        TARGET_DIRECTORY ${NECTAR_GAME_TARGET} MACOSX_PACKAGE_LOCATION)
+    if(NOT location STREQUAL "Resources")
+        message(FATAL_ERROR "Icon resource location missing in game target scope: ${icon}")
+    endif()
 endforeach()
 '''
             cmakelists = fixture/'CMakeLists.txt'
             cmakelists.write_text(prefix+block+tail)
             result = configure(args.cmake, fixture, base/(game+'-build'))
             assert result.returncode == 0, result.stdout
+            checks += 1
+            if sys.platform == 'darwin':
+                # Exercise actual bundle copying on Apple runners, not only
+                # property presence. Native iOS packaging is checked afterward.
+                built = subprocess.run([args.cmake, '--build', str(base/(game+'-build')),
+                                        '--config', 'Release'], text=True,
+                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                assert built.returncode == 0, built.stdout
+                for icon in (ROOT/'ios/icons'/game).glob('Icon-*.png'):
+                    copies = list((base/(game+'-build')).glob('**/*.app/**/'+icon.name))
+                    assert copies and any(hashlib.sha256(p.read_bytes()).digest() ==
+                                          hashlib.sha256(icon.read_bytes()).digest() for p in copies), icon.name
+                checks += 1
+            # The Build39 form configured but did not tag resources in the
+            # child scope; the stronger regression must reject that version.
+            without_scope = block[:block.index('# Source properties are directory-scoped.')]
+            cmakelists.write_text(prefix+without_scope+tail)
+            result = configure(args.cmake, fixture, base/(game+'-build'))
+            assert result.returncode != 0 and 'Icon resource location missing' in result.stdout, result.stdout
             checks += 1
             # The real Build38 form must fail in the same directory structure.
             bad = block[:block.index('# The game executable')] + '''add_custom_command(TARGET ${NECTAR_GAME_TARGET} POST_BUILD
@@ -60,7 +86,7 @@ endforeach()
             result = configure(args.cmake, fixture, base/(game+'-build'))
             assert result.returncode != 0 and 'was not created in this directory' in result.stdout, result.stdout
             checks += 1
-        print(f'PASS: {checks} real cross-directory icon configurations and Build38 negative controls')
+        print(f'PASS: {checks} cross-directory icon configuration/copy checks and Build38/39 negative controls')
 
 
 if __name__ == '__main__':

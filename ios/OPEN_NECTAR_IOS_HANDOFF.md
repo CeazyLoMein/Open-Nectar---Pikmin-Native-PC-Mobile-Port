@@ -1,5 +1,63 @@
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
+**Date/time:** 2026-10-22 09:09 EDT
+
+**Overall project status:** Build39 native P1 compilation/linking PASSED, but IPA packaging FAILED because Home Screen icon files were absent. Corrected their CMake source-property scope; replacement P1-only build pending. Installed games, settings and saves untouched.
+
+### Pikmin 1
+
+- Current objective: Package the successfully compiling navigation v2 update and test the exact narrow crossing/Recall return on phone.
+- What was investigated: Complete Build39/job119453432371 log: configuration/native compilation succeeded; strict bundle verifier failed on missing Icon-29@2x.png. No compiler/linker errors; one harmless ld warning had been misclassified by the short index.
+- Root cause or leading hypothesis: Confirmed source-property scope problem: native RESOURCE target files were declared from ios/, while executable sources belong to games/pikmin1/. Xcode did not put icons in its copy-resources phase. Explicit MACOSX_PACKAGE_LOCATION=Resources now set using TARGET_DIRECTORY for the actual game target. Host directory regression previously checked configuration/target lists, not real bundle copies; expanded accordingly.
+- Files changed: ios/CMakeLists.txt resource source properties; tests/ios_icon_resources_test.py checks six icon properties in target scope, rejects Build38/39 forms, and builds/hashes a real tiny app bundle on Apple runners; workflow preserves a compiled-app tar archive before strict packaging; error index no longer counts ld warnings as errors; journal/checklist.
+- Tests and results:6 real host CMake configuration/negative-control checks PASS;27 identity/storage/icon verifier checks PASS; full Build39 compiler index has0 errors. New fixture performs2 additional actual app-copy checks on Apple runners (not executed on this Windows host). Build39 already passed the navigation87, surface17, command82, speed283+283 and other CI fixtures, native game compilation/linking. Corrected native bundle/IPA and phone navigation are pending.
+- Confirmed working: Build39 navigation v2 source compiles/links for iPhone ARM64. Existing user controls/save and Recall All button checks remain as before. Native compilation is not proof of improved crossing behavior.
+- Remaining issues: Phone crossing/return still last reported FAIL on Build37 at100% speeds; v2 has not been installed. Rare clam scene/full campaign unverified. No teleport, mid-day autosave or online feature added.
+
+### Pikmin 2
+
+- Current objective: Preserve working user-tested Build32, game development paused.
+- What was investigated: Shared icon source-property issue and regression apply to both target directories.
+- Root cause or leading hypothesis: Same future packaging risk; shared setup corrected.
+- Files changed: Shared packaging/workflow only; no P2 game/audio source changes.
+- Tests and results: P2 child-scope positive and both historical negative controls PASS. No new P2 native build or phone test.
+- Confirmed working: User reported P2 working after prior audio fixes; existing app untouched.
+- Remaining issues: Broader solo campaign testing later; co-op and shared recovery foundation remain planned.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: ios-experimental
+- Starting commit:76c4bde91f8f9a23c7c794fec7b238229f814f47, matched fetched origin, clean before edits.
+- Latest commit:76c4bde91f8f9a23c7c794fec7b238229f814f47 before this correction commit.
+- Commits created: Correction pending commit.
+- Changes pushed: None this correction yet.
+- Uncommitted changes: Icon scope, real bundle fixture, compiled-app archive workflow, warning filter and documentation; no game source edits.
+- GitHub Actions run IDs:39=39666676388 FAILED, sourcea7075569c07b75655ea78a151a8940303ad354ba, job119453432371;38=39664622876 configuration FAIL;37=39617967156 native/IPA SUCCESS but phone crossing FAIL. P2 working32=39518825366.
+- Build results:39 native configuration/compile/link SUCCESS, strict packaging FAIL. New correction native/IPA/phone pending.
+- Artifacts produced:39 artifact12379875068 contains logs only, NO IPA/app binary; compiled app was not retained in that run. New archive step preserves future compiled apps for packaging recovery. Existing35/37/P2-32 backups intact.
+
+### Next steps
+
+- Next Pikmin 1 task: Replacement P1-only standard build; inspect actual Apple resource-copy fixture and IPA verifier, download/verify original-ID ARM64 app/icons/standard campaign, stage folder1, then exact crossing/Recall phone test.
+- Next Pikmin 2 task: Keep existing working app; no rebuild in this batch.
+- GitHub/build task: Commit/push correction, record actual next run/source, then stop idle polling. User reports completion.
+- Anything requiring my involvement: Nothing now; phone may remain disconnected. Installation/test comes after a verified IPA is staged.
+
+### ChatGPT continuation notes
+
+- What another ChatGPT conversation needs to know: The game now compiled natively in39; failure is missing app icon resources. Do not diagnose it as navigation compiler or runtime failure. No new on-phone v2 result. Build37 normal100% speed crossing fails;500% is not the development target.
+- Important source-file locations: ios/CMakeLists.txt TARGET_DIRECTORY/MACOSX_PACKAGE_LOCATION icon block; tests/ios_icon_resources_test.py actual bundle copy checks; .github/workflows/ios-native-experimental.yml archive step; ios/PIKMIN1_CROSSING_RECALL_SPEED_TEST.md. Navigation files/functions recorded in prior report/PIKMIN1_STRANDED_FOLLOWERS_PLAN.md; unchanged this correction.
+- Relevant logs: work/build39-full-job.log,build39-jobs.json,build39-compiler-index.md; accessible folder2/Build39 - Full Failed Job Log.txt and Build39 - Packaging Failure.md. Error: iOS bundle validation failed: missing Icon-29@2x.png. All phone recordings/save backups remain private in folder2/folder5.
+- Unverified fixes: Corrected iOS resource copies/IPA packaging, Apple-only fixture bundle builds, v2 actual crossing/crowd/return behavior. Local scope checks are not full native bundle evidence.
+- Risks and warnings: No app uninstall, phone write, save reset or asset overwrite. Preserve original IDs/settings. Shared icon setup corrected for P2 but only P1 build requested. Route graph still may lack usable links. No teleport policy chosen. No finale spoilers.
+- Exact next actions: Commit/push, record next run, stop waiting. After completion inspect full logs; if success verify/stage IPA and run focused phone checklist. If packaging fails again, new compiled-app archive should permit local recovery without rebuilding. If phone pathing fails, collect p1-navigation-report.txt before repeated relaunches. Saving/co-op roadmap unchanged in SAVE_AND_COOP_RECOVERY_PLAN.md and ONLINE_COOP_DESIGN_NOTES.md.
+
+**END PROGRESS REPORT**
+
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
 **Date/time:** 2026-10-21 16:01 EDT
 
 **Overall project status:** Build38 failed during CMake configuration, before native game compilation. Exact icon-packaging cause corrected locally; replacement P1-only standard Build39 dispatched, observed queued. Navigation source retained. Installed P1/P2 apps untouched.

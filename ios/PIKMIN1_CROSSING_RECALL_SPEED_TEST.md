@@ -1,6 +1,6 @@
 # P1 navigation v2 — next phone test
 
-BUILD38 FAILED during icon packaging configuration; no IPA produced. Correction locally verified. Build39/run39666676388, sourcea7075569c07b75655ea78a151a8940303ad354ba, observed QUEUED; no new IPA ready. Do not reinstall Build37 expecting navigation v2. Phone crossing/return validation remains pending.
+BUILD39 native compilation PASSED but packaging FAILED because icons were absent. Source-property scope corrected locally; replacement build pending. No new IPA ready. Build37 remains the last installed navigation test and failed at100% speed. Follow steps below only after Codex stages the replacement IPA.
 
 When the next IPA is ready, update existing Pikmin1 using the same Sideloadly account; keep the app installed. No new assets, save reset or settings replacement required. Build35 and37 rollback IPAs and an8-file consistent phone save/settings backup are preserved in folder5.
 
