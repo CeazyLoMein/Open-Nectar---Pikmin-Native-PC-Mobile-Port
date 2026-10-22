@@ -214,6 +214,11 @@ int main(){
  better=0;slot={50,50,0};a.pcProtectFormationEdge(slot);check(near(slot.x,50),"ledge guard follows existing setting");better=1;
  p.stand=STANDTYPE_Platform;a.pcProtectFormationEdge(slot);check(near(slot.x,-30),"platform edge is guarded too");slot={50,50,0};p.stand=STANDTYPE_Ground;
  n.mSRT.t.y=0;a.pcProtectFormationEdge(slot);check(near(slot.x,50),"intentional descent preserved");n.mSRT.t.y=50;
+ n.mPcFollowTrail.clear();n.mPcFollowTrail.record({0,50,0,true});n.mPcFollowTrail.record({12,50,0,true});
+ n.mSRT.t={40,0,0};p.stand=STANDTYPE_Platform;slot={50,0,0};map.queries=0;a.pcProtectFormationEdge(slot);
+ check(near(slot.x,50)&&near(slot.y,0)&&!a.mPcFollowingTrail&&!a.mPcLaneBlocked,"captain drop keeps original lower formation target despite stale platform trail");
+ check(map.queries==0,"intentional descent does not stop for edge reassessment");
+ n.mPcFollowTrail.clear();n.mSRT.t={-30,50,0};p.stand=STANDTYPE_Ground;slot={50,50,0};
  n.mCStick={1,0,0};n.mIsCStickNeutral=false;a.pcProtectFormationEdge(slot);check(near(slot.x,50),"explicit swarm behavior unchanged");
  pcTouchButtonCursorDrag(BTN_AIM,30,15);check(near(cursorDx,10)&&near(cursorDy,5),"dedicated aim DPI-normalized delta");
  cursorDx=cursorDy=0;pcTouchButtonCursorDrag(BTN_THROW,30,15);check(near(cursorDx,30)&&near(cursorDy,15),"throw drag behavior preserved");

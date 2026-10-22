@@ -30,3 +30,13 @@ Updated 2026-10-22. Distinguish published game features from our proposed design
 ## Verification and limits
 
 Local fixtures execute actual selected methods with engine seams:128 route/recovery/rescue,24 layered-floor/wall,103 command/control/config,283 P1 speed and283 P2 stock-speed control,58/58/7 campaign variants and39 bundle/configuration checks passed. Clang diagnostics passed for current follower/surface/command fixtures. These do not simulate the real crowded cardboard crossing, every hazard or Apple ABI integration. Full native compilation, IPA packaging and iPhone behavior are separate pending milestones. Conservative exclusions may delay recovery. No claim of full-campaign certification.
+
+<!-- PACING_UPDATE -->
+## 2026-10-22 Build41 pacing correction
+
+User reports ordinary stop/start following and single-file detours after a box drop. Explicitly says TELEPORT HAS NOT BEEN TESTED; bounded report has one rescued_follower but no clip correlation. Do not promote this to successful runtime verification.
+
+Measured-stall gating now lets ordinary following run before ANY new route request, while distance/height retain only assignment ownership. A deliberate lower captain leaves the original formation target untouched before selecting any old platform trail. Completed routes hand back normal movement and are not marked failures. Valid distant assignments survive that handoff; invalid slots and ordinary non-enhanced behavior retain failure rules. Search limits and eight-second rescue policy are unchanged.
+
+140 route/recovery/retention and105 command/edge/config checks PASS; real Build41 methods substituted into the new fixture fail8+1 cases.58/58/7 campaign and Clang PASS. Native/IPA/phone pending. No new build dispatched yet; one standard P1-only build planned after the scoped commit.
+<!-- END_PACING_UPDATE -->

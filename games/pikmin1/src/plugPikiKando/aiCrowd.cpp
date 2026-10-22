@@ -266,7 +266,7 @@ void ActCrowd::cleanup()
  */
 // Better Pathfinding: protect static terrain/platform edges, keep followers
 // on a recent captain crossing lane, then try bounded route recovery when
-// separated followers stop moving. No teleport or per-tick path searches.
+// separated followers stop moving. Optional rescue is a separate final fallback.
 // Moving platforms and commanded swarms retain ordinary behavior.
 void ActCrowd::pcProtectFormationEdge(Vector3f& slot)
 {
@@ -278,12 +278,14 @@ void ActCrowd::pcProtectFormationEdge(Vector3f& slot)
         || mPiki->mPlatformAdjustDelta.length()>0.5f || mPiki->mNavi->mPlatformAdjustDelta.length()>0.5f) return;
     PcFollowTrail::Point goal;
     const Vector3f position=mPiki->mSRT.t, leader=mPiki->mNavi->mSRT.t;
+    // The captain deliberately dropped to lower ground. Leave the original
+    // formation target untouched so followers may walk off after them.
+    if (leader.y < position.y - 25.0f) return;
     const bool trail=mPiki->mNavi->mPcFollowTrail.target({position.x,position.y,position.z,false},
         {leader.x,leader.y,leader.z,false},mPiki->getStandType()!=STANDTYPE_Ground,goal);
     if (trail) slot.set(goal.x,goal.y,goal.z);
     const Vector3f here = mPiki->mSRT.t;
     const Vector3f captain = mPiki->mNavi->mSRT.t;
-    if (captain.y < here.y - 25.0f) return;
     auto safeStep = [&](const Vector3f& target) {
         Vector3f direction=target-here;direction.y=0.0f;
         const f32 distance=direction.normalise();
@@ -355,15 +357,29 @@ bool ActCrowd::pcRecoverFollower()
         mPcRescueCooldown=2.0f;
         pc_follow_note("rescue_no_safe_spot",here.x,here.y,here.z,goal.x,goal.y,goal.z);
     }
-    const bool stalled=mPcFollowerProgress.stalledToward(here.x,here.y,here.z,dt,needsMove,
+    const bool stalled=mPcFollowerProgress.stalledToward(here.x,here.y,here.z,dt,needsMove||mPcReturning,
         progressGoal.x,progressGoal.y,progressGoal.z);
     if(stalled)mPcReturning=true;
+    // Separation retains ownership, but is not a reason to stop normal
+    // following. Only a measured stall may acquire a new walking route.
+    if (!mPcRecoveryRoute && !stalled) {
+        if(mPcReturning){
+            mLostChildTimer=0.0f;
+            if(mIsWaiting){mIsWaiting=false;mPiki->startMotion(PaniMotionInfo(PIKIANIM_Walk),PaniMotionInfo(PIKIANIM_Walk));}
+        }
+        return false;
+    }
     if (mPcRecoveryRoute) {
         mPcRecoveryRouteAge+=dt<0.1f?dt:0.1f;
         const Vector3f movedGoal=goal-mPcRecoveryGoal;
         if (!stalled && mPcRecoveryRouteAge<30.0f && movedGoal.length()<256.0f) {
             const int result=mPiki->pcMoveFollowerRoute();
             if (result==2) {mLostChildTimer=0.0f;return true;}
+            if (result==0) {
+                mPcRecoveryRoute=false;mPcFollowerProgress.reset();
+                pc_follow_note("route_complete",here.x,here.y,here.z,goal.x,goal.y,goal.z);
+                return false;
+            }
         }
         mPcReturnFailed=true;
         mPcRecoveryRoute=false;mPcFollowerProgress.attempted();
@@ -755,11 +771,23 @@ int ActCrowd::exec()
 
 			mHasRequestedNewSlot = true;
 		}
-		if (mCPlateSlotID == -1 || mLostChildTimer > C_PIKI_PARM(mPiki, mMaxLostChildTime)) {
+		if (mCPlateSlotID == -1 || (mLostChildTimer > C_PIKI_PARM(mPiki, mMaxLostChildTime)
+#if defined(PIKI_PC_PORT)
+            && !mPcReturning
+#endif
+        )) {
 			return ACTOUT_Fail;
 		}
 	} else {
+#if defined(PIKI_PC_PORT)
+        // The recovery dispatcher already validates solo/state eligibility.
+        // Keep a distant assignment while ordinary following gets its turn;
+        // never discard it merely because a route token was not needed yet.
+        if (!mPcReturning) return ACTOUT_Fail;
+        mLostChildTimer=0.0f;
+#else
 		return ACTOUT_Fail;
+#endif
 	}
 
 	STACK_PAD_STRUCT(3);

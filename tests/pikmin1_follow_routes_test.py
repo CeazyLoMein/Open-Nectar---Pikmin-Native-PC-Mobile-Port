@@ -77,7 +77,11 @@ float mMoveSpeed=0;Vector3f mVelocity;float getSpeed(float){return 100*pikiScale
 bool pcRescueFollowerNearCaptain();bool pcFollowerSegmentClear(const Vector3f&g);bool pcBuildFollowerRoute(const Vector3f&);void pcSteerFollowerGoal(const Vector3f&);
 int pcMoveFollowerRoute();void setSpeed(float,Vector3f d){mTargetVelocity={d.x*100,d.y*100,d.z*100};++moves;}void startMotion(int,int){}
 };
-struct ActCrowd {Piki*mPiki;PcStuckFollowerMonitor mPcStranded;bool mPcReturnFailed=false;float mPcRescueCooldown=0;PcFollowerProgress mPcFollowerProgress;bool mPcFollowingTrail=false,mPcLaneBlocked=false,mPcRecoveryRoute=false,mPcReturning=false,mIsTripping=false,mIsWaiting=false;
+struct TestPlate {void releaseSlot(void*,int){}int getSlot(void*,void*){return 0;}}testPlate;
+struct TestParms {float mFormationSlipRange=600,mFormationBreakRange=1000,mMaxLostChildTime=10;}testParms;
+#define C_PIKI_PARM(p,v) testParms.v
+enum {ACTOUT_Fail=1};
+struct ActCrowd {int mCPlateSlotID=0;bool mHasRequestedNewSlot=false;TestPlate*mPlateMgr=&testPlate;bool testFormationRetention(float);Piki*mPiki;PcStuckFollowerMonitor mPcStranded;bool mPcReturnFailed=false;float mPcRescueCooldown=0;PcFollowerProgress mPcFollowerProgress;bool mPcFollowingTrail=false,mPcLaneBlocked=false,mPcRecoveryRoute=false,mPcReturning=false,mIsTripping=false,mIsWaiting=false;
 float mPcRecoveryRouteAge=0,mLostChildTimer=0;Vector3f mPcRecoveryGoal;
 void pcResetFollowerRecovery();bool pcRecoverFollower();};
 bool surfaceBlocked=false,localStepBlocked=false;int blockedEntry=-1;
@@ -152,8 +156,30 @@ a.pcResetFollowerRecovery();n.mSRT.t={1000,0,0};k.mSRT.t={0,0,0};surfaceBlocked=
 surfaceBlocked=false;k.mRouteHandle=73;int released=pf.releases;
 check(k.initRouteTrace({200,0,0},false,true)&&k.mRouteHandle==0&&pf.releases==released+1,"old async handle released once before follower route rebuild");
 a.pcResetFollowerRecovery();n.mSRT.t={200,0,0};n.mPcFollowRouteCooldown=0;localStepBlocked=true;
-check(a.pcRecoverFollower()&&a.mPcReturning&&!a.mPcRecoveryRoute,"blocked first route step retains return ownership");
+wait(a);check(a.mPcReturning&&!a.mPcRecoveryRoute,"blocked first route step retains return ownership after measured stall");
 check(k.mTargetVelocity.length()==0,"blocked first step brakes instead of falling into stock movement");localStepBlocked=false;
+
+// Normal following must not acquire route tokens merely for distance or
+// a deliberate downward step. Simulate continuous progress at each frame rate.
+for(int fps:{30,60,120}){
+ sys.dt=1.f/fps;ActCrowd healthy{};healthy.mPiki=&k;bool tookOver=false;
+ n.mPcFollowRouteCooldown=0;before=pf.calls;
+ for(int j=0;j<fps*5;++j){k.mSRT.t={j*60.f/fps,50,0};n.mSRT.t={k.mSRT.t.x+200,0,0};k.mTargetVelocity={60,0,0};n.pcUpdateFollowTrail();tookOver=healthy.pcRecoverFollower()||tookOver;}
+ check(!tookOver&&pf.calls==before,"healthy descending follower never joins global route-search queue");
+ check(k.mTargetVelocity.x>0,"distance/height alone cannot brake healthy movement");
+}
+sys.dt=1.f/60;k.mSRT.t={0,0,0};n.mSRT.t={200,0,0};k.mTargetVelocity={50,0,0};
+ActCrowd grace{};grace.mPiki=&k;before=pf.calls;check(!wait(grace,60)&&pf.calls==before,"stationary separation gets normal-follow grace before route takeover");
+// Route completion is success even if the captain moved farther afterward.
+ActCrowd finished{};finished.mPiki=&k;finished.mPcReturning=true;finished.mPcRecoveryRoute=true;
+n.mSRT.t={400,0,0};finished.mPcRecoveryGoal=n.mSRT.t;k.mSRT.t={200,0,0};k.mRouteGoalPos=k.mSRT.t;k.mNumRoutePoints=2;k.mCurrRoutePoint=2;
+check(!finished.pcRecoverFollower()&&!finished.mPcRecoveryRoute&&!finished.mPcReturnFailed,"completed route immediately hands back normal following without marking failure");
+ActCrowd ownership{};ownership.mPiki=&k;ownership.mPcReturning=true;
+check(ownership.testFormationRetention(1200),"distant return assignment survives normal-follow handoff");
+ownership.mLostChildTimer=20;check(ownership.testFormationRetention(800),"return intent protects assignment while observing movement");
+ownership.mCPlateSlotID=-1;check(!ownership.testFormationRetention(800),"invalid formation slot still rejects safely");
+ownership.mCPlateSlotID=0;ownership.mPcReturning=false;check(!ownership.testFormationRetention(1200),"original non-recovery formation break preserved");
+k.mSRT.t={0,0,0};n.mSRT.t={200,0,0};
 
 // Conservative classifier: moving captain alone is not Pikmin progress, while
 // an actor walking toward each sampled goal is not stranded.
@@ -206,4 +232,9 @@ std::printf("%d P1 crossing/route recovery scenarios; %d failures\n",checks,fail
 cpp=cpp.replace('REPORT_HEADER',(root/'games/pikmin1/pc_port/pc_follow_report.h').read_text(encoding='utf-8'))
 cpp=cpp.replace('HEADER',(root/'games/pikmin1/pc_port/pc_follow_trail.h').read_text(encoding='utf-8'))
 funcs=[fn(nav,'void Navi::pcUpdateFollowTrail('),fn(nav,'bool Navi::pcTakeFollowerRouteBudget('),fn(nav,'bool Navi::pcTakeFollowerRescueBudget('),fn(piki,'bool Piki::initRouteTrace('),fn(piki,'void Piki::resetPosition('),fn(piki,'bool Piki::pcRescueFollowerNearCaptain('),fn(piki,'bool Piki::pcFollowerSegmentClear('),fn(piki,'void Piki::pcSteerFollowerGoal('),fn(piki,'bool Piki::pcBuildFollowerRoute('),fn(piki,'int Piki::pcMoveFollowerRoute('),fn(crowd,'void ActCrowd::pcResetFollowerRecovery('),fn(crowd,'bool ActCrowd::pcRecoverFollower(')]
+exec_body=fn(crowd,'int ActCrowd::exec(')
+start=exec_body.index('\tif (plateDist2D < C_PIKI_PARM(mPiki, mFormationSlipRange))')
+end=exec_body.index('\n\tSTACK_PAD_STRUCT(3);',start)
+retention=exec_body[start:end].replace('return ACTOUT_Fail;','return false;')
+funcs.append('bool ActCrowd::testFormationRetention(float plateDist2D){'+retention+'return true;}')
 Path(sys.argv[1]).write_text(cpp.replace('FUNCTIONS','\n'.join(funcs)),encoding='utf-8');print('Generated actual crossing, route setup and follower recovery fixture')
