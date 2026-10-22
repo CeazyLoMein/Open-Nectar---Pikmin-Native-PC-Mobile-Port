@@ -1,6 +1,6 @@
 # P1 automatic follower rescue — next phone test
 
-The new IPA is NOT ready until its build and package are verified. Build40 is the previous app and does not contain this feature. No phone connection needed while the build runs.
+Build41 PASSED native compilation and IPA generation. The unchanged GitHub IPA is locally verified and READY in Documents/Open Nectar/1 - Install on iPhone/Pikmin 1 - Build 41 - Automatic Follower Rescue.ipa. Build40 is the previous app and does not contain this feature. Phone runtime validation remains pending.
 
 When a new verified IPA is staged here, update existing Pikmin 1 using the same Sideloadly account. Do not uninstall or reset settings/assets/saves.
 
