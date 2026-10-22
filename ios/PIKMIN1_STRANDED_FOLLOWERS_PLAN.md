@@ -1,7 +1,7 @@
 <!-- AUTO_RESCUE_PLAN_SUPERSEDES -->
 # Current decision — 2026-10-22
 
-Build40 phone pathing failed at100% speeds. User now explicitly approved optional AUTOMATIC rescue after about8s stalled and failed walking return, only existing followers. Older statements below saying no teleport selected/implemented are HISTORY and superseded. Source/local checks completed; Apple/IPA/phone pending. Actual-input guard corrected; idle ship recall remains undiagnosed. See [current design and primary references](PIKMIN1_FOLLOWER_RECOVERY_DESIGN.md), current status/handoff and crossing checklist. One P1-only standard build will be dispatched after the scoped source commit. No new run or IPA yet.
+Build40 phone pathing failed at100% speeds. User now explicitly approved optional AUTOMATIC rescue after about8s stalled and failed walking return, only existing followers. Older statements below saying no teleport selected/implemented are HISTORY and superseded. Source/local checks completed; Apple/IPA/phone pending. Actual-input guard corrected; idle ship recall remains undiagnosed. See [current design and primary references](PIKMIN1_FOLLOWER_RECOVERY_DESIGN.md), current status/handoff and crossing checklist. Build 41, run 39854014424, source 769880462e9b0b8d2d139e0404fad015a741709f; last observed in_progress (no conclusion). No idle polling.
 <!-- END_AUTO_RESCUE_PLAN_SUPERSEDES -->
 
 ## Navigation v2 — source implemented, local checks passed, Apple/phone pending

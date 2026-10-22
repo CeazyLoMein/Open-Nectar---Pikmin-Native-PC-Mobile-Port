@@ -1,8 +1,8 @@
 # OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
 
-**Date/time:** 2026-10-22 17:02 EDT
+**Date/time:** 2026-10-22 17:03 EDT
 
-**Overall project status:** Build40 phone navigation FAILED. Optional automatic rescue and a confirmed recovery guard correction are implemented and locally verified; new Apple compilation/IPA/phone result pending. P2 working baseline preserved. One P1-only standard build will be dispatched after the scoped source commit. No new run or IPA yet.
+**Overall project status:** Build40 phone navigation FAILED. Optional automatic rescue and a confirmed recovery guard correction are implemented and locally verified; new Apple compilation/IPA/phone result pending. P2 working baseline preserved. Build 41, run 39854014424, source 769880462e9b0b8d2d139e0404fad015a741709f; last observed in_progress (no conclusion). No idle polling.
 
 ### Pikmin 1
 
@@ -29,12 +29,12 @@
 - Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental
 - Starting commit: b22b70ac345680263a1c37f7f5b1f707454c377f, clean before this work; fetched again and no divergence.
-- Latest local commit: b22b70ac345680263a1c37f7f5b1f707454c377f
-- Latest fetched remote commit: b22b70ac345680263a1c37f7f5b1f707454c377f
-- Build source: Not committed yet; current work is based on b22b70ac345680263a1c37f7f5b1f707454c377f
-- Commits created/changes pushed: Not committed/pushed yet; changes are scoped and locally checked.
-- Uncommitted changes: P1 rescue source/tests/journal uncommitted; no unrelated changes or proprietary files staged.
-- GitHub Actions run IDs: One P1-only standard build will be dispatched after the scoped source commit. No new run or IPA yet. Previous40=39784525620;39=39666676388;38=39664622876;37=39617967156; P2 working32=39518825366.
+- Latest local commit: 769880462e9b0b8d2d139e0404fad015a741709f
+- Latest fetched remote commit: 769880462e9b0b8d2d139e0404fad015a741709f
+- Build source: 769880462e9b0b8d2d139e0404fad015a741709f
+- Commits created/changes pushed: Scoped rescue source commit pushed; build record follows as documentation only [skip ci].
+- Uncommitted changes: Only this documentation checkpoint is being written; no private evidence staged.
+- GitHub Actions run IDs: Build 41, run 39854014424, source 769880462e9b0b8d2d139e0404fad015a741709f; last observed in_progress (no conclusion). No idle polling. Previous40=39784525620;39=39666676388;38=39664622876;37=39617967156; P2 working32=39518825366.
 - Build results:40 native/link PASS, CI packaging FAIL(PNGs converted to TIFF), local recovery/package PASS, phone pathing FAIL.37 native/IPA PASS but phone pathing FAIL. New rescue source has no Apple result yet.
 - Artifacts produced: No new rescue IPA. Old verified original-ID Build40 IPA remains folder1 (SHA25602d057e55a2e77a0779462f37e420c2a5e665fa01c6523ee6c4129f1e65f7cdd). Known-good35/37 restore material and40 original compiled archive preserved in folder5. Future workflow includes final PNG restoration from6cd2331d.
 
@@ -42,7 +42,7 @@
 
 - Next Pikmin 1 task: Complete native build/package validation, stage verified original-ID update and test rescue using the supplied focused checklist. Enable Cheats > Rescue Stuck Followers, default OFF. Normal60FPS retained.
 - Next Pikmin 2 task: Preserve working app; broader test later. No P2 update now.
-- GitHub/build task: One P1-only standard build will be dispatched after the scoped source commit. No new run or IPA yet. Do not keep polling an unchanged build. Retrieve actual full logs if a failure is reported.
+- GitHub/build task: Build 41, run 39854014424, source 769880462e9b0b8d2d139e0404fad015a741709f; last observed in_progress (no conclusion). No idle polling. Do not keep polling an unchanged build. Retrieve actual full logs if a failure is reported.
 - Anything requiring my involvement: Nothing during build. Phone collection finished; game may be closed/phone disconnected. After IPA ready, focused crossing/worker/counter test; no finale required.
 
 ### ChatGPT continuation notes
