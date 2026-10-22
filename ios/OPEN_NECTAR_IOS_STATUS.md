@@ -1,3 +1,5 @@
+CURRENT — 2026-10-22 18:15 EDT: Build42/run39861241129/sourcedbe796adb057d0d5c92b37ad9f5976143d5329ba native/link/IPA SUCCESS. Exact original-ID standard ARM64 IPA verified/staged in folder1, SHA256304ac9abd4c60d96d76eb95902a0716ab743a074b1c69003aad238f7f7efd6a1. New pacing and automatic TELEPORT phone tests PENDING. Prior41 was too slow; user did not test teleport. No new build needed; focused box/drop/group test next. P2 untouched.
+
 <!-- P1_PACING_CHECKPOINT -->
 CURRENT — 2026-10-22 17:56 EDT: Build41 phone NORMAL FOLLOWING TOO SLOW; automatic TELEPORT UNTESTED per user. Actual-input fix preserved. Pacing source changes: ordinary following until measured stall, descent before trail mutation, route completion hands back successfully; retain distant assignments.140/105/58+58+7 and Clang PASS; actual41 negative controls8+1 failures. Build42/run39861241129, sourcedbe796adb057d0d5c92b37ad9f5976143d5329ba, last observedin_progress; no conclusion yet. New Apple/IPA/phone pending. Phone read complete/no writes; may disconnect. P2 untouched.
 <!-- END_P1_PACING_CHECKPOINT -->

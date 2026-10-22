@@ -1,6 +1,6 @@
-# P1 next pacing update — focused phone test
+# P1 Build42 — focused phone test
 
-The pacing fix is not in the existing Build41 IPA. Wait for the new verified IPA in folder1. No phone connection needed during its build. Install as an update using the same Sideloadly account; do not uninstall/reset/import assets.
+Build42 native compilation and IPA generation PASSED. Verified update READY: Pikmin 1 - Build 42 - Smooth Following and Recovery.ipa, in Documents/Open Nectar/1 - Install on iPhone. Install over existing P1 with the same Sideloadly account; do not uninstall/reset/import assets. Phone runtime tests remain pending.
 
 1. Keep Better Pathfinding ON, Rescue Stuck Followers ON, Olimar/Pikmin speeds100%,60FPS. Leave a few workers on safe jobs. Use only the following squad; do not press Recall All initially.
 2. Run/walk the same box crossing and run off its edge as in the17:42 clip. Normal followers should get to follow using ordinary movement before route recovery takes over; they should not immediately freeze and join a slow route queue just because you are lower or farther away. Watch both directions and open-ground group movement.
