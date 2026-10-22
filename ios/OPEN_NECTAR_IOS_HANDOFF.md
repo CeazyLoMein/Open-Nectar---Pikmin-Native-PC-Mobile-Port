@@ -29,10 +29,10 @@
 - Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental
 - Starting commit:c0226a45a5a7edc7829628e48fd7b29410890ca0, clean and matched fetched origin.
-- Latest commit:c0226a45a5a7edc7829628e48fd7b29410890ca0 before packaging/journal correction commit.
-- Commits created: Final PNG-preparation correction and recovery record pending one [skip ci] commit.
-- Changes pushed: No changes yet this recovery turn. No extra build will be triggered for an already verified compiled executable.
-- Uncommitted changes: PNG preparation/helper test/workflow/CMake/journal only; no gameplay edits. Private phone/video/IPA files not staged in repository.
+- Latest commit:6cd2331d1c4cc9a92d4711417d6a402aa2026d42 recovery/packaging commit, pushed; this documentation completion record follows [skip ci].
+- Commits created: 6cd2331d1c4cc9a92d4711417d6a402aa2026d42 — PNG preparation safeguard, TIFF-only regression and recovered IPA record [skip ci].
+- Changes pushed: Packaging safeguard and recovery journal pushed. No new build triggered; current recovered IPA is ready.
+- Uncommitted changes: No uncommitted code; this documentation completion record is being saved. No gameplay edits. Private phone/video/IPA files never staged.
 - GitHub Actions run IDs:40=39784525620, sourcece63c20c4ad258d202e2ccb47f36cb18c201bd4c, job119844062115;39=39666676388;38=39664622876;37=39617967156; P2 working32=39518825366.
 - Build results:40 native compile/link PASS; GitHub packaging FAIL (PNG-to-TIFF). Local packaging/verification PASS.39 native compile PASS/packaging FAIL;38 configuration FAIL;37 native/IPA PASS but phone navigation FAIL. Do not label overall GitHub40 green.
 - Artifacts produced: GitHub40 artifact12429062159 includes original compiled-app tar and logs. Recovered **Pikmin 1 - Build 40 - Navigation Update.ipa**, 3070929bytes, SHA256 02d057e55a2e77a0779462f37e420c2a5e665fa01c6523ee6c4129f1e65f7cdd; bundleorg.opennectar.experimental.pikmin1, executableNectar-pikmin1, labelPikmin1, standard campaign. Executable SHA256 c9d8a7a74a63435dde951d2056208a44541f8784029027c2c409d129cfc57ebc, UUID efbbdda7-b705-3781-911c-2506a447300f. Exact original files preserved; only six PNGs added. Old TIFFs harmlessly retained.
@@ -41,7 +41,7 @@
 
 - Next Pikmin 1 task: Update existing P1 with recovered40, same Sideloadly account; normal100% crossing in both directions, wait safely for a stranded follower, then explicit Recall All; check basic controls/performance. No uninstall/reset/new asset transfer. Can disconnect after install.
 - Next Pikmin 2 task: Keep current working app; no action now.
-- GitHub/build task: Push packaging safeguard and recovery journal with [skip ci]; no Build41 needed solely for this packaging issue. Future native build will exercise updated workflow.
+- GitHub/build task: Packaging safeguard and recovery journal pushed with [skip ci]; no Build41 needed solely for this packaging issue. Future native build will exercise updated workflow.
 - Anything requiring my involvement: Install/test recovered40 when convenient. If still stuck, report exact attempt and connect USB only when requested for p1-navigation-report.txt; avoid repeated relaunches before collection where practical.
 
 ### ChatGPT continuation notes
@@ -51,7 +51,7 @@
 - Relevant logs: work/build40-full-job.log,build40-jobs.json,build40-artifacts.json,build40-verification.json; original artifact/tar/log copied to folder5/P1 Build40 - Original Compiled App. Accessible folder2 Build40 full log, verification and recovery note. Source recordings/backups stay private.
 - Unverified fixes: Phone installation, Home Screen icon appearance and real navigation/physics/crowd behavior; future automated PNG-preparation workflow. Local structural verification cannot certify full solo campaign.
 - Risks and warnings: Preserve installed apps/settings/assets. No phone write/uninstall, no credentials/signing manipulation, no save reset or proprietary data uploaded. Signed bundle preparation is rejected. No teleport selected. No finale spoilers. Route graph may still lack safe paths; get real report before another speculative game fix.
-- Exact next actions: Finish skip-ci recovery commit/push and record final SHA; user installs focused checklist. If pathing fails retrieve p1-navigation-report.txt and correlate coordinates/reason with crossing. If it passes, complete representative regression then proceed to agreed co-op prototype/shared saving plan. P2 remains paused. Saved plans: SAVE_AND_COOP_RECOVERY_PLAN.md and ONLINE_COOP_DESIGN_NOTES.md.
+- Exact next actions: Recovery code/journal pushed; user installs focused checklist. If pathing fails retrieve p1-navigation-report.txt and correlate coordinates/reason with crossing. If it passes, complete representative regression then proceed to agreed co-op prototype/shared saving plan. P2 remains paused. Saved plans: SAVE_AND_COOP_RECOVERY_PLAN.md and ONLINE_COOP_DESIGN_NOTES.md.
 
 **END PROGRESS REPORT**
 
