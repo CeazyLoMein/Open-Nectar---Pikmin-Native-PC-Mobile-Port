@@ -1,5 +1,63 @@
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
+**Date/time:** 2026-10-22 09:30 EDT
+
+**Overall project status:** Build40 native P1 compilation/linking PASSED, GitHub packaging FAILED. Exact compiled app RECOVERED locally and verified IPA staged in Documents folder1. No new full build needed. P1 phone test pending; installed P1/P2 apps unchanged.
+
+### Pikmin 1
+
+- Current objective: Install recovered Build40 and verify narrow crossing/return behavior.
+- What was investigated: Full job119844062115 log and artifact12429062159 (ZIP hash matched GitHub). Xcode combined @2x/@3x icons into Icon-29/40/60.tiff, removing the expected PNGs; strict verifier rejected missing Icon-29@2x.png. Native compile/link and all preceding checks passed.
+- Root cause or leading hypothesis: Confirmed Xcode image-combination packaging issue. Prior source-property fix did add resources, but Xcode transformed them. Actual copied-output format matters; configure/host-Makefile tests did not cover this Xcode behavior.
+- Files changed: ios/prepare_bundle_icons.py copies six approved original PNGs after Xcode, validates identity/variant/binary/icons and refuses signed bundles; CMake disables COMBINE_HIDPI_IMAGES; workflow runs preparation before recovery archive/IPA; bundle test covers TIFF-only regression, unchanged executable/TIFF, exact source icon bytes, signed-bundle rejection for both games/all variants; journal/checklist.
+- Tests and results:39 metadata/storage/icon preparation/regression checks PASS; actual recovered compiled app passed the new helper and strict verifier. Local IPA CRC, every original app-file hash, original executable hash, Mach-O ARM64 iPhoneOS device/load commands/UUID/unsigned status and standard-game marker checks PASS. Six PNGs match approved source bytes. Future modified workflow has NOT run; no new native build requested. Hardware installation/runtime PENDING.
+- Confirmed working: Build40 native compilation/linking; locally generated unsigned IPA is structurally verified. Previously user passed Aim/Soft Assist/charge-whistle/save reload and separate Recall All button. No v2 navigation phone success yet.
+- Remaining issues: Last phone crossing/returns failed in37 even at100% speeds. New persistent returns/reachable floor-aware routes/circling detection need exact-crossing retest and crowd/frame-rate observation. Rare clam scene/full campaign unverified. No teleport/autosave/online feature added.
+
+### Pikmin 2
+
+- Current objective: Preserve working user-tested Build32; game development paused.
+- What was investigated: Shared PNG preparation helper tested for P2 metadata and icons.
+- Root cause or leading hypothesis: Same future Xcode resource-combination risk, bypassed by final PNG preparation step.
+- Files changed: Shared iOS packaging/helper only; no P2 gameplay/audio changes.
+- Tests and results: P2 preparation/identity/signed-bundle guard fixture PASS. No new native P2 build or installation.
+- Confirmed working: User reported prior P2 Build32 working after audio fixes; existing app untouched.
+- Remaining issues: Broader solo testing later, then agreed shared co-op/snapshot recovery design.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: ios-experimental
+- Starting commit:c0226a45a5a7edc7829628e48fd7b29410890ca0, clean and matched fetched origin.
+- Latest commit:c0226a45a5a7edc7829628e48fd7b29410890ca0 before packaging/journal correction commit.
+- Commits created: Final PNG-preparation correction and recovery record pending one [skip ci] commit.
+- Changes pushed: No changes yet this recovery turn. No extra build will be triggered for an already verified compiled executable.
+- Uncommitted changes: PNG preparation/helper test/workflow/CMake/journal only; no gameplay edits. Private phone/video/IPA files not staged in repository.
+- GitHub Actions run IDs:40=39784525620, sourcece63c20c4ad258d202e2ccb47f36cb18c201bd4c, job119844062115;39=39666676388;38=39664622876;37=39617967156; P2 working32=39518825366.
+- Build results:40 native compile/link PASS; GitHub packaging FAIL (PNG-to-TIFF). Local packaging/verification PASS.39 native compile PASS/packaging FAIL;38 configuration FAIL;37 native/IPA PASS but phone navigation FAIL. Do not label overall GitHub40 green.
+- Artifacts produced: GitHub40 artifact12429062159 includes original compiled-app tar and logs. Recovered **Pikmin 1 - Build 40 - Navigation Update.ipa**, 3070929bytes, SHA256 02d057e55a2e77a0779462f37e420c2a5e665fa01c6523ee6c4129f1e65f7cdd; bundleorg.opennectar.experimental.pikmin1, executableNectar-pikmin1, labelPikmin1, standard campaign. Executable SHA256 c9d8a7a74a63435dde951d2056208a44541f8784029027c2c409d129cfc57ebc, UUID efbbdda7-b705-3781-911c-2506a447300f. Exact original files preserved; only six PNGs added. Old TIFFs harmlessly retained.
+
+### Next steps
+
+- Next Pikmin 1 task: Update existing P1 with recovered40, same Sideloadly account; normal100% crossing in both directions, wait safely for a stranded follower, then explicit Recall All; check basic controls/performance. No uninstall/reset/new asset transfer. Can disconnect after install.
+- Next Pikmin 2 task: Keep current working app; no action now.
+- GitHub/build task: Push packaging safeguard and recovery journal with [skip ci]; no Build41 needed solely for this packaging issue. Future native build will exercise updated workflow.
+- Anything requiring my involvement: Install/test recovered40 when convenient. If still stuck, report exact attempt and connect USB only when requested for p1-navigation-report.txt; avoid repeated relaunches before collection where practical.
+
+### ChatGPT continuation notes
+
+- What another ChatGPT conversation needs to know: Build40 game compiled; recovered exact unsigned app is READY in folder1 despite failed GitHub packaging. Never make the user wait for another full build just to add these icons. No navigation hardware result yet.100% baseline reproduces old failure;500% not a development focus. Recall All includes workers, normal whistle local.
+- Important source-file locations: ios/prepare_bundle_icons.py, CMakeLists.txt COMBINE_HIDPI_IMAGES, workflow pre-archive preparation; tests/pikmin1_solo_app_test.py. Navigation unchanged from2d1e2800/ce63c20c and documented in ios/PIKMIN1_STRANDED_FOLLOWERS_PLAN.md. Checklist ios/PIKMIN1_CROSSING_RECALL_SPEED_TEST.md.
+- Relevant logs: work/build40-full-job.log,build40-jobs.json,build40-artifacts.json,build40-verification.json; original artifact/tar/log copied to folder5/P1 Build40 - Original Compiled App. Accessible folder2 Build40 full log, verification and recovery note. Source recordings/backups stay private.
+- Unverified fixes: Phone installation, Home Screen icon appearance and real navigation/physics/crowd behavior; future automated PNG-preparation workflow. Local structural verification cannot certify full solo campaign.
+- Risks and warnings: Preserve installed apps/settings/assets. No phone write/uninstall, no credentials/signing manipulation, no save reset or proprietary data uploaded. Signed bundle preparation is rejected. No teleport selected. No finale spoilers. Route graph may still lack safe paths; get real report before another speculative game fix.
+- Exact next actions: Finish skip-ci recovery commit/push and record final SHA; user installs focused checklist. If pathing fails retrieve p1-navigation-report.txt and correlate coordinates/reason with crossing. If it passes, complete representative regression then proceed to agreed co-op prototype/shared saving plan. P2 remains paused. Saved plans: SAVE_AND_COOP_RECOVERY_PLAN.md and ONLINE_COOP_DESIGN_NOTES.md.
+
+**END PROGRESS REPORT**
+
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
 **Date/time:** 2026-10-22 09:09 EDT
 
 **Overall project status:** Build39 native P1 compilation/linking PASSED, but IPA packaging FAILED because Home Screen icon files were absent. Corrected their CMake source-property scope; replacement standard P1-only Build40 queued fromce63c20c4ad258d202e2ccb47f36cb18c201bd4c. Installed games, settings and saves untouched.

@@ -1,13 +1,13 @@
-# P1 navigation v2 — next phone test
+# P1 Build40 — READY TO INSTALL AND TEST
 
-BUILD39 native compilation PASSED but packaging FAILED because icons were absent. Source-property scope corrected locally; Build40/run39784525620 sourcece63c20c4ad258d202e2ccb47f36cb18c201bd4c observed QUEUED. No new IPA ready. Build37 remains the last installed navigation test and failed at100% speed. Follow steps below only after Codex stages the replacement IPA.
+Use **Pikmin 1 - Build 40 - Navigation Update.ipa** in this folder.
 
-When the next IPA is ready, update existing Pikmin1 using the same Sideloadly account; keep the app installed. No new assets, save reset or settings replacement required. Build35 and37 rollback IPAs and an8-file consistent phone save/settings backup are preserved in folder5.
+GitHub run39784525620 compiled the game successfully but failed icon packaging. Codex recovered its exact unsigned ARM64 app from the saved archive, added the approved six PNGs and verified the IPA locally. Every original app file, including executable and Info.plist, remains byte-identical. No new build needed. SHA256 02d057e55a2e77a0779462f37e420c2a5e665fa01c6523ee6c4129f1e65f7cdd.
 
-1. Better Pathfinding ON, Olimar Speed100%, Pikmin Speed100%. Repeat the same raised cardboard/ramp crossing in both directions. Try ordinary turns and a larger squad, without deliberate swarm. Watch whether the group fans off the edge or follows the crossing.
-2. If any follower is below/behind, stand still on safe ground for10-15seconds. It should retain the return assignment and try a walking route around obstacles. Record whether it walks to the ramp, waits, circles or becomes idle. Do not deliberately sacrifice Pikmin. A distant squad can take longer because route searches are shared and bounded.
-3. Try the separate Recall All button once with a distant group. It intentionally includes workers; the ordinary whistle remains local. Wait safely and observe the route, not only the squad counter.
-4. Quick check ordinary flat-ground following, normal swarm, local whistle, charge cancellation, Aim/Soft Assist and pause. Watch frame rate with a larger squad. No late-game/finale test required. After the baseline, use your usual modest speed;500% is not a testing requirement.
-5. If still stuck, tell Codex which attempt failed and keep the app installed. This build writes p1-navigation-report.txt in P1's Documents directory; Codex can retrieve it over USB. It records a few route reasons/coordinates, not video or personal identifiers. It resets per launch, so avoid repeated relaunches until collection if practical.
+1. In Sideloadly, choose this IPA and update your existing Pikmin1 with the same account. Do not uninstall the app. No new asset transfer, settings replacement or save reset needed. Original-ID standard campaign; Build35/37 rollback and phone backup remain in folder5.
+2. Better Pathfinding ON. Olimar Speed100%, Pikmin Speed100% for this first retest. Repeat the same raised cardboard/ramp crossing in both directions, with turns and a normal/larger squad. Avoid deliberate swarm for this initial test.
+3. If some fall below or remain behind, stop on safe ground for10-15seconds. Watch whether they find a walking route back, circle, wait, or become idle. Try the separate Recall All button once with a distant group; it intentionally includes workers. No teleport expected. Large groups share a bounded search budget.
+4. Briefly check ordinary flat-ground following, local whistle, charge+whistle, Aim/Soft Assist, pause and frame rate. After the100% baseline use your usual modest speed;500% is not required. No late-game/finale test needed.
+5. Tell Codex whether crossing prevention and return routing passed separately. If still stuck, avoid repeatedly relaunching: the new p1-navigation-report.txt resets per launch and may help identify the actual failed route. Codex can collect it over USB when requested.
 
-No teleport fallback, mid-day autosave or online co-op code added. Phone graphics, physics and crowd behavior remain unverified until this test. You may disconnect and play normally after installation; Codex will ask only if a log collection is needed.
+Phone can be disconnected after installation; no need to leave the game running for Codex. Installation/runtime still unverified; local IPA validation is not proof the navigation is fixed. P2 remains on its working build. No mid-day autosave or online feature added.

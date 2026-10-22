@@ -1,3 +1,6 @@
+CURRENT — 2026-10-22 09:30 EDT: Build40 compiled/linked PASS; Xcode combined icons into TIFF, GitHub packaging FAIL. Exact compiled app recovered; locally verified original-ID standard ARM64 IPA READY in folder1, SHA25602d057e55a2e77a0779462f37e420c2a5e665fa01c6523ee6c4129f1e65f7cdd. Original executable/all original files unchanged, six PNGs added.39 packaging regression checks PASS. Phone test pending. Safeguard commit [skip ci], no new build needed; P2 untouched.
+
+
 CURRENT — 2026-10-22 09:11 EDT: Build40/run39784525620 QUEUED, sourcece63c20c4ad258d202e2ccb47f36cb18c201bd4c. Build39 compiled/linked successfully but failed missing-icon packaging. Target-directory package properties corrected;6 host configuration/negative controls and27 identity checks PASS. Native bundle/IPA/phone pending. Apple fixture will verify actual icon copying. Compiled app recovery archive added. P2 unchanged; phone not needed; no idle polling.
 
 CURRENT — 2026-10-22 09:09 EDT: Build39 native compile/link PASSED; strict packaging failed missing icons. TARGET_DIRECTORY resource scope corrected,6 real configuration/negative controls and27 metadata checks PASS. Replacement P1-only build pending. No phone or IPA v2 result; P2 untouched.

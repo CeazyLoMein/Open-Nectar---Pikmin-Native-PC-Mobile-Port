@@ -242,6 +242,7 @@ jobs:
           set -euo pipefail
           APP="$(find "$RUNNER_TEMP/nectar-build" -type d -name 'Nectar-*.app' | head -n 1)"
           test -n "$APP"
+          python3 ios/prepare_bundle_icons.py "$APP" --game "$GAME" --variant "$IOS_VARIANT"
           tar -czf "$GITHUB_WORKSPACE/nectar-${GAME}-compiled-app.tar.gz" -C "$(dirname "$APP")" "$(basename "$APP")"
       - name: Index compiler and linker errors
         if: always()

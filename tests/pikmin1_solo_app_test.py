@@ -5,7 +5,6 @@ from pathlib import Path
 import plistlib
 import subprocess
 import tempfile
-import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -16,6 +15,9 @@ def main():
     spec = importlib.util.spec_from_file_location('verify_bundle_info', ROOT/'ios/verify_bundle_info.py')
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
+    import sys
+    sys.path.insert(0, str(ROOT/'ios'))
+    from prepare_bundle_icons import prepare
     checks = 0
     with tempfile.TemporaryDirectory() as temporary:
         temp = Path(temporary)
@@ -40,8 +42,22 @@ configure_file("{(ROOT/'ios/Info.plist.in').as_posix()}" "{(target/'Info.plist')
             else:
                 raise AssertionError('missing executable accepted')
             (target/info['CFBundleExecutable']).write_bytes(b'test-binary')
+            # Reproduce Build40: Xcode left TIFFs instead of the required PNGs.
+            tiff = target/'Icon-29.tiff'
+            tiff.write_bytes(b'existing compiled bundle resource')
+            before_binary = (target/info['CFBundleExecutable']).read_bytes()
+            names = prepare(target,game,variant)
+            assert len(names)==6 and tiff.read_bytes()==b'existing compiled bundle resource'
+            assert (target/info['CFBundleExecutable']).read_bytes()==before_binary
             for icon in (ROOT/'ios/icons'/game).glob('Icon-*.png'):
-                shutil.copy2(icon,target/icon.name)
+                assert (target/icon.name).read_bytes()==icon.read_bytes()
+            signature=target/'_CodeSignature'
+            signature.mkdir()
+            try: prepare(target,game,variant)
+            except ValueError: checks += 1
+            else: raise AssertionError('signed bundle accepted for modification')
+            signature.rmdir()
+            checks += 2
             module.validate(target/'Info.plist',game,True,variant)
             wrong = dict(info,CFBundleIdentifier='org.opennectar.experimental.pikmin1')
             if variant == 'solo-test':
