@@ -44,3 +44,5 @@ Run39991097065/source0f61ee4163ea4b47f668f50ed1f1e3511149b3bd startup job1205427
 Correction: import UIKit/UIScene.h in SDL_coreaudio.h inside existing iOS branch, guarded by NECTAR_IOS_SCENES && !TARGET_OS_TV. macOS/tvOS/legacy opt-out retain prior includes. Other scene notification users audited: UIKit appdelegate and iOS HID already import full UIKit.h. No DSP, input, rendering or FPS logic changed. Local24 contract/dependency checks PASS including missing-import rejection. Native compilation/runtime remain pending; real simulator gate retained without bypass.
 
 Complete diagnostic artifact12517803044 contains only ios-scene-build.log; ZIP SHA2566710fccadf47fccf23b7a6eb76c9d2bd73597f0b3d0a408aa430d42878165602 verified, entries CRC-tested. Full job/log/verification retained privately in workspace and friendly folder2. P144 remains withdrawn and P245 installation held.
+
+Correction dispatch: Build47/run39992850789, source2034e139369df84f61fd499d0d085b4e567b1d78, startup job120548733186: dispatched, no result yet. Stop idle polling; await user completion report.

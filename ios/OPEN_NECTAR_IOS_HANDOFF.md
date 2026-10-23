@@ -1,8 +1,8 @@
 # OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
 
-**Date/time:** 2026-10-23 13:09 Eastern Daylight Time
+**Date/time:** 2026-10-23 13:10 Eastern Daylight Time
 
-**Overall project status:** Build46 FAILED in the shared simulator startup gate while compiling SDL CoreAudio: two undeclared UIScene notification constants, one missing owning header. Both game builds were SKIPPED; simulator launch did not run and no game IPA was produced. Header correction IMPLEMENTED;24 local dependency/metadata/wiring checks PASS. Next combined build not yet dispatched; scoped source/local verification complete. P1 Build44 remains a confirmed phone launch failure; P2 Build45 compiled successfully but remains on installation HOLD. Landscape only; FPS player-controlled including120.
+**Overall project status:** Build46 FAILED in the shared simulator startup gate while compiling SDL CoreAudio: two undeclared UIScene notification constants, one missing owning header. Both game builds were SKIPPED; simulator launch did not run and no game IPA was produced. Header correction IMPLEMENTED;24 local dependency/metadata/wiring checks PASS. Build47/run39992850789, source2034e139369df84f61fd499d0d085b4e567b1d78, startup job120548733186: dispatched, no result yet. P1 Build44 remains a confirmed phone launch failure; P2 Build45 compiled successfully but remains on installation HOLD. Landscape only; FPS player-controlled including120.
 
 ### Pikmin 1
 
@@ -29,11 +29,11 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; local C:\Dev\Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental, verified clean and fetched before edits; local/remote matched f1ef80dccd541967995ae0772e6bd6272aaa632f, no incoming changes.
 - Starting commit: f1ef80dccd541967995ae0772e6bd6272aaa632f. Build46 source0f61ee4163ea4b47f668f50ed1f1e3511149b3bd.
-- Latest source/local/remote checkpoint: PENDING source commit; starting local/remote f1ef80dccd541967995ae0772e6bd6272aaa632f. A follow-up [skip ci] journal commit may be newer; use git log and origin/ios-experimental for that exact SHA. External checkpoint records final journal SHA after push.
+- Latest source/local/remote checkpoint: 2034e139369df84f61fd499d0d085b4e567b1d78. A follow-up [skip ci] journal commit may be newer; use git log and origin/ios-experimental for that exact SHA. External checkpoint records final journal SHA after push.
 - Commits created: Scoped CoreAudio header/dependency-regression/journal correction; source SHA above if dispatched, otherwise pending commit.
-- Changes pushed: Next combined build not yet dispatched; scoped source/local verification complete. One combined run; both game jobs remain gated on actual simulator launch/resume. No bypass or duplicate build.
+- Changes pushed: Build47/run39992850789, source2034e139369df84f61fd499d0d085b4e567b1d78, startup job120548733186: dispatched, no result yet. One combined run; both game jobs remain gated on actual simulator launch/resume. No bypass or duplicate build.
 - Uncommitted changes: Before source commit, only scoped header/test/journals; after dispatch, journal-only until its [skip ci] commit. No assets/private phone reports/credentials staged; final state recorded externally after journal push.
-- GitHub Actions run IDs:44=39950748289 P1 native PASS/P2 compile FAIL;45=39958190774 P2 SUCCESS but HOLD.46=39991097065 startup job120542742441 FAIL, downstream build job120545456816 SKIPPED. Next combined build not yet dispatched; scoped source/local verification complete.
+- GitHub Actions run IDs:44=39950748289 P1 native PASS/P2 compile FAIL;45=39958190774 P2 SUCCESS but HOLD.46=39991097065 startup job120542742441 FAIL, downstream build job120545456816 SKIPPED. Build47/run39992850789, source2034e139369df84f61fd499d0d085b4e567b1d78, startup job120548733186: dispatched, no result yet.
 - Build results:46 two compile errors/one missing-header cause, no runtime/game build. Correction local24 PASS; Apple compilation/runtime/IPA/phone pending. Earlier20 contract checks missed header ownership; added explicit dependency negative control, retained real native gate.
 - Artifacts produced:46 diagnostic artifact12517803044 (ios-scene-build.log only), ZIP SHA2566710fccadf47fccf23b7a6eb76c9d2bd73597f0b3d0a408aa430d42878165602; no game IPA.45 P2 IPA held privately under outputs/Build45-Pikmin2, NOT ready to install. Bad P144 archived; old42 backup retained.
 
@@ -41,7 +41,7 @@
 
 - Next Pikmin 1 task: Inspect corrected shared gate first, then native game/IPA; stage verified original-ID update and test launch FIRST. Do not uninstall/reset/reimport assets.
 - Next Pikmin 2 task: Keep installed working version. Do not install45. Use scene-enabled new IPA only after gate/native/package verification, then regression test audio/gameplay.
-- GitHub/build task: Next combined build not yet dispatched; scoped source/local verification complete. Stop idle polling once dispatched. On reported completion retrieve gate log and diagnostics first; only after PASS inspect both native jobs/IPAs. Fix real failures rather than disabling the gate.
+- GitHub/build task: Build47/run39992850789, source2034e139369df84f61fd499d0d085b4e567b1d78, startup job120548733186: dispatched, no result yet. Stop idle polling once dispatched. On reported completion retrieve gate log and diagnostics first; only after PASS inspect both native jobs/IPAs. Fix real failures rather than disabling the gate.
 - Anything requiring my involvement: Nothing on the phone now; it may be closed/disconnected. Report build completion. A separate verified settings/save/assets backup is still needed before erasing/transferring away the old phone; none was created from the recent crash-log connection.
 
 ### ChatGPT continuation notes
@@ -51,7 +51,7 @@
 - Relevant logs: work/build46-scene-full.log, build46-scene-artifact.zip, build46-failure-verification.json; copies in Documents/Open Nectar/2 - Progress and ChatGPT Handoff. Private P144 crash reports under work/p1-build44-launch-20261023-091109 and friendly folder2/P1 Build44 - Private Startup Crash Evidence.45 full successful log and held verification retained. No private evidence in Git.
 - Unverified fixes: New owning-header correction has no Apple compile yet. All scene startup/runtime/actual gameplay rendering/audio/display checks remain pending. Probe is asset-free generic SDL window, not the game GLES renderer. Full story/follower teleport/rare scene bugs remain unproven.
 - Risks and warnings: Keep44 DO-NOT-INSTALL and45 HOLD. Scene migration changes shared platform startup; possible later compile/runtime issues remain. Simulator evidence cannot establish real phone gameplay or Duo sizing. No complete current game-data backup; do not erase old phone assuming crash reports contain saves/assets. Don't force-push, merge main or alter working installs.
-- Exact next actions: Next combined build not yet dispatched; scoped source/local verification complete. When completion reported, retrieve startup artifact/logs, confirm actual simulator launch and background/resume; if successful retrieve both game artifacts and validate original-ID/ARM64/device/unsigned/SDK/icons/scene manifest plus compiled support. Stage only validated IPAs in friendly folder1, then request launch-first phone tests. Stop idle polling while waiting.
+- Exact next actions: Build47/run39992850789, source2034e139369df84f61fd499d0d085b4e567b1d78, startup job120548733186: dispatched, no result yet. When completion reported, retrieve startup artifact/logs, confirm actual simulator launch and background/resume; if successful retrieve both game artifacts and validate original-ID/ARM64/device/unsigned/SDK/icons/scene manifest plus compiled support. Stage only validated IPAs in friendly folder1, then request launch-first phone tests. Stop idle polling while waiting.
 
 **END PROGRESS REPORT**
 
