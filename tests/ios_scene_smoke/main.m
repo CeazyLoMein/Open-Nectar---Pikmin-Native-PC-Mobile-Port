@@ -36,7 +36,11 @@ static void report(void)
         };
         NSURL *folder = [[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask].firstObject;
         [[NSFileManager defaultManager] createDirectoryAtURL:folder withIntermediateDirectories:YES attributes:nil error:nil];
-        NSData *json = [NSJSONSerialization dataWithJSONObject:state options:NSJSONWritingPrettyPrinted error:nil];
+        NSData *json = [NSJSONSerialization dataWithJSONObject:state options:0 error:nil];
+        // simctl already redirects stdout to a known host file. This avoids a
+        // separate get_app_container query, which hung before launch in Build49.
+        fprintf(stdout, "NECTAR_PROBE_STATE %.*s\n", (int)json.length, (const char *)json.bytes);
+        fflush(stdout);
         NSError *writeError = nil;
         if (![json writeToURL:[folder URLByAppendingPathComponent:@"scene-smoke.json"] options:NSDataWritingAtomic error:&writeError]) {
             fprintf(stderr, "NECTAR_PROBE report write failed: %s\n", writeError.description.UTF8String);

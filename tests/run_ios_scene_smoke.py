@@ -14,9 +14,10 @@ PROCESS = 'NectarSceneSmoke'
 
 
 def command(*args):
+    print('$ ' + ' '.join(map(str, args)), flush=True)
     result = subprocess.run(args, text=True, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT, timeout=180)
-    print('$ ' + ' '.join(map(str, args)) + '\n' + result.stdout, flush=True)
+    print(result.stdout, flush=True)
     if result.returncode:
         raise RuntimeError(f'Command failed ({result.returncode}): {args}')
     return result.stdout.strip()
@@ -41,13 +42,32 @@ def select_device(devices):
     return runtime, device
 
 
+def read_report(path):
+    text = path.read_text(encoding='utf-8', errors='replace')
+    prefix = 'NECTAR_PROBE_STATE '
+    # Read the last complete report, ignoring a partially written final line
+    # and any unrelated process output. Keep ordinary JSON evidence readable.
+    for line in reversed(text.splitlines()):
+        if line.startswith(prefix):
+            try:
+                state = json.loads(line[len(prefix):])
+            except json.JSONDecodeError:
+                continue
+            if isinstance(state, dict):
+                return state
+    state = json.loads(text)
+    if not isinstance(state, dict):
+        raise ValueError('Probe report must be a JSON object')
+    return state
+
+
 def await_state(path, predicate, label, seconds=30):
     deadline = time.monotonic() + seconds
     last = {}
     while time.monotonic() < deadline:
         try:
-            last = json.loads(path.read_text())
-        except (OSError, json.JSONDecodeError):
+            last = read_report(path)
+        except (OSError, ValueError):
             pass
         else:
             if last.get('error'):
@@ -62,7 +82,11 @@ def collect_diagnostics(udid, output, since, report_path, roots=None):
     """Each diagnostic is independent: one failure must not hide the others."""
     failures = []
     if report_path and report_path.exists():
-        shutil.copy2(report_path, output / 'scene-smoke-last-report.json')
+        try:
+            state = read_report(report_path)
+            (output / 'scene-smoke-last-report.json').write_text(json.dumps(state, indent=2))
+        except (OSError, ValueError) as error:
+            failures.append(f'Last report parsing: {error}')
     roots = roots if roots is not None else [
         Path.home() / 'Library/Logs/DiagnosticReports',
         Path.home() / 'Library/Developer/CoreSimulator/Devices' / udid / 'data/Library/Logs/CrashReporter',
@@ -113,11 +137,10 @@ def run_probe(app, output, execute=command):
         execute('xcrun', 'simctl', 'bootstatus', udid, '-b')
         stage = 'install'
         execute('xcrun', 'simctl', 'install', udid, str(app))
-        # Resolve the data path before launch so a slow simctl lookup cannot eat
-        # the probe's live window. Raw stderr preserves exception text that the
-        # host unified-log decoder sometimes renders as <compose failure>.
-        container = Path(execute('xcrun', 'simctl', 'get_app_container', udid, BUNDLE, 'data'))
-        report_path = container / 'Documents/scene-smoke.json'
+        # Read the native report through stdout redirected to this known host
+        # path. No app-container query is needed (Build49 timed out there).
+        report_path = output / 'scene-smoke-stdout.log'
+        report_path.write_text('')
         stage = 'launch'
         launch = execute('xcrun', 'simctl', 'launch',
                          '--stdout=' + str(output / 'scene-smoke-stdout.log'),

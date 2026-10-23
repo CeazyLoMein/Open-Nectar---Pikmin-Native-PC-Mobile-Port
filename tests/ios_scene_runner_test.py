@@ -55,14 +55,32 @@ class RunnerTests(TestCase):
         with self.assertRaisesRegex(AssertionError, r'last report=\{\}'):
             runner.await_state(self.root / 'absent.json', lambda state: True, 'startup', seconds=0)
 
+    def test_stdout_last_complete_state_survives_noise_and_partial_line(self):
+        path = self.root / 'stdout.log'
+        path.write_text('startup noise\nNECTAR_PROBE_STATE {"phase":"process-entry"}\n'
+                        'NECTAR_PROBE_STATE {"ready":true,"phase":"running"}\n'
+                        'NECTAR_PROBE_STATE {"ready":', encoding='utf-8')
+        self.assertEqual(runner.read_report(path), {'ready': True, 'phase': 'running'})
+
+    def test_stdout_native_error_still_fails_even_after_earlier_ready(self):
+        path = self.root / 'stdout.log'
+        path.write_text('NECTAR_PROBE_STATE {"ready":true}\n'
+                        'NECTAR_PROBE_STATE {"error":"Native exception","phase":"resume"}\n', encoding='utf-8')
+        with self.assertRaisesRegex(AssertionError, 'Native exception'):
+            runner.await_state(path, lambda state: state.get('ready'), 'resume')
+
+    def test_noise_is_not_a_success_report(self):
+        path = self.root / 'stdout.log'
+        path.write_text('application launched but no report\n')
+        with self.assertRaises(ValueError):
+            runner.read_report(path)
+
     def fixture(self, restart=False, error=False):
         app = self.root / 'NectarSceneSmoke.app'
         app.mkdir()
         (app / 'Info.plist').write_bytes(plistlib.dumps({'CFBundleIdentifier': runner.BUNDLE}))
-        container = self.root / 'data'
-        (container / 'Documents').mkdir(parents=True)
-        report = container / 'Documents/scene-smoke.json'
         output = self.root / 'output'
+        report = output / 'scene-smoke-stdout.log'
         history = []
         launches = 0
         state = {'entry_count': 1, 'ready': True, 'active': True, 'error': '',
@@ -78,7 +96,7 @@ class RunnerTests(TestCase):
             if operation == 'list':
                 return json.dumps({'devices': devices()})
             if operation == 'get_app_container':
-                return str(container)
+                raise AssertionError('Container lookup must not block startup')
             if operation == 'launch':
                 if args[-1] == 'com.apple.Preferences':
                     state.update(active=False, will_background=1, did_background=1)
@@ -88,7 +106,8 @@ class RunnerTests(TestCase):
                         state.update(ready=False, error='Observed failure', phase='before-sdl-init')
                     if launches > 1:
                         state.update(active=True, will_foreground=1, did_foreground=1)
-                report.write_text(json.dumps(state))
+                with report.open('a', encoding='utf-8') as stream:
+                    stream.write('NECTAR_PROBE_STATE ' + json.dumps(state) + '\n')
                 return args[-1] + ': ' + ('999' if restart and launches > 1 else '123')
             return ''
         return app, output, execute, history
@@ -99,7 +118,7 @@ class RunnerTests(TestCase):
             result = runner.run_probe(app, output, execute)
         self.assertEqual(result['result'], 'PASS')
         operations = [args[2] for args in history]
-        self.assertLess(operations.index('get_app_container'), operations.index('launch'))
+        self.assertNotIn('get_app_container', operations)
         launch = next(args for args in history if args[2] == 'launch')
         self.assertTrue(any(arg.startswith('--stderr=') for arg in launch))
         self.assertTrue(any(arg.startswith('--stdout=') for arg in launch))
