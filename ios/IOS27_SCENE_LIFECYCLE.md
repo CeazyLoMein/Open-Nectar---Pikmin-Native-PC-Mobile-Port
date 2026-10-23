@@ -56,3 +56,5 @@ Artifact12518747847 SHA256283b2e4f18569a26afd4e3d1f1835adf86faab47a7b11b886d370c
 9 host runner regressions PASS plus24 metadata/dependency checks PASS. Host runner fixtures are not native startup proof. New diagnostic compilation/runtime pending. Retain strict single-entry/window/resume/foreign-scene assertions and both-game dependency.
 
 References reviewed: [SDL official scene entry](https://github.com/libsdl-org/SDL/blob/main/src/video/uikit/SDL_uikitappdelegate.m), [Apple crash/log collection](https://developer.apple.com/documentation/xcode/acquiring-crash-reports-and-diagnostic-logs). Their patterns inform diagnostics, not proof of a cause for47.
+
+Diagnostic dispatch: Build48/run39995580595/sourced8327ffd5ae114b4617c824c1bfacbd689d2d58c/startup job120558124436 dispatched; last observed in progress, no result yet. No idle polling.

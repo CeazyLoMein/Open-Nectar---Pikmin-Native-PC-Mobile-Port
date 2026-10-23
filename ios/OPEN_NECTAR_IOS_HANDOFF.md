@@ -1,8 +1,8 @@
 # OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
 
-**Date/time:** 2026-10-23 13:29 Eastern Daylight Time
+**Date/time:** 2026-10-23 13:30 Eastern Daylight Time
 
-**Overall project status:** Build47 shared SDL2/simulator app compilation PASSED, confirming46 header correction. Simulator startup FAILED to report readiness; cause UNRESOLVED. Both game builds SKIPPED; no game IPA. Early phase/exception/raw stderr/crash capture and runner reliability changes IMPLEMENTED;9 host runner tests +24 startup checks PASS, not Apple runtime proof. Next combined gated diagnostic run not yet dispatched. P144 remains DO-NOT-INSTALL; P245 compilation PASS/installation HOLD. Preserve installed P2. Landscape only; player-controlled FPS including120.
+**Overall project status:** Build47 shared SDL2/simulator app compilation PASSED, confirming46 header correction. Simulator startup FAILED to report readiness; cause UNRESOLVED. Both game builds SKIPPED; no game IPA. Early phase/exception/raw stderr/crash capture and runner reliability changes IMPLEMENTED;9 host runner tests +24 startup checks PASS, not Apple runtime proof. Build48/run39995580595/sourced8327ffd5ae114b4617c824c1bfacbd689d2d58c/startup job120558124436 dispatched; last observed in progress, no result yet. P144 remains DO-NOT-INSTALL; P245 compilation PASS/installation HOLD. Preserve installed P2. Landscape only; player-controlled FPS including120.
 
 ### Pikmin 1
 
@@ -29,11 +29,11 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; local C:\Dev\Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental. Verified clean/fetched; local/remote5938c9b8034ce4fd946387318b3097f8e9e4bcc6 matched, no incoming changes before edits.
 - Starting commit: 5938c9b8034ce4fd946387318b3097f8e9e4bcc6.47 source2034e139369df84f61fd499d0d085b4e567b1d78.
-- Latest source/local/remote checkpoint: PENDING diagnostic source commit; starting local/remote5938c9b8034ce4fd946387318b3097f8e9e4bcc6. Follow-up [skip ci] journal commit may be newer; external final handoff records exact local/remote journal SHA.
+- Latest source/local/remote checkpoint: d8327ffd5ae114b4617c824c1bfacbd689d2d58c. Follow-up [skip ci] journal commit may be newer; external final handoff records exact local/remote journal SHA.
 - Commits created: Startup diagnostic/probe/runner/test/workflow/journal batch; exact source above after dispatch, otherwise not yet committed.
-- Changes pushed: Next combined gated diagnostic run not yet dispatched. Gate retained, one combined run; no duplicate triggers or game-build bypass.
+- Changes pushed: Build48/run39995580595/sourced8327ffd5ae114b4617c824c1bfacbd689d2d58c/startup job120558124436 dispatched; last observed in progress, no result yet. Gate retained, one combined run; no duplicate triggers or game-build bypass.
 - Uncommitted changes: Scoped diagnostics/probe/runner/test/workflow/journals before source commit; dispatch journal only until [skip ci] commit. Final clean state recorded externally. No proprietary assets, private phone reports or credentials staged.
-- GitHub Actions run IDs: 44=39950748289 P1 compile/IPA PASS, later phone launch FAIL;45=39958190774 P2 native/IPA PASS but HOLD;46=39991097065 gate compile FAIL (missing-header cause);47=39992850789/source2034e139369df84f61fd499d0d085b4e567b1d78/startup job120548733186 compile PASS/readiness FAIL, game job120552988929 SKIPPED. Next combined gated diagnostic run not yet dispatched.
+- GitHub Actions run IDs: 44=39950748289 P1 compile/IPA PASS, later phone launch FAIL;45=39958190774 P2 native/IPA PASS but HOLD;46=39991097065 gate compile FAIL (missing-header cause);47=39992850789/source2034e139369df84f61fd499d0d085b4e567b1d78/startup job120548733186 compile PASS/readiness FAIL, game job120552988929 SKIPPED. Build48/run39995580595/sourced8327ffd5ae114b4617c824c1bfacbd689d2d58c/startup job120558124436 dispatched; last observed in progress, no result yet.
 - Build results: 46 header compile blocker resolved by47; actual simulator readiness remains FAIL, cause not known. New9 runner +24 startup checks PASS locally. No claim the underlying runtime issue is fixed. Next run gathers earlier native evidence before any full game build.
 - Artifacts produced: 47 diagnostic ZIP12518747847 SHA256283b2e4f18569a26afd4e3d1f1835adf86faab47a7b11b886d370c8690354afa (build log + decoded console only), verified digest/CRC. NO game IPA. New runner will preserve raw process output, early JSON, crash reports if generated, built probe/available symbols, metadata and explicit failure stage.45 P2 held;44 withdrawn;42 backup unchanged.
 
@@ -41,7 +41,7 @@
 
 - Next Pikmin 1 task: Wait for new diagnostic gate result; use early phase/raw exception/crash evidence to identify actual startup failure. Do not install44 or claim diagnostics fix launch. Correct supported cause before game/IPA/hardware tests.
 - Next Pikmin 2 task: Preserve installed Build32; keep45 on HOLD. Shared gate must pass before a new game build and verified scene-enabled update.
-- GitHub/build task: Next combined gated diagnostic run not yet dispatched. No idle polling. On completion retrieve scene diagnostic artifact first, inspect phase/error/raw stderr and own crash reports. If gate passes, inspect game builds and verify packages; if it fails, diagnose from new evidence without bypass.
+- GitHub/build task: Build48/run39995580595/sourced8327ffd5ae114b4617c824c1bfacbd689d2d58c/startup job120558124436 dispatched; last observed in progress, no result yet. No idle polling. On completion retrieve scene diagnostic artifact first, inspect phase/error/raw stderr and own crash reports. If gate passes, inspect game builds and verify packages; if it fails, diagnose from new evidence without bypass.
 - Anything requiring my involvement: No phone or open game needed now; may disconnect. Report run completion. No complete current settings/save/assets backup exists for transferring/erasing old phone; this remains separate from copied crash reports.
 
 ### ChatGPT continuation notes
@@ -51,7 +51,7 @@
 - Relevant logs: work/build47-startup-full.log, build47-scene-artifact.zip, build47-failure-verification.json and friendly folder2 copies. Artifact has only ios-scene-build.log and scene-startup-results/scene-smoke-console.log; no readiness JSON/crash report, console mostly <compose failure>.46 exact compile errors and private44 phone crash evidence retained. No private evidence uploaded to Git.
 - Unverified fixes: There is NO demonstrated fix for47 startup failure yet. New native diagnostics compilation/execution pending; host mocks cannot prove UIKit behavior. Simulator probe is generic SDL window, not game GLES renderer. New full game builds/IPAs/phone/display/audio/full campaign still pending.
 - Risks and warnings: Do not guess from empty report or undecodable UIKit assertion entries. Keep44 DO-NOT-INSTALL and45 HOLD. Newer simulator selected for SDK/runtime alignment, not claimed as the root-cause fix. Strict single-entry/window/resume/foreign-scene checks remain; gate not weakened. Original app IDs/settings/save paths preserved. No verified current complete phone-data backup.
-- Exact next actions: Next combined gated diagnostic run not yet dispatched. Stop idle polling. When completion reported, verify/download diagnostic artifact, read raw stderr/early phase/exception/own crash reports and compiled probe metadata. Diagnose and correct the first actual failure; if gate passes inspect both native jobs/IPAs, verify original IDs/ARM64/device/unsigned/SDK/icons/compiled scene support before staging. Request phone testing only after corrected verified IPA.
+- Exact next actions: Build48/run39995580595/sourced8327ffd5ae114b4617c824c1bfacbd689d2d58c/startup job120558124436 dispatched; last observed in progress, no result yet. Stop idle polling. When completion reported, verify/download diagnostic artifact, read raw stderr/early phase/exception/own crash reports and compiled probe metadata. Diagnose and correct the first actual failure; if gate passes inspect both native jobs/IPAs, verify original IDs/ARM64/device/unsigned/SDK/icons/compiled scene support before staging. Request phone testing only after corrected verified IPA.
 
 **END PROGRESS REPORT**
 
