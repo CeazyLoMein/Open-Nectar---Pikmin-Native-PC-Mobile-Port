@@ -24,8 +24,10 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
-      - name: Check shared scene startup contract
-        run: python3 tests/ios_scene_contract_test.py
+      - name: Check shared scene startup contract and diagnostic runner
+        run: |
+          python3 tests/ios_scene_contract_test.py
+          python3 tests/ios_scene_runner_test.py
       - name: Build asset-free simulator startup probe
         shell: bash
         run: |

@@ -46,3 +46,13 @@ Correction: import UIKit/UIScene.h in SDL_coreaudio.h inside existing iOS branch
 Complete diagnostic artifact12517803044 contains only ios-scene-build.log; ZIP SHA2566710fccadf47fccf23b7a6eb76c9d2bd73597f0b3d0a408aa430d42878165602 verified, entries CRC-tested. Full job/log/verification retained privately in workspace and friendly folder2. P144 remains withdrawn and P245 installation held.
 
 Correction dispatch: Build47/run39992850789, source2034e139369df84f61fd499d0d085b4e567b1d78, startup job120548733186: dispatched, no result yet. Stop idle polling; await user completion report.
+
+## Build47 native compilation passes; startup readiness unresolved
+
+Run39992850789/source2034e139369df84f61fd499d0d085b4e567b1d78/startup job120548733186 compiled the actual bundled SDL2 and asset-free probe successfully.46 header correction is natively compile-validated. simctl returned process45203 on iOS27.0/iPhone18Pro, then the readiness check timed out with last report={}. No JSON or crash stack captured. Console has UIKit assertion records rendered <compose failure>, insufficient to identify their cause or prove a crash. Full game job120552988929 SKIPPED; no game IPA.
+
+Artifact12518747847 SHA256283b2e4f18569a26afd4e3d1f1835adf86faab47a7b11b886d370c8690354afa digest/CRC verified. Contains only build log and decoded console. Full evidence copied privately to workspace/friendly folder2. This batch does NOT claim a startup fix: it adds earliest process/SDL/window/reconnect progress JSON, raw stderr/stdout and Objective-C exception/stack capture, actual probe/app metadata/available symbols, recent own-process crash files, explicit failure stage and independent diagnostics/cleanup. Resolves data container before launch and selects newest installed iOS27 runtime (27.1 present); probe lives180s to cover slow orchestration. No assertion/gate weakened, no algorithmic platform/gameplay change; production has launch markers only.
+
+9 host runner regressions PASS plus24 metadata/dependency checks PASS. Host runner fixtures are not native startup proof. New diagnostic compilation/runtime pending. Retain strict single-entry/window/resume/foreign-scene assertions and both-game dependency.
+
+References reviewed: [SDL official scene entry](https://github.com/libsdl-org/SDL/blob/main/src/video/uikit/SDL_uikitappdelegate.m), [Apple crash/log collection](https://developer.apple.com/documentation/xcode/acquiring-crash-reports-and-diagnostic-logs). Their patterns inform diagnostics, not proof of a cause for47.

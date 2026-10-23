@@ -362,6 +362,7 @@ static UIImage *SDL_LoadLaunchImageNamed(NSString *name, int screenh)
 - (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)options
 {
     if (![scene isKindOfClass:[UIWindowScene class]] || ![session.role isEqualToString:UIWindowSceneSessionRoleApplication]) return;
+    NSLog(@"NECTAR_SCENE will-connect");
     SDLUIKitDelegate *app = [SDLUIKitDelegate sharedAppDelegate];
     for (UIOpenURLContext *context in options.URLContexts) {
         if (!app.nectarLaunchURLs) app.nectarLaunchURLs = [NSMutableArray new];
@@ -426,6 +427,7 @@ static UIImage *SDL_LoadLaunchImageNamed(NSString *name, int screenh)
 #if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
 - (UISceneConfiguration *)application:(UIApplication *)application configurationForConnectingSceneSession:(UISceneSession *)session options:(UISceneConnectionOptions *)options
 {
+    NSLog(@"NECTAR_SCENE configuration-requested");
     UISceneConfiguration *configuration = [[UISceneConfiguration alloc] initWithName:@"NectarGame" sessionRole:session.role];
     configuration.sceneClass = [UIWindowScene class];
     configuration.delegateClass = [NectarSDLSceneDelegate class];
@@ -434,6 +436,7 @@ static UIImage *SDL_LoadLaunchImageNamed(NSString *name, int screenh)
 
 - (void)nectarConnectWindowScene:(UIWindowScene *)scene
 {
+    NSLog(@"NECTAR_SCENE connect-window");
     if (self.nectarWindowScene && self.nectarWindowScene != scene) return;
     self.nectarWindowScene = scene;
     if (self.nectarMainScheduled) {
@@ -467,6 +470,7 @@ static UIImage *SDL_LoadLaunchImageNamed(NSString *name, int screenh)
 {
 #if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
     if (self.nectarMainEntered) return;
+    NSLog(@"NECTAR_SCENE game-entry");
     self.nectarMainEntered = YES;
 #endif
     /* Hide the launch screen the next time the run loop is run. SDL apps will
@@ -498,6 +502,7 @@ static UIImage *SDL_LoadLaunchImageNamed(NSString *name, int screenh)
 
 #if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
     /* Process setup only. The connected scene schedules main exactly once. */
+    NSLog(@"NECTAR_SCENE did-finish-launching");
     [[NSFileManager defaultManager] changeCurrentDirectoryPath:[bundle resourcePath]];
     SDL_AddHintCallback(SDL_HINT_IDLE_TIMER_DISABLED, SDL_IdleTimerDisabledChanged, NULL);
     SDL_SetMainReady();

@@ -1,64 +1,180 @@
-"""Launch the production SDL scene entry on a disposable CI simulator; no game assets."""
+"""Launch the shared SDL scene entry on a disposable CI simulator; no game assets."""
 from pathlib import Path
-import argparse,json,subprocess,time,traceback
+import argparse
+import json
+import plistlib
+import re
+import shutil
+import subprocess
+import time
+import traceback
+
+BUNDLE = 'org.opennectar.tests.scene'
+PROCESS = 'NectarSceneSmoke'
+
 
 def command(*args):
- p=subprocess.run(args,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=180)
- print('$ '+' '.join(map(str,args))+'\n'+p.stdout,flush=True)
- if p.returncode: raise RuntimeError(f'Command failed ({p.returncode}): {args}')
- return p.stdout.strip()
+    result = subprocess.run(args, text=True, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, timeout=180)
+    print('$ ' + ' '.join(map(str, args)) + '\n' + result.stdout, flush=True)
+    if result.returncode:
+        raise RuntimeError(f'Command failed ({result.returncode}): {args}')
+    return result.stdout.strip()
+
+
+def select_device(devices):
+    choices = []
+    for runtime, items in devices.items():
+        version = re.search(r'\.iOS-(\d+(?:-\d+)*)$', runtime)
+        if not version:
+            continue
+        numbers = tuple(map(int, version[1].split('-')))
+        if numbers[0] != 27:
+            continue
+        for device in items:
+            if device.get('isAvailable') and device['name'].startswith('iPhone'):
+                choices.append((numbers, device['state'] == 'Booted', runtime, device))
+    assert choices, 'No available iOS27 iPhone simulator; cannot claim a runtime pass'
+    # Exercise the newest installed runtime, including 27.1, rather than whichever
+    # older runtime happens to appear first. Boot state only breaks version ties.
+    _, _, runtime, device = max(choices, key=lambda row: (row[0], row[1]))
+    return runtime, device
+
+
+def await_state(path, predicate, label, seconds=30):
+    deadline = time.monotonic() + seconds
+    last = {}
+    while time.monotonic() < deadline:
+        try:
+            last = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            pass
+        else:
+            if last.get('error'):
+                raise AssertionError(f'{label} failed: {last}')
+            if predicate(last):
+                return last
+        time.sleep(.2)
+    raise AssertionError(f'{label} timed out; last report={last}')
+
+
+def collect_diagnostics(udid, output, since, report_path, roots=None):
+    """Each diagnostic is independent: one failure must not hide the others."""
+    failures = []
+    if report_path and report_path.exists():
+        shutil.copy2(report_path, output / 'scene-smoke-last-report.json')
+    roots = roots if roots is not None else [
+        Path.home() / 'Library/Logs/DiagnosticReports',
+        Path.home() / 'Library/Developer/CoreSimulator/Devices' / udid / 'data/Library/Logs/CrashReporter',
+    ]
+    for index, root in enumerate(roots):
+        try:
+            for path in root.glob(PROCESS + '*'):
+                if path.is_file() and path.stat().st_mtime >= since - 5:
+                    shutil.copy2(path, output / f'crash-{index}-{path.name}')
+        except OSError as error:
+            failures.append(f'Crash report collection: {error}')
+    for filename, args in [
+        ('scene-smoke-console.log', ['xcrun', 'simctl', 'spawn', udid, 'log', 'show', '--last', '5m', '--style', 'compact', '--predicate', f'process == "{PROCESS}"']),
+        ('scene-smoke-processes.log', ['xcrun', 'simctl', 'spawn', udid, 'launchctl', 'list']),
+    ]:
+        try:
+            with (output / filename).open('w') as stream:
+                result = subprocess.run(args, stdout=stream, stderr=subprocess.STDOUT, timeout=45)
+                if result.returncode:
+                    failures.append(f'{filename}: exit {result.returncode}')
+        except (OSError, subprocess.TimeoutExpired) as error:
+            failures.append(f'{filename}: {error}')
+    (output / 'diagnostic-collection.json').write_text(json.dumps({'errors': failures}, indent=2))
+
+
+def run_probe(app, output, execute=command):
+    output = output.resolve()
+    output.mkdir(parents=True, exist_ok=True)
+    since = time.time()
+    # Preserve the actual compiled probe and metadata even if it never enters SDL.
+    shutil.make_archive(str(output / 'scene-smoke-built-app'), 'zip', app.parent, app.name)
+    symbols = app.parent / (app.name + '.dSYM')
+    if symbols.is_dir():
+        shutil.make_archive(str(output / 'scene-smoke-symbols'), 'zip', symbols.parent, symbols.name)
+    info = plistlib.loads((app / 'Info.plist').read_bytes())
+    assert info['CFBundleIdentifier'] == BUNDLE
+    (output / 'scene-smoke-bundle-info.json').write_text(json.dumps(info, indent=2))
+    devices = json.loads(execute('xcrun', 'simctl', 'list', 'devices', 'available', '--json'))['devices']
+    (output / 'simulator-inventory.json').write_text(json.dumps(devices, indent=2))
+    runtime, device = select_device(devices)
+    udid = device['udid']
+    started = device['state'] != 'Booted'
+    report_path = None
+    stage = 'boot'
+    try:
+        if started:
+            execute('xcrun', 'simctl', 'boot', udid)
+        execute('xcrun', 'simctl', 'bootstatus', udid, '-b')
+        stage = 'install'
+        execute('xcrun', 'simctl', 'install', udid, str(app))
+        # Resolve the data path before launch so a slow simctl lookup cannot eat
+        # the probe's live window. Raw stderr preserves exception text that the
+        # host unified-log decoder sometimes renders as <compose failure>.
+        container = Path(execute('xcrun', 'simctl', 'get_app_container', udid, BUNDLE, 'data'))
+        report_path = container / 'Documents/scene-smoke.json'
+        stage = 'launch'
+        launch = execute('xcrun', 'simctl', 'launch',
+                         '--stdout=' + str(output / 'scene-smoke-stdout.log'),
+                         '--stderr=' + str(output / 'scene-smoke-stderr.log'), udid, BUNDLE)
+        stage = 'scene startup'
+        first = await_state(report_path, lambda state: state.get('ready') and state.get('active'), stage)
+        assert first['entry_count'] == 1 and first['window_has_scene'], first
+        assert first['scene_delegate'] == 'NectarSDLSceneDelegate', first
+        assert first['width'] > first['height'] > 0, first
+        assert first['reconnect_preserved_window'] and first['foreign_events_ignored'], first
+        keys = ['will_background', 'did_background', 'will_foreground', 'did_foreground']
+        initial = {key: first[key] for key in keys}
+        stage = 'background'
+        execute('xcrun', 'simctl', 'launch', udid, 'com.apple.Preferences')
+        background = await_state(report_path, lambda state: state.get('did_background', 0) > initial['did_background'], stage)
+        for key in ['will_background', 'did_background']:
+            assert background[key] == initial[key] + 1, background
+        stage = 'resume'
+        resumed_launch = execute('xcrun', 'simctl', 'launch', udid, BUNDLE)
+        assert launch.rsplit(':', 1)[-1].strip() == resumed_launch.rsplit(':', 1)[-1].strip(), 'Resume restarted the process'
+        final = await_state(report_path, lambda state: state.get('active') and state.get('did_foreground', 0) > initial['did_foreground'], stage)
+        assert final['entry_count'] == 1 and final['reconnect_preserved_window'], final
+        for key in keys:
+            assert final[key] == initial[key] + 1, final
+        result = {'result': 'PASS', 'runtime': runtime, 'device': device['name'], 'initial': first,
+                  'background': background, 'resumed': final, 'launch': launch, 'resumed_launch': resumed_launch}
+        (output / 'scene-smoke-result.json').write_text(json.dumps(result, indent=2))
+        print('PASS: actual SDL/UIKit scene startup and background/resume; one entry/window and no duplicate SDL events.', flush=True)
+        return result
+    except Exception:
+        (output / 'scene-smoke-failure.json').write_text(json.dumps({
+            'result': 'FAIL', 'stage': stage, 'runtime': runtime,
+            'device': device['name'], 'traceback': traceback.format_exc()}, indent=2))
+        raise
+    finally:
+        try:
+            collect_diagnostics(udid, output, since, report_path)
+        except Exception:
+            (output / 'diagnostic-collection-exception.txt').write_text(traceback.format_exc())
+        # Never mask the test result if diagnostic collection or cleanup fails.
+        for args in [('terminate', udid, BUNDLE)] + ([('shutdown', udid)] if started else []):
+            try:
+                subprocess.run(['xcrun', 'simctl', *args], stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL, timeout=45)
+            except (OSError, subprocess.TimeoutExpired):
+                pass
+
 
 def main():
- parser=argparse.ArgumentParser();parser.add_argument('--build-root',type=Path,required=True);parser.add_argument('--output',type=Path,required=True);args=parser.parse_args()
- args.output.mkdir(parents=True,exist_ok=True)
- apps=list(args.build_root.rglob('NectarSceneSmoke.app'));assert len(apps)==1,apps
- app=apps[0];bundle='org.opennectar.tests.scene'
- devices=json.loads(command('xcrun','simctl','list','devices','available','--json'))['devices']
- choices=[d for runtime,items in devices.items() if '.iOS-27' in runtime for d in items if d.get('isAvailable') and d['name'].startswith('iPhone')]
- assert choices,'No available iOS27 iPhone simulator; cannot claim a runtime launch pass'
- device=next((d for d in choices if d['state']=='Booted'),choices[0]);udid=device['udid'];started=device['state']!='Booted'
- report_path=None;final={}
- try:
-  if started:command('xcrun','simctl','boot',udid)
-  command('xcrun','simctl','bootstatus',udid,'-b')
-  command('xcrun','simctl','install',udid,str(app))
-  launch=command('xcrun','simctl','launch',udid,bundle)
-  container=Path(command('xcrun','simctl','get_app_container',udid,bundle,'data'))
-  report_path=container/'Documents/scene-smoke.json'
-  def await_state(predicate,label,seconds=30):
-   deadline=time.monotonic()+seconds;last={}
-   while time.monotonic()<deadline:
-    if report_path.exists():
-     try:last=json.loads(report_path.read_text())
-     except (OSError,json.JSONDecodeError):continue
-     if last.get('error'):raise AssertionError(last)
-     if predicate(last):return last
-    time.sleep(.2)
-   raise AssertionError(f'{label} timed out; last report={last}')
-  first=await_state(lambda s:s.get('ready') and s.get('active'),'scene startup')
-  assert first['entry_count']==1 and first['window_has_scene']
-  assert first['scene_delegate']=='NectarSDLSceneDelegate'
-  assert first['width']>first['height']>0,first
-  assert first['reconnect_preserved_window'] and first['foreign_events_ignored'],first
-  initial={k:first[k] for k in ['will_background','did_background','will_foreground','did_foreground']}
-  command('xcrun','simctl','launch',udid,'com.apple.Preferences')
-  background=await_state(lambda s:s.get('did_background',0)>initial['did_background'],'background event')
-  # UIKit suspension may stop the app's outer loop immediately after the event.
-  # The synchronous event watcher writes the report before returning to UIKit.
-  assert background['will_background']==initial['will_background']+1,background
-  assert background['did_background']==initial['did_background']+1,background
-  resumed_launch=command('xcrun','simctl','launch',udid,bundle)
-  assert launch.rsplit(':',1)[-1].strip()==resumed_launch.rsplit(':',1)[-1].strip(), 'Resume unexpectedly restarted the process'
-  final=await_state(lambda s:s.get('active') and s.get('did_foreground',0)>initial['did_foreground'],'foreground event')
-  assert final['entry_count']==1 and final['reconnect_preserved_window'],final
-  assert final['will_foreground']==initial['will_foreground']+1 and final['did_foreground']==initial['did_foreground']+1,final
-  assert final['will_background']==initial['will_background']+1 and final['did_background']==initial['did_background']+1,final
-  (args.output/'scene-smoke-result.json').write_text(json.dumps({'result':'PASS','device':device['name'],'initial':first,'background':background,'resumed':final,'launch':launch,'resumed_launch':resumed_launch},indent=2))
-  print('PASS: actual SDL/UIKit scene launch, one game entry, scene-owned window, landscape size, duplicate/reconnect guard, foreign-scene filtering and background/resume without duplicate SDL events.',flush=True)
- finally:
-  if report_path and report_path.exists(): (args.output/'scene-smoke-last-report.json').write_bytes(report_path.read_bytes())
-  subprocess.run(['xcrun','simctl','spawn',udid,'log','show','--last','3m','--style','compact','--predicate','process == "NectarSceneSmoke"'],stdout=(args.output/'scene-smoke-console.log').open('w'),stderr=subprocess.STDOUT,timeout=60)
-  subprocess.run(['xcrun','simctl','terminate',udid,bundle],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=30)
-  if started:subprocess.run(['xcrun','simctl','shutdown',udid],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=60)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--build-root', type=Path, required=True)
+    parser.add_argument('--output', type=Path, required=True)
+    args = parser.parse_args()
+    apps = list(args.build_root.rglob('NectarSceneSmoke.app'))
+    assert len(apps) == 1, apps
+    run_probe(apps[0], args.output)
 
-if __name__=='__main__':main()
+
+if __name__ == '__main__':
+    main()
