@@ -1,8 +1,8 @@
 # OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
 
-**Date/time:** 2026-10-23 14:02 EDT
+**Date/time:** 2026-10-23 14:03 EDT
 
-**Overall project status:** Build48 native SDL2/probe compilation PASSED; new diagnostics CONFIRMED a test-harness crash: fake UIScene events were broadcast to UIKit with an NSObject object. Corrected the synthetic test to invoke only SDL's actual filter; real background/resume gate retained.26 contract/safety checks +9 host runner tests PASS. New correction native compile/runtime and both game builds/IPAs/phone PENDING. Next combined gated build not yet dispatched. P144 remains withdrawn; P245 native PASS/installation HOLD; installed P2 preserved. Landscape only; player-controlled FPS including120.
+**Overall project status:** Build48 native SDL2/probe compilation PASSED; new diagnostics CONFIRMED a test-harness crash: fake UIScene events were broadcast to UIKit with an NSObject object. Corrected the synthetic test to invoke only SDL's actual filter; real background/resume gate retained.26 contract/safety checks +9 host runner tests PASS. New correction native compile/runtime and both game builds/IPAs/phone PENDING. Build49/run40000088460/source8449ef4c23820434f652c1e88fc7d94206c8302a/startup job120573614837 dispatched; no result yet. P144 remains withdrawn; P245 native PASS/installation HOLD; installed P2 preserved. Landscape only; player-controlled FPS including120.
 
 ### Pikmin 1
 
@@ -29,11 +29,11 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; local C:\Dev\Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental. Clean/fetched before edits, local/remote79d297e0fb87dda87ea692726ed6ba581740c467 matched; no incoming changes.
 - Starting commit: 79d297e0fb87dda87ea692726ed6ba581740c467.48 source d8327ffd5ae114b4617c824c1bfacbd689d2d58c.
-- Latest source/local/remote checkpoint: PENDING scoped probe correction; starting local/remote79d297e0fb87dda87ea692726ed6ba581740c467. Follow-up [skip ci] journal may be newer; external final report records exact journal local/remote HEAD and clean tree.
+- Latest source/local/remote checkpoint: 8449ef4c23820434f652c1e88fc7d94206c8302a. Follow-up [skip ci] journal may be newer; external final report records exact journal local/remote HEAD and clean tree.
 - Commits created: Scoped probe-notification safety correction +contract negative control +journals; source above if dispatched, otherwise commit pending.
-- Changes pushed: Next combined gated build not yet dispatched. One combined run with startup gate retained; no duplicate triggers.
+- Changes pushed: Build49/run40000088460/source8449ef4c23820434f652c1e88fc7d94206c8302a/startup job120573614837 dispatched; no result yet. One combined run with startup gate retained; no duplicate triggers.
 - Uncommitted changes: Only probe/contract/journals before source commit, journal-only after dispatch until [skip ci] checkpoint. Final clean state recorded externally. No game assets/private phone reports/credentials staged.
-- GitHub Actions run IDs: 44=39950748289 P1 compile/IPA PASS then phone launch FAIL;45=39958190774 P2 native/IPA PASS but HOLD;46=39991097065 missing-header compile FAIL;47=39992850789 compile PASS/no ready report;48=39995580595/source d8327ffd5ae114b4617c824c1bfacbd689d2d58c/startup120558124436 compile PASS/confirmed synthetic-test exception, game120564206284 SKIPPED. Next combined gated build not yet dispatched.
+- GitHub Actions run IDs: 44=39950748289 P1 compile/IPA PASS then phone launch FAIL;45=39958190774 P2 native/IPA PASS but HOLD;46=39991097065 missing-header compile FAIL;47=39992850789 compile PASS/no ready report;48=39995580595/source d8327ffd5ae114b4617c824c1bfacbd689d2d58c/startup120558124436 compile PASS/confirmed synthetic-test exception, game120564206284 SKIPPED. Build49/run40000088460/source8449ef4c23820434f652c1e88fc7d94206c8302a/startup job120573614837 dispatched; no result yet.
 - Build results: 48 real SDL2/probe compile PASS; partial native entry/window/landscape/reconnect confirmed; synthetic test crashed UIKit before readiness. This cause is now identified and test source corrected. Local26+9 PASS; complete corrected gate, native games/IPAs and phone PENDING.
 - Artifacts produced: 48 diagnostic artifact12520446669 ZIP SHA256acc4f499de272af88586d50cd096a18a02720a3d31e6e9f17a25b0e37689c078 verified/CRC PASS. Contains actual built probe, early JSON, raw stderr and stack, inventory/plist, console/process diagnostics; no game IPA. Saved privately in work and friendly folder2.45 P2 HOLD,44 withdrawn,42 backup unchanged.
 
@@ -41,7 +41,7 @@
 
 - Next Pikmin 1 task: Inspect corrected gate, including real background/resume. If PASS, inspect game build and verify original-ID scene-enabled IPA, then stage and request phone launch FIRST. Do not uninstall/reset/reimport assets.
 - Next Pikmin 2 task: Keep installed Build32, do not install45. After corrected shared gate/native/package PASS, stage new original-ID update for launch/audio/gameplay regression.
-- GitHub/build task: Next combined gated build not yet dispatched. Stop idle polling after dispatch. On completion inspect raw stderr/phase/results and both game jobs if gate passes. Diagnose actual evidence if another check fails; no bypass.
+- GitHub/build task: Build49/run40000088460/source8449ef4c23820434f652c1e88fc7d94206c8302a/startup job120573614837 dispatched; no result yet. Stop idle polling after dispatch. On completion inspect raw stderr/phase/results and both game jobs if gate passes. Diagnose actual evidence if another check fails; no bypass.
 - Anything requiring my involvement: Nothing on phone now; may disconnect/close game. Report build completion. Full current save/settings/assets backup remains needed before old-phone erase/transfer, separate from copied crash reports.
 
 ### ChatGPT continuation notes
@@ -51,7 +51,7 @@
 - Relevant logs: work/build48-startup-full.log, build48-scene-artifact.zip, build48-failure-verification.json. Friendly folder2 copies plus Build48 - scene-smoke-last-report.json, scene-smoke-failure.json, scene-smoke-stderr.log, scene-smoke-bundle-info.json. Exact stack: scene_main -> NSNotificationCenter posting -> _UIRemoteKeyboards sceneDidActivate: -> clearKeyboardSceneIdentifierEnteringForeground: -> NSObject _sceneIdentifier exception.47 undecodable logs and44 private phone reports retained; no private evidence in Git.
 - Unverified fixes: Scoped negative-test correction implemented/host checks PASS, new Apple compile/runtime pending.48 only partial generic-window simulator startup, not full background/resume, actual GLES gameplay, audio, display quality/folding,120 output or phone success. New game IPAs none yet. Existing full story/follower teleport/rare scene issues not proven.
 - Risks and warnings: Never broadcast fake system scene notifications to UIKit with invalid objects. Direct negative invocation uses the actual SDL implementation and asserts its availability, rather than skipping the test. Real registered observer remains exercised by actual background/resume.44 P1 DO-NOT-INSTALL and45 P2 HOLD remain until corrected verified package; current installed P2 untouched. No complete current phone-data backup; preserve old device data.
-- Exact next actions: Next combined gated build not yet dispatched. Await user completion report without idle polling. Retrieve startup result/last report/raw stderr; require ready/active, one entry/window, landscape, foreign rejection and real background/resume PASS. Then inspect both games and original-ID/ARM64/device/unsigned/SDK/icons/compiled scene support before staging. Phone testing only after verified IPA. Keep old baselines/backups.
+- Exact next actions: Build49/run40000088460/source8449ef4c23820434f652c1e88fc7d94206c8302a/startup job120573614837 dispatched; no result yet. Await user completion report without idle polling. Retrieve startup result/last report/raw stderr; require ready/active, one entry/window, landscape, foreign rejection and real background/resume PASS. Then inspect both games and original-ID/ARM64/device/unsigned/SDK/icons/compiled scene support before staging. Phone testing only after verified IPA. Keep old baselines/backups.
 
 **END PROGRESS REPORT**
 
