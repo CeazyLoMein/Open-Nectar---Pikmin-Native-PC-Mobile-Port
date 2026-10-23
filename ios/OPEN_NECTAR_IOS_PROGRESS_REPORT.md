@@ -1,8 +1,8 @@
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-23 14:26 EDT
+**Date/time:** 2026-10-23 14:28 EDT
 
-**Overall project status:** Build49 real SDL2/probe compile PASS; simulator get_app_container HUNG180s before app launch. No runtime test and both game builds SKIPPED/no IPA. This does not establish recurrence or resolution of48 synthetic-test fault. Blocking query removed; native startup state now travels through already captured stdout.26 contract/safety +12 runner/transport checks PASS locally; complete native/runtime/game/phone pending. Replacement combined gated build not yet dispatched. P144 withdrawn, P245 native PASS/installation HOLD; working installed P2 preserved. Landscape/player-selected120 retained.
+**Overall project status:** Build49 real SDL2/probe compile PASS; simulator get_app_container HUNG180s before app launch. No runtime test and both game builds SKIPPED/no IPA. This does not establish recurrence or resolution of48 synthetic-test fault. Blocking query removed; native startup state now travels through already captured stdout.26 contract/safety +12 runner/transport checks PASS locally; complete native/runtime/game/phone pending. Build50/run40003458275/sourceae2d68db907cf399699c6d0ebf3b6df856a85b68/startup job120585264288 dispatched; result PENDING. P144 withdrawn, P245 native PASS/installation HOLD; working installed P2 preserved. Landscape/player-selected120 retained.
 
 ### Pikmin 1
 
@@ -29,11 +29,11 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; local C:\Dev\Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental, verified clean/fetched and local/remote b1dd660c02e0ba839ea0ed049dab9ac92c0c230d matched before edits; no incoming changes.
 - Starting commit: b1dd660c02e0ba839ea0ed049dab9ac92c0c230d.49 source8449ef4c23820434f652c1e88fc7d94206c8302a.
-- Latest source/local/remote checkpoint: PENDING transport correction; starting local/remote b1dd660c02e0ba839ea0ed049dab9ac92c0c230d. Follow-up [skip ci] journal may be newer; final external handoff records clean local/remote journal SHA.
+- Latest source/local/remote checkpoint: ae2d68db907cf399699c6d0ebf3b6df856a85b68. Follow-up [skip ci] journal may be newer; final external handoff records clean local/remote journal SHA.
 - Commits created: Scoped startup-report transport/runner regression/journal batch; exact source above if dispatched, otherwise pending.
-- Changes pushed: Replacement combined gated build not yet dispatched. One combined startup-gated run; no duplicate triggers.
+- Changes pushed: Build50/run40003458275/sourceae2d68db907cf399699c6d0ebf3b6df856a85b68/startup job120585264288 dispatched; result PENDING. One combined startup-gated run; no duplicate triggers.
 - Uncommitted changes: Probe/runner/tests/journals before source commit, dispatch docs until [skip ci] checkpoint. Final clean state recorded externally. No proprietary assets, phone reports or credentials staged.
-- GitHub Actions run IDs: 44=39950748289 P1 native PASS/phone launch FAIL;45=39958190774 P2 native PASS/HOLD;46=39991097065 header compile FAIL;47=39992850789 compile PASS/no ready report;48=39995580595 compile PASS/test-caused UIKit exception;49=40000088460/source8449ef4c23820434f652c1e88fc7d94206c8302a/startup120573614837 compile PASS/folder query timeout before launch, game120581920699 SKIPPED. Replacement combined gated build not yet dispatched.
+- GitHub Actions run IDs: 44=39950748289 P1 native PASS/phone launch FAIL;45=39958190774 P2 native PASS/HOLD;46=39991097065 header compile FAIL;47=39992850789 compile PASS/no ready report;48=39995580595 compile PASS/test-caused UIKit exception;49=40000088460/source8449ef4c23820434f652c1e88fc7d94206c8302a/startup120573614837 compile PASS/folder query timeout before launch, game120581920699 SKIPPED. Build50/run40003458275/sourceae2d68db907cf399699c6d0ebf3b6df856a85b68/startup job120585264288 dispatched; result PENDING.
 - Build results: 49 SDL2/probe compile PASS, simulator query FAIL before app launch, all full games SKIPPED/no IPA. Repeated failures have been gate/source-test/tool failures rather than newly observed full-game regressions. Blocking folder dependency removed;26+12 local checks PASS. New complete native/runtime/game/phone results pending.
 - Artifacts produced: 49 diagnostic artifact12522068185 ZIP SHA25695fbb0a5f338c2c00de6a9eb9ec25c8285ae015a6cc197e04de6162fce288c92 digest/CRC PASS. Compiled probe/plist/inventory/failure/console diagnostics, no app output/report because not launched. Copies in work and friendly folder2. No new game IPA;44 withdrawn/45 HOLD/42 backup unchanged.
 
@@ -41,7 +41,7 @@
 
 - Next Pikmin 1 task: Inspect complete stdout-based startup result, then both native games/packages if gate passes. Stage original-ID verified update only after successful checks and test phone launch first.
 - Next Pikmin 2 task: Keep working installed32;45 stays HOLD. Shared gate/native/package verification must pass before P2 update, followed by audio/input/gameplay regression.
-- GitHub/build task: Replacement combined gated build not yet dispatched. No idle polling. On completion inspect startup-result/last JSON/raw output/failure stage first, then game jobs if gate passed. Do not bypass gate or call host mocks native proof.
+- GitHub/build task: Build50/run40003458275/sourceae2d68db907cf399699c6d0ebf3b6df856a85b68/startup job120585264288 dispatched; result PENDING. No idle polling. On completion inspect startup-result/last JSON/raw output/failure stage first, then game jobs if gate passed. Do not bypass gate or call host mocks native proof.
 - Anything requiring my involvement: No phone or open game needed now; may disconnect. Report next build completion. Do not uninstall/reset/import assets to solve CI failure. Full current settings/save/assets backup still needed before old-phone erase/transfer.
 
 ### ChatGPT continuation notes
@@ -51,6 +51,6 @@
 - Relevant logs: work/build49-startup-full.log, build49-scene-artifact.zip, build49-failure-verification.json; friendly folder2 copies and Build49 - scene-smoke-failure.json. Exact TimeoutExpired stack points to get_app_container before launch.48 raw stack/partial native window evidence and47/46 logs preserved.44 private phone reports retained separately; no private evidence in Git.
 - Unverified fixes: Latest stdout transport and48 isolated negative test still need Apple native execution.49 compiled48 correction but never launched; cannot claim runtime success or recurrence.48 partial entry/window/reconnect is not full background/resume or actual GLES game proof. No new game IPAs or phone success; full campaign/teleport/rare bugs open.
 - Risks and warnings: Do not conflate simulator command timeout, synthetic test exception, compiler error and real phone crash. Stream parser ignores noise/partial lines, retains strict errors and actual lifecycle/PID assertions; timeout removal is not a startup pass.44 DO-NOT-INSTALL,45 HOLD, installed P2 untouched. No full current phone data backup; preserve old device.
-- Exact next actions: Replacement combined gated build not yet dispatched. Stop idle polling. On completion retrieve startup result or failure/raw stdout/stderr/parsed last state; require complete entry/window/filter/landscape/real background-resume pass. Then inspect both native jobs and original-ID/ARM64/device/unsigned/SDK/icons/compiled scene support before staging. Phone tests only when verified IPA ready.
+- Exact next actions: Build50/run40003458275/sourceae2d68db907cf399699c6d0ebf3b6df856a85b68/startup job120585264288 dispatched; result PENDING. Stop idle polling. On completion retrieve startup result or failure/raw stdout/stderr/parsed last state; require complete entry/window/filter/landscape/real background-resume pass. Then inspect both native jobs and original-ID/ARM64/device/unsigned/SDK/icons/compiled scene support before staging. Phone tests only when verified IPA ready.
 
 **END PROGRESS REPORT**
