@@ -2000,6 +2000,12 @@ void pc_gfx_overlay_texture_destroy(unsigned texture)
 
 void pc_gfx_get_drawable_size(int* width, int* height)
 {
+#if defined(__IPHONEOS__)
+    // Input can arrive after UIKit resizes the drawable but before begin_frame.
+    if (SDL_Window* window = SDL_GL_GetCurrentWindow()) {
+        SDL_GL_GetDrawableSize(window, &sDrawableWidth, &sDrawableHeight);
+    }
+#endif
     if (width) *width = sDrawableWidth;
     if (height) *height = sDrawableHeight;
 }

@@ -1707,6 +1707,13 @@ int pc_window_get_display_mode(void) {
 void pc_window_set_window_size(int w, int h) {
     if (!sWindow) return;
     if (w <= 0 || h <= 0) return;
+#if defined(__IPHONEOS__)
+    // UIKit owns the current window size. A saved resolution selects only the
+    // 3D budget, never an old phone's window dimensions.
+    pc_gfx_set_render_resolution(w, h);
+    SDL_GetWindowSize(sWindow, &sWindowWidth, &sWindowHeight);
+    return;
+#endif
 #ifdef __ANDROID__
     // Android no implementa SetWindowSize: SDL solo cambia window->w/h, y
     // como GL_GetDrawableSize cae en ese valor, el juego acababa pintado en

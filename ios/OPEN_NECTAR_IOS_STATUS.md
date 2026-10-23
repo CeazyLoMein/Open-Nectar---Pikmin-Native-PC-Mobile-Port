@@ -1,3 +1,5 @@
+CURRENT — 2026-10-23 08:04 Eastern Daylight Time: BOTH games adaptive-landscape batch LOCAL PASS (1778 shared integration,409/302 menus,39 identity,6 icons; Clang PASS). Native/IPA/phone PENDING. LANDSCAPE ONLY; player controls FPS,120 FPS retained and ProMotion permission added (NO forced60 cap). New SDK27.1 workflow; preserve42/P2-32 baselines. No gameplay/audio/save edits. See latest progress report/master handoff.
+
 CURRENT — 2026-10-22 18:15 EDT: Build42/run39861241129/sourcedbe796adb057d0d5c92b37ad9f5976143d5329ba native/link/IPA SUCCESS. Exact original-ID standard ARM64 IPA verified/staged in folder1, SHA256304ac9abd4c60d96d76eb95902a0716ab743a074b1c69003aad238f7f7efd6a1. New pacing and automatic TELEPORT phone tests PENDING. Prior41 was too slow; user did not test teleport. No new build needed; focused box/drop/group test next. P2 untouched.
 
 <!-- P1_PACING_CHECKPOINT -->

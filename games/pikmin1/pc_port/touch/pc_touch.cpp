@@ -1,4 +1,5 @@
 #include "pc_touch.h"
+#include "../pc_mobile_layout.h"
 #if PIKI_P2_HOST
 // Pikmin 2 aún no tiene modo foto: su botón no aparece (button_modded_off) y
 // estas llamadas no hacen nada.
@@ -456,19 +457,52 @@ void layout_load()
 	printf("[Touch] loaded %s\n", kLayoutFilename);
 }
 
+#if defined(__IPHONEOS__)
+PcMobileFrame sSafeFrame {0, 0, 1, 1, 1};
+void cancel_geometry_touches()
+{
+    for (ButtonState& b : sButtons) { b.finger = -1; b.tapLatch = false; }
+    sStick.finger = -1; sStick.dx = sStick.dy = 0;
+    for (GestureFinger& g : sRightGesture) g.finger = -1;
+    for (SwipeFinger& s : sSwipes) s.finger = -1;
+    sPinchDistance = -1; sGroupDrag = {}; sMenuDrag.finger = -1;
+    sGameMenuTapPending = false; sQueuedGameButtons = sPreviousMenuButtons = 0;
+    sSwipeButtons = 0; sSwipeHoldFrames = 0; sColorTapFinger = -1;
+    sEditDragFinger = sEditToolFinger = -1;
+    sEditDragButton = sEditToolPressed = -1;
+}
+#endif
+
 void layout(int w, int h)
 {
 	layout_load();
-	if (w == sLayoutW && h == sLayoutH && !sLayoutDirty) return;
+    if (w <= 0 || h <= 0) return;
+#if defined(__IPHONEOS__)
+    const PcMobileFrame frame = pc_mobile_frame(float(w), float(h), pc_mobile_safe_insets());
+    const bool changed = w != sLayoutW || h != sLayoutH || frame.x != sSafeFrame.x
+        || frame.y != sSafeFrame.y || frame.w != sSafeFrame.w || frame.h != sSafeFrame.h;
+    if (!changed && !sLayoutDirty) return;
+    if (changed && sLayoutW > 0 && sLayoutH > 0) cancel_geometry_touches();
+    sSafeFrame = frame;
+#else
+    if (w == sLayoutW && h == sLayoutH && !sLayoutDirty) return;
+#endif
 	sLayoutW = w;
 	sLayoutH = h;
 	sLayoutDirty = false;
-	const float H = (float)h;
+#if defined(__IPHONEOS__)
+    const float H = sSafeFrame.unit;
+#else
+    const float H = (float)h;
+#endif
 	for (int i = 0; i < BTN_COUNT; ++i) {
 		const ButtonLayout& l = sLayout[i];
 		sButtons[i].cx = l.fromRight ? (float)w - l.cx * H : l.cx * H;
 		sButtons[i].cy = l.cy * H;
 		sButtons[i].r = kButtons[i].radius * H * kButtonScale * l.scale;
+#if defined(__IPHONEOS__)
+        pc_mobile_button(sSafeFrame, l.cx, l.cy, l.fromRight, sButtons[i].r, sButtons[i].cx, sButtons[i].cy);
+#endif
 	}
 	sStick.radius = kStickRadius * H;
 	// Barra de herramientas del editor: centrada arriba, lejos de los botones
@@ -479,6 +513,10 @@ void layout(int w, int h)
 	for (int t = 0; t < TOOL_COUNT; ++t) {
 		sTools[t].cx = x0 + gap * t;
 		sTools[t].cy = 0.09f * H;
+#if defined(__IPHONEOS__)
+        sTools[t].cx += sSafeFrame.x + sSafeFrame.w * 0.5f - float(w) * 0.5f;
+        sTools[t].cy += sSafeFrame.y;
+#endif
 		sTools[t].r = toolR;
 	}
 }
@@ -487,6 +525,18 @@ void layout(int w, int h)
 // H desde el borde más cercano y acotando al área visible.
 void layout_place(int i, float px, float py)
 {
+#if defined(__IPHONEOS__)
+    const float H = sSafeFrame.unit;
+    const float r = sButtons[i].r;
+    if (sEditGrid) {
+        const float cell = H / float(kGridCells);
+        px = sSafeFrame.x + std::round((px - sSafeFrame.x) / cell) * cell;
+        py = sSafeFrame.y + std::round((py - sSafeFrame.y) / cell) * cell;
+    }
+    px = pc_mobile_clamp(px, sSafeFrame.x, sSafeFrame.w, r);
+    py = pc_mobile_clamp(py, sSafeFrame.y, sSafeFrame.h, r);
+    pc_mobile_save_position(sSafeFrame, px, py, sLayout[i].fromRight, sLayout[i].cx, sLayout[i].cy);
+#else
 	const float H = (float)sLayoutH, W = (float)sLayoutW;
 	const float r = sButtons[i].r;
 	px = std::fmax(r, std::fmin(W - r, px));
@@ -501,6 +551,7 @@ void layout_place(int i, float px, float py)
 	sLayout[i].fromRight = px > W * 0.5f;
 	sLayout[i].cx = (sLayout[i].fromRight ? W - px : px) / H;
 	sLayout[i].cy = py / H;
+#endif
 	sButtons[i].cx = px;
 	sButtons[i].cy = py;
 }

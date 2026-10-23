@@ -12,6 +12,7 @@
  */
 
 #include "settings/pc_settings.h"
+#include "../pc_mobile_layout.h"
 #include "settings/pc_settings_rows.h"
 #if !PIKI_P2_HOST
 #include "settings/pc_glass_menu.h"
@@ -455,19 +456,24 @@ void f1Layout() {
 #if defined(__ANDROID__) || defined(__IPHONEOS__)
     int dw = 0, dh = 0;
     pc_gfx_get_drawable_size(&dw, &dh);
-    const float aspect = dh > 0 ? float(dw) / float(dh) : 16.0f / 9.0f;
+    const float aspect = dw > 0 && dh > 0 ? float(dw) / float(dh) : 16.0f / 9.0f;
+#if defined(__IPHONEOS__)
+    const PcMobileInsets insets = pc_mobile_safe_insets();
+    const float usableWidth = 1.0f - pc_mobile_inset(insets.left) - pc_mobile_inset(insets.right);
+    kF1CanvasH = std::max(400, int(std::ceil(600.0f / (std::max(0.1f, aspect) * usableWidth))));
+    kF1CanvasW = int(lroundf(kF1CanvasH * aspect));
+    const PcMobileFrame safe = pc_mobile_frame(float(kF1CanvasW), float(kF1CanvasH), insets);
+    kF1PanelX = int(std::ceil(safe.x)) + 8;
+    kF1PanelY = int(std::ceil(safe.y)) + 8;
+    kF1PanelW = int(std::floor(safe.x + safe.w)) - 8 - kF1PanelX;
+    kF1PanelH = int(std::floor(safe.y + safe.h)) - 8 - kF1PanelY;
+#else
     kF1CanvasH = 400;
     kF1CanvasW = std::max(600, int(lroundf(400.0f * aspect)));
-#if defined(__IPHONEOS__)
-    // Conservative landscape margins for the current iPhone test device.
-    // Replace with UIKit safe-area insets when a dynamic bridge is available.
-    kF1PanelX = 56;
-    kF1PanelY = 8;
-    kF1PanelH = kF1CanvasH - kF1PanelY - 24;
-#else
     kF1PanelX = 8;
     kF1PanelY = 8;
     kF1PanelH = kF1CanvasH - 16;
+    kF1PanelW = kF1CanvasW - 2 * kF1PanelX;
 #endif
 #else
     kF1CanvasW = 640;
@@ -475,8 +481,8 @@ void f1Layout() {
     kF1PanelX = 36;
     kF1PanelY = 34;
     kF1PanelH = 480 - 62;
-#endif
     kF1PanelW = kF1CanvasW - 2 * kF1PanelX;
+#endif
     kF1TabY = kF1PanelY + 14;
     kF1TabX = kF1PanelX + 18;
     kF1TabW = (kF1PanelW - 36 - kF1CloseW) / PC_SET_GROUP_COUNT;

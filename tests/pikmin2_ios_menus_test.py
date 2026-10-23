@@ -56,6 +56,10 @@ int checks=0;
 #endif
 #define PIKI_PC_SETTINGS_MENU 1
 #define PIKI_PC_TOUCH 1
+'''
+cpp+='#include "'+(repo/'games/pikmin1/pc_port/pc_mobile_layout.h').as_posix()+'"\n'
+cpp+='#if defined(__IPHONEOS__)\nPcMobileInsets pc_mobile_safe_insets(){return {};}\n#endif\n'
+cpp+=r'''
 namespace render {
 using GLint=int;
 int drawableW=2796,drawableH=1290,pointWidth=932,pointHeight=430;
@@ -99,10 +103,10 @@ void run(){
  CHECK(base.first==480 && base.second==221); CHECK(!(windowFlags() & SDL_WINDOW_ALLOW_HIGHDPI));
  sMenuOpen=true;ios_native_settings_frame(true);CHECK(!ios_native_settings_frame());
 #endif
- for(auto size: {std::pair<int,int>{2796,1290},{1290,2796},{1920,1080},{0,0}}){
+ for(auto size: {std::pair<int,int>{2796,1290},{1290,2796},{1920,1080},{2670,1878},{2034,1398},{0,0}}){
   drawableW=size.first;drawableH=size.second;f1Layout();
 #ifdef __IPHONEOS__
-  CHECK(kF1CanvasH==400 && kF1PanelX==56 && kF1PanelY==8);
+  CHECK(kF1CanvasH>=400 && kF1PanelX==8 && kF1PanelY==8);
 #else
   CHECK(kF1CanvasH==480 && kF1CanvasW==640);
 #endif

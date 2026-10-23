@@ -21,13 +21,13 @@ jobs:
       max-parallel: 2
       matrix:
         game: ${{ (contains(github.event.head_commit.message, '[ios-p1-update]') || contains(github.event.head_commit.message, '[ios-p1-only]')) && fromJSON('["pikmin1"]') || contains(github.event.head_commit.message, '[ios-p2-only]') && fromJSON('["pikmin2"]') || fromJSON('["pikmin1","pikmin2"]') }}
-    # Build12 never acquired an ARM host because of GitHub capacity. Xcode
-    # cross-compiles the same iphoneos ARM64 target on this standard Intel host.
-    runs-on: macos-15-intel
+    # iOS 27.1 SDK opts into the Duo full display; the minimum OS stays 15.
+    runs-on: xcode-27
     timeout-minutes: 90
     permissions:
       contents: read
     env:
+      DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
       GAME: ${{ matrix.game }}
       IOS_VARIANT: ${{ matrix.game == 'pikmin1' && (contains(github.event.head_commit.message, '[ios-p1-update]') && 'solo-update' || contains(github.event.head_commit.message, '[ios-p1-test]') && 'solo-test') || 'standard' }}
     steps:
@@ -35,7 +35,18 @@ jobs:
       - name: Tool versions
         run: |
           xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+          python3 -c 'import subprocess; v=subprocess.check_output(["xcrun","--sdk","iphoneos","--show-sdk-version"],text=True).strip(); assert tuple(map(int,v.split("."))) >= (27,1), "Full-display build requires iOS SDK 27.1+"'
           cmake --version
+      - name: Check adaptive landscape layout and player FPS choices
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/ios_display_layout_test.py "$RUNNER_TEMP/ios-display-test.cpp"
+          c++ -std=c++14 -Wall -Wextra -Werror "$RUNNER_TEMP/ios-display-test.cpp" -o "$RUNNER_TEMP/ios-display-test"
+          "$RUNNER_TEMP/ios-display-test"
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
+            -std=c++14 -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/ios-display-test.cpp"
       - name: Check iOS icon resource target scope
         run: python3 tests/ios_icon_resources_test.py
       - name: Check Pikmin 2 adapter include paths
