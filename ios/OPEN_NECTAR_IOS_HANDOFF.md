@@ -1,8 +1,8 @@
 # OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
 
-**Date/time:** 2026-10-23 08:04 Eastern Daylight Time
+**Date/time:** 2026-10-23 08:07 Eastern Daylight Time
 
-**Overall project status:** Adaptive landscape display batch implemented for BOTH games and local verification passed. Apple native compilation, new IPA generation and phone validation are PENDING. No new phone install or settings/save changes. Latest user preference: LANDSCAPE ONLY, frame rate remains player-controlled INCLUDING 120 FPS; older 60 FPS preference is superseded.
+**Overall project status:** Adaptive landscape display batch implemented for BOTH games and local verification passed. Combined Build44/run39950748289 is IN PROGRESS at source5f09f653b26d821079642ad23237c88ccd87b73d. Native results, new IPA generation and phone validation are PENDING. No new phone install or settings/save changes. Latest user preference: LANDSCAPE ONLY, frame rate remains player-controlled INCLUDING 120 FPS; older 60 FPS preference is superseded.
 
 ### Pikmin 1
 
@@ -29,11 +29,11 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; local C:\Dev\Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental; clean starting tree and fetched origin verified before edits.
 - Starting commit: 473ec14a045c3071a0dae970d05478002087dfc5 (local=origin).
-- Latest commit: Pending this batch commit; record source SHA/run immediately after push.
-- Commits created: None yet for this display batch.
-- Changes pushed: Not yet for this display batch.
-- Uncommitted changes: Scoped display/package/workflow/tests/journal changes; no user changes existed initially. No proprietary assets, credentials, videos or phone reports staged.
-- GitHub Actions run IDs: Latest completed42=39861241129 SUCCESS, source dbe796adb057d0d5c92b37ad9f5976143d5329ba; no active build at initial check. P2 working32=39518825366. New combined run pending dispatch.
+- Latest source/local/remote commit at dispatch: 5f09f653b26d821079642ad23237c88ccd87b73d; following documentation-only checkpoint is discoverable with git log. Build44 always uses this exact source.
+- Commits created: 5f09f653b26d821079642ad23237c88ccd87b73d — Adapt both iOS games to landscape safe areas and allow selectable120 FPS [ios-build].
+- Changes pushed: Source 5f09f653b26d821079642ad23237c88ccd87b73d pushed to origin/ios-experimental. Following dispatch journal uses [skip ci]; no redundant build requested.
+- Uncommitted changes: Only this dispatch documentation update before its [skip ci] commit; source tree was clean after the source commit. No user changes existed initially. No proprietary assets, credentials, videos or phone reports staged.
+- GitHub Actions run IDs: Latest completed42=39861241129 SUCCESS, source dbe796adb057d0d5c92b37ad9f5976143d5329ba; no active build at initial check. P2 working32=39518825366. Build44=39950748289, source5f09f653b26d821079642ad23237c88ccd87b73d, observed in_progress with build(pikmin1) job120404306153 and build(pikmin2) job120404306409. Duplicate43=39950747746 same source/event/path; cancellation accepted HTTP202; final duplicate conclusion not re-polled.
 - Build results: New batch LOCAL PASS only; native compile/link/IPA/phone PENDING. Workflow selects standard xcode-27 runner and Xcode27.1 (RC currently installed), asserts SDK>=27.1, retains minimum iOS15.0 and original app IDs. New toolchain compatibility/capacity is unverified until run.
 - Artifacts produced: No new IPA. P1 Build42 unchanged backup at C:\Users\chazz\Documents\Open Nectar\1 - Install on iPhone\Pikmin 1 - Build 42 - Smooth Following and Recovery.ipa; SHA256304ac9abd4c60d96d76eb95902a0716ab743a074b1c69003aad238f7f7efd6a1. P2 baseline and all backups preserved.
 
@@ -41,7 +41,7 @@
 
 - Next Pikmin 1 task: After new IPA is validated, update existing app and test landscape on both sides, clear menus, touch/editor alignment, and ordinary following. Keep genuine teleport verification separate. Frame rate is the user's choice;120 remains experimental.
 - Next Pikmin 2 task: Same display/touch checks, then verify Pikmin/enemy/wind audio remains present. No assets reimport or uninstall required.
-- GitHub/build task: Commit/push one scoped combined [ios-build] source change; record exact run/source. Stop idle polling per user. On completion retrieve full job logs, fix actual errors if any, verify original-ID unsigned ARM64 IPA (including new plist permission), stage in accessible folder1 before requesting tests.
+- GitHub/build task: Build44 is already in progress for both games; do not start another run. Stop idle polling per user. On completion retrieve full job logs, fix actual errors if any, verify original-ID unsigned ARM64 IPA (including new plist permission), stage in accessible folder1 before requesting tests.
 - Anything requiring my involvement: Nothing while preparing/building. Phone need not stay connected or run the game. Report build completion when convenient.
 
 ### ChatGPT continuation notes
@@ -51,7 +51,7 @@
 - Relevant logs: work/display-start-runs.json; work/ios-display-test.cpp; work/p2-ios-menu-test.cpp; local commands check_display.cmd, check_display_clang.cmd, check_p2_menus.cmd/_clang. Prior42 full log and verification in friendly folder2. New CI logs pending.
 - Unverified fixes: All new UIKit/native resize/folding and120 FPS runtime behavior. Existing SDL still uses its legacy UIKit window lifecycle; no claim that SDK upgrade alone proves live folding works. Original game HUD/cutscene aspect paths retained and need phone review. Sustained120 depends on screen, power/thermal state and workload.
 - Risks and warnings: SDK27.1/Xcode27.1 runner change may uncover compiler/SDK compatibility failures; diagnose actual output. No guaranteed universal-device certification from synthetic sizes. User's prior navigation/teleport issues remain separate. No online or autosave development in this batch; agreed plans remain in repository.
-- Exact next actions: Finish combined commit/push, record source/run, update handoff with dispatch metadata [skip ci]. Await completion without usage-consuming polling. Verify/stage each successful IPA independently; preserve installed working baselines. Update this report after actual native and phone results.
+- Exact next actions: Await Build44/run39950748289 completion without idle polling. User will report completion. Retrieve its full jobs/logs/artifacts for source5f09f653b26d821079642ad23237c88ccd87b73d; verify/stage each successful IPA independently; preserve installed working baselines. Check actual SDK and new plist flag in packaged binary/metadata. Update this report after native and phone results. No new build for this journal.
 
 **END PROGRESS REPORT**
 
