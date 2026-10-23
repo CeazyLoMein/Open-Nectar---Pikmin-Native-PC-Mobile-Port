@@ -682,9 +682,9 @@ int ObjectSystem::JSGFindObject(JStage::TObject** outObject, const char* name, J
  * @note Address: 0x80431348
  * @note Size: 0x8
  */
-char* ObjectSystem::JSGGetName() const
+char const* ObjectSystem::JSGGetName() const
 {
-	return const_cast<char*>(mName);
+	return mName;
 }
 
 /**

@@ -60,6 +60,11 @@ jobs:
           c++ -std=c++17 -I"$GITHUB_WORKSPACE/games/pikmin2/pikmin2-decomp-adapter" \
             "$GITHUB_WORKSPACE/tests/pikmin2_apple_nullptr_test.cpp" -o "$RUNNER_TEMP/p2-nullptr-test"
           "$RUNNER_TEMP/p2-nullptr-test"
+          python3 tests/pikmin2_jstage_name_test.py "$RUNNER_TEMP/p2-jstage-test.cpp"
+          c++ -std=c++14 -Wall -Wextra -Werror "$RUNNER_TEMP/p2-jstage-test.cpp" -o "$RUNNER_TEMP/p2-jstage-test"
+          "$RUNNER_TEMP/p2-jstage-test"
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
+            -std=c++14 -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/p2-jstage-test.cpp"
           python3 tests/pikmin2_container_handles_test.py "$RUNNER_TEMP/p2-container-test.cpp"
           c++ -std=c++17 "$RUNNER_TEMP/p2-container-test.cpp" -o "$RUNNER_TEMP/p2-container-test"
           "$RUNNER_TEMP/p2-container-test"
