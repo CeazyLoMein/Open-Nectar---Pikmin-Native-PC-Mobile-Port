@@ -1,3 +1,5 @@
+CURRENT — Build45/run39958190774/sourcedd5683cec866d7f96f6fe5dcc2321b2d8426a088/P2-only job120429205992 IN PROGRESS. P2 JSGGetName const override correction localPASS; native/IPA pending. Build44 P1 unchanged original-ID IPA VERIFIED/READY in folder1, phone pending. No P1 rebuild or idle polling; fps user-controlled incl120, landscape-only.
+
 CURRENT — 2026-10-23 09:03 EDT: Build44 P1 native/IPA PASS; unchanged original-ID SDK27.1 ProMotion IPA VERIFIED/READY in folder1, phone pending. P2 FAIL:1 unique JSGGetName const override mismatch repeated6 times. Declaration/definition corrected;4+3 signature/dispatch checks and Clang PASS, old-source compile FAIL expected. P2-only retry next; P1 not rebuilt. Player-controlled FPS incl120, landscape only.
 
 CURRENT — 2026-10-23: Combined Build44/run39950748289, source5f09f653b26d821079642ad23237c88ccd87b73d IN PROGRESS, jobs120404306153/120404306409. Duplicate43 cancellation accepted202. Adaptive landscape LOCAL PASS1778+409/302+39+6, Clang PASS; native/IPA/phone pending. LANDSCAPE ONLY, player-controlled FPS INCLUDING120; no forced60. Phone not needed; no idle polling.

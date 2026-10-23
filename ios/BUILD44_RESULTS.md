@@ -11,3 +11,5 @@ Correction: both ObjectSystem declaration and implementation return char const*,
 Regression extracts actual base/system/actor/camera signatures and actual base/system bodies.4 compile-time type assertions +3 direct/base-pointer const/null name cases PASS with MSVC/C++14 and Clang. Original source fixture fails compilation on the same override mismatch. CI runs this before the full P2 native build and syntax-checks the real ARM64 iOS target. Full native retry still required; no P2 IPA or runtime result claimed.
 
 P2-only retry uses [ios-build] [ios-p2-only]; retain successful P1 artifact. See current progress report for exact new run when dispatched. No idle CI polling. Full P2 failure artifact ZIP and unique-error JSON saved in folder2; full raw job log remains private workspace work/build44-p2-full.log.
+
+Retry dispatched: Build45/run39958190774, sourcedd5683cec866d7f96f6fe5dcc2321b2d8426a088, P2-only job120429205992 IN PROGRESS. Native/IPA results pending. Duplicate43 confirmed cancelled.

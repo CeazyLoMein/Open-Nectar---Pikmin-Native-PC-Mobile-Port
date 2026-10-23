@@ -2,7 +2,7 @@
 
 **Date/time:** 2026-10-23 09:03 EDT
 
-**Overall project status:** Build44 P1 native/link/package PASSED and unchanged original-ID IPA VERIFIED/READY in folder1. Build44 P2 compilation FAILED: one unique virtual return-type error repeated6 times. P2 correction implemented and local regression PASS; P2-only retry next. New display/120 FPS phone results PENDING. Landscape only; player controls FPS including120; no forced60 cap.
+**Overall project status:** Build44 P1 native/link/package PASSED and unchanged original-ID IPA VERIFIED/READY in folder1. Build44 P2 compilation FAILED: one unique virtual return-type error repeated6 times. P2 correction implemented and local regression PASS; P2-only Build45/run39958190774 IN PROGRESS at sourcedd5683cec866d7f96f6fe5dcc2321b2d8426a088. New display/120 FPS phone results PENDING. Landscape only; player controls FPS including120; no forced60 cap.
 
 ### Pikmin 1
 
@@ -29,11 +29,11 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port, local C:\Dev\Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental. Starting working tree clean; fetched local/origin bothf23c62d5e33cc7ecfb8042dee5a04e32912229b6. No external changes found.
 - Starting commit: f23c62d5e33cc7ecfb8042dee5a04e32912229b6 (journal); Build44 source5f09f653b26d821079642ad23237c88ccd87b73d.
-- Latest commit: P2 correction prepared; source SHA and new run to be recorded immediately after push.
-- Commits created: P2 fix/test/journal commit pending.
-- Changes pushed: None yet in this follow-up. Intended marker [ios-build] [ios-p2-only] avoids redundant P1 build.
-- Uncommitted changes: Scoped two-file P2 fix, regression, experimental workflow and journal; no unrelated/user files or private materials staged.
-- GitHub Actions run IDs:44=39950748289 combined FAILURE; P1 job120404306153 SUCCESS, P2 job120404306409 FAILURE. Duplicate43 cancellation was accepted202 previously. P2-only retry pending.
+- Latest source/local/remote commit at dispatch: dd5683cec866d7f96f6fe5dcc2321b2d8426a088; following documentation checkpoint recorded by git history. Build45 source remains this exact commit.
+- Commits created: dd5683cec866d7f96f6fe5dcc2321b2d8426a088 — Match P2 cutscene name override to read-only JStage interface [ios-build] [ios-p2-only].
+- Changes pushed: Sourcedd5683cec866d7f96f6fe5dcc2321b2d8426a088 pushed; Build45 has only P2 job120429205992, observed in_progress. P1 is not rebuilt.
+- Uncommitted changes: Only dispatch journal update before documentation commit [skip ci]; source tree was clean after source push. No unrelated/user files or private materials staged.
+- GitHub Actions run IDs:44=39950748289 combined FAILURE; P1 job120404306153 SUCCESS, P2 job120404306409 FAILURE. Duplicate43 confirmed CANCELLED. Retry45=39958190774, sourcedd5683cec866d7f96f6fe5dcc2321b2d8426a088, P2-only job120429205992 IN PROGRESS at dispatch.
 - Build results: P1 native/link/IPA44 PASS. P2 native44 FAIL at override type; local correction PASS, new native pending. No hardware validation this follow-up.
 - Artifacts produced: P1 IPA C:\Users\chazz\Documents\Open Nectar\1 - Install on iPhone\Pikmin 1 - Build 44 - Adaptive Landscape and 120 FPS.ipa; SHA25649db612ed3944dcff30b5f60a93bf16ad187f343fa47cbd1a53fa38f7b8dd636. Artifact ZIP SHA256e7a47fbacdb70cfb76f0089d007bccf68573d339f7c01b269329cac926d4249c; UUIDb0e12e37-9091-3a54-b3ac-27222d5013b1. P2 full failure ZIP3,630,733bytes SHA2560213111c9d63a0669877df39b7d2154c7de25f5b65fad92b6939a91e4fa5331d; no IPA. Older42 and32 baselines/backups retained.
 
@@ -41,7 +41,7 @@
 
 - Next Pikmin 1 task: Update existing app using the verified44 IPA and same signing account. Read folder1/Build44 - P1 Ready and Test Steps.txt. Test menu/control alignment on both landscape sides and Duo displays, optional120 persistence and Performance HUD output. Test ordinary following separately; do not call teleport verified unless a truly stuck follower visibly relocates.
 - Next Pikmin 2 task: Finish P2-only retry; inspect full logs/artifacts on completion and fix actual remaining failures if any. No repeated relaunch/reset of working app needed.
-- GitHub/build task: Push scoped P2-only retry, record exact source/run/jobs, then stop idle polling per user. No P1 rebuild.
+- GitHub/build task: Build45 is already running P2 alone; no new trigger needed. Stop idle polling per user and retrieve actual completed logs/artifacts when user reports completion. No P1 rebuild.
 - Anything requiring my involvement: P1 phone test when convenient; phone need not remain connected. User reports P2 retry completion. No P2 installation yet.
 
 ### ChatGPT continuation notes
@@ -51,6 +51,6 @@
 - Relevant logs: work/build44-p2-full.log (complete job); outputs/Build44-Pikmin2/ios-build.log and ios-build-errors.md; work/build44-p2-errors.json (1 unique/6 occurrences); work/p2-jstage-negative.log; work/build44-jobs-final.json,build44-artifacts.json,build44-run.json; work/build44-verification.json. Friendly folder2 has P2 full failure ZIP/error JSON, P1 full successful log/verification and this handoff. Private downloads/logs never committed.
 - Unverified fixes: New P2 const return correction native/link/IPA/runtime; P1/P2 display/folding, actual high-refresh output and all unresolved prior runtime behaviors. Successful host fixtures are not full-game or phone proof.
 - Risks and warnings: New SDK can expose further legacy incompatibilities; actual make -k log currently shows only this one. Do not reset either installed app or upload game assets. Keep P1 passed44 available independently of P2 retry. SDK native window lifecycle/folding requires real device evidence. No spoilers.
-- Exact next actions: Commit/push P2-only source with [ios-build] [ios-p2-only], record exact retry run and update dispatch notes [skip ci]. Stop waiting on CI; user reports completion. On success verify original-ID unsigned ARM64 P2 IPA incl SDK27.1/ProMotion/landscape metadata and icons; place in folder1, alert user, give targeted tests. On failure use complete actual log, group unique errors before changes. Independently receive P1 test44 feedback.
+- Exact next actions: Await P2-only Build45/run39958190774/sourcedd5683cec866d7f96f6fe5dcc2321b2d8426a088/job120429205992; stop idle polling. User reports completion. On success verify original-ID unsigned ARM64 P2 IPA incl SDK27.1/ProMotion/landscape metadata and icons; place in folder1, alert user, give targeted tests. On failure use complete actual log, group unique errors before changes. Independently receive P1 test44 feedback.
 
 **END PROGRESS REPORT**
