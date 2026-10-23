@@ -34,6 +34,10 @@
 #else
 #import <AVFoundation/AVFoundation.h>
 #import <UIKit/UIApplication.h>
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+/* Open Nectar: UIApplication.h does not declare scene lifecycle notifications. */
+#import <UIKit/UIScene.h>
+#endif
 #endif
 
 #include <AudioToolbox/AudioToolbox.h>

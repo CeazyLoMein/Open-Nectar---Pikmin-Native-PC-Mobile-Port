@@ -36,3 +36,11 @@ Private three crash reports + summaries + installed-identity JSON are in workspa
 ## Dispatch checkpoint
 
 Build46/run39991097065, source0f61ee4163ea4b47f668f50ed1f1e3511149b3bd, startup gate job120542742441 IN PROGRESS at dispatch. Both full games depend on this gate. No simulator/native/IPA/phone result yet for this source. Do not poll while waiting; user reports completion.
+
+## Build46 compile failure and correction
+
+Run39991097065/source0f61ee4163ea4b47f668f50ed1f1e3511149b3bd startup job120542742441 FAILED compiling the actual SDL_coreaudio.m. Exactly two compiler errors: UISceneDidActivateNotification (line494) and UISceneWillEnterForegroundNotification (line504) undeclared. One root cause: SDL_coreaudio.h imported the narrow UIApplication.h; it did not import UIScene.h. Earlier static tests checked notification names but missed declaration ownership. Simulator runtime did NOT run; both downstream game builds SKIPPED, no IPA.
+
+Correction: import UIKit/UIScene.h in SDL_coreaudio.h inside existing iOS branch, guarded by NECTAR_IOS_SCENES && !TARGET_OS_TV. macOS/tvOS/legacy opt-out retain prior includes. Other scene notification users audited: UIKit appdelegate and iOS HID already import full UIKit.h. No DSP, input, rendering or FPS logic changed. Local24 contract/dependency checks PASS including missing-import rejection. Native compilation/runtime remain pending; real simulator gate retained without bypass.
+
+Complete diagnostic artifact12517803044 contains only ios-scene-build.log; ZIP SHA2566710fccadf47fccf23b7a6eb76c9d2bd73597f0b3d0a408aa430d42878165602 verified, entries CRC-tested. Full job/log/verification retained privately in workspace and friendly folder2. P144 remains withdrawn and P245 installation held.

@@ -41,4 +41,17 @@ assert 'name:UISceneDidActivateNotification' in audio and 'name:UISceneWillEnter
 hid=(r/'games/pikmin1/third_party/SDL2-android/src/hidapi/ios/hid.m').read_text(encoding='utf-8')
 assert 'name:UISceneWillDeactivateNotification' in hid and 'name:UISceneDidActivateNotification' in hid
 checks+=2
+# Build46 failed in the real CoreAudio TU: UIApplication.h alone does not
+# declare UIScene notifications. Keep the owning header inside its iOS-only
+# scene opt-in branch. This is a dependency check, not an Apple compile test.
+def validate_audio_scene_import(header):
+ assert re.search(r'#if defined\(NECTAR_IOS_SCENES\) && !TARGET_OS_TV\s+(?:/\*.*?\*/\s+)?#import <UIKit/UIScene\.h>\s+#endif', header, re.S)
+audio_header=(r/'games/pikmin1/third_party/SDL2-android/src/audio/coreaudio/SDL_coreaudio.h').read_text(encoding='utf-8')
+validate_audio_scene_import(audio_header);checks+=1
+try:validate_audio_scene_import(audio_header.replace('#import <UIKit/UIScene.h>', ''))
+except AssertionError:checks+=1
+else:raise AssertionError('Missing CoreAudio scene declaration header accepted')
+# Other notification users already import the full UIKit declarations.
+assert '#import <UIKit/UIKit.h>' in (u/'SDL_uikitappdelegate.h').read_text(encoding='utf-8');checks+=1
+assert '#import <UIKit/UIKit.h>' in hid;checks+=1
 print(f'PASS: {checks} scene metadata, missing-key negative controls and shared SDL entry/window/lifecycle wiring checks (not runtime proof)')
