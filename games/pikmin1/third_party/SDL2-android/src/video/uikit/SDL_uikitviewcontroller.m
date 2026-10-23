@@ -225,6 +225,13 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
 
 - (void)viewDidLayoutSubviews
 {
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+    /* Open Nectar: update Retina scale if the current window traits change. */
+    if (window->flags & SDL_WINDOW_ALLOW_HIGHDPI) {
+        const CGFloat scale = self.view.traitCollection.displayScale;
+        if (scale > 0 && self.view.contentScaleFactor != scale) self.view.contentScaleFactor = scale;
+    }
+#endif
     const CGSize size = self.view.bounds.size;
     int w = (int) size.width;
     int h = (int) size.height;

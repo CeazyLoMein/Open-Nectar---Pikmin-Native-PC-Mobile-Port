@@ -31,6 +31,9 @@
 #include "SDL_uikitwindow.h"
 
 #import <Foundation/Foundation.h>
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+#import "SDL_uikitappdelegate.h"
+#endif
 
 #if (__IPHONE_OS_VERSION_MAX_ALLOWED >= 140000) || (__APPLETV_OS_VERSION_MAX_ALLOWED >= 140000) || (__MAC_OS_VERSION_MAX_ALLOWED > 1500000)
 #import <GameController/GameController.h>
@@ -53,10 +56,18 @@ static BOOL UIKit_EventPumpEnabled = YES;
     NSNotificationCenter *notificationCenter = NSNotificationCenter.defaultCenter;
     if (UIKit_EventPumpEnabled && !self.isObservingNotifications) {
         self.isObservingNotifications = YES;
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+        /* Open Nectar: one scene delivers each SDL lifecycle transition once. */
+        for (NSNotificationName name in @[UISceneDidActivateNotification, UISceneWillDeactivateNotification,
+                                          UISceneDidEnterBackgroundNotification, UISceneWillEnterForegroundNotification]) {
+            [notificationCenter addObserver:self selector:@selector(nectarSceneLifecycle:) name:name object:nil];
+        }
+#else
         [notificationCenter addObserver:self selector:@selector(applicationDidBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
         [notificationCenter addObserver:self selector:@selector(applicationWillResignActive) name:UIApplicationWillResignActiveNotification object:nil];
         [notificationCenter addObserver:self selector:@selector(applicationDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
         [notificationCenter addObserver:self selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
+#endif
         [notificationCenter addObserver:self selector:@selector(applicationWillTerminate) name:UIApplicationWillTerminateNotification object:nil];
         [notificationCenter addObserver:self selector:@selector(applicationDidReceiveMemoryWarning) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
 #if !TARGET_OS_TV
@@ -67,6 +78,18 @@ static BOOL UIKit_EventPumpEnabled = YES;
         [notificationCenter removeObserver:self];
     }
 }
+
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+- (void)nectarSceneLifecycle:(NSNotification *)notification
+{
+    SDLUIKitDelegate *app = [SDLUIKitDelegate sharedAppDelegate];
+    if (notification.object != app.nectarWindowScene) return;
+    if ([notification.name isEqualToString:UISceneDidActivateNotification]) [self applicationDidBecomeActive];
+    else if ([notification.name isEqualToString:UISceneWillDeactivateNotification]) [self applicationWillResignActive];
+    else if ([notification.name isEqualToString:UISceneDidEnterBackgroundNotification]) [self applicationDidEnterBackground];
+    else if ([notification.name isEqualToString:UISceneWillEnterForegroundNotification]) [self applicationWillEnterForeground];
+}
+#endif
 
 - (void)applicationDidBecomeActive
 {

@@ -13,7 +13,43 @@ on:
   workflow_dispatch:
 
 jobs:
+  scene-startup:
+    # Gate both games on a real UIKit launch, not just successful compilation.
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[ios-build]') }}
+    runs-on: xcode-27
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check shared scene startup contract
+        run: python3 tests/ios_scene_contract_test.py
+      - name: Build asset-free simulator startup probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          cmake -S tests/ios_scene_smoke -B "$RUNNER_TEMP/nectar-scene-build" -G Xcode \
+            -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
+            -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO
+          cmake --build "$RUNNER_TEMP/nectar-scene-build" --config Release --target NectarSceneSmoke --parallel 3 \
+            2>&1 | tee ios-scene-build.log
+      - name: Launch and test scene-owned window and background resume
+        run: python3 tests/run_ios_scene_smoke.py --build-root "$RUNNER_TEMP/nectar-scene-build" --output scene-startup-results
+      - name: Preserve startup probe diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-scene-startup-check
+          path: |
+            ios-scene-build.log
+            scene-startup-results/
+          if-no-files-found: warn
   build:
+    needs: scene-startup
     # Run both games on marked pushes; manual trigger works if workflow is on the default branch.
     if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[ios-build]') }}
     strategy:
@@ -272,6 +308,7 @@ jobs:
           test -n "$APP"
           test -f "$APP/Info.plist"
           python3 ios/verify_bundle_info.py "$APP/Info.plist" --game "$GAME" --variant "$IOS_VARIANT" --require-binary
+          python3 ios/verify_scene_bundle.py "$APP"
           EXECUTABLE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist")
           lipo "$APP/$EXECUTABLE" -verify_arch arm64
           lipo -info "$APP/$EXECUTABLE"

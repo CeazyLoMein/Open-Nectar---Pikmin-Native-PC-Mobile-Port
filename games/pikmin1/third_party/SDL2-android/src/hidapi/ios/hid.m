@@ -234,8 +234,14 @@ typedef enum
         // before initializing Bluetooth, which will prompt the user for permission.
 		if ( SDL_GetHintBoolean( SDL_HINT_JOYSTICK_HIDAPI_STEAM, SDL_FALSE ) )
 		{
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+            /* Open Nectar: preserve controller reconnect behavior in scene mode. */
+            [[NSNotificationCenter defaultCenter] addObserver:sharedInstance selector:@selector(appWillResignActiveNotification:) name:UISceneWillDeactivateNotification object:nil];
+            [[NSNotificationCenter defaultCenter] addObserver:sharedInstance selector:@selector(appDidBecomeActiveNotification:) name:UISceneDidActivateNotification object:nil];
+#else
 			[[NSNotificationCenter defaultCenter] addObserver:sharedInstance selector:@selector(appWillResignActiveNotification:) name: UIApplicationWillResignActiveNotification object:nil];
 			[[NSNotificationCenter defaultCenter] addObserver:sharedInstance selector:@selector(appDidBecomeActiveNotification:) name:UIApplicationDidBecomeActiveNotification object:nil];
+#endif
 
 			// receive reports on a high-priority serial-queue. optionally put writes on the serial queue to avoid logical
 			// race conditions talking to the controller from multiple threads, although BLE fragmentation/assembly means

@@ -22,6 +22,16 @@
   <!-- Allow ProMotion rates; the player still selects the game FPS mode. -->
   <key>CADisableMinimumFrameDurationOnPhone</key><true/>
   <key>UILaunchScreen</key><dict/>
+  <key>UIApplicationSceneManifest</key><dict>
+    <key>UIApplicationSupportsMultipleScenes</key><false/>
+    <key>UISceneConfigurations</key><dict>
+      <key>UIWindowSceneSessionRoleApplication</key><array><dict>
+        <key>UISceneConfigurationName</key><string>NectarGame</string>
+        <key>UISceneClassName</key><string>UIWindowScene</string>
+        <key>UISceneDelegateClassName</key><string>NectarSDLSceneDelegate</string>
+      </dict></array>
+    </dict>
+  </dict>
   <key>UIStatusBarHidden</key><true/>
   <key>UIFileSharingEnabled</key><true/>
   <key>LSSupportsOpeningDocumentsInPlace</key><true/>

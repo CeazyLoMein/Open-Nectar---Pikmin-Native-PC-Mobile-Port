@@ -35,6 +35,9 @@
 #include "SDL_uikitevents.h"
 #include "SDL_uikitmodes.h"
 #include "SDL_uikitwindow.h"
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+#import "SDL_uikitappdelegate.h"
+#endif
 #include "SDL_uikitopengles.h"
 #include "SDL_uikitclipboard.h"
 #include "SDL_uikitvulkan.h"
@@ -197,6 +200,12 @@ SDL_bool UIKit_IsSystemVersionAtLeast(double version)
 CGRect UIKit_ComputeViewFrame(SDL_Window *window, UIScreen *screen)
 {
     SDL_WindowData *data = (__bridge SDL_WindowData *) window->driverdata;
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+    /* Open Nectar: trust current view/scene bounds, not global orientation. */
+    if (data.uiwindow.windowScene) return data.uiwindow.bounds;
+    SDLUIKitDelegate *app = [SDLUIKitDelegate sharedAppDelegate];
+    if (app.nectarWindowScene) return app.nectarWindowScene.coordinateSpace.bounds;
+#endif
     CGRect frame = screen.bounds;
 #if !TARGET_OS_TV
     UIInterfaceOrientation orient;

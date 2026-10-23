@@ -35,6 +35,16 @@
 + (NSString *)getAppDelegateClassName;
 
 - (void)hideLaunchScreen;
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+/* Open Nectar modification: one scene owns the existing SDL game window. */
+@property (nonatomic, strong) UIWindowScene *nectarWindowScene;
+@property (nonatomic) BOOL nectarMainScheduled;
+@property (nonatomic) BOOL nectarMainEntered;
+@property (nonatomic, strong) NSMutableArray<NSURL *> *nectarLaunchURLs;
+- (void)nectarConnectWindowScene:(UIWindowScene *)scene;
+- (void)nectarDeliverLaunchURLs;
+- (void)sendDropFileForURL:(NSURL *)url;
+#endif
 
 /* This property is marked as optional, and is only intended to be used when
  * the app's UI is storyboard-based. SDL is not storyboard-based, however
@@ -43,5 +53,11 @@
 @property (nonatomic) UIWindow *window;
 
 @end
+
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+@interface NectarSDLSceneDelegate : NSObject<UIWindowSceneDelegate>
+@property (nonatomic, strong) UIWindow *window;
+@end
+#endif
 
 /* vi: set ts=4 sw=4 expandtab: */

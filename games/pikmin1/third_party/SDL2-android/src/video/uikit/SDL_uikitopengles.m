@@ -164,7 +164,11 @@ SDL_GLContext UIKit_GL_CreateContext(_THIS, SDL_Window * window)
             /* Set the scale to the natural scale factor of the screen - the
              * backing dimensions of the OpenGL view will match the pixel
              * dimensions of the screen rather than the dimensions in points. */
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+            scale = data.uiwindow.traitCollection.displayScale;
+#else
             scale = data.uiwindow.screen.nativeScale;
+#endif
         }
 
         context = [[SDLEAGLContext alloc] initWithAPI:api sharegroup:sharegroup];

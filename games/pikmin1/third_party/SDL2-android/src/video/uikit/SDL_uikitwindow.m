@@ -90,7 +90,12 @@ static int SetupWindowData(_THIS, SDL_Window *window, UIWindow *uiwindow, SDL_bo
     SDL_DisplayData *displaydata = (__bridge SDL_DisplayData *) display->driverdata;
     SDL_uikitview *view;
 
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+    /* Open Nectar: the scene window may be smaller than the physical display. */
+    CGRect frame = uiwindow.bounds;
+#else
     CGRect frame = UIKit_ComputeViewFrame(window, displaydata.uiscreen);
+#endif
     int width  = (int) frame.size.width;
     int height = (int) frame.size.height;
 
@@ -207,7 +212,16 @@ int UIKit_CreateWindow(_THIS, SDL_Window *window)
 
         /* ignore the size user requested, and make a fullscreen window */
         /* !!! FIXME: can we have a smaller view? */
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+        SDLUIKitDelegate *app = [SDLUIKitDelegate sharedAppDelegate];
+        UIWindowScene *scene = app.nectarWindowScene;
+        if (!scene) return SDL_SetError("Open Nectar needs a connected game scene before creating a window");
+        uiwindow = [[SDL_uikitwindow alloc] initWithWindowScene:scene];
+        uiwindow.frame = scene.coordinateSpace.bounds;
+        ((NectarSDLSceneDelegate *)scene.delegate).window = uiwindow;
+#else
         uiwindow = [[SDL_uikitwindow alloc] initWithFrame:data.uiscreen.bounds];
+#endif
 
         /* put the window on an external display if appropriate. */
         if (data.uiscreen != [UIScreen mainScreen]) {
@@ -367,7 +381,11 @@ void UIKit_GetWindowSizeInPixels(_THIS, SDL_Window * window, int *w, int *h)
     CGFloat scale = 1.0;
 
     if (window->flags & SDL_WINDOW_ALLOW_HIGHDPI) {
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+        scale = view.contentScaleFactor;
+#else
         scale = windata.uiwindow.screen.nativeScale;
+#endif
     }
 
     /* Integer truncation of fractional values matches SDL_uikitmetalview and

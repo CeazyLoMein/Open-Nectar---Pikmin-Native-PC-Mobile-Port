@@ -349,6 +349,41 @@ static UIImage *SDL_LoadLaunchImageNamed(NSString *name, int screenh)
 
 @end
 
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+/* Open Nectar modification, not an upstream SDL2 implementation. */
+@interface NectarSDLLaunchController : UIViewController
+@end
+@implementation NectarSDLLaunchController
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations { return UIInterfaceOrientationMaskLandscape; }
+- (BOOL)prefersStatusBarHidden { return YES; }
+@end
+
+@implementation NectarSDLSceneDelegate
+- (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)options
+{
+    if (![scene isKindOfClass:[UIWindowScene class]] || ![session.role isEqualToString:UIWindowSceneSessionRoleApplication]) return;
+    SDLUIKitDelegate *app = [SDLUIKitDelegate sharedAppDelegate];
+    for (UIOpenURLContext *context in options.URLContexts) {
+        if (!app.nectarLaunchURLs) app.nectarLaunchURLs = [NSMutableArray new];
+        [app.nectarLaunchURLs addObject:context.URL];
+    }
+    [app nectarConnectWindowScene:(UIWindowScene *)scene];
+    self.window = app.window;
+}
+- (void)sceneDidDisconnect:(UIScene *)scene
+{
+    SDLUIKitDelegate *app = [SDLUIKitDelegate sharedAppDelegate];
+    if (app.nectarWindowScene == scene) app.nectarWindowScene = nil;
+    self.window = nil;
+}
+- (void)scene:(UIScene *)scene openURLContexts:(NSSet<UIOpenURLContext *> *)contexts
+{
+    SDLUIKitDelegate *app = [SDLUIKitDelegate sharedAppDelegate];
+    for (UIOpenURLContext *context in contexts) [app sendDropFileForURL:context.URL];
+}
+@end
+#endif
+
 @implementation SDLUIKitDelegate {
     UIWindow *launchWindow;
 }
@@ -388,12 +423,59 @@ static UIImage *SDL_LoadLaunchImageNamed(NSString *name, int screenh)
     }];
 }
 
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+- (UISceneConfiguration *)application:(UIApplication *)application configurationForConnectingSceneSession:(UISceneSession *)session options:(UISceneConnectionOptions *)options
+{
+    UISceneConfiguration *configuration = [[UISceneConfiguration alloc] initWithName:@"NectarGame" sessionRole:session.role];
+    configuration.sceneClass = [UIWindowScene class];
+    configuration.delegateClass = [NectarSDLSceneDelegate class];
+    return configuration;
+}
+
+- (void)nectarConnectWindowScene:(UIWindowScene *)scene
+{
+    if (self.nectarWindowScene && self.nectarWindowScene != scene) return;
+    self.nectarWindowScene = scene;
+    if (self.nectarMainScheduled) {
+        // Reconnecting must never re-enter main or reset a live campaign.
+        UIWindow *window = self.window;
+        if (window) {
+            window.windowScene = scene;
+            window.frame = scene.coordinateSpace.bounds;
+            [window makeKeyAndVisible];
+        }
+        return;
+    }
+    launchWindow = [[UIWindow alloc] initWithWindowScene:scene];
+    launchWindow.frame = scene.coordinateSpace.bounds;
+    launchWindow.rootViewController = [NectarSDLLaunchController new];
+    launchWindow.rootViewController.view.backgroundColor = [UIColor blackColor];
+    [launchWindow makeKeyAndVisible];
+    self.nectarMainScheduled = YES;
+    // UIKit must finish connecting the scene before the SDL game loop runs.
+    [self performSelector:@selector(postFinishLaunch) withObject:nil afterDelay:0.0];
+}
+
+- (void)nectarDeliverLaunchURLs
+{
+    for (NSURL *url in self.nectarLaunchURLs) [self sendDropFileForURL:url];
+    self.nectarLaunchURLs = nil;
+}
+#endif
+
 - (void)postFinishLaunch
 {
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+    if (self.nectarMainEntered) return;
+    self.nectarMainEntered = YES;
+#endif
     /* Hide the launch screen the next time the run loop is run. SDL apps will
      * have a chance to load resources while the launch screen is still up. */
     [self performSelector:@selector(hideLaunchScreen) withObject:nil afterDelay:0.0];
 
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+    [self performSelector:@selector(nectarDeliverLaunchURLs) withObject:nil afterDelay:0.0];
+#endif
     /* run the user's application, passing argc and argv */
     SDL_iPhoneSetEventPump(SDL_TRUE);
     exit_status = forward_main(forward_argc, forward_argv);
@@ -414,6 +496,13 @@ static UIImage *SDL_LoadLaunchImageNamed(NSString *name, int screenh)
 {
     NSBundle *bundle = [NSBundle mainBundle];
 
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+    /* Process setup only. The connected scene schedules main exactly once. */
+    [[NSFileManager defaultManager] changeCurrentDirectoryPath:[bundle resourcePath]];
+    SDL_AddHintCallback(SDL_HINT_IDLE_TIMER_DISABLED, SDL_IdleTimerDisabledChanged, NULL);
+    SDL_SetMainReady();
+    return YES;
+#else
 #ifdef SDL_IPHONE_LAUNCHSCREEN
     /* The normal launch screen is displayed until didFinishLaunching returns,
      * but SDL_main is called after that happens and there may be a noticeable
@@ -473,6 +562,7 @@ static UIImage *SDL_LoadLaunchImageNamed(NSString *name, int screenh)
     [self performSelector:@selector(postFinishLaunch) withObject:nil afterDelay:0.0];
 
     return YES;
+#endif /* Open Nectar scene/legacy startup */
 }
 
 - (UIWindow *)window
@@ -487,7 +577,11 @@ static UIImage *SDL_LoadLaunchImageNamed(NSString *name, int screenh)
             }
         }
     }
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+    return launchWindow;
+#else
     return nil;
+#endif
 }
 
 - (void)setWindow:(UIWindow *)window

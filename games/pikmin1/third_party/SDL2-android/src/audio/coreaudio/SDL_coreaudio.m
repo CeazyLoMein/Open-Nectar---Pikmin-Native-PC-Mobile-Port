@@ -489,12 +489,22 @@ static BOOL update_audio_session(_THIS, SDL_bool open, SDL_bool allow_playandrec
             // Note: object: below needs to be nil, as otherwise it filters by the object, and session doesn't send foreground / active notifications.  johna
             [center addObserver:listener
                        selector:@selector(applicationBecameActive:)
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+                           /* Open Nectar: resume interruption handling with the game scene. */
+                           name:UISceneDidActivateNotification
+#else
                            name:UIApplicationDidBecomeActiveNotification
+#endif
                          object:nil];
 
             [center addObserver:listener
                        selector:@selector(applicationBecameActive:)
+#if defined(NECTAR_IOS_SCENES) && !TARGET_OS_TV
+                           /* Open Nectar: resume interruption handling with the game scene. */
+                           name:UISceneWillEnterForegroundNotification
+#else
                            name:UIApplicationWillEnterForegroundNotification
+#endif
                          object:nil];
 
             this->hidden->interruption_listener = CFBridgingRetain(listener);
