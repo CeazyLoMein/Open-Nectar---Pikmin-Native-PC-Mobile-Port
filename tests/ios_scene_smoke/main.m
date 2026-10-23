@@ -9,6 +9,9 @@
 - (void)nectarConnectWindowScene:(UIWindowScene *)scene;
 - (void)postFinishLaunch;
 @end
+@protocol NectarLifecycleProbe <NSObject>
+- (void)nectarSceneLifecycle:(NSNotification *)notification;
+@end
 static int entries, willBackground, didBackground, willForeground, didForeground;
 static UIWindow *nativeWindow;
 static BOOL ready, reconnectOK, foreignIgnored;
@@ -97,10 +100,20 @@ static int scene_main(int argc, char **argv)
     SDL_VERSION(&after.version);
     reconnectOK = SDL_GetWindowWMInfo(window, &after) && after.info.uikit.window == nativeWindow && entries == 1;
     checkpoint(@"reconnect-checked");
+    checkpoint(@"foreign-filter-check");
+    // Exercise SDL's actual filter implementation without broadcasting an invalid
+    // UIScene object to UIKit's own keyboard/window observers (Build48 crash).
+    // Real background/resume below still uses the registered SDL observer.
+    Class observerClass = NSClassFromString(@"SDL_LifecycleObserver");
+    id<NectarLifecycleProbe> filterProbe = (id<NectarLifecycleProbe>)[observerClass new];
+    if (!filterProbe || ![filterProbe respondsToSelector:@selector(nectarSceneLifecycle:)]) {
+        failure = @"Cannot exercise the actual SDL scene filter"; report(); return 1;
+    }
     const int before = willBackground + didBackground + willForeground + didForeground;
     for (NSNotificationName name in @[UISceneDidActivateNotification, UISceneWillDeactivateNotification,
                                       UISceneDidEnterBackgroundNotification, UISceneWillEnterForegroundNotification]) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:name object:[NSObject new]];
+        NSNotification *notification = [NSNotification notificationWithName:name object:[NSObject new]];
+        [filterProbe nectarSceneLifecycle:notification];
     }
     foreignIgnored = before == willBackground + didBackground + willForeground + didForeground;
     ready = YES;

@@ -54,4 +54,17 @@ else:raise AssertionError('Missing CoreAudio scene declaration header accepted')
 # Other notification users already import the full UIKit declarations.
 assert '#import <UIKit/UIKit.h>' in (u/'SDL_uikitappdelegate.h').read_text(encoding='utf-8');checks+=1
 assert '#import <UIKit/UIKit.h>' in hid;checks+=1
+# Build48 proved that broadcasting fake UIScene notifications also invokes
+# Apple's observers, which require a real scene. Scope synthetic negative
+# events to SDL's actual filter, retaining live system background/resume tests.
+def validate_probe_notification_scope(source):
+ assert 'postNotificationName:' not in source, 'Synthetic scene events must not be broadcast to UIKit'
+ assert 'NSClassFromString(@"SDL_LifecycleObserver")' in source
+ assert '[filterProbe nectarSceneLifecycle:notification]' in source
+ assert 'respondsToSelector:@selector(nectarSceneLifecycle:)' in source
+probe=(r/'tests/ios_scene_smoke/main.m').read_text(encoding='utf-8')
+validate_probe_notification_scope(probe);checks+=1
+try:validate_probe_notification_scope(probe+'\n[[NSNotificationCenter defaultCenter] postNotificationName:name object:[NSObject new]];')
+except AssertionError:checks+=1
+else:raise AssertionError('Unsafe process-wide synthetic scene notification accepted')
 print(f'PASS: {checks} scene metadata, missing-key negative controls and shared SDL entry/window/lifecycle wiring checks (not runtime proof)')
