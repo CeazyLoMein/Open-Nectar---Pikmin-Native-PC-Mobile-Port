@@ -2,7 +2,7 @@
 
 **Date/time:** 2026-10-23 12:56 EDT
 
-**Overall project status:** P1 Build44 PHONE LAUNCH FAILURE confirmed from3 matching crash reports; shared iOS27 scene migration SOURCE IMPLEMENTED and local checks PASS, Apple runtime/build/IPA/phone PENDING. P2 Build45 compile/link/IPA SUCCESS but installation HOLD for the same shared startup omission. One combined gated build is next. FPS remains player-controlled including120; landscape only.
+**Overall project status:** P1 Build44 PHONE LAUNCH FAILURE confirmed from3 matching crash reports; shared iOS27 scene migration SOURCE IMPLEMENTED and local checks PASS, Apple runtime/build/IPA/phone PENDING. P2 Build45 compile/link/IPA SUCCESS but installation HOLD for the same shared startup omission. Combined Build46/run39991097065 is IN PROGRESS at source0f61ee4163ea4b47f668f50ed1f1e3511149b3bd; startup gate job120542742441 runs before the two games. FPS remains player-controlled including120; landscape only.
 
 ### Pikmin 1
 
@@ -29,11 +29,11 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; local C:\Dev\Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental. Starting fetched local/remote863c6f54c7388669469f5c42811460be83fd4d65; clean tree before source work.
 - Starting commit:863c6f54c7388669469f5c42811460be83fd4d65. Display source5f09f653b26d821079642ad23237c88ccd87b73d; P2 type fixdd5683cec866d7f96f6fe5dcc2321b2d8426a088.
-- Latest commit: Shared scene source prepared; exact commit/run to record after push.
-- Commits created: Shared scene/startup tests/journal commit pending.
-- Changes pushed: Not yet for the scene migration. Intended one combined [ios-build] since shared startup affects both.
-- Uncommitted changes: Scoped shared SDL/iOS/test/workflow/journal source; no proprietary assets, device credentials or private crash files staged.
-- GitHub Actions run IDs:44=39950748289 P1 native PASS/P2 compile FAIL;45=39958190774 P2 SUCCESS. Next combined startup-gated run pending.
+- Latest source/local/remote commit at dispatch: 0f61ee4163ea4b47f668f50ed1f1e3511149b3bd; subsequent journal checkpoint is discoverable in git history. Build46 uses this exact source.
+- Commits created: 0f61ee4163ea4b47f668f50ed1f1e3511149b3bd — Adopt iOS scene startup for both games and gate builds on simulator launch [ios-build].
+- Changes pushed: Shared scene source0f61ee4163ea4b47f668f50ed1f1e3511149b3bd pushed. Build46 startup gate120542742441 observed in_progress; game jobs depend on it. One combined run, no separate duplicate triggers.
+- Uncommitted changes: Dispatch journal update only before its [skip ci] commit; source tree was clean after source push. No proprietary assets, device credentials or private crash files staged.
+- GitHub Actions run IDs:44=39950748289 P1 native PASS/P2 compile FAIL;45=39958190774 P2 SUCCESS. 46=39991097065, source0f61ee4163ea4b47f668f50ed1f1e3511149b3bd, startup gate job120542742441 IN PROGRESS at dispatch; neither new game/native/IPA nor phone results claimed.
 - Build results: New source LOCAL checks PASS; Objective-C/Apple simulator/native games/IPAs/phone PENDING. New scene-startup job must launch an asset-free app and background/resume it before both game jobs are allowed to run. Package checks require compiled scene support as well as manifest.
 - Artifacts produced:45 P2 IPA held privately at outputs/Build45-Pikmin2, NOT staged for install; no scene-fixed IPA yet. P1 bad44 marked DO-NOT-INSTALL and archived;42 original backup in folder1 SHA256304ac9abd4c60d96d76eb95902a0716ab743a074b1c69003aad238f7f7efd6a1. Existing P2 install/backups preserved.
 
@@ -41,7 +41,7 @@
 
 - Next Pikmin 1 task: Await successful new startup gate/native build, verify original-ID scene-enabled IPA, stage in folder1 and test launch FIRST before display/gameplay checks. Do not uninstall/reset/reimport assets. Old42 backup available if needed while waiting.
 - Next Pikmin 2 task: Keep installed working version; do not install45. Use new shared-scene IPA only after verification, then audio/gameplay regression tests.
-- GitHub/build task: Commit/push combined source, record exact run/source and scene-startup job; stop idle polling. On completion inspect gate logs/results first, then game jobs/artifacts. Fix actual failures before declaring readiness.
+- GitHub/build task: Build46 already running. Stop idle polling. On completion inspect gate logs/results first, then game jobs/artifacts. Fix actual failures before declaring readiness; do not trigger a duplicate build.
 - Anything requiring my involvement: No phone connection/open game needed for current work. No new phone test until corrected IPA ready. User can report build completion. Before transfer/erase, still need a separate verified game data backup; none created from this connection.
 
 ### ChatGPT continuation notes
@@ -51,7 +51,7 @@
 - Relevant logs: Private work/p1-build44-launch-20261023-091109 (3 .ips + summaries + installed metadata), work/p1-launch-crash-latest.json. Exact phone failures match44 UUID. Docs root read failed; later corrected Documents path returned AppNotInstalledError, no data writes/backup. Private reports copied to friendly folder2/P1 Build44 - Private Startup Crash Evidence. P245 full logs/artifact and held-verification in workspace and friendly folder2. No private evidence in Git.
 - Unverified fixes: All scene source native compilation/runtime. Host tests are not UIKit proof. Simulator probe uses a generic SDL window, not actual GLES gameplay or assets; phone graphics/audio/performance/true fold behavior still required. Full story/teleport/rare cutscene bugs remain open.
 - Risks and warnings: Scene backport changes shared platform startup/lifecycle; compile/runtime errors remain possible. New startup gate catches missing adoption/window/duplicate entry/resume issues earlier. Audio/controller notification adaptation is platform-only, but must be tested on hardware. Original framebuffer presentation unchanged. No current complete game-data backup; don't erase old phone assuming reports contain assets/saves. No online/autosave development or spoilers.
-- Exact next actions: Push one combined [ios-build], record run/source. Stop idle polling and wait for user's completion report. On failure retrieve scene-startup build/console/result artifact first; if gate passes inspect both native game jobs. Verify new IPA scene manifest and compiled class markers, ARM64/device/unsigned/ID/icons/SDK before staging. Only then request launch, background/resume/audio, settings/120 and display tests. Preserve working P2 and old P1 backups.
+- Exact next actions: Await Build46/run39991097065/source0f61ee4163ea4b47f668f50ed1f1e3511149b3bd/startup job120542742441 completion without idle polling. User reports completion. On failure retrieve scene-startup build/console/result artifact first; if gate passes inspect both native game jobs. Verify new IPA scene manifest and compiled class markers, ARM64/device/unsigned/ID/icons/SDK before staging. Only then request launch, background/resume/audio, settings/120 and display tests. Preserve working P2 and old P1 backups.
 
 **END PROGRESS REPORT**
 

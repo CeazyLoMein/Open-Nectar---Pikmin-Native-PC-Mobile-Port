@@ -32,3 +32,7 @@ Apple simulator execution, full native rebuilds, new IPAs and phone results rema
 P1 crashing44 IPA is marked .ipa.DO-NOT-INSTALL in folder1 and byte-identical archive preserved under folder5/P1 Build44 - Launch Failure. Pre-SDK P1 Build42 IPA remains available unchanged, SHA256304ac9abd4c60d96d76eb95902a0716ab743a074b1c69003aad238f7f7efd6a1. Do not uninstall/reset/reimport assets to address this launch failure.
 
 Private three crash reports + summaries + installed-identity JSON are in workspace work/p1-build44-launch-20261023-091109 and friendly folder2/P1 Build44 - Private Startup Crash Evidence. No phone writes. First Documents root read denied; corrected /Documents/pikmin1 read later returned AppNotInstalledError on the then-current connection. No current settings/save/asset backup claimed. Phone need not stay connected or game open for builds. Do not upload private reports/assets.
+
+## Dispatch checkpoint
+
+Build46/run39991097065, source0f61ee4163ea4b47f668f50ed1f1e3511149b3bd, startup gate job120542742441 IN PROGRESS at dispatch. Both full games depend on this gate. No simulator/native/IPA/phone result yet for this source. Do not poll while waiting; user reports completion.
