@@ -1,8 +1,8 @@
 # OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
 
-**Date/time:** 2026-10-24 11:57 EDT
+**Date/time:** 2026-10-24 11:58 EDT
 
-**Overall project status:** RESUMED by user2026-10-24.50 user screenshots show P1 title/gameplay/settings, with blurry world and a restrictive editor boundary. Source-level portrait-point budget defect reproduced:466x678 budget yields466x320 on2034x1398 landscape drawable. Pixel-resolution/native-follow and manual full-view button placement implemented in BOTH equivalent ports. Local1820 actual layout/persistence +70 actual pixel/migration checks PASS; Clang PASS; actual50 source negative control reproduces fault and fails new regression. One combined startup-gated build pending commit/push. Hardware fix NOT verified;50 remains current verified IPA baseline. Landscape/player-selected120/settings/icons/IDs preserved.
+**Overall project status:** RESUMED by user2026-10-24.50 user screenshots show P1 title/gameplay/settings, with blurry world and a restrictive editor boundary. Source-level portrait-point budget defect reproduced:466x678 budget yields466x320 on2034x1398 landscape drawable. Pixel-resolution/native-follow and manual full-view button placement implemented in BOTH equivalent ports. Local1820 actual layout/persistence +70 actual pixel/migration checks PASS; Clang PASS; actual50 source negative control reproduces fault and fails new regression. Build51/run40109396851/source1450d21e1f60c9600c8556371e6f8f2f55cd7130/startup job120917764682 dispatched; native/runtime results PENDING. Hardware fix NOT verified;50 remains current verified IPA baseline. Landscape/player-selected120/settings/icons/IDs preserved.
 
 ### Pikmin 1
 
@@ -29,11 +29,11 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; local C:\Dev\Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental. Fetched local/remote3c7dcce624c9d4b4cb8bf346a91c6576af62dbf2 matched. Only3 documentation pause files were initially uncommitted; preserved/replaced with resumed checkpoint. No newer/pending build (latest50 SUCCESS). No AGENTS.md found.
 - Starting commit: 3c7dcce624c9d4b4cb8bf346a91c6576af62dbf2; prior known-good50 source ae2d68db907cf399699c6d0ebf3b6df856a85b68 retained.
-- Latest source/local/remote checkpoint: PENDING pixel/edge source commit; starting local/origin3c7dcce624c9d4b4cb8bf346a91c6576af62dbf2. Follow-up [skip ci] dispatch journal may be newer; external checkpoint records final exact local/remote journal SHA.
+- Latest source/local/remote checkpoint: 1450d21e1f60c9600c8556371e6f8f2f55cd7130. Follow-up [skip ci] dispatch journal may be newer; external checkpoint records final exact local/remote journal SHA.
 - Commits created: One scoped two-port pixel-resolution/manual-edge source/regression/workflow/journal batch; exact source above if dispatched, otherwise pending.
-- Changes pushed: One combined startup-gated build pending commit/push. One combined run; existing successful scene gate retained, no duplicate trigger.
+- Changes pushed: Build51/run40109396851/source1450d21e1f60c9600c8556371e6f8f2f55cd7130/startup job120917764682 dispatched; native/runtime results PENDING. One combined run; existing successful scene gate retained, no duplicate trigger.
 - Uncommitted changes: Scoped P1/P2 source/tests/workflow/journals before source commit, dispatch journal only until [skip ci] commit. Paused documentation preserved as history. No assets/IPAs/private photos/phone reports/credentials staged.
-- GitHub Actions run IDs: 50=40003458275/sourceae2d68db907cf399699c6d0ebf3b6df856a85b68 all3 PASS, both verified IPAs retained. One combined startup-gated build pending commit/push. Historical44-49 failures/root causes preserved in IOS27_SCENE_LIFECYCLE.md.
+- GitHub Actions run IDs: 50=40003458275/sourceae2d68db907cf399699c6d0ebf3b6df856a85b68 all3 PASS, both verified IPAs retained. Build51/run40109396851/source1450d21e1f60c9600c8556371e6f8f2f55cd7130/startup job120917764682 dispatched; native/runtime results PENDING. Historical44-49 failures/root causes preserved in IOS27_SCENE_LIFECYCLE.md.
 - Build results: New source LOCAL actual-code checks/Clang/negative control PASS; Apple full game compilation, new IPA and phone clarity/edge behavior PENDING. Prior50 actual simulator lifecycle and both native/IPAs PASS; user P1 photos establish visible runtime, not complete stability.
 - Artifacts produced: No new IPA yet.50 original-ID verified IPAs remain in Documents/Open Nectar/1 - Install on iPhone with older42/32 package backups in folder5. New test plan and copied user photos/evidence in folder2; full latest handoff updated.
 
@@ -41,7 +41,7 @@
 
 - Next Pikmin 1 task: After new native/IPA verification, update existing app same account/ID without uninstall/reset. Confirm Display Resolution is oriented physical landscape pixels;3D1.00x compare sharpness and HUD performance. Move button to outer edge, save/reopen/rotate and test tap hitbox. Default untouched buttons should stay safely inset.
 - Next Pikmin 2 task: Use same combined build only after verification; preserve installed P2 until P1 first check passes. Test equivalent display/edge behavior plus Pikmin/enemy/wind audio and pause/resume.
-- GitHub/build task: One combined startup-gated build pending commit/push. Capture exact run/source and startup job, update checkpoint [skip ci], then stop idle polling. On completion inspect native fixture/full-game logs and exact IPAs; no hardware claims from compile.
+- GitHub/build task: Build51/run40109396851/source1450d21e1f60c9600c8556371e6f8f2f55cd7130/startup job120917764682 dispatched; native/runtime results PENDING. Capture exact run/source and startup job, update checkpoint [skip ci], then stop idle polling. On completion inspect native fixture/full-game logs and exact IPAs; no hardware claims from compile.
 - Anything requiring my involvement: No phone connection or open game needed while developing/building. User reports completion; request exact focused phone checks once a verified new IPA is ready. Photos retained privately; settings/layout data not read or changed on phone. Complete current phone-data backup still not made.
 
 ### ChatGPT continuation notes
@@ -51,7 +51,7 @@
 - Relevant logs: work/build51-display.cpp/exe1820 checks, build51-pixels.cpp/exe70 checks; Clang run check-build51-clang.cmd PASS. build51-pixels-old.cpp/exe generated --ref ae2d68db... prints old466x320 then fails expected assertion; Python subprocess captured nonzero (Windows abort code is signed). Existing50 verification/logs/artifacts retained. Copied user screenshots in folder2 only, no uploads/Git assets.
 - Unverified fixes: New native compile/IPA/phone still pending. Actual device drawable/internal size and safe-inset values were not retrieved; reproduction uses2034x1398/678x466 representative scene dimensions and reported466x678 config. Hardware performance/sharpness/manual-edge behavior/persistence/OS gesture overlap require retest. No new P2 runtime result; full story/follower teleport/rare bugs remain open.
 - Risks and warnings: Native1.00x intentionally removes old low logical-point budget; GPU/memory cost rises. Preserve player choice120/lower FPS and lower resolution/scale; no forced cap. Defaults respect safe area; deliberate manual drag may approach system gesture/cutout regions but whole button remains inside visible view. Optional sixth fullBounds field is backward-compatible with old five-value rows; only manually edited controls opt in, other settings/layout not reset. Existing50 backups retained. No complete current phone-data backup; do not erase old phone.
-- Exact next actions: One combined startup-gated build pending commit/push. Once dispatched stop idle polling. Inspect startup gate then both full game jobs, including new pixel fixture. Verify exact original-ID ARM64 scene-enabled IPA before staging. Phone compare landscape native Resolution/1.00x sharpness/HUD and manual edge save/reload/rotation/tap, then P2 audio/display. Report hardware results separately from compile.
+- Exact next actions: Build51/run40109396851/source1450d21e1f60c9600c8556371e6f8f2f55cd7130/startup job120917764682 dispatched; native/runtime results PENDING. Once dispatched stop idle polling. Inspect startup gate then both full game jobs, including new pixel fixture. Verify exact original-ID ARM64 scene-enabled IPA before staging. Phone compare landscape native Resolution/1.00x sharpness/HUD and manual edge save/reload/rotation/tap, then P2 audio/display. Report hardware results separately from compile.
 
 **END PROGRESS REPORT**
 
