@@ -87,9 +87,9 @@ void run(){
  sMenuOpen=false; ios_native_settings_frame(true);
  auto base=renderSize();
 #ifdef __IPHONEOS__
- CHECK(base.first==480 && base.second==221); // explicit resolution + .75; same pre-Retina budget
+ CHECK(base.first==480 && base.second==221); // explicit user resolution + .75; native policy must not override it
  CHECK(windowFlags() & SDL_WINDOW_ALLOW_HIGHDPI);
- sRenderResolutionW=sRenderResolutionH=0; base=renderSize(); CHECK(base.first==699 && base.second==323);
+ sRenderResolutionW=sRenderResolutionH=0; base=renderSize(); CHECK(base.first==2097 && base.second==968); // .75 of physical 2796x1290 drawable, rounded
  sMenuOpen=true; CHECK(!ios_native_settings_frame()); // transition waits for next frame
  ios_native_settings_frame(true); auto native=renderSize(); CHECK(native.first==2796 && native.second==1290);
  sRenderResolutionW=640;sRenderResolutionH=480;sAspectRatioMode=1;sRenderScale=.5f;

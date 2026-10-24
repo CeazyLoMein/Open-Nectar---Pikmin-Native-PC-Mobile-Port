@@ -1,3 +1,7 @@
+# Current checkpoint — Oct24 phone feedback and Build51 result
+
+51 P1 PASS and verified IPA; P2 host assertion FAILED before game compilation, corrected locally409/302+Clang. Phone P150: slow return, reported stranded pair, enabled rescue with one uncorrelated rescue log, later NaN captain coordinates/world-black unresolved. Fresh launch/resume visible once; unexpected keyboard now reported. Read latest progress/handoff first. P2-only retry next; no new P1 AI/black/keyboard source fix.
+
 CURRENT — 2026-10-24 11:58 EDT: RESUMED. P1 photo466x678 portrait budget at1.00x/120; actual50 source reproduces466x320 landscape world. Both ports physical-pixel/native-follow and manual full-view button persistence implemented.1820+70 actual host checks, Clang and50 negative control PASS; Apple/IPA/hardware PENDING. Build51/run40109396851/source1450d21e1f60c9600c8556371e6f8f2f55cd7130/startup job120917764682 dispatched; native/runtime results PENDING.50 verified IPAs remain current backups. No phone needed/no idle polling; FPS unchanged.
 
 CURRENT — 2026-10-24 11:57 EDT: RESUMED. P1 photo466x678 portrait budget at1.00x/120; actual50 source reproduces466x320 landscape world. Both ports physical-pixel/native-follow and manual full-view button persistence implemented.1820+70 actual host checks, Clang and50 negative control PASS; Apple/IPA/hardware PENDING. One combined startup-gated build pending commit/push.50 verified IPAs remain current backups. No phone needed/no idle polling; FPS unchanged.
