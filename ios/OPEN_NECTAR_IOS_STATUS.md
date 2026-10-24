@@ -1,3 +1,11 @@
+## Latest continuation — keyboard guard locally verified; P2-only52 dispatched
+
+Build52/run40131000336/sourcea575ecf424008c7430da96a5082ffb7f68970dc1 is IN PROGRESS for P2 only after correcting the stale native-pixel fixture. No idle polling. Source parent cf4e959c;51 source1450d21e and its mixed results retained above.
+
+After the report below was written, user provided a photo of the keyboard obscuring normal gameplay. Added P1-only pc_window_update_text_input in games/pikmin1/pc_port/pc_window.cpp, invoked before event polling: iOS stops text input/hides a shown keyboard outside the existing randomizer editor. Existing editor remains exempt, and desktop unchanged. This addresses text-input ownership defensively; the exact UIKit event that summoned the keyboard remains unidentified. Actual helper regression tests/pikmin1_ios_keyboard_test.py passes both iOS and desktop host variants. Next P1 workflow includes host variants plus Apple syntax check. Native and phone verification PENDING. This source is intentionally committed WITHOUT another build while52 runs; include in next P1 batch.51 staged IPA does NOT contain this new keyboard guard.
+
+P1 root cause of NaN captain coordinates, black world, slow followers and missed rescues remains UNRESOLVED. No changes to movement/rescue/saving were made this turn. One fresh-launch and one background/resume check showed the world; that does not reproduce or solve prior black world. Existing evidence collected, user may close game/disconnect. No current further phone task.
+
 # Current checkpoint — Oct24 phone feedback and Build51 result
 
 51 P1 PASS and verified IPA; P2 host assertion FAILED before game compilation, corrected locally409/302+Clang. Phone P150: slow return, reported stranded pair, enabled rescue with one uncorrelated rescue log, later NaN captain coordinates/world-black unresolved. Fresh launch/resume visible once; unexpected keyboard now reported. Read latest progress/handoff first. P2-only retry next; no new P1 AI/black/keyboard source fix.

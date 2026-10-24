@@ -1111,7 +1111,23 @@ static bool pc_window_read_gamepad(SDL_GameController* ctl, u16& button, s8& sti
         || abs(rx) > noticeZone || abs(ry) > noticeZone;
 }
 
+// iOS must only retain a software keyboard while a text editor owns it.
+// SDL enables text events during video initialization; ordinary gameplay uses
+// key events, so leaving that default active can retain an unwanted IME.
+static void pc_window_update_text_input() {
+#if defined(__IPHONEOS__)
+    bool editorOpen = false;
+#if defined(PIKI_PC_PORT) && defined(PIKI_PC_SETTINGS_MENU)
+    editorOpen = pc_randomizer_intro_active();
+#endif
+    if (!editorOpen && (SDL_IsTextInputActive() || SDL_IsScreenKeyboardShown(sWindow))) {
+        SDL_StopTextInput();
+    }
+#endif
+}
+
 void pc_window_poll_events(PADStatus* pad) {
+    pc_window_update_text_input();
 #if PIKI_USE_JAUDIO
     PikiJAudioTick();
 #else

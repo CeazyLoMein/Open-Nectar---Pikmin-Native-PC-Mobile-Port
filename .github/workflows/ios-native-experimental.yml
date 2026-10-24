@@ -85,6 +85,17 @@ jobs:
           "$RUNNER_TEMP/ios-display-test"
           xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
             -std=c++14 -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/ios-display-test.cpp"
+      - name: Check P1 iOS keyboard ownership and desktop preservation
+        if: matrix.game == 'pikmin1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/pikmin1_ios_keyboard_test.py "$RUNNER_TEMP/p1-keyboard.cpp"
+          c++ -std=c++14 -Wall -Wextra -Werror "$RUNNER_TEMP/p1-keyboard.cpp" -o "$RUNNER_TEMP/p1-keyboard"
+          "$RUNNER_TEMP/p1-keyboard"
+          c++ -std=c++14 -Wall -Wextra -Werror -DTEST_DESKTOP "$RUNNER_TEMP/p1-keyboard.cpp" -o "$RUNNER_TEMP/p1-keyboard-desktop"
+          "$RUNNER_TEMP/p1-keyboard-desktop"
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++14 -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/p1-keyboard.cpp"
       - name: Check actual native pixel resolution and legacy portrait settings
         shell: bash
         run: |
