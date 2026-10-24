@@ -117,6 +117,7 @@ struct ButtonLayout {
 	float cx, cy;   // como ButtonSpec
 	bool fromRight;
 	float scale;    // multiplicador del radio por defecto
+    bool fullBounds = false; // explicit editor placement may use the whole view
 };
 ButtonLayout sLayout[BTN_COUNT];
 bool sLayoutLoaded = false;
@@ -468,6 +469,7 @@ void layout_defaults()
 		sLayout[i].cy = kButtons[i].cy;
 		sLayout[i].fromRight = kButtons[i].fromRight;
 		sLayout[i].scale = 1.0f;
+        sLayout[i].fullBounds = false;
 	}
 	sLayoutDirty = true;
 }
@@ -479,11 +481,11 @@ void layout_save()
 		printf("[Touch] cannot write %s\n", kLayoutFilename);
 		return;
 	}
-	fprintf(out, "# Open Nectar touch layout: name = x y fromRight scale (x,y in fractions of screen height)\n");
+	fprintf(out, "# Open Nectar touch layout: name = x y fromRight scale fullBounds (x,y in layout units)\n");
 	fprintf(out, "grid = %d\n", sEditGrid ? 1 : 0);
 	for (int i = 0; i < BTN_COUNT; ++i) {
 		if (!kButtons[i].art || !button_editable(i)) continue;
-		fprintf(out, "%s = %.4f %.4f %d %.2f\n", kButtons[i].art, sLayout[i].cx, sLayout[i].cy, sLayout[i].fromRight ? 1 : 0, sLayout[i].scale);
+		fprintf(out, "%s = %.4f %.4f %d %.2f %d\n", kButtons[i].art, sLayout[i].cx, sLayout[i].cy, sLayout[i].fromRight ? 1 : 0, sLayout[i].scale, sLayout[i].fullBounds ? 1 : 0);
 	}
 	fclose(out);
 	printf("[Touch] saved %s\n", kLayoutFilename);
@@ -500,16 +502,18 @@ void layout_load()
 	while (fgets(line, sizeof(line), in)) {
 		char name[64];
 		float cx = 0, cy = 0, scale = 1;
-		int fromRight = 0, grid = 0;
+		int fromRight = 0, grid = 0, fullBounds = 0;
 		if (sscanf(line, "grid = %d", &grid) == 1) {
 			sEditGrid = grid != 0;
 			continue;
 		}
-		if (sscanf(line, "%63s = %f %f %d %f", name, &cx, &cy, &fromRight, &scale) != 5) continue;
+		if (sscanf(line, "%63s = %f %f %d %f %d", name, &cx, &cy, &fromRight, &scale, &fullBounds) < 5) continue;
+        if (!std::isfinite(cx) || !std::isfinite(cy) || !std::isfinite(scale)) continue;
 		for (int i = 0; i < BTN_COUNT; ++i) {
 			if (!kButtons[i].art || !button_editable(i) || strcmp(kButtons[i].art, name) != 0) continue;
-			sLayout[i].cx = std::fmax(0.0f, cx);
-			sLayout[i].cy = std::fmax(0.0f, cy);
+            sLayout[i].fullBounds = fullBounds == 1;
+            sLayout[i].cx = sLayout[i].fullBounds ? cx : std::fmax(0.0f, cx);
+            sLayout[i].cy = sLayout[i].fullBounds ? cy : std::fmax(0.0f, cy);
 			sLayout[i].fromRight = fromRight != 0;
 			sLayout[i].scale = std::fmax(kScaleMin, std::fmin(kScaleMax, scale));
 		}
@@ -562,7 +566,14 @@ void layout(int w, int h)
 		sButtons[i].cy = l.cy * H;
 		sButtons[i].r = kButtons[i].radius * H * kButtonScale * l.scale;
 #if defined(__IPHONEOS__)
+        if (l.fullBounds) {
+            const float x = l.fromRight ? sSafeFrame.x + sSafeFrame.w - l.cx * H : sSafeFrame.x + l.cx * H;
+            const float y = sSafeFrame.y + l.cy * H;
+            sButtons[i].cx = pc_mobile_clamp(x, 0.0f, float(w), sButtons[i].r);
+            sButtons[i].cy = pc_mobile_clamp(y, 0.0f, float(h), sButtons[i].r);
+        } else {
         pc_mobile_button(sSafeFrame, l.cx, l.cy, l.fromRight, sButtons[i].r, sButtons[i].cx, sButtons[i].cy);
+        }
 #endif
 	}
 	sStick.radius = kStickRadius * H;
@@ -594,8 +605,11 @@ void layout_place(int i, float px, float py)
         px = sSafeFrame.x + std::round((px - sSafeFrame.x) / cell) * cell;
         py = sSafeFrame.y + std::round((py - sSafeFrame.y) / cell) * cell;
     }
-    px = pc_mobile_clamp(px, sSafeFrame.x, sSafeFrame.w, r);
-    py = pc_mobile_clamp(py, sSafeFrame.y, sSafeFrame.h, r);
+    // The safe area guides defaults, but deliberate manual positioning may
+    // use the full visible view. Keep the whole button on-screen.
+    px = pc_mobile_clamp(px, 0.0f, float(sLayoutW), r);
+    py = pc_mobile_clamp(py, 0.0f, float(sLayoutH), r);
+    sLayout[i].fullBounds = true;
     pc_mobile_save_position(sSafeFrame, px, py, sLayout[i].fromRight, sLayout[i].cx, sLayout[i].cy);
 #else
 	const float H = (float)sLayoutH, W = (float)sLayoutW;

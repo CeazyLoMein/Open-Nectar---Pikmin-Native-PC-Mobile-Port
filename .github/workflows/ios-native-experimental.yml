@@ -85,6 +85,15 @@ jobs:
           "$RUNNER_TEMP/ios-display-test"
           xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
             -std=c++14 -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/ios-display-test.cpp"
+      - name: Check actual native pixel resolution and legacy portrait settings
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/ios_pixel_resolution_test.py "$RUNNER_TEMP/ios-pixel-test.cpp"
+          c++ -std=c++14 -Wall -Wextra -Werror "$RUNNER_TEMP/ios-pixel-test.cpp" -o "$RUNNER_TEMP/ios-pixel-test"
+          "$RUNNER_TEMP/ios-pixel-test"
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
+            -std=c++14 -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/ios-pixel-test.cpp"
       - name: Check iOS icon resource target scope
         run: python3 tests/ios_icon_resources_test.py
       - name: Check Pikmin 2 adapter include paths

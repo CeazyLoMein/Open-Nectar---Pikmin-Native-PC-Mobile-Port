@@ -797,6 +797,17 @@ void addResolution(int w, int h, bool derived) {
 
 void rebuildResolutionList() {
     sResolutions.clear();
+#if defined(__IPHONEOS__)
+    // UIKit display modes can be portrait points (e.g.466x678). Native game
+    // resolution must use the current, oriented GL drawable in physical pixels.
+    const bool pendingNative = sDesktopW > 0 && sPending.windowWidth == sDesktopW && sPending.windowHeight == sDesktopH;
+    const bool savedNative = sDesktopW > 0 && sConfig.windowWidth == sDesktopW && sConfig.windowHeight == sDesktopH;
+    pc_gfx_get_drawable_size(&sDesktopW, &sDesktopH);
+    if (sDesktopW > 0 && sDesktopH > 0) {
+        if (pendingNative) { sPending.windowWidth = sDesktopW; sPending.windowHeight = sDesktopH; }
+        if (savedNative) { sConfig.windowWidth = sDesktopW; sConfig.windowHeight = sDesktopH; }
+    }
+#else
     const int display = pc_window_get_display_index();
 
     SDL_DisplayMode desktop {};
@@ -810,6 +821,7 @@ void rebuildResolutionList() {
         SDL_DisplayMode dm {};
         if (SDL_GetDisplayMode(display, i, &dm) == 0) addResolution(dm.w, dm.h, false);
     }
+#endif
     if (sDesktopW > 0) addResolution(sDesktopW, sDesktopH, false);
 
     // Una ventana no tiene por que coincidir con un modo de video, asi que se
@@ -834,7 +846,11 @@ void rebuildResolutionList() {
 // admite modos que el monitor declara. En ventana no tiene sentido ofrecer
 // tamanos mayores que el escritorio.
 bool resolutionSelectable(const Resolution& r, int displayMode) {
+#if !defined(__IPHONEOS__)
     if (displayMode == PC_WINDOW_FULLSCREEN_EXCLUSIVE) return !r.isDerived;
+#else
+    (void)displayMode; // iOS changes the render budget, not a monitor mode.
+#endif
     if (sDesktopW > 0 && (r.w > sDesktopW || r.h > sDesktopH)) return false;
     return true;
 }
@@ -2043,7 +2059,11 @@ void pollMenuInput() {
         }
         sVideoConfirmActive = false;
         rebuildResolutionList();
+#ifdef __IPHONEOS__
+        const int idx = resolutionIndexFor(sPending.windowWidth, sPending.windowHeight);
+#else
         const int idx = resolutionIndexFor(pc_window_get_width(), pc_window_get_height());
+#endif
         sResolutionIdx = idx >= 0 ? idx : defaultResolutionIndex();
     };
 
@@ -3016,7 +3036,13 @@ void mainRowValue(int row, char* out, size_t n) {
     snprintf(valueBuf[2], sizeof(valueBuf[2]), "%s", aspectBuf);
     {
         float rs = sPending.renderScale;
-        if (fabsf(rs - 2.0f / 3.0f) < 0.01f) snprintf(valueBuf[3], sizeof(valueBuf[3]), "Auto (native)");
+        if (fabsf(rs - 2.0f / 3.0f) < 0.01f) {
+#ifdef __IPHONEOS__
+            snprintf(valueBuf[3], sizeof(valueBuf[3]), "0.67x");
+#else
+            snprintf(valueBuf[3], sizeof(valueBuf[3]), "Auto (native)");
+#endif
+        }
         else snprintf(valueBuf[3], sizeof(valueBuf[3]), "%.2fx", rs);
     }
     if (sPending.refreshRate <= 0.0) snprintf(valueBuf[4], sizeof(valueBuf[4]), "Auto");

@@ -19,6 +19,7 @@ cpp=r'''
 #include <cstdlib>
 #include <cmath>
 #include <utility>
+#include <cstring>
 #define __IPHONEOS__ 1
 '''
 cpp+='#include "'+(repo/'games/pikmin2/pc_port/pc_mobile_layout.h').as_posix()+'"\n'
@@ -57,10 +58,15 @@ u16 sQueuedGameButtons=0,sPreviousMenuButtons=0,sSwipeButtons=0;
 int sSwipeHoldFrames=0,sColorTapFinger=-1;
 struct Tool {float cx=0,cy=0,r=0;}sTools[TOOL_COUNT];
 PcMobileFrame sSafeFrame {0,0,1,1,1};
-void layout_load(){}
+bool sLayoutLoaded=false;
+constexpr float kScaleMin=.60f,kScaleMax=1.60f;
+
 int drawableW=0,drawableH=0;
 void pc_gfx_get_drawable_size(int* w,int* h){*w=drawableW;*h=drawableH;}
 '''
+ cpp+='constexpr const char* kLayoutFilename="ios-display-fixture-'+game+'.conf";\n'
+ for sig in ['bool button_editable(int i)','void layout_defaults()','void layout_save()','void layout_load()']:
+  cpp+=fn(touch,sig)+'\n'
  for sig in ['void cancel_geometry_touches()','void layout(int w, int h)','void layout_place(int i, float px, float py)']:
   cpp+=fn(touch,sig)+'\n'
  # Import live renderer size queries so resize-before-begin_frame is tested too.
@@ -75,6 +81,7 @@ void pc_gfx_get_drawable_size(int* w,int* h){*w=drawableW;*h=drawableH;}
  cpp+=settings[settings.index('constexpr int kF1TabH'):settings.index('void f1Layout()')]+fn(settings,'void f1Layout()')+'\n'
  cpp+=r'''
 void run(){
+ std::remove(kLayoutFilename); // own fixture file, including interrupted prior runs
  (void)kStickDead; (void)kLayerAlpha;
  for(int i=0;i<BTN_COUNT;++i)sLayout[i]={kButtons[i].cx,kButtons[i].cy,kButtons[i].fromRight,1};
  for(auto size: {std::pair<int,int>{2796,1290},{2670,1878},{2034,1398},{1920,1080},{1136,640},{600,600}}){
@@ -105,6 +112,9 @@ void run(){
    windowCase::pc_window_set_window_size(640,480);
    CHECK(windowCase::rw==640&&windowCase::rh==480);
    CHECK(windowCase::sWindowWidth==drawableW/3&&windowCase::sWindowHeight==drawableH/3);
+   windowCase::pc_window_set_window_size(drawableW,drawableH);
+   CHECK(windowCase::rw==0&&windowCase::rh==0); // Native follows later drawable changes.
+
    int w,h;drawable::pc_gfx_get_drawable_size(&w,&h);CHECK(w==drawableW&&h==drawableH);
    f1Layout();
    CHECK(kF1PanelW>=580&&kF1PanelH>280&&kF1Visible>0);
@@ -116,6 +126,27 @@ void run(){
    CHECK(kF1PanelX+kF1PanelW<=sf.x+sf.w&&kF1PanelY+kF1PanelH<=sf.y+sf.h);
   }
  }
+ // Deliberate manual placement reaches physical edges, not the inset rectangle.
+ const auto safeDefault=sLayout[BTN_THROW];
+ const float r=sButtons[BTN_THROW].r;
+ layout_place(BTN_THROW,float(drawableW)+100,float(drawableH)+100);
+ CHECK(near(sButtons[BTN_THROW].cx,float(drawableW)-r));
+ CHECK(near(sButtons[BTN_THROW].cy,float(drawableH)-r));
+ CHECK(sLayout[BTN_THROW].fullBounds);
+ CHECK(sButtons[BTN_THROW].cx>sSafeFrame.x+sSafeFrame.w-r);
+ sLayoutDirty=true;layout(drawableW,drawableH);
+ CHECK(near(sButtons[BTN_THROW].cx,float(drawableW)-r));
+ // The actual file writer/reader retains negative edge offsets and legacy rows.
+ layout_save();const auto edge=sLayout[BTN_THROW];
+ sLayoutLoaded=false;layout_load();sLayoutDirty=true;layout(drawableW,drawableH);
+ CHECK(sLayout[BTN_THROW].fullBounds&&near(sLayout[BTN_THROW].cx,edge.cx));
+ CHECK(std::fabs(sButtons[BTN_THROW].cx-(drawableW-r))<.1f);
+ FILE* legacy=fopen(kLayoutFilename,"w");CHECK(legacy!=nullptr);
+ fprintf(legacy,"%s = .15 .65 1 1.0\n",kButtons[BTN_THROW].art);fclose(legacy);
+ sLayoutLoaded=false;layout_load();
+ CHECK(!sLayout[BTN_THROW].fullBounds&&near(sLayout[BTN_THROW].cx,.15f));
+ sLayout[BTN_THROW]=safeDefault;sLayoutDirty=true;layout(drawableW,drawableH);
+ std::remove(kLayoutFilename);
  // A stationary-size safe-area change must update layout and release old touches.
  const float old=sButtons[BTN_PAUSE].cx;testInsets.left=.12f;sButtons[BTN_PAUSE].finger=11;
  layout(drawableW,drawableH);CHECK(sButtons[BTN_PAUSE].cx>old&&sButtons[BTN_PAUSE].finger==-1);

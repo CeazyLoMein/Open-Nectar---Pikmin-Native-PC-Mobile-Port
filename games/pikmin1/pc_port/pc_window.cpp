@@ -1747,9 +1747,11 @@ void pc_window_set_window_size(int w, int h) {
     if (!sWindow) return;
     if (w <= 0 || h <= 0) return;
 #if defined(__IPHONEOS__)
-    // UIKit owns the current window size. A saved resolution selects only the
-    // 3D budget, never an old phone's window dimensions.
-    pc_gfx_set_render_resolution(w, h);
+    // Native selection follows future window/fold changes. Explicit lower
+    // resolutions remain a player-selected pixel budget; never resize UIKit.
+    int dw = 0, dh = 0;
+    pc_gfx_get_drawable_size(&dw, &dh);
+    pc_gfx_set_render_resolution(w == dw && h == dh ? 0 : w, w == dw && h == dh ? 0 : h);
     SDL_GetWindowSize(sWindow, &sWindowWidth, &sWindowHeight);
     return;
 #endif

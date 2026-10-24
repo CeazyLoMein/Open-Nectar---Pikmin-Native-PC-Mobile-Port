@@ -3524,19 +3524,8 @@ void pc_gfx_begin_frame(void) {
                               outX, outY, outWidth, outHeight);
         // Base del render: el área de salida, o la resolución pedida encajada
         // en su relación de aspecto (Android, donde la ventana no cambia).
-#if defined(__APPLE__) && TARGET_OS_IPHONE
-        if (!ios_native_settings_frame() && window) {
-            // Enabling Retina must not silently multiply gameplay's pixel
-            // workload by nativeScale squared. Preserve the old point-sized
-            // scene budget; only settings use a full-resolution render target.
-            int logicalW = 0, logicalH = 0;
-            SDL_GetWindowSize(window, &logicalW, &logicalH);
-            if (logicalW > 0 && logicalH > 0) {
-                calculate_output_area(logicalW, logicalH, sCurrentAspectRatio,
-                                      outX, outY, outWidth, outHeight);
-            }
-        }
-#endif
+        // Native means the physical drawable; explicit budgets below and
+        // renderScale provide the player-controlled performance tradeoff.
         float baseWidth = float(outWidth), baseHeight = float(outHeight);
         if (!ios_native_settings_frame() && sRenderResolutionW > 0 && sRenderResolutionH > 0) {
             baseHeight = float(sRenderResolutionH);
