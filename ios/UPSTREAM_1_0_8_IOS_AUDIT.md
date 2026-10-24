@@ -1,0 +1,59 @@
+# Upstream1.0.7 /1.0.8 and October24 main — iOS comparison
+
+Inspected 2026-10-24 19:47 EDT. Audit only: NO game source imported, no merge/rebase/reset, no new CI run. Current iOS branch/source checkpoint802cd294fb9fc088da1da5233687a7674d4e3c32; installed P1 package53 sourcec25ba6a79ed975ba5face0461805bbd330e99cee. Preserve the working53 display/touch/keyboard and AO-OFF baseline.
+
+## Exact upstream state
+
+- [Latest published release1.0.8](https://github.com/SSunnKing/Open-Nectar---Pikmin-Native-PC-Mobile-Port/releases/tag/1.0.8), published2026-10-22T13:46:59Z; GitHub public releases/latest API confirms non-draft/non-prerelease. Tag6319c3e354be280ab796f2c2e2504e185ce8cf96.
+- [Previous release1.0.7](https://github.com/SSunnKing/Open-Nectar---Pikmin-Native-PC-Mobile-Port/releases/tag/1.0.7), tag6751848aa48e2538c96a56bf8aa0c99ab138c78c.
+- Fetched main a6b09bfe5a11798b2239d6072bace2e85812f245, datedOct24. Seven commits after1.0.8. Last prior audit baseline1.0.6=70c5c938862bef15a1434b2df3f5d4fa7a26e446. Common ancestor with our branch eed2df260dc80dc89ea8e7e6fcce3879d409fcc0.
+- Compared changed-file inventories from1.0.6 through release/main, relevant current-iOS versus tag/main hunks, and older missing P1 gameplay changes. This is a targeted source audit, not a proof every upstream change is desirable or every campaign path is safe.
+
+## Highest-value P1 candidates, confirmed absent in our current source
+
+| Area | Evidence / source | iOS decision and required validation |
+|---|---|---|
+| High-FPS carrying timeout | aiTransport.cpp ActTransport::gotoLiftPos still compares ++mStateProgress>=60; upstream [3dcd6f2553c323f67b5a802a2e4fae8e0ea2b01e](https://github.com/SSunnKing/Open-Nectar---Pikmin-Native-PC-Mobile-Port/commit/3dcd6f2553c323f67b5a802a2e4fae8e0ea2b01e) uses60*PC_TICKS30. At120 logical ticks,60 counts=.5s instead of intended2s. Already predates1.0.6; previous helper-RNG-only audit did not adopt it. | Priority P1 backport candidate. Test actual carrying/retry method at30/60/120, including invalid/dead pellet and slot cases. Distinct from our formation/recall routing; do not claim it solves all followers. |
+| Collision-search exhaustion crash | creatureMove.cpp Creature::checkForward: our loop-limit branch deliberately dereferences null wtf[7] inside PRINT;1.0.7 removes it. | Priority crash-prevention candidate, especially around troublesome terrain. Preserve bounded return-null semantics. No proof it caused the reported NaN/black world. |
+| Skipped Onion discovery missing first seed | [54c6b2e407bbe1b21972b9935864ee4322f25daf](https://github.com/SSunnKing/Open-Nectar---Pikmin-Native-PC-Mobile-Port/commit/54c6b2e407bbe1b21972b9935864ee4322f25daf): Demo.h/demoEvent.cpp finishOnionBootAfterSkip + cinePlayer.cpp call. Our earlier skip-event logic lacks the narrow BootInit-to-BootEmit recovery. | Test skip before Boot, after Boot/before animation emission, normal completion and repeat skip; avoid duplicate first seeds. No broad cutscene rewrite. |
+| Enemy array/slot safety |1.0.7 SnakeAi.cpp initializes missing slot and returns if mouth full/missing; SnakeBody.cpp replaces out-of-bounds array aliasing with actual adjacent fields. Current iOS still has old accesses. | Relevant later encounters and optimized ARM64 builds. Preserve intended movement/math, test full slots/null mouth and array extents. User-facing explanations should avoid story/final-boss spoilers. |
+| Damage/daylight/menu guards | damageEffect.cpp uninitialized/null Navi; dayMgr.cpp undefined TimeSetting pointers for invalid time; DrawContainer.h unknown-color pointers; drawMenuBase.cpp hovered item uninitialized after touch-driven selection. | Small defensive P1 batch candidates. Actual method fixtures for absent captain, unknown color, touch selection, invalid time. DayMgr's invalid-time fallback does NOT fix invalid actor coordinates. |
+| Animation/movie/text/AI initialization | animMgr.cpp and system.cpp unsafe printf format strings; hvqm4dec RLDecoder structs; P2DPrint.cpp end pointer; TAIAmove.cpp patrol minimum lifetime; nscalculation.cpp undefined index; objectMgr/creature/aiTransport/paraparameters bad debug-format arguments. | Include inspected small source fixes with targeted boundary tests/Clang diagnostics; keep decoder and model-loading behavior intact. Full source still needs Apple compilation. |
+| Area-change captain portrait cache | drawGameInfo.cpp retains static Texture* entries from a level heap;1.0.7 reacquires via engine loader/cache rather than keeping stale pointers. | Useful for custom captain selection and repeated area changes. Test texture identity/heap-reset behavior; preserve our installed content and standard captain UI. |
+| Rectangle edge rounding | Main [2b65f16a](https://github.com/SSunnKing/Open-Nectar---Pikmin-Native-PC-Mobile-Port/commit/2b65f16a) changes map_gx_rect to round two edges then subtract, rather than rounding origin and size independently. Current iOS and fetched1.0.8 tag retain old arithmetic. | Strong narrow renderer candidate; preserve iOS drawable FBO and touch/native sizing. Numeric audit below verifies gaps/overlap, but not the user's moving-line diagnosis. |
+| Legacy compiler assumptions |1.0.7 CMake probes no-strict-aliasing, retain-null-checks, wrapping signed arithmetic, zero-init locals. Our general LEGACY_COMPILE_OPTIONS lacks this batch; zero-init exists only in narrower deterministic-build sections. | Evaluate guarded AppleClang support and generated target flags before adopting. Do not assume host fixture results reproduce all optimized game behavior or zero-initialization repairs all logic. |
+| Remaining deterministic RNG caller | We previously adopted pc_sim_rng helper fix, but BaseApp.h rnd() still divides pc_sim_rand by RAND_MAX; upstream uses pc_sim_randf. | Queue for later deterministic/co-op testing; ordinary solo path is not thereby shown broken. Previous helper adoption was not a full caller audit. |
+
+### Numeric rectangle evidence
+
+work/audit_upstream_rect_edges.py extracts the ACTUAL map_gx_rect methods from our source, fetched1.0.8 and fetched main; only scale/offset inputs are test seams. MSVC/WX run161200 adjacent-rectangle cases over1426x1002,1902x1338,2853x2007,1920x1200 and2034x1398. Current and1.0.8 each have33910 edge mismatches; main has0. Fixture namespaces and explicit int-to-float conversions were corrected before the successful run; no failed fixture run is being counted as a pass. No source/GL runtime change was made.
+
+Important version distinction:1.0.8 release prose mentions a line fix, but the fetched TAG still has old rectangle arithmetic. The actual correction is in main2b65f16a. Similarly the Windows driver-vsync helper appears in main after that tag. Use exact commits/methods rather than assuming release notes prove a packaged fix. The iOS motion-line symptom is unverified and may have another cause, including an effect/sampling issue.
+
+## P2 candidates queued for its later stability phase — not an instruction to update the working app now
+
+| Area | Local versus upstream finding | Required iOS care |
+|---|---|---|
+| Last gate segment lifetime | itemGate.cpp retains deleted central-platform pointer;54c6b2e4 clears it and checks associated pointers. Missing locally. | Targeted gate-destruction/later material-pass fixtures and device test. |
+| Interpolated area/cave transition | pcMovieInterp.cpp currently validates map/free serial but upstream additionally validates section, Graphics, viewport bounds and cached camera lifetime. Missing locally. | Test transitions during30/60/120 mode and preserve our host allocation/GL presentation wrappers. |
+| Save/card race + cooperative scheduler |1.0.7 changes card request locking and p2_os_host scheduling; local code still uses independent host scheduling and OSTryLockMutex in affected requests. | Relevant before broad cave/save testing, but larger concurrency adaptation needs its own design/stress/regression batch; do not replace working iOS allocator/thread ownership wholesale. |
+| Missing formats/buses and overflow-safe audio | Our decoder handles ADPCM4/PCM, while ADPCM2 is only declared and falls into default; upstream implements AFC2 and extra center buses. Q15 widening also differs. | Independent ARM64 port-argument scalar fixes are already present in our code; do not label all audio changes missing. Add real sample/bus/overflow fixtures and device audio comparisons before adopting remaining decoder/mixer parts. |
+| GX game-memory read bounds | [629aae99985f7a489a25d1432667d8e2adeabd30](https://github.com/SSunnKing/Open-Nectar---Pikmin-Native-PC-Mobile-Port/commit/629aae99985f7a489a25d1432667d8e2adeabd30) bounds texture/palette/display-list/vertex reads for a reported later-cave crash. Missing locally. | Upstream host-memory lookup uses VirtualQuery on Windows or /proc/self/maps elsewhere. Darwin lacks /proc/self/maps; a blind copy could reject all non-arena host reads. Implement an iOS-valid readable-region/allocation-bounds strategy with careful tests first. |
+| Prior1.0.6 audit backlog | Radar flush order, copied-texture cache lifetime, message/animation byte order,60FPS constants and ARAM/audio budgeting remain separately listed in UPSTREAM_1_0_6_IOS_AUDIT.md. | Preserve source-specific verification; no source/phone comparison here proves every old item remains missing or currently observable. |
+
+## Do not import as a blanket update
+
+- Our scene lifecycle, native iOS framebuffer, physical drawable sizing, readable settings, manual control edges and keyboard guard are intentional fork changes. Whole-file upstream replacements would discard them.
+- Windows fixed-rate driver VSync and Android controller enumeration are platform-specific. Trigger remapping is potentially shared, but not evidence for the user's iOS lines. Review separately if controller use is tested.
+- New main adds a map/mission/campaign system, new save/menu flows and Model Maker with .nectarchar/custom Pikmin content. These are substantial new features rather than mandatory retail-campaign crash fixes; defer until stable-campaign work is addressed.
+- Main's [NETPLAY.md](https://github.com/SSunnKing/Open-Nectar---Pikmin-Native-PC-Mobile-Port/blob/a6b09bfe5a11798b2239d6072bace2e85812f245/games/pikmin1/NETPLAY.md) now labels old P1 online code disabled/unmaintained (42899d04). That is upstream status/documentation, NOT a user instruction or permission change. Our user's future online co-op goal remains. Do not treat a Play Together menu or leftover network code as verified online campaign support; our eventual implementation still needs ownership, sync, save/reconnect and device testing.
+
+## Exact proposed next work
+
+1. Preserve working53 IPA and user config (full2853x2007/1.00x, AO OFF, user120) as baseline.
+2. Prepare one P1-only preventive batch: carrying retry timing, collision/null/array/UI guards, narrow Onion skip completion, pointer-cache lifetime and rectangle edge math, after actual-method tests and negative controls. Treat compiler hardening separately if its impact cannot be verified in that batch. Do not import custom missions/menus/save formats or alter FPS choices.
+3. Trigger one P1-only native build only after the selected corrections exist and pass checks; verify package, then targeted user checks. Current audit has NOT implemented or built any of these fixes.
+4. Continue separate stranded-follower/NaN investigation; upstream fixes do not certify those symptoms resolved.
+5. Keep P2 paused now, with the gate/interpolation/card/audio/bounds candidates saved for its later stronger campaign test phase. No P2 run merely for this audit.
+
+All API metadata and diff/test evidence are retained privately in work/. No binaries/APKs/game data downloaded from upstream; fetch retrieved source and tags only. No phone writes. Audit documents are not source-fix or hardware-proof milestones.
