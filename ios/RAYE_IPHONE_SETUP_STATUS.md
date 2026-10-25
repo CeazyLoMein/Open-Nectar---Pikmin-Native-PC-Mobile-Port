@@ -1,6 +1,6 @@
 # Raye iPhone setup — current status
 
-Updated 2026-10-24 21:12 EDT. Identified by model before all operations: iPhone17Pro (iPhone18,1), iOS27.0.1. User reported public/non-beta. Developer Mode menu was missing; exposed only the switch with AMFI action0. USER enabled/restarted/confirmed. Readback showed DeveloperMode=true. No account credentials entered or requested by agent.
+Updated 2026-10-24 21:15 EDT. Identified by model before all operations: iPhone17Pro (iPhone18,1), iOS27.0.1. User reported public/non-beta. Developer Mode menu was missing; exposed only the switch with AMFI action0. USER enabled/restarted/confirmed. Readback showed DeveloperMode=true. No account credentials entered or requested by agent.
 
 P1 Build54/user's original phone: user reports very quick test seems fine; limited smoke check, not every rare fix/full story. Build53 remains preserved. Raye now has signed P1 installed. Her initial black screen coincided with missing dataDir/art: only Load/settings/save were present. We verified canonical private USA Rev1 ISO GPIE01, SHA123a153cb225fef488f57073e76df0de26789c218, extracted with existing source extractor with read-back checks, added34 source/PIL-verified touch PNGs, staged and read-back SHA256 checked ALL3529files/669952108bytes. dataDir exposed after verification, existing P1 settings hash unchanged and save/Load untouched. No need to rebuild solely for missing first-install data. Post-transfer P1 launch still awaits user result.
 

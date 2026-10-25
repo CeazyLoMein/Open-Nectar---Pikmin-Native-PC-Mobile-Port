@@ -2,14 +2,16 @@
 
 <!-- CAPTURE MILESTONE -->
 
-## Current milestone — 2026-10-24 21:12 EDT
+## Current milestone — 2026-10-24 21:15 EDT
 
 - User P154 very quick smoke test seems fine; proceed with prototype, not full campaign certification.53 remains rollback.
-- HostEntityRegistry +38byte Pikmin codec and actual P1 read-only captain/squad capture/lifecycle hooks now implemented/local tested.17 offline core tests, actual engine fixture, compile-out test and Clang PASS; disabling invalidation is caught by negative control. One P1-only native engineering build prepared; no new native result yet.
+- HostEntityRegistry +38byte Pikmin codec and actual P1 read-only captain/squad capture/lifecycle hooks now implemented/local tested.17 offline core tests, actual engine fixture, compile-out test and Clang PASS; disabling invalidation is caught by negative control. Build55 / run40149838089, source5bfa4fba17e9083deabeddc0033bc8a4a002ce06: in_progress / pending, https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40149838089
 - Local addresses never serialized; scene IDs/ownership survive actor reuse/working/idle transitions. Hook clears on pool birth/kill/Creature init and before stage heap reset. Prototype option is compile-time opt-in; sessions remain runtime inactive and normal online flagsOFF. No guest actor updates/transport/UI or Onion actor transaction bridge yet.
 - Raye iPhone17Pro/iOS27.0.1, DeveloperMode enabled by user. Both apps installed; ALL P13529files/34art and P22797files/28art read-back verified in their own sandboxes. Both transfers finished; phone may unplug. Post-import runtime awaiting feedback. See RAYE_IPHONE_SETUP_STATUS.md.
 - Next: real iOS session/scene/transport validation and guest binding/application with own full-screen camera; then actual Onion/field-cap/actor authority. Complete keyframes must apply atomically, and buffers must outlive the scene if queued. No new phone install requested for this plumbing-only compile check.
 <!-- END CAPTURE MILESTONE -->
+
+
 
 
 User authorization: October24,2026. P1 Build53 is accepted as the working solo baseline. Online work STARTS NOW; earlier future-only notes are historical. P2 remains a working separate game and will get its own stronger validation/adapter later. No claim every solo story path has been tested.
