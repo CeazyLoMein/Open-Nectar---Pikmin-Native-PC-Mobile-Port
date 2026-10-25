@@ -1,3 +1,11 @@
+## Build62 phone update checkpoint — October25, 12:59 EDT
+
+User reports their own P1 updated to Build62. Installation is user-reported; no new phone runtime/networking pass or post-update settings hash comparison is claimed. Raye's iPhone17Pro/iOS27.0.1 is connected. Initial process check found P1 still present; after user opened/closed it, fresh check confirmed P1 not running. Read-only P1 backup VERIFIED:5files/158975bytes, every local SHA256 and second phone read matched. Includes settings, achievements, navigation report and save/card0; no custom touch-layout file exists on her phone. No phone files changed. Large assets/mods stay in the existing app container. P2 untouched.
+
+Raye can now install the SAME staged Build62 IPA through Sideloadly, selecting her phone and retaining the existing signing account/app identity. Her installation is PENDING. T01 remains partial; T02-T04 untested. After both installs: same Wi-Fi, gear > Data > Online Co-op: Connection Test, wait for data checks, host/copy code, return host to P1 before guest joins; then leave/rejoin, reverse host and verify ordinary solo. Connection only; shared campaign gameplay is not implemented yet. No new native build needed. User may disconnect USB after installation/post-update checks for Wi-Fi testing.
+
+Build62 source b8abc62ecddd146f411d136c0ab9f6095ee9d858; run40210863029 SUCCESS. Staged IPA SHA256 e74db6323261aa6cd9c621cbc00a8f5445cdd2f0d7a9975b436cea026c681f3c. Both private backups and known-working Build54 rollback are preserved in Documents/Open Nectar. Full manifests remain private, outside Git.
+
 ## Build62 SUCCESS, IPA staged; first phone backed up — October25
 
 62/run40210863029/source b8abc62ecddd146f411d136c0ab9f6095ee9d858 SUCCESS: scene121221580833 and P1121223972527 both success. Downloaded artifact12606436543 SHA256e5277bdfc894fe5ca0afc80a85aee47590bb26b07100bff2ddeeb9737cdcda22 and verified complete unsigned device IPA (5287907bytes, SHA256e74db6323261aa6cd9c621cbc00a8f5445cdd2f0d7a9975b436cea026c681f3c). Normal app identity/Pikmin1 label, ARM64 iPhoneOS platform2/min15/SDK27.1, approved icons, compiled scene+room code, local-network description and exact3 original dependency notices verified. Actual simulator session/private-code/content-mismatch test PASS. These do not establish phone runtime yet.

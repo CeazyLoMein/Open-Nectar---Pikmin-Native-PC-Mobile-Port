@@ -10,7 +10,7 @@ Build62 native build, actual simulator networking and downloaded IPA checks PASS
 
 **File:** Documents > Open Nectar > 1 - Install on iPhone > CURRENT - P1 Build 62 - Connection Test > Pikmin 1 - Build 62 - Connection Test.ipa. Read START HERE.txt in that folder. Use an in-place update; do not delete P1/change app identity. P2 stays unchanged.
 
-**Current step:** T01 in progress. Both phones are available. Your phone is connected; its settings/layout/achievements and both save folders are verified backed up (12files/352195bytes). You are using Sideloadly's normal drag/select/Start process. Installation completion has not been reported. Raye's backup/update comes next; leave her P1 closed when connecting it. No new device task is marked passed yet.
+**Current step:** T01 in progress. Your Build62 installation is user-reported complete; runtime/settings preservation not yet checked. Both phones have verified read-only settings/save backups: yours12files/352195bytes, Raye5files/158975bytes. Raye is connected and P1 closed; user now updates her existing P1 with the SAME staged Build62 IPA through Sideloadly. Her installation is pending. T02-T04 remain untested; no shared campaign gameplay yet.
 
 - [ ] **T01 — Prepare both phones.** Have both available, unlocked and on the same Wi-Fi. I will prepare the verified update and exact file location. If signing/installing requires your input, I will give that one action; keep the existing app and its files.
 - [ ] **T02 — Connect a private room.** On both phones, open gear > Data > Online Co-op: Connection Test and wait for the data check. Host on your phone, copy/share the code manually, return the host to P1, then paste/join on Raye's. Allow Local Network access if asked. Tell me the status on BOTH phones; a screenshot is useful if something fails.
@@ -81,3 +81,5 @@ New connection/gameplay/recovery tests have not yet been reported. I will record
 - Record partial/failing results, build, affected phone and next action. Reopen tasks only when a related change needs a retest; retain the earlier result in the log.
 - Put technical checks, downloads, backups, logs, signing preparation and automated tests on my work list, not on yours. Tell you explicitly when you can close the game/unplug.
 - Keep this checklist and its active-task summary linked from the project status, exact resume state and final ChatGPT handoff. Never silently change a future item into a claim of implemented behavior.
+
+| October25,12:59 EDT | T01 | Build62; both phones | Own install user-reported complete; Raye pre-update backup verified5files/158975bytes | PARTIAL; Raye installation pending, networking/runtime untested |
