@@ -83,7 +83,8 @@ const char* joinFailureString(JoinFailure failure)
 // --- Host ------------------------------------------------------------------
 
 HostRoom::HostRoom(TransportFactory factory, PublisherBackends backends)
-    : mFactory(std::move(factory)), mPublisher(std::make_unique<PortPublisher>(std::move(backends)))
+    : mFactory(std::move(factory)), mBackends(std::move(backends)),
+      mPublisher(std::make_unique<PortPublisher>(mBackends))
 {
 }
 
@@ -134,7 +135,7 @@ RoomError HostRoom::open(const RoomConfig& config, std::uint64_t nowUnixSeconds,
         auto gated = std::make_unique<GatedTransport>(std::move(inner), GatedTransport::Role::Host,
                                                       joinCredentialsFromCode(mCode));
         gated->requireCompatibility(config.compatibility);
-        if (gated->listen({"", port})) mTransport = std::move(gated);
+        if (gated->listen({config.listenAddress, port})) mTransport = std::move(gated);
         if (config.localPort != 0) break; // a fixed port is not changed behind the user's back
     }
     if (!mTransport) {
@@ -145,7 +146,7 @@ RoomError HostRoom::open(const RoomConfig& config, std::uint64_t nowUnixSeconds,
     if (config.automaticPortMapping) {
         mPublished = mPublisher->publish(port, 7200, config.includeLanEndpoint);
     } else {
-        PublisherBackends local = PublisherBackends::system();
+        PublisherBackends local = mBackends;
         local.findGateway = nullptr;
         local.openUpnp = nullptr;
         PortPublisher addressesOnly(local);

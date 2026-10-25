@@ -29,6 +29,8 @@ struct RoomConfig {
     // 0 picks a random high port (49152-65535); a fixed port helps users who
     // forward it by hand.
     std::uint16_t localPort = 0;
+    // Empty listens on all interfaces; probes may bind explicitly to loopback.
+    std::string listenAddress;
     std::uint32_t codeLifetimeSeconds = 2U * 60U * 60U;
     bool includeLanEndpoint = true;
     // Skip PCP/NAT-PMP/UPnP, for a manually forwarded port.
@@ -80,6 +82,7 @@ private:
     std::string issueCode(std::uint64_t nowUnixSeconds);
 
     TransportFactory mFactory;
+    PublisherBackends mBackends;
     std::unique_ptr<PortPublisher> mPublisher;
     std::unique_ptr<GatedTransport> mTransport;
     RoomConfig mConfig;

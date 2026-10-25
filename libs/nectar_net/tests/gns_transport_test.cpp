@@ -82,6 +82,33 @@ int main()
               && std::memcmp(event.payload.data(), unreliable, sizeof(unreliable)) == 0,
           "unreliable payload and delivery survive transport");
 
+    // Regression: the close callback may arrive before the receiver next polls.
+    // Final reliable messages must be drained before the handle is destroyed.
+    const std::uint8_t finalVerdict[] = {'v', 'e', 'r', 'd', 'i', 'c', 't'};
+    check(guest.send(Delivery::ReliableOrdered, finalVerdict, sizeof(finalVerdict)), "final verdict queues");
+    guest.disconnectPeer(true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+    bool disconnected = false;
+    int verdicts = 0;
+    const auto closingDeadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (!disconnected && std::chrono::steady_clock::now() < closingDeadline) {
+        while (host.poll(event)) {
+            if (event.type == TransportEventType::Message) {
+                check(!disconnected, "final message precedes disconnect");
+                check(event.delivery == Delivery::ReliableOrdered && event.payload.size()==sizeof(finalVerdict)
+                    && std::memcmp(event.payload.data(),finalVerdict,sizeof(finalVerdict))==0, "final verdict bytes preserved");
+                ++verdicts;
+            }
+            if (event.type == TransportEventType::Disconnected) disconnected = true;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
+    check(disconnected && verdicts==1, "delayed receiver gets exactly one final verdict before close");
+    check(host.state()==TransportState::Listening, "listener survives reliable peer close");
+    check(guest.connect(endpoint), "same guest reconnects after reliable close");
+    check(waitFor(host,guest,TransportEventType::Connected,event) &&
+        waitFor(host,guest,TransportEventType::Connected,event), "both peers reconnect without stale events");
+
     host.close();
     guest.close();
     check(host.state() == TransportState::Closed && guest.state() == TransportState::Closed,

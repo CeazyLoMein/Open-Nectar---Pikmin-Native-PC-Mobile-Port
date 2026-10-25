@@ -295,6 +295,31 @@ void testClosedRoom()
           "closing the room invalidates the code");
 }
 
+void testNoMappingUsesInjectedAddresses()
+{
+    FakeNet net;
+    int addressCalls = 0;
+    PublisherBackends backend = lanOnly();
+    backend.listAddresses = [&] {
+        ++addressCalls;
+        return LocalAddresses{}; // deliberately no machine-dependent NIC discovery
+    };
+    HostRoom host(factory(net),backend);
+    RoomConfig c=config();
+    c.automaticPortMapping=false;
+    c.includeLanEndpoint=false;
+    c.listenAddress="127.0.0.1";
+    DirectEndpoint loopback;
+    loopback.address={127,0,0,1};loopback.port=c.localPort;
+    c.manualEndpoints.push_back(loopback);
+    RoomStatus status;
+    check(host.open(c,kNow,status)==RoomError::None,"no-mapping room opens with injected backend");
+    ConnectionCode decoded;
+    check(addressCalls==1 && decodeConnectionCode(status.code,decoded)==ConnectionCodeError::None &&
+        decoded.endpoints.size()==1 && decoded.endpoints[0].address==loopback.address,
+        "no-mapping honors injected addresses and publishes only manual endpoint");
+}
+
 void testHostErrors()
 {
     FakeNet net;
@@ -328,6 +353,7 @@ int main()
     testStaleRoomAndFullRoom();
     testClosedRoom();
     testHostErrors();
+    testNoMappingUsesInjectedAddresses();
     std::printf("nectar_net_room_test: %s\n", failures == 0 ? "all tests passed" : "FAILED");
     return failures == 0 ? 0 : 1;
 }

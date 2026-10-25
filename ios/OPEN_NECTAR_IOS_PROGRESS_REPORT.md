@@ -1,76 +1,58 @@
-## Build64 dispatched — exact recovery checkpoint
-
-Sourcef5a71297ab9c54b43157e402d6e05751a128fc35; run40217032902 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40217032902); last observed IN_PROGRESS, no conclusion/IPA yet.63 scene startup PASS; native content regression compiled but rejected a valid fixture with no branch detail.64 keeps strict tests, standardizes root AND enumerated scope paths consistently, reads original paths, adds exact rejection stages/labelled fixtures and /var/private alias coverage. Exact63 branch remains unknown;64 validates the supported path-handling hypothesis and will identify any remaining failure precisely.13 local regressions PASS; no Apple/phone pass claimed. Phone data unchanged and USB not required. On success stage same new IPA for BOTH phones, then T02 room retry. P2 unchanged; title-menu entry/separate campaign slots remain future approved work. No idle polling.
-
-## Build63 native regression failure; path handling and diagnostic follow-up — October25
-
-63/run40215584390/source405ab5ef8432e427366056fc82e607c67c8dfbc6 completed FAILURE. Scene startup job121235891954 SUCCESS. P1 job121238470144 failed Check native Host Join screen and generated build identity: the actual new Foundation test COMPILED, then exited with exactly `FAIL: hash valid fixture`. No compiler/linker error was present; full P1 build/IPA did not run. The original test did not identify which valid fixture or which rejection branch. Exact branch/cause therefore remains UNCONFIRMED; do not record a proven macOS-alias cause from this log alone.
-
-Implemented a scoped follow-up: stable rejection-stage enum (no room-code/private-data logging), labelled fixture progress/failure, explicit intended reasons for empty-tree/symlink rejection, consistent standardization of BOTH root and enumerated paths for scope checks, raw enumerated filesystem paths retained for reads, and native /var-versus-/private/var alias coverage. Apple documents that Foundation standardization/resolution can remove /private (https://developer.apple.com/documentation/foundation/nsurl/standardizingpath?language=objc); alias handling is a supported hardening hypothesis, not a verified diagnosis of63. NFC identity keys and strict byte/name/case/symlink/alias-collision checks remain. Local2 build-identity+3 bundle+8 runner tests PASS; diff check PASS. Actual Foundation/iOS compilation/runtime awaits next P1-only build. Native regression was not disabled or bypassed.
-
-Both-phone audit remains proven:3463 files/634811175bytes identical;46 Japanese NFC/NFD names caused62 false content rejection. No phone files changed.63 produced no installable IPA; current installed62 still needs corrected build on BOTH phones, then repeat T02. T03/T04 remain untested. Both phones can stay disconnected/closed while CI runs. P2 unchanged. Main-menu Online Co-op and separate Solo/shared slots are approved future work after connection passes, not implemented by this follow-up. Full63 job log saved privately in work/build63-p1-full.log and accessible handoff folder. Next source/run follows; avoid idle CI polling.
-
-## User-approved upcoming UX — main menu Online Co-op and separate campaigns
-
-After connection validation, add title-menu Online Co-op > Host/Join beside existing local Co-op, with personal offline Solo and a separately labelled shared campaign (numbered slots acceptable). Existing indexed slot/day-history code supports this direction, but multiplayer campaign identity/slot binding and write protection still need implementation/testing. Preserve occupied slots, whole-card backup and solo progress; joining targets the host's campaign, not the guest's solo slot. Detailed approved plan in PIKMIN1_COOP_IMPLEMENTATION.md and COOP_CROSS_PROGRESSION_AND_RECOVERY.md. No menu/save/runtime changes now; Build63/source405ab5ef/run40215584390 remains the pending identity-fix validation. No extra native build triggered. T02 false mismatch on62 still awaits corrected build/retest. P2 unchanged.
-
-## Build63 dispatched — Unicode filename identity fix
-
-Source 405ab5ef8432e427366056fc82e607c67c8dfbc6; run40215584390 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40215584390); last observed in_progress, no conclusion or new IPA yet. Both phone base-data audits complete; all3463 files/634811175bytes match,46 Japanese filename encodings caused62's false rejection. NFC source fix plus actual native Foundation regression queued.13 local regressions PASS and corrected independent full-data digest matches. T02 FAILED62; wait for verified63 then update BOTH and repeat room test. Both phones may disconnect now; no game data/settings/save/pack writes. P2 unchanged. No idle polling requested; user reports build result.
-
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** October25,2026; real-phone Build62 join failure investigated.
+**Date/time:** 2026-10-25T18:18:20.806019+00:00 (UTC; client date October25,2026 EDT).
 
-**Overall project status:** Both Build62 installations user-reported ready. First private-room join rejected with different game data. Confirmed identity-check bug; source fix implemented and local checks passed. Next P1-only native build pending. No phone files modified.
+**Overall project status:** Build64 fixed the native Unicode/path tests and compiled P1 successfully, but failed the later real private-room socket rejection test. This session reproduced that defect locally before fixing it and implemented/verified one related transport/lifecycle/test batch. Next P1-only native build pending; current phones unchanged.
 
 ### Pikmin 1
 
-- Current objective: Fix false game-data mismatch, then repeat T02 room connection.
-- What was investigated: Read-only inventories and complete per-file SHA256 of assets/dataDir on both USB phones; actual contentIdentity implementation.
-- Root cause: Both phones contain3463 base files/634811175bytes, all contents and sizes identical.46 Japanese filenames are NFC on Raye's phone versus NFD on yours. Build62 hashes literal UTF8 filename bytes; visually equivalent filenames therefore produce different tree hashes. This is proven from both actual phone inventories, not an assumed texture-pack difference.
-- Files changed: ios/ios_coop_content_identity.h (shared actual hash function, canonical NFC identity keys mapped to original filesystem paths, ambiguous alias rejection, domainv2); ios/ios_coop_room.mm (use helper); tests/ios_coop_content_identity_test.mm; experimental workflow (compile/run actual Foundation hash tests on macOS before full iPhoneOS UI compilation). Existing file size/content hashes, case distinctions, symlink rejection and source build gates retained.
-- Tests and results: Both phone manifests match canonical source file bytes exactly. Legacy digests differ; corrected independent NFC recomputation matches at 26719287a52022d2ced07b74edb4c7a990c310e8554a63e91deec87652bfb8ba. Local2 build-identity+3 bundle+8 network-runner tests PASS; diff check PASS. New actual Foundation test covers direct NFC/NFD equivalence, real trees, creation order, changed contents/names, independent golden hash, extra files and symlink rejection. Apple native execution/compilation pending CI; no claim of hardware fix yet.
-- Confirmed working: Historical solo baselines; both62 installs user-reported. Both pre-update backups retained. No successful new phone connection yet.
-- Remaining issues: T02 FAILED on62; full playable co-op, gameplay-state integration, durable mid-day saves and cross-device progress remain future work. User may disconnect both phones now; all reading finished.
+- Current objective: Get two-phone private rooms working, then proceed to real shared gameplay.
+- What was investigated: Full64 job log and hash-verified artifact; actual GNS terminal callbacks/receive queues; compatibility and GuestJoin state machines; address discovery; delayed polling, endpoint fallback and reconnect. No guessed compiler fix:64 had no compiler error.
+- Root cause: GnsTransport closed the native connection inside ClosedByPeer callback before receiving queued final reliable messages. GNS destroys unread messages when CloseConnection frees that handle. When the guest polls slowly, the final incompatibility verdict is discarded; GuestJoin receives only a disconnect, retries endpoints and eventually reports unreachable with no mismatch reason. Reproduced with a150ms raw receiver delay and100ms private-room guest polling. Fast baseline12/12 passed under unrestricted local test access; slow reproduction failed, proving timing sensitivity. Initial restricted-access baseline failure is excluded from this diagnosis.
+- Batch source changes: bounded drain-before-close (max256 messages/8MiB) with existing4MiB per-message validation and message Release; queue final messages before terminal event; deliver already queued events before advancing callbacks; ignore stale Connected callbacks for retired handles; guard null native interface; honor supplied address-discovery backends with automatic mapping OFF; optional explicit room listen address (normal app defaults preserved); make the probe bind/publish only127.0.0.1; use GuestJoin terminal progress and its actual deadline rather than transient inner state.
+- Regression changes: raw real-GNS final reliable payload must arrive exactly once before Disconnected; listener survives and guest reconnects; injected no-mapping discovery is honored; native co-op probe deliberately slows wrong-secret/private-room polling and verifies ALL5 incompatibility fields, reason retention, no accidental partner bans, valid join and same-room rejoin. No compatibility test disabled or expected result weakened.
+- Files changed: libs/nectar_net/include/nectar_net/room.h, libs/nectar_net/src/gns_transport.cpp, libs/nectar_net/src/room.cpp, libs/nectar_net/tests/coop_socket_probe.cpp, libs/nectar_net/tests/gns_transport_test.cpp, libs/nectar_net/tests/room_test.cpp.
+- Tests and results: Both deterministic pre-fix tests FAILED, then PASSED with fix. Full23/23 networking CTest suite PASS, including native socket/authentication/stress/room and actor/Onion/session tests.8 complete probe runs PASS across baseline,80ms lag/40ms jitter/2% loss,120ms lag/50ms jitter/5% loss:40 exact mismatch verdicts. Clang diagnostics/core analysis on all5 changed C++ translation units PASS after including the project's Windows CRT definition and fixing a null-interface edge. Final code rebuilt:6 directly affected CTest regressions PASS plus3 final complete baseline/impaired probes PASS (15 more mismatch verdicts). Final binary SHA256 1d4316ac20c84352d974619925efd2502639796a89f324da7ea56a5e78a2e50f.2 source-identity+3 bundle+8 runner tests PASS; diff check PASS. Windows uses pinned GNS/BCrypt; this is NOT Apple/OpenSSL or hardware proof.
+- Confirmed working:64 actual Foundation NFC/NFD, real changed content/name rejection, path aliases, independent hash vector and symlink tests ALL PASS; full iPhoneOS P1 BUILD SUCCEEDED. Independent compiled-app artifact checks PASS: original app ID, permission explanation, ARM64 iPhoneOS binary, exact3 pinned notices. The new network batch awaits Apple compilation/runtime and phone retest.
+- Remaining issues: Current installed62 still rejects the46 NFC/NFD names; corrected source is retained in next build. No successful actual two-phone room yet. No playable shared world/campaign, full mid-day recovery or cross-progression implemented. Approved later UX: title-menu Online Co-op Host/Join beside local Co-op and separately labelled personal Solo/shared campaign slots.
 
 ### Pikmin 2
 
-- Current objective: Preserve working port while P1 networking is validated.
-- What was investigated: Nothing new in P2 for this fix.
-- Root cause or leading hypothesis: No new P2 issue reported.
-- Files changed: None in P2; experimental build will select P1 only.
-- Tests and results: No new P2 run requested.
-- Confirmed working: Prior user-reported working P2 on both phones; not retested this turn.
-- Remaining issues: Future P2 co-op and wider campaign validation.
+- Current objective: Preserve the user-confirmed working port while P1 is tested.
+- What was investigated: No P2 gameplay/source audit in this batch.
+- Root cause or leading hypothesis: No new P2 runtime issue reported.
+- Files changed: No P2 game files or workflow selection changes; shared networking source changes are validated through P1 only.
+- Tests and results: No new P2 Apple build or phone runtime test claimed.
+- Confirmed working: Historical working installation on both phones, per user; not retested this session.
+- Remaining issues: P2 online adapter and broader campaign testing remain later work.
 
 ### GitHub
 
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental
-- Starting commit: 59480c3b44e6d332ca43a3fb39882910a3a1ec03
-- Latest source commit: 405ab5ef8432e427366056fc82e607c67c8dfbc6; Build63/run40215584390 in progress. Later documentation-only commit recorded in Exact Resume State.json.
-- Commits created: Next source commit contains only identity fix, native regression and journal/checklist updates.
-- Changes pushed: Scoped source/test/workflow/report commit pushed; Build63 selected P1 only.
-- Uncommitted changes: None after documented source/dispatch commits.
-- GitHub Actions run IDs: Previous62/run40210863029/source b8abc62ecddd146f411d136c0ab9f6095ee9d858 SUCCESS; phone join FAILED. Next native run not yet assigned at this checkpoint.
-- Build results: New source not yet compiled on Apple; no native success claimed.
-- Artifacts produced: No new IPA yet. Existing verified62 and known-working54 rollback retained.
+- Starting commit: 318520db3dba9c2484e88d83a20dde8c8ccbf79a
+- Latest commit: Source batch commit/run recorded in next dispatch checkpoint and Exact Resume State.json.
+- Commits created: One scoped transport/lifecycle/regression/journal batch is committed and pushed by this checkpoint.
+- Changes pushed: P1-only [ios-build] marker; no P2 build requested and no history rewritten.
+- Uncommitted changes: None after successful checkpoint commit/push.
+- GitHub Actions run IDs:64/run40217032902/source f5a71297ab9c54b43157e402d6e05751a128fc35 FAILURE. Scene121240294349 PASS. P1121243384666 actual build PASS; socket gate FAIL `room code refuses a different game-data fingerprint`. Next run/source recorded at dispatch.
+- Build results:64 native Unicode/hash/path regression and P1 app build PASS; real socket test FAIL. New batch local verification PASS; Apple native/network/IPA/hardware milestones PENDING.
+- Artifacts produced:64 artifact12609440157 SHA2564fb0f6a71392c65f69a02a7e71166933b3b69bdb5ceb1a82160ecb23fac9c693 downloaded/verified. Contains compiled app.tar.gz and diagnostics, no completed IPA. No failed64 app installed or presented as safe-to-install.62 staged IPA and54 rollback preserved.
 
 ### Next steps
 
-- Next Pikmin 1 task: Native compile/run actual hash regression and full P1 package validation; stage verified new IPA only after success.
-- Next Pikmin 2 task: Keep working installation unchanged.
-- GitHub/build task: Push one scoped P1-only [ios-build] commit; record exact source/run, no idle CI polling.
-- Anything requiring user involvement: Nothing while building. Both phones can unplug/P1 can close. After verified package, update BOTH with the same new IPA and repeat T02 before T03/T04.
+- Next Pikmin 1 task: Check next native batch result, retrieve exact logs/artifacts, verify/stage successful IPA, update BOTH existing P1 apps with same package/identity, retry T02 connection then T03 reconnect/reverse host and T04 ordinary solo.
+- Next Pikmin 2 task: Keep working app unchanged; no P2 installation or build now.
+- GitHub/build task: Record exact next source/run; do not poll idly. User reports build completion; retrieve evidence directly afterward.
+- Anything requiring user involvement: None while building. Both phones may unplug/P1 may close. Do not reinstall game data/packs or remove either app.
 
 ### ChatGPT continuation notes
 
-- Both actual phone inventories prove identical base data; no recopy, cleanup, pack deletion or arbitrary compatibility bypass needed.
-- Important source-file locations: ios/ios_coop_content_identity.h and ios/ios_coop_room.mm; tests/ios_coop_content_identity_test.mm; .github/workflows/ios-native-experimental.yml.
-- Relevant logs: Private work/build62-your-content-audit.json, build62-raye-content-audit.json, build62-content-mismatch-root-cause.json. These contain game-file paths/hashes only and remain outside public Git. Room codes/credentials never collected or logged.
-- Unverified fixes: Native NFC implementation and actual two-phone join await next build and hardware test.
-- Risks and warnings: New identity domain/build must match on both phones; one62 plus one new build cannot join. No live gameplay networking is implemented by this change.
-- Exact next actions: Check next native run; on success verify/stage IPA, preserve backups and request same-Wi-Fi Host/Join retest. Record T02 failure on62 and keep future runtime tasks untested.
+- Full64 log work/build64-p1-full.log; artifact work/build64-p1-artifact.zip; independent archive receipt work/build64-compiled-app-check.json.
+- Before/after timing evidence, all test logs, Clang output and JSON results: work/build64-local-reproduction. Accessible copy beside the latest report in P1 - Build64 Network Failure and Batch Fix.
+- Base-file identity problem remains proven separately: both phones3463 files/634811175bytes identical;46 Japanese filename encodings.64's Apple Foundation tests now PASS that correction; do not conflate it with this final-message/close race.
+- New core bug is reproduced locally under real encrypted UDP, not merely assumed from an error label. Final reliable verdict must be consumed before freeing native handle. Bounds and privacy remain intact; no room codes, secret tokens or peer IPs printed.
+- Unverified fixes: New batch Apple/OpenSSL compilation/runtime and actual phone connection are not yet verified. Windows static/runtime passes do not certify iPhone behavior or internet connectivity.
+- Exact next actions: Check recorded next run; on success prepare new IPA for BOTH phones and small T02 test, retaining settings/save backups. On failure read the now-specific stage/state report before another batch.
 
 **END PROGRESS REPORT**

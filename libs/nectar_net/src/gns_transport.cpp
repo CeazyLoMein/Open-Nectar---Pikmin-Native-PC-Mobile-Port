@@ -105,6 +105,55 @@ struct GnsTransport::Impl {
         return endpoint.port != 0;
     }
 
+    // Preserve receive order even when the close callback precedes the next poll.
+    // GNS destroys unread queued messages when CloseConnection frees the handle.
+    bool queueMessage(ISteamNetworkingMessage* message)
+    {
+        TransportEvent event;
+        event.type = TransportEventType::Message;
+        event.delivery = (message->m_nFlags & k_nSteamNetworkingSend_Reliable) != 0
+            ? Delivery::ReliableOrdered : Delivery::Unreliable;
+        const bool valid = message->m_cbSize >= 0
+            && static_cast<std::size_t>(message->m_cbSize) <= kMaxMessageBytes
+            && (message->m_pData != nullptr || message->m_cbSize == 0);
+        if (valid) {
+            if (message->m_cbSize != 0) {
+                const auto* begin = static_cast<const std::uint8_t*>(message->m_pData);
+                event.payload.assign(begin, begin + message->m_cbSize);
+            }
+        } else {
+            event.type = TransportEventType::Error;
+            event.detail = "Received an invalid encrypted transport message";
+        }
+        message->Release();
+        events.push_back(std::move(event));
+        return valid;
+    }
+
+    void drainBeforeClose(HSteamNetConnection closing)
+    {
+        // A hostile sender must not cause unlimited copies/work during teardown.
+        constexpr std::size_t maxClosingMessages = 256;
+        constexpr std::size_t maxClosingBytes = 8U * 1024U * 1024U;
+        std::size_t bytes = 0;
+        for (std::size_t count = 0; count < maxClosingMessages; ++count) {
+            ISteamNetworkingMessage* message = nullptr;
+            const int received = sockets->ReceiveMessagesOnConnection(closing, &message, 1);
+            if (received <= 0) {
+                if (received < 0) queue(TransportEventType::Error, "Closing receive queue failed");
+                return;
+            }
+            if (message->m_cbSize < 0 || static_cast<std::size_t>(message->m_cbSize) > maxClosingBytes - bytes) {
+                message->Release();
+                queue(TransportEventType::Error, "Closing receive queue exceeded safety limit");
+                return;
+            }
+            bytes += static_cast<std::size_t>(message->m_cbSize);
+            if (!queueMessage(message)) return;
+        }
+        queue(TransportEventType::Error, "Closing receive queue exceeded message limit");
+    }
+
     static void statusChanged(SteamNetConnectionStatusChangedCallback_t* info)
     {
         Impl* target = nullptr;
@@ -141,6 +190,11 @@ struct GnsTransport::Impl {
             }
             break;
         case k_ESteamNetworkingConnectionState_Connected: {
+            // Ignore a late callback for a retired peer; never revive its state.
+            if (info.m_hConn != connection) {
+                sockets->CloseConnection(info.m_hConn, 0, nullptr, false);
+                break;
+            }
             currentState = TransportState::Connected;
             char peer[SteamNetworkingIPAddr::k_cchMaxString] = {};
             info.m_info.m_addrRemote.ToString(peer, sizeof(peer), false);
@@ -159,6 +213,9 @@ struct GnsTransport::Impl {
             const bool localProblem =
                 info.m_info.m_eState == k_ESteamNetworkingConnectionState_ProblemDetectedLocally;
             const std::string detail = info.m_info.m_szEndDebug;
+            // Queue final reliable verdicts before releasing this connection,
+            // then surface Disconnected/Error AFTER those messages.
+            drainBeforeClose(info.m_hConn);
             {
                 std::lock_guard<std::mutex> lock(registryMutex);
                 connections.erase(info.m_hConn);
@@ -289,13 +346,14 @@ bool GnsTransport::send(Delivery delivery, const std::uint8_t* data, std::size_t
 
 bool GnsTransport::poll(TransportEvent& event)
 {
-    if (mImpl->sockets != nullptr) mImpl->sockets->RunCallbacks();
+    // Deliver already-queued events before advancing callbacks again.
+    if (mImpl->events.empty() && mImpl->sockets != nullptr) mImpl->sockets->RunCallbacks();
     if (!mImpl->events.empty()) {
         event = std::move(mImpl->events.front());
         mImpl->events.pop_front();
         return true;
     }
-    if (mImpl->currentState != TransportState::Connected) return false;
+    if (mImpl->currentState != TransportState::Connected || mImpl->sockets == nullptr) return false;
 
     ISteamNetworkingMessage* message = nullptr;
     const int received = mImpl->sockets->ReceiveMessagesOnConnection(mImpl->connection, &message, 1);
@@ -309,20 +367,10 @@ bool GnsTransport::poll(TransportEvent& event)
         }
         return false;
     }
-    event = TransportEvent{};
-    event.type = TransportEventType::Message;
-    event.delivery = (message->m_nFlags & k_nSteamNetworkingSend_Reliable) != 0
-        ? Delivery::ReliableOrdered
-        : Delivery::Unreliable;
-    if (message->m_cbSize >= 0 && static_cast<std::size_t>(message->m_cbSize) <= Impl::kMaxMessageBytes) {
-        const auto* begin = static_cast<const std::uint8_t*>(message->m_pData);
-        event.payload.assign(begin, begin + message->m_cbSize);
-    } else {
-        event.type = TransportEventType::Error;
-        event.detail = "Received an oversized encrypted transport message";
-        mImpl->currentState = TransportState::Failed;
-    }
-    message->Release();
+    const bool valid = mImpl->queueMessage(message);
+    if (!valid) mImpl->currentState = TransportState::Failed;
+    event = std::move(mImpl->events.front());
+    mImpl->events.pop_front();
     return true;
 }
 
