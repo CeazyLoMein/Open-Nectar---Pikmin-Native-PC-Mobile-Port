@@ -111,3 +111,5 @@ October25 —65 TWO-PHONE LAN PASS: T01 both updates; T02 stable minute+/11ms mi
 October25 — Next UI/efficiency batch implemented/local checks PASS; Apple/native/phone pending. Keep65 T01-T04 historical PASS. No new phone task until verified update.
 
 October25 —66 failed BEFORE fixture compilation: strict-shell empty EXTRA flags array. Portable Python compiler runner replaces shell array; actual desktop/native fixtures PASS via real local compiler, including spaced paths. Next Apple build pending; T05/T07/T08 not ready/untested.65 T01-T04 LAN pass preserved.
+
+October25 —67 compiler failure:3 legacy sprintf calls rejected by Apple SDK. All7 related title calls bounded; local old-API negative control and9 aggregate/gate tests PASS. Next native build collects independent errors while strict final packaging gate remains mandatory.65 LAN pass unchanged; no new phone task yet.

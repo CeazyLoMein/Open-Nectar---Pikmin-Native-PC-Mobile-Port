@@ -25,6 +25,8 @@ def generate(output):
 #include <thread>
 #include "pc_frame_scheduler.h"
 #define immut const
+// Enforce the Apple SDK API restriction even when the local SDK permits sprintf.
+#define sprintf NECTAR_UNBOUNDED_SPRINTF_IS_FORBIDDEN
 struct P2DTextBox {char* text;char* getString(){return text;}void setString(char* s){text=s;}};
 struct Screen {
  std::map<std::string,P2DTextBox> boxes;
@@ -107,6 +109,7 @@ def compile_and_run(output, compiler, sdk_root=None):
  source=ROOT/'games/pikmin1/pc_port/timing/pc_frame_scheduler.cpp'
  include=source.parent
  msvc=Path(compiler).name.lower() in ('cl','cl.exe')
+ failures=[]
  for mode in ('desktop','native'):
   build=output.parent/('room-ux-'+mode);build.mkdir(parents=True,exist_ok=True)
   binary=build/('test.exe' if msvc else 'test')
@@ -121,8 +124,12 @@ def compile_and_run(output, compiler, sdk_root=None):
    if mode=='native':command += ['-DNECTAR_IOS_COOP_ROOM=1']
    command += [str(output),str(source),'-o',str(binary)]
   print('Compiling actual room UX fixture: '+mode,flush=True)
-  subprocess.run(command,cwd=build,check=True,timeout=120)
-  subprocess.run([str(binary)],cwd=build,check=True,timeout=30)
+  try:
+   subprocess.run(command,cwd=build,check=True,timeout=120)
+   subprocess.run([str(binary)],cwd=build,check=True,timeout=30)
+  except (subprocess.CalledProcessError,subprocess.TimeoutExpired,OSError) as error:
+   print('FAIL room UX mode '+mode+': '+str(error),flush=True);failures.append(mode)
+ if failures:raise RuntimeError('Room UX fixture failures: '+', '.join(failures))
 
 if __name__=='__main__':
  parser=argparse.ArgumentParser()

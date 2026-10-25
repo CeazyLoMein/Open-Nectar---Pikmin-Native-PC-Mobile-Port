@@ -1,66 +1,49 @@
-## Build67 dispatched — portable fixture compiler orchestration
-
-Sourcea1523f08a7834376ade50cb433117c8d9f8a99fe; run40230727690 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40230727690); last snapshot IN_PROGRESS.66 failed shell EXTRA empty-array expansion under nounset BEFORE C++/app compilation; no IPA.67 removes shell flags/loop handling in favor of checked Python subprocess argument lists for both desktop/native fixtures with explicit compiler/SDK. Real local compiler runs through same runner PASS in both modes including paths with spaces. New title Online/Rejoin/opaque pause source remains unchanged from66; Apple full UI/app/runtime/package and phone behavior still pending.65 SAME-WIFI BOTH-PHONE T01-T04 PASS preserved. No phone/FPS/graphics/packs/saves/P2 changes or heat benefit claim. Await user result, retrieve logs/artifact, stage only verified new IPA for next small UI/room/solo test batch. No idle polling.
-
-## Build66 failed test-shell wrapper; portable compiler runner verified
-
-66/run40229474228/source5bf89a24b059fb37fd4aba9da99aeda16ad8a579 FAILURE. Scene121277899635 SUCCESS. P1 job121280013198 failed native room-check step BEFORE its C++ compilation: exact shell error `EXTRA[@]: unbound variable`. New optional flags array was empty in desktop mode under `set -euo pipefail`; the shell rejected its expansion. This is a confirmed CI-wrapper error, not a diagnosed game/UI failure. Full new app/UIKit/transport/package checks were skipped;66 produced no IPA. Existing65 phones remain unchanged and LAN-tested.
-
-Corrected related wrapper as a batch: remove optional Bash-array orchestration entirely; actual fixture generator now owns desktop/native compile/run via Python subprocess argument lists, checked compiler/executable exit codes and bounded timeouts. Supports MSVC plus Clang with explicit macOS SDK root. CI invokes one Python command with quoted compiler/SDK paths. Real local compiler runs through THIS new runner PASS for both actual source fixtures, with spaces in output paths. Other workflow arrays audited: SOURCES/CONFIGURE_COMMAND are nonempty; existing BUILD_ARGS is outside nounset and65 previously compiled successfully. No unrelated P2 workflow changes or test bypass. No local Bash available, so do not claim local Apple/Bash execution; actual Mac Clang/SDK and full UI/app validation await next run.
-
-The66 source features are retained unchanged: native title Online Co-op entry, authenticated process-memory Rejoin, opaque-room hidden game tick/draw pause with SDL/audio pump/scheduler rebase.30/60/120 choice, graphics/packs/saves and P2 remain untouched. New UI/runtime/physical heat benefit still UNVERIFIED on phones.65 remains BOTH-PHONE SAME-WIFI T01-T04 PASS. Next P1-only run/source recorded at dispatch; no phone action until verified package. Full66 job log retained privately and copied to accessible handoff folder.
-
-## Build66 dispatched — native room convenience and hidden-work reduction
-
-Source5bf89a24b059fb37fd4aba9da99aeda16ad8a579; run40229474228 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40229474228); last observed IN_PROGRESS, no new IPA/native/phone pass.66 adds native title Online Co-op row, Rejoin Last Room from authenticated invitation held only in process memory, and narrow opaque-room hidden tick/draw pause with SDL/audio pumping and scheduler rebase. Local actual-source native/desktop menu+pause fixtures PASS;10 getters pass iOS ARC;2 identity+3 bundle checks PASS. No FPS/120 option, resolution, textures/models, save/P2 changes. Physical heat benefit unmeasured, especially during normal gameplay.65 remains BOTH-PHONE SAME-WIFI T01-T04 PASS; old mismatch photo clarified as previous62. Full campaign/internet/host-kill recovery and separate Solo/shared slot adapter are not implemented. No phone action until verified new package; await user build result without idle polling.
-
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-25T20:09:57.148560+00:00 UTC (October25,2026 EDT).
+**Date/time:** 2026-10-25T20:51:07.400812+00:00 UTC (October25,2026 EDT).
 
-**Overall project status:**65 verified on BOTH real phones over SAME Wi-Fi; next room usability/hidden-work batch implemented and locally checked, Apple build pending.
+**Overall status:**65 remains tested LAN baseline.67 failed on3 deprecated title-format calls. Related7-call cleanup and independent-check aggregation/release gate batch implemented/locally verified; next Apple run pending.
 
 ### Pikmin 1
 
-- Current objective: Easier title-menu access/rejoining and eliminate invisible lobby work while preserving visual/gameplay settings.
-- What was investigated: User65 results/screenshots, native room lifecycle, title cloning/actions/return indexes, System::run/frame scheduler/event/audio loop.
-- Root cause/leading hypothesis: Rejoin required repasting because guest link teardown cleared code with no remembered authenticated target. Online entry was in Data. Native opaque room covered the game while its loop continued idle/render work. Heat Serious120FPS observed but source of physical heat is unconfirmed; no pack blame or visual/FPS changes.
-- Files changed: ios/ios_coop_room.h, ios/ios_coop_room.mm, games/pikmin1/src/plugPikiOgawa/ogTitle.cpp, games/pikmin1/src/sysDolphin/system.cpp, tests/pikmin1_ios_room_ux_test.py, .github/workflows/ios-native-experimental.yml; journals/checklist.
-- Tests/results: Actual-source native+desktop menu/opaque-pause fixtures compile/run PASS,30/60/120 settings retained and no hidden ticks/backlog;10 actual UI getters pass iOS ARC;2 source-identity+3 bundle tests PASS; diff check PASS. Apple full build/UIKit/runtime/package PENDING. User65 T01-T04 PASS: minute+ stable,11ms minimum, guest Leave/rejoin, reversed hosts and ordinary solo/settings/controls. Photo5 mismatch was OLD failure by user clarification.
-- Confirmed working:65 LAN connection/rejoin/both-host directions/solo; not full campaign or different-network play.
-- Remaining issues: New UI/pause batch needs Apple and phone validation; heat reduction unmeasured; full shared gameplay, mid-day/recovery/cross-progress and Solo/shared slot integration still later.
+- Objective: Validate main-menu Online entry/Rejoin/opaque hidden-work pause while retaining65 behavior.
+- Investigated: Full67 job, all title formatters and buffers, fixture compiler failure handling, native check dependencies/packaging gates.
+- Confirmed root cause: Apple27 SDK deprecates sprintf;3 legacy calls inside actual captured title function failed strict fixture compilation. No native variant/full app or IPA produced67.
+- Files changed: games/pikmin1/src/plugPikiOgawa/ogTitle.cpp, tests/pikmin1_ios_room_ux_test.py, tests/run_ios_room_checks.py, tests/ios_room_checks_runner_test.py, .github/workflows/ios-native-experimental.yml.
+- Implemented:7 bounded title formatters with correct PC tag buffer; local forbidden-API negative control; both fixture modes attempted;12 independent native checks with persistent logs/timeout evidence; full app/runtime can collect independent errors; strict final outcome+complete12-check receipt gate before packaging.
+- Local tests: Real desktop+native actual-source compile/run PASS. Restored sprintf negative control correctly rejected by real compiler.9 aggregation/gate/timeout/stale-binary tests PASS.10 getter ARC compile/negative control PASS;2 identity+3 bundle tests PASS; diff check PASS. No warnings disabled for title code.
+- Confirmed runtime:65 both real phones same-WiFi stable minute+/11ms min, leave/rejoin/reverse host and solo/settings/controls PASS. No internet/shared-world/full-campaign pass.
+- Remaining: Next Apple full native/UI/runtime/package, then new phone UI/rejoin/modal return tests. Heat reduction unmeasured; no graphics/FPS/packs changed. Solo/shared save slot integration still future.
 
 ### Pikmin 2
 
-- Current objective: Preserve working app.
-- Investigated/changed: Nothing new in P2.
-- Root cause/leading hypothesis: No new P2 issue reported.
-- Tests/results: No new P2 run requested.
-- Confirmed working: Historical user-tested working installation on both phones, not retested now.
-- Remaining issues: Future P2 online/campaign adapter.
+- Objective: Preserve working app; no P2 source changes or new build requested.
+- Investigated/root cause: No new P2 issue reported.
+- Tests/results: Historical both-phone working installation, not retested now.
+- Remaining: Future P2 co-op engine/campaign work.
 
 ### GitHub
 
-- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; branch ios-experimental.
-- Starting commit: 0efe4d3f1761b6d5d39f459ea9f2e1c092209478
-- Latest source commit: Next source batch commit recorded in Exact Resume State.json and next dispatch checkpoint.
-- Commits created/changes pushed: One scoped P1-only UI/hidden-work batch; no P2 build or history rewrite.
-- Uncommitted changes: None after successful source commit/push.
-- Actions IDs/builds:65/run40220611984/source3f650f7851ae9e38ba528f54fd42b89fbb095781 native/simulator/package SUCCESS and real-phone LAN PASS. Next native run not yet assigned at this pre-dispatch report.
-- Artifacts:65 IPA preserved5288159bytes/SHA256c51d6ea0e6b9e86b8321435014f27db12904be723ef9394d7f591a17b2939aad in CURRENT - P1 Build 65 - Connection Fix. No new IPA yet.
+- Repository/branch: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port / ios-experimental.
+- Starting commit: 999835141f82b133f671c0fc340500f97b23bc4c
+- Latest source/commits: Next scoped P1-only formatting/preflight commit recorded in dispatch and Exact Resume State.json.
+- Changes pushed: Source/test/workflow/journal batch; no history rewrite, no P2 run.
+- Uncommitted changes: None after checkpoint commit/push.
+- Actions:67/run40230727690/sourcea1523f08a7834376ade50cb433117c8d9f8a99fe FAILURE; scene121281673397 success/P1121284703394 failed fixture compile.66 failed earlier empty shell array.65/run40220611984 remains native+IPA+two-phone LAN PASS.
+- Artifacts: No67 IPA. Existing verified65 package/known working rollback and phone backups preserved. New source IPA/native success not yet claimed.
 
 ### Next steps
 
-- P1: Native build, verify/stage new IPA, then small BOTH-phone batch: main-menu access, Rejoin without recopying, host Messages/return, Done to visible solo/no time jump; ordinary65 connection regression.
-- P2: Preserve working app.
-- GitHub/build: Record next source/run, then wait for user result without idle polling.
-- User involvement: None until verified package. Phones can unplug/P1 can close. User chooses FPS independently; no heat test requested.
+- P1: Native batch build; read all collected errors if any, or verify/stage successful IPA, then small T05/T07/T08 plus room/solo retest.
+- P2: Preserve existing app.
+- Build: Record exact next source/run; wait user result without idle polling. Preflight collection does NOT waive any release checks.
+- User involvement: None while CI runs; keep65 installed, phones may unplug. No heat/FPS test requested; user handles FPS.
 
 ### ChatGPT continuation notes
 
-- Rejoin memory is process-local invite convenience, not durable player identity or campaign recovery; native host still must be foreground for joining. Never serialize/log private code. Labels stay connection-only.
-- Opaque-room atomic flag freezes hidden app ticks/rendering only; existing SDL/audio pumping and scheduler rebase retained. No visible graphics, FPS, saves or P2 changes. Test actual phone dismissal/resume before claiming it works there or reduces heat.
-- Local evidence: work/p1-room-ux.cpp, work/room-ux-local/desktop.exe/native.exe, tests/pikmin1_ios_room_ux_test.py; actual ARC tester. Prior networking evidence/65 results preserved.
-- Exact next action: Inspect next Apple run; verify artifact then T05/T07/T08 plus room/solo regression. T06 separate campaigns remains future and must protect occupied slots/guest solo progress.
+- Root cause evidence work/build67-p1-full.log; all3 same deprecation. Source cleanup covers7 calls and native PAL tag buffer.
+- New runner tests/run_ios_room_checks.py always returns FAIL for any nonpass check; tests/ios_room_checks_runner_test.py exercises9 safety/failure cases. Packaging gate validates original step outcome and complete PASS receipt after independent compile/runtime, never accepts a failed continued step.
+- Important pending features:66 native menu/Rejoin/opaque pause source not phone-tested. Keep connection-only labels; do not claim playable campaign or physical heat reduction.
+- Resume: inspect next recorded native run, preserve logs/receipt and source build mapping, stage only successful verified IPA, then ask BOTH-phone update/test batch. Never overwrite65 rollback or existing slots/packs/settings.
 
 **END PROGRESS REPORT**

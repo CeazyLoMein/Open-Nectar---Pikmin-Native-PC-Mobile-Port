@@ -305,30 +305,16 @@ jobs:
           ./zip-test
           c++ -std=c++17 -I"$ROOT/games/pikmin1/pc_port" "$ROOT/tests/pikmin1_ios_performance_test.cpp" "$ROOT/games/pikmin1/pc_port/timing/pc_ios_performance.cpp" -o performance-test
           ./performance-test
-      - name: Check native Host Join screen and generated build identity
+      - name: Collect native Host Join checks and generated build identity
+        id: coop_room_checks
         if: matrix.game == 'pikmin1'
+        # Gather independent compile failures before one final mandatory gate.
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
-          python3 tests/pikmin1_ios_room_ux_test.py "$RUNNER_TEMP/p1-room-ux.cpp" \
-            --compiler "$(xcrun --sdk macosx --find clang++)" \
-            --sdk-root "$(xcrun --sdk macosx --show-sdk-path)"
-          python3 tests/coop_build_identity_test.py
-          python3 tests/coop_bundle_test.py
-          xcrun --sdk macosx clang++ -std=c++17 -fobjc-arc -Wall -Wextra -Werror \
-            -Wno-deprecated-declarations -Iios tests/ios_coop_content_identity_test.mm \
-            -framework Foundation -o "$RUNNER_TEMP/nectar-content-identity-test"
-          "$RUNNER_TEMP/nectar-content-identity-test"
-          python3 tests/ios_coop_arc_names_test.py \
-            --compiler "$(xcrun --sdk iphoneos --find clang++)" \
-            --sdk-root "$(xcrun --sdk iphoneos --show-sdk-path)"
-          python3 ios/generate_coop_build_identity.py --root "$GITHUB_WORKSPACE" \
-            --output "$RUNNER_TEMP/nectar-coop-ui/nectar_coop_build_identity.h" \
-            --game-version VERSION_GPIE01_01
-          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 \
-            -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
-            -std=c++17 -fobjc-arc -Wall -Wextra -Werror -fsyntax-only \
-            -Iios -Ilibs/nectar_net/include -I"$RUNNER_TEMP/nectar-coop-ui" ios/ios_coop_room.mm
+          python3 tests/ios_room_checks_runner_test.py
+          python3 tests/run_ios_room_checks.py --output ios-room-check-results
       - name: Restore pinned Apple networking dependency cache
         if: matrix.game == 'pikmin1'
         uses: actions/cache@v4
@@ -434,6 +420,11 @@ jobs:
       - name: Index compiler and linker errors
         if: always()
         run: python3 tests/ios_build_error_summary.py ios-build.log ios-build-errors.md
+      - name: Require all native room checks before packaging
+        if: ${{ !cancelled() && matrix.game == 'pikmin1' }}
+        env:
+          ROOM_CHECK_OUTCOME: ${{ steps.coop_room_checks.outcome }}
+        run: python3 tests/run_ios_room_checks.py --verify ios-room-check-results/result.json --outcome "$ROOM_CHECK_OUTCOME"
       - name: Package unsigned app for later signing (only if compilation succeeds)
         if: success()
         shell: bash
@@ -461,6 +452,7 @@ jobs:
             ios-build-errors.md
             ios-coop-socket-build.log
             ios-coop-socket-results/
+            ios-room-check-results/
             Nectar-*-unsigned.ipa
             nectar-*-compiled-app.tar.gz
           if-no-files-found: warn

@@ -142,17 +142,19 @@ zen::ogScrTitleMgr::ogScrTitleMgr()
 	mAlphaMgr = new setTenmetuAlpha(mStereoButton, 0.5f, 0.0f, 0, 255);
 
 	int i;
-#if defined(VERSION_GPIP01)
+#if defined(PIKI_PC_PORT)
+    char path[8]; // Tags such as on20 require four characters plus the terminator.
+#elif defined(VERSION_GPIP01)
 	char path[TERNARY_BUGFIX(8, 4)]; // You made it undefined behavior?!
 #else
 	char path[8];
 #endif
 	for (i = 0; i < 10; i++) {
-		sprintf(path, "on%02d", i + 1);
+		std::snprintf(path, sizeof(path), "on%02d", i + 1);
 		mBgmVolButtons[i] = static_cast<P2DPicture*>(mSoundScreen->search(P2DPaneLibrary::makeTag(path), true));
 	}
 	for (i = 0; i < 10; i++) {
-		sprintf(path, "on%02d", i + 11);
+		std::snprintf(path, sizeof(path), "on%02d", i + 11);
 		mSfxVolButtons[i] = static_cast<P2DPicture*>(mSoundScreen->search(P2DPaneLibrary::makeTag(path), true));
 	}
 
@@ -196,16 +198,16 @@ void zen::ogScrTitleMgr::pcInsertCoopItem(DrawMenu* menu)
 	char buf[8];
 	for (int f = 0; f < 2; f++) {
 		int n = 0;
-		sprintf(buf, kFamilies[f], 0);
+		std::snprintf(buf, sizeof(buf), kFamilies[f], 0);
 		while (menu->getScreenPtr()->search(P2DPaneLibrary::makeTag(buf), false)) {
-			sprintf(buf, kFamilies[f], ++n);
+			std::snprintf(buf, sizeof(buf), kFamilies[f], ++n);
 		}
 		if (n < 6) {
 			continue;
 		}
 		P2DTextBox* box[8];
 		for (int i = 0; i < n && i < 8; i++) {
-			sprintf(buf, kFamilies[f], i);
+			std::snprintf(buf, sizeof(buf), kFamilies[f], i);
 			box[i] = static_cast<P2DTextBox*>(menu->getScreenPtr()->search(P2DPaneLibrary::makeTag(buf), true));
 		}
 		// Originales: 0 Start, 1 Options[, 2 Challenge]. Las cajas quedan
@@ -247,7 +249,7 @@ void zen::ogScrTitleMgr::pcInsertAdvancedItem(DrawMenu* menu)
 	char buf[8];
 	for (int slot = 4; slot <= 5; slot++) {
 		for (int f = 0; f < 2; f++) {
-			sprintf(buf, kFamilies[f], slot);
+			std::snprintf(buf, sizeof(buf), kFamilies[f], slot);
 			P2DTextBox* box = static_cast<P2DTextBox*>(menu->getScreenPtr()->search(P2DPaneLibrary::makeTag(buf), false));
 			if (!box) {
 				continue;
@@ -296,7 +298,7 @@ void zen::ogScrTitleMgr::pcSetupAdvancedMenu()
 	char buf[8];
 	for (int i = 0; i < 8; i++) {
 		for (int f = 0; f < 4; f++) {
-			sprintf(buf, kFamilies[f], i);
+			std::snprintf(buf, sizeof(buf), kFamilies[f], i);
 			P2DPane* p = scr->search(P2DPaneLibrary::makeTag(buf), false);
 			if (!p || f >= 2) continue; // los iconos los gestiona DrawMenu (cursor propio)
 			p->show();                  // el hueco 1 ("Messages") viene oculto
