@@ -1,3 +1,7 @@
+## Build63 dispatched — Unicode filename identity fix
+
+Source 405ab5ef8432e427366056fc82e607c67c8dfbc6; run40215584390 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40215584390); last observed in_progress, no conclusion or new IPA yet. Both phone base-data audits complete; all3463 files/634811175bytes match,46 Japanese filename encodings caused62's false rejection. NFC source fix plus actual native Foundation regression queued.13 local regressions PASS and corrected independent full-data digest matches. T02 FAILED62; wait for verified63 then update BOTH and repeat room test. Both phones may disconnect now; no game data/settings/save/pack writes. P2 unchanged. No idle polling requested; user reports build result.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** October25,2026; real-phone Build62 join failure investigated.
@@ -29,10 +33,10 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental
 - Starting commit: 59480c3b44e6d332ca43a3fb39882910a3a1ec03
-- Latest commit: Source fix commit/run recorded in the next dispatch checkpoint and Exact Resume State.json.
+- Latest source commit: 405ab5ef8432e427366056fc82e607c67c8dfbc6; Build63/run40215584390 in progress. Later documentation-only commit recorded in Exact Resume State.json.
 - Commits created: Next source commit contains only identity fix, native regression and journal/checklist updates.
-- Changes pushed: Pending at this pre-build report.
-- Uncommitted changes: Listed source/test/workflow/docs changes until commit below.
+- Changes pushed: Scoped source/test/workflow/report commit pushed; Build63 selected P1 only.
+- Uncommitted changes: None after documented source/dispatch commits.
 - GitHub Actions run IDs: Previous62/run40210863029/source b8abc62ecddd146f411d136c0ab9f6095ee9d858 SUCCESS; phone join FAILED. Next native run not yet assigned at this checkpoint.
 - Build results: New source not yet compiled on Apple; no native success claimed.
 - Artifacts produced: No new IPA yet. Existing verified62 and known-working54 rollback retained.
