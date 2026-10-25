@@ -10,7 +10,7 @@ Build62 native build, actual simulator networking and downloaded IPA checks PASS
 
 **File:** Documents > Open Nectar > 1 - Install on iPhone > CURRENT - P1 Build 62 - Connection Test > Pikmin 1 - Build 62 - Connection Test.ipa. Read START HERE.txt in that folder. Use an in-place update; do not delete P1/change app identity. P2 stays unchanged.
 
-**Current step:** T01 complete for62 by user report. T02 FAILED: different game data; confirmed46 NFC/NFD Japanese filename differences, all actual bytes identical. Fix implemented; wait for next verified P1 update for BOTH phones before repeating T02. No phone action needed during build; USB can unplug. T03-T04 untested.
+**Current step:** T02 FAILED on installed62 (confirmed Unicode false mismatch);63 native regression then FAILED before IPA. Scoped path-handling/precise-diagnostic follow-up implemented; wait for next verified P1-only build. No phone action now, USB can unplug. Both phones will need SAME new verified update before T02 retry. T03-T06 remain untested future checks.
 
 - [x] **T01 — Prepare both phones.** Have both available, unlocked and on the same Wi-Fi. I will prepare the verified update and exact file location. If signing/installing requires your input, I will give that one action; keep the existing app and its files.
 - [ ] **T02 — Connect a private room.** On both phones, open gear > Data > Online Co-op: Connection Test and wait for the data check. Host on your phone, copy/share the code manually, return the host to P1, then paste/join on Raye's. Allow Local Network access if asked. Tell me the status on BOTH phones; a screenshot is useful if something fails.
@@ -94,3 +94,5 @@ New connection/gameplay/recovery tests have not yet been reported. I will record
 October25 milestone: user reports both Build62 updates ready. T01 COMPLETE by user report; T02-T04 not yet tested.
 
 October25 — T02 FAILED on both Build62 phones: false content mismatch from46 Unicode filename encodings. All3463 files byte-identical. Canonical NFC fix/native regression implemented; next Apple build and phone retest pending.
+
+October25 — Build63 FAILED native Foundation regression (`hash valid fixture`), no IPA and no new phone test. Follow-up keeps all checks and adds labelled rejection stages plus consistent root/entry alias handling; native validation pending.
