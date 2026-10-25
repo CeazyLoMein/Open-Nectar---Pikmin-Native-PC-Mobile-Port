@@ -1,3 +1,7 @@
+## Build62 — exact current checkpoint
+
+Run40210863029 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40210863029), sourceb8abc62ecddd146f411d136c0ab9f6095ee9d858; last API snapshot IN_PROGRESS, no conclusion/IPA verified.61 compiled actual P1 app and PASSED the full actual iOS encrypted private-room/session probe. Overall61 failed solely because dependency notices were at app root while verifier expected Licenses/;62 supports both layouts with strict pinned-byte/duplicate checks and preserves compiled archive before package validation. Local3 package tests+39 identity/storage checks PASS. No phone test active until verified package is staged; T01-T04 pending. P2 and existing phone/PC games untouched. User reports62 result; avoid idle polling.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** 2026-10-25T16:16:03.734886+00:00 (October25 session).
@@ -29,10 +33,10 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental.
 - Starting commit:e5d222fad1742240e693693eb5d78bc90d38792c, clean and matched origin after fetch.
-- Latest commit: Packaging-only correction batch pending commit; exact source/run follows.
-- Commits created: Pending correction/tests/journal commit.
-- Changes pushed: None yet at report creation.
-- Uncommitted changes: Listed scoped package/CI/journal files.
+- Latest source commit:b8abc62ecddd146f411d136c0ab9f6095ee9d858; documentation-only checkpoint follows.
+- Commits created:b8abc62ecddd146f411d136c0ab9f6095ee9d858 corrects package layout verification and archive order.
+- Changes pushed: Packaging batch pushed;62 dispatched.
+- Uncommitted changes: Clean after final documentation checkpoint; all source/journals pushed.
 - GitHub Actions run IDs:61 run40208103332/source cda57702b309552934609c167c3397c15bcc3ea8.
 - Build results:61 scene121213299205 SUCCESS; P1121216893603 FAILURE ONLY in Preserve compiled app packaging verification. Compile native game SUCCESS; Run real encrypted iOS session probe SUCCESS. Overall61 is FAILED, not a released/installed build.
 - Artifacts produced:61 P112605154966 SHA256b5ef2dbbd2043d5e48c8d05d2b9b78e14964e55c52b7e6c16c914a0fa11d827d downloaded+verified; scene12605023389 metadata digest4fde5cdc59e89d678bc3156e5c5fc3a823057d3c2ebfafba051d20ed886ddb51. No IPA/compiled-app tar retained because old archive step followed failing package check; fixed next batch. Verified runtime receipt saved privately.
