@@ -174,7 +174,7 @@ if(NECTAR_IOS_COOP_TRANSPORT)
             message(FATAL_ERROR "Missing static networking dependency notice: ${notice_file}")
         endif()
         set_source_files_properties("${notice_file}" TARGET_DIRECTORY ${NECTAR_GAME_TARGET}
-            PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/Licenses")
+            PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
         set_property(TARGET ${NECTAR_GAME_TARGET} APPEND PROPERTY RESOURCE "${notice_file}")
         target_sources(${NECTAR_GAME_TARGET} PRIVATE "${notice_file}")
     endforeach()

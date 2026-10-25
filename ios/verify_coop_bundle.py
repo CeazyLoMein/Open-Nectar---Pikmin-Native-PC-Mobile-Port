@@ -13,12 +13,18 @@ def verify(app, licenses, variant="standard"):
     if not info.get('NSLocalNetworkUsageDescription', '').strip():
         raise ValueError('Missing local-network permission explanation')
     for name in ['OpenSSL.txt', 'protobuf.txt', 'GameNetworkingSockets.txt']:
-        shipped = app / 'Licenses' / name
+        # Xcode's iPhone resource phase copies RESOURCE files to the flat app
+        # root. Also accept an explicit Licenses directory used by other packagers.
+        candidates = [app / name, app / 'Licenses' / name]
+        shipped = [path for path in candidates if path.is_file()]
         original = licenses / name
-        if not shipped.is_file() or not original.is_file():
+        if not shipped or not original.is_file():
             raise ValueError('Networking notice missing: ' + name)
-        if hashlib.sha256(shipped.read_bytes()).digest() != hashlib.sha256(original.read_bytes()).digest():
-            raise ValueError('Networking notice differs from pinned dependency: ' + name)
+        expected_digest = hashlib.sha256(original.read_bytes()).digest()
+        # If both layouts exist, neither may contain a stale/different notice.
+        for path in shipped:
+            if hashlib.sha256(path.read_bytes()).digest() != expected_digest:
+                raise ValueError('Networking notice differs from pinned dependency: ' + name)
     print('PASS P1 room bundle: original app identity, local-network explanation and all original dependency notices')
 
 

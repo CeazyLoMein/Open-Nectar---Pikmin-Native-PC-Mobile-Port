@@ -410,11 +410,12 @@ jobs:
           APP="$(find "$RUNNER_TEMP/nectar-build" -type d -name 'Nectar-*.app' | head -n 1)"
           test -n "$APP"
           python3 ios/prepare_bundle_icons.py "$APP" --game "$GAME" --variant "$IOS_VARIANT"
+          # Preserve the compiled app even if a later packaging-only check fails.
+          tar -czf "$GITHUB_WORKSPACE/nectar-${GAME}-compiled-app.tar.gz" -C "$(dirname "$APP")" "$(basename "$APP")"
           if [ "$GAME" = pikmin1 ]; then
             python3 ios/verify_coop_bundle.py --app "$APP" --variant "$IOS_VARIANT" \
               --licenses "$HOME/.cache/open-nectar/netplay-deps/install/ios-arm64/share/nectar-net/licenses"
           fi
-          tar -czf "$GITHUB_WORKSPACE/nectar-${GAME}-compiled-app.tar.gz" -C "$(dirname "$APP")" "$(basename "$APP")"
       - name: Run real encrypted iOS co-op socket session probe
         if: ${{ !cancelled() && matrix.game == 'pikmin1' && steps.coop_socket_build.outcome == 'success' }}
         shell: bash

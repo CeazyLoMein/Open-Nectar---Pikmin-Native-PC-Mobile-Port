@@ -30,6 +30,30 @@ class BundleTest(unittest.TestCase):
             notice.unlink()
             with self.assertRaises(ValueError): bundle.verify(app, original)
 
+    def test_actual_xcode_flat_resources_and_conflicting_duplicate(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            app, original = root / 'P1.app', root / 'dependencies'
+            app.mkdir()
+            original.mkdir()
+            info = {'CFBundleIdentifier': 'org.opennectar.experimental.pikmin1',
+                    'NSLocalNetworkUsageDescription': 'Private room connection'}
+            (app / 'Info.plist').write_bytes(plistlib.dumps(info))
+            for name in ['OpenSSL.txt', 'protobuf.txt', 'GameNetworkingSockets.txt']:
+                data = (name + ' verified original notice').encode()
+                (original / name).write_bytes(data)
+                (app / name).write_bytes(data)
+            bundle.verify(app, original)
+            (app / 'Licenses').mkdir()
+            duplicate = app / 'Licenses/OpenSSL.txt'
+            duplicate.write_bytes((original / 'OpenSSL.txt').read_bytes())
+            bundle.verify(app, original)
+            duplicate.write_text('stale or altered notice')
+            with self.assertRaises(ValueError): bundle.verify(app, original)
+            duplicate.unlink()
+            (app / 'OpenSSL.txt').write_text('altered flat notice')
+            with self.assertRaises(ValueError): bundle.verify(app, original)
+
     def test_no_permission_and_wrong_app_cannot_pass(self):
         with tempfile.TemporaryDirectory() as folder:
             app = Path(folder)
