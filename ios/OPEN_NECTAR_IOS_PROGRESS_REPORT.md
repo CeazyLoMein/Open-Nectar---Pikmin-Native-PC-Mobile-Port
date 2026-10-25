@@ -1,3 +1,7 @@
+## Build58 — exact current checkpoint
+
+Source 4f8ac1356f69fa1f47bbfab1ab411ab1ac4b2a76; run40161054040 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40161054040), last API snapshot IN_PROGRESS, conclusion pending. P1 only. Native Host/Join CONNECTION TEST UI + actual source/base-data fingerprints, private-code join/content-rejection probe, local-network permission and verified bundle notices. Local identity/packaging tests, strict C++ probe compile and39 app policy checks PASS. Apple/phone behavior PENDING.57 independently verified SUCCESS (native+scene+actual encrypted simulator/session), artifact/IPA checked; omitted notices corrected in58 source. No new phone install yet. User reports58 passed/failed; after native/package PASS, stage update in Documents and ask for a short two-phone same-Wi-Fi connection test. No idle polling; no phone needed now. No playable co-op campaign yet; P2 preserved.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** October25 session; recorded 2026-10-25T04:12:21.567672+00:00.
@@ -29,12 +33,12 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental.
 - Starting commit:05f73662154862a51ace29dde9c52efb18c28838, clean and matched origin after fetch.
-- Latest commit: New room batch not yet committed at report creation; subsequent exact-run checkpoint identifies source.
-- Commits created: Pending this coordinated source+documentation commit.
-- Changes pushed: No new push yet at this checkpoint.
-- Uncommitted changes: The listed scoped room/safety/packaging/test/journal files only.
+- Latest source commit: 4f8ac1356f69fa1f47bbfab1ab411ab1ac4b2a76; later documentation-only checkpoint records run58.
+- Commits created: 4f8ac1356f69fa1f47bbfab1ab411ab1ac4b2a76 implements the room screen and coordinated safety/probe changes; later documentation checkpoint.
+- Changes pushed: Complete room-screen source batch pushed to ios-experimental;58 dispatched.
+- Uncommitted changes: Clean after the final documentation checkpoint; all source and journals pushed.
 - GitHub Actions run IDs:57 =40158088407, source03cd0be08157613b020cb59c678271b44065a997.
-- Build results:57 scene121063660172 SUCCESS; P1121065410338 SUCCESS; actual encrypted socket/session receipt PASS. No new run claimed yet.
+- Build results:57 scene121063660172 SUCCESS; P1121065410338 SUCCESS; actual encrypted socket/session receipt PASS. New58 run40161054040/source4f8ac1356f69fa1f47bbfab1ab411ab1ac4b2a76, IN_PROGRESS; conclusion pending.
 - Artifacts produced:57 P112586070653 SHA256ef4931034567bcc627bbf9665df36e69f573b1257cb47572cf45d00c28d37bbe (downloaded+verified); scene12585638397 metadata SHA256ad37dd82b575c769498efd1ab10d1527d9cbcc162cd8ce8b5b0b23f75a5754df.57 IPA inspected, not installed; missing dependency notices identified and corrected in new source. Private package receipt records that limitation accurately.
 
 ### Next steps
