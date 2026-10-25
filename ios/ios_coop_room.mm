@@ -6,6 +6,7 @@
 #include <chrono>
 #include <ctime>
 #include <memory>
+#include <atomic>
 
 using namespace nectar::net;
 namespace {
@@ -47,10 +48,15 @@ NSString* joinError(JoinFailure failure, CompatibilityField field) {
 @property(nonatomic, strong) UIButton* clipboardButton;
 @property(nonatomic, strong) UIButton* pasteButton;
 @property(nonatomic, strong) UIButton* leaveButton;
+@property(nonatomic, strong) UIButton* rejoinButton;
+@property(nonatomic, copy) NSString* pendingJoinCode;
 @property(nonatomic, strong) NSTimer* timer;
 @end
 
 static NectarCoopRoomController* sRoomController;
+// Process memory only. Never write private invite credentials to preferences/logs.
+static NSString* sLastJoinedRoomCode;
+static std::atomic<bool> sRoomCoversGame{false};
 
 @implementation NectarCoopRoomController
 - (UIButton*)button:(NSString*)title action:(SEL)action {
@@ -92,6 +98,7 @@ static NectarCoopRoomController* sRoomController;
     self.clipboardButton = [self button:@"Copy Code" action:@selector(didTapCopy)];
     self.pasteButton = [self button:@"Paste Code" action:@selector(pasteCode)];
     self.leaveButton = [self button:@"Leave Room" action:@selector(leaveRoom)];
+    self.rejoinButton = [self button:@"Rejoin Last Room" action:@selector(rejoinRoom)];
     UIButton* done = [self button:@"Done" action:@selector(closeScreen)];
     UIStackView* actions = [[UIStackView alloc] initWithArrangedSubviews:@[self.hostButton, self.joinButton]];
     actions.distribution = UIStackViewDistributionFillEqually;
@@ -99,7 +106,7 @@ static NectarCoopRoomController* sRoomController;
     editing.distribution = UIStackViewDistributionFillEqually;
     UIStackView* ending = [[UIStackView alloc] initWithArrangedSubviews:@[self.leaveButton, done]];
     ending.distribution = UIStackViewDistributionFillEqually;
-    UIStackView* content = [[UIStackView alloc] initWithArrangedSubviews:@[title, explanation, self.status, actions, self.code, editing, ending]];
+    UIStackView* content = [[UIStackView alloc] initWithArrangedSubviews:@[title, explanation, self.status, actions, self.code, editing, self.rejoinButton, ending]];
     content.axis = UILayoutConstraintAxisVertical;
     content.spacing = 12;
     UIScrollView* scroll = [UIScrollView new];
@@ -154,6 +161,7 @@ static NectarCoopRoomController* sRoomController;
     const BOOL busy = static_cast<bool>(_host) || static_cast<bool>(_guest);
     self.hostButton.enabled = _checked && !busy;
     self.joinButton.enabled = _checked && !busy;
+    self.rejoinButton.enabled = _checked && !busy && sLastJoinedRoomCode.length > 0;
     self.clipboardButton.enabled = static_cast<bool>(_host) && self.code.text.length > 0;
     self.pasteButton.enabled = _checked && !busy;
     self.code.editable = _checked && !busy;
@@ -165,6 +173,7 @@ static NectarCoopRoomController* sRoomController;
     if (_host) _host->close();
     _guest.reset(); _host.reset();
     self.code.text = @"";
+    self.pendingJoinCode = nil;
     [self.view endEditing:YES];
     [self updateButtons];
 }
@@ -183,6 +192,8 @@ static NectarCoopRoomController* sRoomController;
         self.status.text = @"Couldn't open a room. Connect to Wi-Fi, allow Local Network access, then try again.";
         return;
     }
+    // Only successful hosting replaces the previously remembered guest role.
+    sLastJoinedRoomCode = nil;
     self.code.text = [NSString stringWithUTF8String:status.code.c_str()];
     self.status.text = @"Room open. Copy the code to the other phone and leave this screen open.";
     [self updateButtons];
@@ -195,14 +206,22 @@ static NectarCoopRoomController* sRoomController;
         self.status.text = @"Paste the complete code from the host first.";
         return;
     }
+    self.pendingJoinCode = code;
     _guest = std::make_unique<GuestJoin>();
     const auto failure = _guest->start(code.UTF8String, _identity, 1, unixSeconds(), nowMs());
     if (failure != JoinFailure::None) {
+        if ((failure == JoinFailure::Expired || failure == JoinFailure::BadCode || failure == JoinFailure::WrongVersion)
+            && [sLastJoinedRoomCode isEqualToString:code]) sLastJoinedRoomCode = nil;
         NSString* reason = joinError(failure, _guest->incompatibility());
         [self stopConnection]; self.status.text = reason; return;
     }
     self.status.text = @"Connecting… Allow Local Network access if asked.";
     [self updateButtons];
+}
+- (void)rejoinRoom {
+    if (!_checked || _closed || _host || _guest || !sLastJoinedRoomCode.length) return;
+    self.code.text = sLastJoinedRoomCode;
+    [self joinRoom]; // Fresh authentication/content validation; never bypass the gates.
 }
 - (void)pump:(NSTimer*)timer {
     (void)timer;
@@ -218,13 +237,24 @@ static NectarCoopRoomController* sRoomController;
             return;
         }
         if (link->state() == TransportState::Listening)
-            self.status.text = @"Room open. Waiting for the other phone. Copy this code again if you reconnect.";
+            self.status.text = @"Room open. Waiting for your partner. If they already joined, they can tap Rejoin Last Room.";
     } else if (_guest) {
         TransportEvent event; bool hasEvent = false;
         const auto progress = _guest->poll(nowMs(), event, hasEvent);
         if (progress == JoinProgress::Failed) {
-            NSString* reason = joinError(_guest->failure(), _guest->incompatibility());
+            const auto failure = _guest->failure();
+            NSString* reason = joinError(failure, _guest->incompatibility());
+            if ((failure == JoinFailure::Refused || failure == JoinFailure::Expired ||
+                failure == JoinFailure::Incompatible || failure == JoinFailure::WrongVersion)
+                && [sLastJoinedRoomCode isEqualToString:self.pendingJoinCode]) sLastJoinedRoomCode = nil;
+            if (failure == JoinFailure::Lost && sLastJoinedRoomCode.length)
+                reason = @"Connection lost. When the host returns to P1, tap Rejoin Last Room. You do not need the code again.";
             [self stopConnection]; self.status.text = reason; return;
+        }
+        if (progress == JoinProgress::Connected && self.pendingJoinCode.length) {
+            // Remember ONLY a room that completed secret/build/content validation.
+            sLastJoinedRoomCode = [self.pendingJoinCode copy];
+            self.pendingJoinCode = nil;
         }
         link = _guest->transport();
     }
@@ -263,20 +293,20 @@ static NectarCoopRoomController* sRoomController;
         self.status.text = @"Room kept open. Return here after sharing the code, before your partner joins.";
     } else if (_guest) {
         [self stopConnection];
-        self.status.text = @"Connection closed while the app was away. Join again when both phones are ready.";
+        self.status.text = @"Connection paused while this app was away. Return the host to P1, then tap Rejoin Last Room.";
     }
 }
 - (void)foregrounded:(NSNotification*)notification {
     (void)notification;
     _away = NO;
-    if (_host) self.status.text = @"Room open. Your partner can join now. Leave this screen open.";
+    if (_host) self.status.text = @"Same room open. Your partner can rejoin now. Keep P1 in front.";
 }
 - (void)closeScreen {
     _closed = YES;
     [self stopConnection];
     [self.timer invalidate]; self.timer = nil;
     [NSNotificationCenter.defaultCenter removeObserver:self];
-    [self dismissViewControllerAnimated:YES completion:^{ sRoomController = nil; }];
+    [self dismissViewControllerAnimated:YES completion:^{ sRoomController = nil; sRoomCoversGame.store(false); }];
 }
 - (void)dealloc {
     [self.timer invalidate];
@@ -299,6 +329,11 @@ extern "C" void nectar_ios_open_coop_room(void) {
         if (!presenter || presenter.presentedViewController || presenter.isBeingPresented || presenter.isBeingDismissed) return;
         sRoomController = [NectarCoopRoomController new];
         sRoomController.modalPresentationStyle = UIModalPresentationOverFullScreen;
+        sRoomCoversGame.store(true);
         [presenter presentViewController:sRoomController animated:YES completion:nil];
     });
+}
+
+extern "C" int nectar_ios_coop_room_is_open(void) {
+    return sRoomCoversGame.load() ? 1 : 0;
 }

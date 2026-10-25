@@ -1,68 +1,50 @@
-## Build65 TWO-PHONE SAME-WI-FI PASS — October25
-
-User confirms BOTH65 phones installed and tests1-5 passed: connected for over a minute, delay as low as11ms (initial100+ms sometimes decreases, sometimes starts low); guest Leave keeps host room waiting; guest rejoins; reversing hosts works; Done returns to normal solo with working visuals/controls/settings. T01-T04 PASS by user observation, scoped to SAME Wi-Fi ONLY. User explicitly confirms the last different-game-data screenshot was an OLD62 failure, not a65 regression. Screenshots support Connected/88ms and waiting/closed states; private invite codes are NOT copied into public journals. No internet/separate-network, actual shared gameplay, host Messages interruption or full campaign validation claimed.
-
-Verified current source behavior: ios_coop_room.mm backgrounded keeps HostRoom/code in memory but deliberately disconnects the active peer; foreground resumes the waiting room, provided iOS has not terminated the app. Guest background closes its link. This is a connection-only room, not retained gameplay/world persistence. There is no one-tap remembered Rejoin control yet. User requests reconnect without resending codes; next UX batch should remember the last authenticated room locally in memory, offer explicit Rejoin, revalidate/authenticate and explain expired/closed room. Full gameplay pause/wait/readiness and durable partner/campaign identity remain separate planned integration; do not claim app-kill recovery from this screen.
-
-Next authorized work: title-menu Online Co-op access alongside existing local Co-op, clear connection-only labelling until real shared gameplay; easier Rejoin; separately labelled solo/shared save slots with no overwrite when actual campaign support is integrated. P2 preserved.
-
-Thermal feedback: user's screenshot shows120FPS/8.33ms,CPU62%,RAM1761MiB/spare1615MiB,Heat Serious; Raye's phone user-reported less hot. Different packs/screens/devices are possible factors, not a confirmed cause. User will adjust FPS THEMSELVES. Do NOT change/cap FPS, resolution, texture/model packs or gameplay/visual quality. Latest authorization: investigate waste reduction only (hidden rendering, background/lobby work, redundant work/allocations) if it preserves visuals/gameplay. No heat test requested now and no thermal fix claimed. Graphics/120 option remain unchanged.
-
-Both phones can disconnect; no additional build needed merely to record these results. Next source UX/efficiency batch must preserve65 as verified LAN baseline and maintain the existing backup/rollback files. Exact report/checklist/state are updated; older sections below are historical snapshots.
-
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-25T18:46:55.677177+00:00 UTC (October25,2026 EDT).
+**Date/time:** 2026-10-25T20:09:57.148560+00:00 UTC (October25,2026 EDT).
 
-**Overall project status:** Build65 native validation and IPA verification PASSED. Two-phone update/retest is now ready; actual phone success not yet claimed.
+**Overall project status:**65 verified on BOTH real phones over SAME Wi-Fi; next room usability/hidden-work batch implemented and locally checked, Apple build pending.
 
 ### Pikmin 1
 
-- Current objective: Update BOTH phones to65 and retry first real private-room connection.
-- What was investigated: Actual run/jobs, artifact hash/CRC, iOS simulator receipt/full probe output and exact IPA resources/Mach-O identity.
-- Root cause or leading hypothesis: Confirmed62 false mismatch from46 NFC/NFD Japanese filenames with identical base bytes. Confirmed64 delayed-close bug discarded final reliable verdict.65 carries both corrections and the related lifecycle/discovery batch.
-- Files changed: This checkpoint changes documentation/checklist only.65 source batch: libs/nectar_net/src/gns_transport.cpp, src/room.cpp, include/nectar_net/room.h, tests/coop_socket_probe.cpp, tests/gns_transport_test.cpp, tests/room_test.cpp. Earlier Unicode helper/room fix retained in ios/ios_coop_content_identity.h and ios/ios_coop_room.mm.
-- Tests and results: Local23 CTest,8 stress flows, final6 focused+3 full impaired flows, Clang5 translation units and13 Python regressions PASS. Now actual Apple scene/native hash tests/full app build/package and real encrypted iOS simulator slow rejection/all5 mismatch reasons/join/rejoin/session probe PASS. Post-PASS simulator shutdown20s timeout recorded as cleanup warning. IPA digest/CRC/ARM64 device SDK/identity/icons/notices/new fix markers verified.
-- Confirmed working:65 compiles/packages and simulator fixture networking works; historical P1 solo and62 installs user-reported on both phones. These do not establish65 phone runtime.
-- Remaining issues: Both actual65 installs and T02-T04 pending. Real shared gameplay, mid-day crash recovery, PC/phone handoff remain future work. Title-menu Online Co-op and separate Solo/shared campaign slots are approved later UX, not included65.
+- Current objective: Easier title-menu access/rejoining and eliminate invisible lobby work while preserving visual/gameplay settings.
+- What was investigated: User65 results/screenshots, native room lifecycle, title cloning/actions/return indexes, System::run/frame scheduler/event/audio loop.
+- Root cause/leading hypothesis: Rejoin required repasting because guest link teardown cleared code with no remembered authenticated target. Online entry was in Data. Native opaque room covered the game while its loop continued idle/render work. Heat Serious120FPS observed but source of physical heat is unconfirmed; no pack blame or visual/FPS changes.
+- Files changed: ios/ios_coop_room.h, ios/ios_coop_room.mm, games/pikmin1/src/plugPikiOgawa/ogTitle.cpp, games/pikmin1/src/sysDolphin/system.cpp, tests/pikmin1_ios_room_ux_test.py, .github/workflows/ios-native-experimental.yml; journals/checklist.
+- Tests/results: Actual-source native+desktop menu/opaque-pause fixtures compile/run PASS,30/60/120 settings retained and no hidden ticks/backlog;10 actual UI getters pass iOS ARC;2 source-identity+3 bundle tests PASS; diff check PASS. Apple full build/UIKit/runtime/package PENDING. User65 T01-T04 PASS: minute+ stable,11ms minimum, guest Leave/rejoin, reversed hosts and ordinary solo/settings/controls. Photo5 mismatch was OLD failure by user clarification.
+- Confirmed working:65 LAN connection/rejoin/both-host directions/solo; not full campaign or different-network play.
+- Remaining issues: New UI/pause batch needs Apple and phone validation; heat reduction unmeasured; full shared gameplay, mid-day/recovery/cross-progress and Solo/shared slot integration still later.
 
 ### Pikmin 2
 
-- Current objective: Preserve working P2 while P1 networking is validated.
-- What was investigated: No new P2 runtime investigation.
-- Root cause or leading hypothesis: No new P2 issue reported.
-- Files changed: None in P2;65 selected P1 only.
-- Tests and results: No new P2 compile/device test requested.
-- Confirmed working: Earlier user-reported working apps on both phones, not retested here.
-- Remaining issues: P2 online adapter and broader campaign validation later.
+- Current objective: Preserve working app.
+- Investigated/changed: Nothing new in P2.
+- Root cause/leading hypothesis: No new P2 issue reported.
+- Tests/results: No new P2 run requested.
+- Confirmed working: Historical user-tested working installation on both phones, not retested now.
+- Remaining issues: Future P2 online/campaign adapter.
 
 ### GitHub
 
-- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
-- Branch: ios-experimental
-- Starting commit: 5aab0507795ae741cddf1707c23cb6c4cfb75d86
-- Latest source commit:3f650f7851ae9e38ba528f54fd42b89fbb095781 (65); later docs checkpoint in Exact Resume State.json.
-- Commits created: Documentation-only verified65 checkpoint [skip ci].
-- Changes pushed: Source batch already built65; current journal/checklist push will not start a native build.
-- Uncommitted changes: None after checkpoint commit/push.
-- GitHub Actions run IDs:65/run40220611984 SUCCESS; scene121251174574/P1121253318001 success.64/run40217032902 failed socket gate after app compile;63/run40215584390 failed older hash fixture. Historical failures retained.
-- Build results:65 Apple native/simulator/package PASS; phone installation/runtime PENDING.
-- Artifacts produced:12610036177, SHA256e7067d41ba9d8d00490f104f9ed3a7f4e351050954a56e0136843faef401f8d4; unsigned IPA5288159bytes, SHA256c51d6ea0e6b9e86b8321435014f27db12904be723ef9394d7f591a17b2939aad, UUIDe4efb852-b36a-3fd5-ae8a-5561105c22b5, ARM64 iPhoneOS platform2/min15/SDK27.1. Staged at C:\Users\chazz\Documents\Open Nectar\1 - Install on iPhone\CURRENT - P1 Build 65 - Connection Fix\Pikmin 1 - Build 65 - Connection Fix.ipa. Standard bundle org.opennectar.experimental.pikmin1; six approved icons match; three original dependency notices match pinned bytes. Signed installation is user Sideloadly step, not done by agent.
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; branch ios-experimental.
+- Starting commit: 0efe4d3f1761b6d5d39f459ea9f2e1c092209478
+- Latest source commit: Next source batch commit recorded in Exact Resume State.json and next dispatch checkpoint.
+- Commits created/changes pushed: One scoped P1-only UI/hidden-work batch; no P2 build or history rewrite.
+- Uncommitted changes: None after successful source commit/push.
+- Actions IDs/builds:65/run40220611984/source3f650f7851ae9e38ba528f54fd42b89fbb095781 native/simulator/package SUCCESS and real-phone LAN PASS. Next native run not yet assigned at this pre-dispatch report.
+- Artifacts:65 IPA preserved5288159bytes/SHA256c51d6ea0e6b9e86b8321435014f27db12904be723ef9394d7f591a17b2939aad in CURRENT - P1 Build 65 - Connection Fix. No new IPA yet.
 
 ### Next steps
 
-- Next Pikmin 1 task: User updates BOTH existing apps from SAME staged65 IPA, then T02 first room connection; after pass T03 leave/rejoin/reverse host and T04 solo/settings.
-- Next Pikmin 2 task: Keep working installation unchanged.
-- GitHub/build task: None while awaiting phone observations; no additional build required.
-- Anything requiring user involvement: Close P1 for update, select correct phone/account in Sideloadly, click Start, repeat on other phone. No uninstall, no game-data/pack recopy. USB can disconnect after installation; same-Wi-Fi connection test needs apps foreground, not USB.
+- P1: Native build, verify/stage new IPA, then small BOTH-phone batch: main-menu access, Rejoin without recopying, host Messages/return, Done to visible solo/no time jump; ordinary65 connection regression.
+- P2: Preserve working app.
+- GitHub/build: Record next source/run, then wait for user result without idle polling.
+- User involvement: None until verified package. Phones can unplug/P1 can close. User chooses FPS independently; no heat test requested.
 
 ### ChatGPT continuation notes
 
-- Current phones presumed still62 until user reports65 updates. Never mark T02 pass from simulator/CI success.
-- Important source locations: ios/ios_coop_room.mm and ios/ios_coop_content_identity.h; libs/nectar_net/src/gns_transport.cpp and room.cpp; native probe/tests listed above.
-- Relevant logs: work/build65-run.json/jobs.json/artifacts.json; work/build65-package-verification.json; outputs/Build65-Pikmin1/result.json/socket-session.log/ios-build.log/cleanup-error.txt. Prior local before/after evidence is in accessible P1 - Build64 Network Failure and Batch Fix.
-- Unverified fixes:65 actual phone compatibility/reconnect/solo preservation still need observations.
-- Risks/warnings: Both phones need65; old62/new65 cannot join. Private room code must be fresh and kept private. Post-PASS simulator cleanup warning is not a phone issue. Existing pre62 settings/save backups and54 rollback preserved; do not call these new65 backups.
-- Exact next actions: After both installs confirmed, same Wi-Fi > P1 gear > Data > Online Co-op: Connection Test > wait checks > host NEW room/copy code > host returns to P1 > other pastes/joins. Ask status from BOTH phones, then proceed only from actual results. Do not begin shared campaign gameplay testing yet.
+- Rejoin memory is process-local invite convenience, not durable player identity or campaign recovery; native host still must be foreground for joining. Never serialize/log private code. Labels stay connection-only.
+- Opaque-room atomic flag freezes hidden app ticks/rendering only; existing SDL/audio pumping and scheduler rebase retained. No visible graphics, FPS, saves or P2 changes. Test actual phone dismissal/resume before claiming it works there or reduces heat.
+- Local evidence: work/p1-room-ux.cpp, work/room-ux-local/desktop.exe/native.exe, tests/pikmin1_ios_room_ux_test.py; actual ARC tester. Prior networking evidence/65 results preserved.
+- Exact next action: Inspect next Apple run; verify artifact then T05/T07/T08 plus room/solo regression. T06 separate campaigns remains future and must protect occupied slots/guest solo progress.
 
 **END PROGRESS REPORT**

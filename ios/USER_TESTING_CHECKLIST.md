@@ -10,7 +10,7 @@ Build65 native build, actual simulator delayed-rejection/rejoin tests and downlo
 
 **File:** Documents > Open Nectar > 1 - Install on iPhone > CURRENT - P1 Build 65 - Connection Fix > Pikmin 1 - Build 65 - Connection Fix.ipa. Read START HERE.txt in that folder. Use an in-place update; do not delete P1/change app identity. P2 stays unchanged.
 
-**Current step:** T01-T04 PASSED by user report on both65 phones, same Wi-Fi only. Stable minute+, lowest11ms; leave/rejoin, reverse host and normal solo work. Old mismatch screenshot explicitly identified as earlier failure. No new phone task right now. Next UX batch: main-menu access/Rejoin; T05/T06 wait implementation. No requested FPS or graphics changes.
+**Current step:** T01-T04 PASSED by user report on both65 phones, same Wi-Fi only. Stable minute+, lowest11ms; leave/rejoin, reverse host and normal solo work. Old mismatch screenshot explicitly identified as earlier failure. No new phone task right now. Main-menu/Rejoin/opaque-pause source implemented; wait native verification/new package before T05/T07/T08. T06 campaign slots still future. No requested FPS or graphics changes.
 
 - [x] **T01 — Prepare both phones.** Have both available, unlocked and on the same Wi-Fi. I will prepare the verified update and exact file location. If signing/installing requires your input, I will give that one action; keep the existing app and its files.
 - [x] **T02 — Connect a private room.** On both phones, open gear > Data > Online Co-op: Connection Test and wait for the data check. Host on your phone, copy/share the code manually, return the host to P1, then paste/join on Raye's. Allow Local Network access if asked. Tell me the status on BOTH phones; a screenshot is useful if something fails.
@@ -23,6 +23,11 @@ These wait for the relevant new UI/save support; no action requested now.
 
 - [ ] **T05 — Online Co-op on title menu.** Reach Host/Join directly without Advanced Settings. Existing local Co-op and normal solo remain accessible; connection-only tests must be clearly labelled until shared gameplay exists.
 - [ ] **T06 — Separate campaigns and safe Continue.** On backed-up test saves, keep Solo in one slot and the shared campaign in another. Confirm correct labels/day/progress, solo save-load/relaunch, online save-load/rejoin, and that joining never overwrites the guest's solo campaign. Slot numbers may differ between devices; shared campaign identity must still match.
+
+## Waiting for native validation — room convenience/return checks
+
+- [ ] **T07 — Rejoin without resending code.** After the new build is verified, join once, leave or briefly background the guest, then use Rejoin Last Room. Host briefly opens Messages and returns; guest should rejoin the retained room without fresh code. Memory is only for this app process; no app-kill/world recovery claim.
+- [ ] **T08 — Native-room pause and return.** After the new build is ready, verify the native screen stays responsive, Done returns to visible game/title with no catch-up jump, and your FPS choice/graphics/packs remain unchanged. No heat stress test requested.
 
 ## Later — first playable two-phone co-op
 
@@ -102,3 +107,5 @@ October25 —64 failed real socket mismatch rejection after native hash tests an
 October25 —65 native compilation/package and actual simulator rejection/all5 mismatches/join/rejoin PASS; verified IPA staged. T01 ready for BOTH65 updates; T02-T04 actual phone results pending.62 failure history retained; no phone pass from CI.
 
 October25 —65 TWO-PHONE LAN PASS: T01 both updates; T02 stable minute+/11ms minimum; T03 Leave/rejoin/reverse hosts; T04 normal solo/settings/controls. User confirms mismatch photo was older62. Host app-switch gameplay retention/internet/full co-op not tested. No new phone action now.
+
+October25 — Next UI/efficiency batch implemented/local checks PASS; Apple/native/phone pending. Keep65 T01-T04 historical PASS. No new phone task until verified update.

@@ -21,6 +21,9 @@
 #include "settings/pc_glass_menu.h"
 #include "settings/pc_settings_rows.h"
 #include "netplay/pc_online_menu.h"
+#ifdef NECTAR_IOS_COOP_ROOM
+#include "ios_coop_room.h"
+#endif
 
 // Local/online choice for Co-op and VS: only netplay builds with the online
 // transport define it (pc_online_menu.cpp); elsewhere they go straight on.
@@ -83,8 +86,13 @@ zen::ogScrTitleMgr::ogScrTitleMgr()
 	// compacta el paso a 30 px; con 7 (Challenge Mode) a 27 px, subiendo el
 	// panel para no pisar el logo ni el copyright. Advanced Options vive dentro
 	// de Options.
+#ifdef NECTAR_IOS_COOP_ROOM
+    const PcMenuExtend extNoChallenge   = { 5, 27, -64, 'yoko', 40 };
+    const PcMenuExtend extWithChallenge = { 5, 24, -75, 'yoko', 40 };
+#else
 	const PcMenuExtend extNoChallenge   = { 4, 30, -58, 'yoko', 40 };
 	const PcMenuExtend extWithChallenge = { 4, 27, -72, 'yoko', 40 };
+#endif
 	mMenuNoChallenge   = new DrawMenu("screen/blo/m_select.blo", false, false, &extNoChallenge);
 	mMenuWithChallenge = new DrawMenu("screen/blo/m_selec2.blo", false, false, &extWithChallenge);
 	pcInsertCoopItem(mMenuNoChallenge);
@@ -180,6 +188,9 @@ void zen::ogScrTitleMgr::pcInsertCoopItem(DrawMenu* menu)
 	static char sRandomizerLabel[] = "Randomizer";
 	static char sSpeedrunLabel[] = "Speedrun";
 	static char sCoopLabel[]     = "Co-op";
+#ifdef NECTAR_IOS_COOP_ROOM
+    static char sOnlineLabel[] = "Online Co-op";
+#endif
 	static char sVsLabel[]       = "VS";
 	static immut char* kFamilies[] = { "he%02d", "hm%02d" };
 	char buf[8];
@@ -192,14 +203,26 @@ void zen::ogScrTitleMgr::pcInsertCoopItem(DrawMenu* menu)
 		if (n < 6) {
 			continue;
 		}
-		P2DTextBox* box[7];
-		for (int i = 0; i < n && i < 7; i++) {
+		P2DTextBox* box[8];
+		for (int i = 0; i < n && i < 8; i++) {
 			sprintf(buf, kFamilies[f], i);
 			box[i] = static_cast<P2DTextBox*>(menu->getScreenPtr()->search(P2DPaneLibrary::makeTag(buf), true));
 		}
 		// Originales: 0 Start, 1 Options[, 2 Challenge]. Las cajas quedan
 		// (todas centradas en la misma X); solo viaja el texto. Orden PC:
 		// Start / Co-op / VS / Options / Speedrun / Randomizer / Challenge Mode.
+#ifdef NECTAR_IOS_COOP_ROOM
+        if (n < 7) continue;
+        char* optionsText = box[1]->getString();
+        char* challengeText = n >= 8 ? box[2]->getString() : nullptr;
+        box[1]->setString(sCoopLabel);
+        box[2]->setString(sOnlineLabel);
+        box[3]->setString(sVsLabel);
+        box[4]->setString(optionsText);
+        box[5]->setString(sSpeedrunLabel);
+        box[6]->setString(sRandomizerLabel);
+        if (challengeText) box[7]->setString(challengeText);
+#else
 		char* optionsText   = box[1]->getString();
 		char* challengeText = n >= 7 ? box[2]->getString() : nullptr;
 		box[1]->setString(sCoopLabel);
@@ -208,6 +231,7 @@ void zen::ogScrTitleMgr::pcInsertCoopItem(DrawMenu* menu)
 		box[4]->setString(sSpeedrunLabel);
 		box[5]->setString(sRandomizerLabel);
 		if (challengeText) box[6]->setString(challengeText);
+#endif
 	}
 }
 
@@ -364,7 +388,11 @@ zen::ogScrTitleMgr::TitleStatus zen::ogScrTitleMgr::update(Controller* input)
 		if (pc_online_choice_open()) {
 			const int r = pc_online_menu_update(input);
 			if (r == PC_ONLINE_MENU_CANCEL) {
+#ifdef NECTAR_IOS_COOP_ROOM
+                mMainMenu->start(sPcOnlineAction == 3 ? 3 : 1);
+#else
 				mMainMenu->start(sPcOnlineAction == 3 ? 2 : 1); // back on the row
+#endif
 				sPcOnlineAction = -1;
 			}
 			if (r != PC_ONLINE_MENU_LOCAL) {
@@ -391,10 +419,22 @@ zen::ogScrTitleMgr::TitleStatus zen::ogScrTitleMgr::update(Controller* input)
 		// Randomizer / Challenge Mode. Abajo se trabaja con el orden interno
 		// de siempre (0 Start, 1 Speedrun, 2 Co-op, 3 VS, 4 Options, 5
 		// Challenge Mode) más 6 Randomizer.
+#ifdef NECTAR_IOS_COOP_ROOM
+        static const int kPcRowToAction[8] = { 0, 2, 7, 3, 4, 1, 6, 5 };
+#else
 		static const int kPcRowToAction[7] = { 0, 2, 3, 4, 1, 6, 5 };
-		if (mCurrentSelection >= 0 && mCurrentSelection < 7) {
+#endif
+		if (mCurrentSelection >= 0 && mCurrentSelection < static_cast<int>(sizeof(kPcRowToAction)/sizeof(kPcRowToAction[0]))) {
 			mCurrentSelection = kPcRowToAction[mCurrentSelection];
 		}
+#ifdef NECTAR_IOS_COOP_ROOM
+        if (mCurrentSelection == 7 && forced < 0) {
+            mMainMenu->start(2); // Stay on Online Co-op after the native sheet closes.
+            mCurrentSelection = -1;
+            nectar_ios_open_coop_room();
+            break; // No campaign/mode/slot mutation for the connection-only screen.
+        }
+#endif
 		if (forced >= 0) {
 			mCurrentSelection = forced;
 		} else if ((mCurrentSelection == 2 || mCurrentSelection == 3) && pc_online_menu_available != nullptr

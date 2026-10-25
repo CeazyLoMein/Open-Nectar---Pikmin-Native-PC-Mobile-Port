@@ -2,6 +2,9 @@
 #include <cstdint>
 #if PIKI_PC_PORT
 #include "pc_window.h"
+#ifdef NECTAR_IOS_COOP_ROOM
+#include "ios_coop_room.h"
+#endif
 #include <chrono>
 #include <thread>
 #include "timing/pc_frame_scheduler.h"
@@ -373,6 +376,20 @@ void System::run(BaseApp* app)
     // switch modes at runtime.
 
 	while (true) {
+#ifdef NECTAR_IOS_COOP_ROOM
+        if (nectar_ios_coop_room_is_open()) {
+            // The native view is opaque: no world/menu pixels are visible here.
+            // Keep SDL/UIKit and audio responsive without hidden game ticks/draws.
+            Jac_Gsync();
+            PADStatus ignoredPads[4]{};
+            pc_window_poll_events(ignoredPads);
+            if (pc_window_should_close()) break;
+            frameScheduler.reset(std::chrono::steady_clock::now().time_since_epoch().count() / 1e9, mFrameRate);
+            mPrevTick = OSGetTick(); // Do not charge paused wall time on return.
+            std::this_thread::sleep_for(std::chrono::milliseconds(8));
+            continue;
+        }
+#endif
 #if PIKI_PC_PORT
 		// A netplay session owns the whole loop turn (handshake, ticks,
 		// network wait or shutdown).

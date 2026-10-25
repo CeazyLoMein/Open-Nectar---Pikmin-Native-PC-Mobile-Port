@@ -310,6 +310,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 tests/pikmin1_ios_room_ux_test.py "$RUNNER_TEMP/p1-room-ux.cpp"
+          for MODE in desktop native; do
+            EXTRA=()
+            if [ "$MODE" = native ]; then EXTRA+=(-DNECTAR_IOS_COOP_ROOM=1); fi
+            c++ -std=c++17 -Wall -Wextra -Werror "${EXTRA[@]}" \
+              -Igames/pikmin1/pc_port/timing "$RUNNER_TEMP/p1-room-ux.cpp" \
+              games/pikmin1/pc_port/timing/pc_frame_scheduler.cpp -o "$RUNNER_TEMP/p1-room-ux-$MODE"
+            "$RUNNER_TEMP/p1-room-ux-$MODE"
+          done
           python3 tests/coop_build_identity_test.py
           python3 tests/coop_bundle_test.py
           xcrun --sdk macosx clang++ -std=c++17 -fobjc-arc -Wall -Wextra -Werror \
