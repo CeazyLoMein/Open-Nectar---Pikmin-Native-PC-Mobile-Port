@@ -3,6 +3,7 @@
 #include "nectar_net/coop_session.h"
 #include "nectar_net/gns_transport.h"
 #include "nectar_net/secure_random.h"
+#include "nectar_net/room.h"
 #include <chrono>
 #include <cstdio>
 #include <memory>
@@ -125,6 +126,48 @@ int main() {
                  !h.hostShouldAdvanceWorld() && g.actors().pikmin.size() == 60,
                  "disconnect freezes official world and retains last complete replica")) return 1;
     h.end(); g.end(); guest.close(); host.close();
+    RoomConfig config;
+    config.compatibility = identity();
+    config.automaticPortMapping = false;
+    config.includeLanEndpoint = false;
+    config.localPort = static_cast<std::uint16_t>(address.port + 20);
+    DirectEndpoint loopback;
+    loopback.address = {127, 0, 0, 1};
+    loopback.port = config.localPort;
+    config.manualEndpoints.push_back(loopback);
+    HostRoom room;
+    RoomStatus status;
+    constexpr std::uint64_t unixNow = 1790000000;
+    if (!require(room.open(config, unixNow, status) == RoomError::None && !status.code.empty(),
+                 "private one-code room opens without router mapping")) return 1;
+    auto settleJoin = [&](GuestJoin& join) {
+        return until([&] {
+            TransportEvent event;
+            while (room.transport()->poll(event)) {}
+            bool has = false;
+            join.poll(nowMs(), event, has);
+        }, [&] {
+            return join.transport() && (join.transport()->state() == TransportState::Connected ||
+                (join.transport()->compatibility() &&
+                 join.transport()->compatibility()->state() == CompatibilityState::Incompatible));
+        });
+    };
+    {
+        GuestJoin mismatch;
+        auto different = identity();
+        different.content[0] ^= 1;
+        if (!require(mismatch.start(status.code, different, 1, unixNow, nowMs()) == JoinFailure::None &&
+                     settleJoin(mismatch) && mismatch.incompatibility() == CompatibilityField::Content,
+                     "room code refuses a different game-data fingerprint")) return 1;
+    }
+    {
+        GuestJoin partner;
+        if (!require(partner.start(status.code, identity(), 1, unixNow, nowMs()) == JoinFailure::None &&
+                     settleJoin(partner) && partner.transport()->state() == TransportState::Connected,
+                     "matching partner joins using the private room code")) return 1;
+        partner.cancel();
+    }
+    room.close();
     std::puts("NECTAR_COOP_SOCKET_PROBE_PASS");
     return 0;
 }

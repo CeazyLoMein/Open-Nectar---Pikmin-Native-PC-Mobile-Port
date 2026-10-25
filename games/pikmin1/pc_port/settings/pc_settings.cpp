@@ -31,6 +31,9 @@
 #include <SDL2/SDL.h>
 #ifdef __IPHONEOS__
 #include "pc_ios_mod_bridge.h"
+#ifdef NECTAR_IOS_COOP_ROOM
+#include "ios_coop_room.h"
+#endif
 #endif
 #include <cstdio>
 #include <cstdlib>
@@ -7757,6 +7760,9 @@ const GroupRow kDataRows[] = {
     { SRC_DATA, 0, "Open Save Folder", "Opens the folder with your saves (card0, card1). Copy it to back up your progress or move it to another computer." },
 #endif
     { SRC_DATA, 2, "Reset all settings to defaults", "Puts every setting back to its default. Saves are not touched." },
+#if defined(__IPHONEOS__) && defined(NECTAR_IOS_COOP_ROOM)
+    { SRC_DATA, 5, "Online Co-op: Connection Test", "Host a private room or join your partner on the same Wi-Fi. Checks the connection only; co-op gameplay is still being developed. Saves are not changed." },
+#endif
 #if PC_ONLINE_ENABLED // online features are off project-wide (pc_online_switch.h)
     { SRC_DATA, 3, "Online co-op: leave / rejoin", "As an online guest: stop playing and watch the host's captain while keeping your place. Choose it again, or press Start, to ask to rejoin; the host lets you back in outside menus and cutscenes." },
     { SRC_DATA, 4, "Online over the Internet", "On: when you create or join an online room, the game asks a free public server (Google or Cloudflare STUN) for this connection's Internet address, so a friend on another network can connect. Only that address is exchanged; the game itself goes directly between the two players. Some networks still block it (often mobile data on both sides). Off: no outside server is contacted, and only players on the same network or a VPN can connect." },
@@ -7856,7 +7862,11 @@ const GroupSection kSections[] = {
     { PC_SET_GROUP_CHEATS, 14, "DEBUG" },
 #endif
     { PC_SET_GROUP_DATA, 0, "SAVE FILE" },
+#if defined(__IPHONEOS__) && defined(NECTAR_IOS_COOP_ROOM)
+    { PC_SET_GROUP_DATA, 2, "ONLINE CO-OP" },
+#else
     { PC_SET_GROUP_DATA, 2, "SETTINGS" },
+#endif
 };
 
 const char* rowSection(int group, int row) {
@@ -8111,6 +8121,9 @@ void pc_settings_row_value(int group, int row, char* out, unsigned long n) {
             if (r->idx < 2) snprintf(out, n, "A: open");
 #endif
             else if (r->idx == 2) snprintf(out, n, "A: reset");
+#if defined(__IPHONEOS__) && defined(NECTAR_IOS_COOP_ROOM)
+            else if (r->idx == 5) snprintf(out, n, "A: open");
+#endif
             else if (r->idx == 4) snprintf(out, n, "%s", sPending.onlineStun ? "On" : "Off");
             else snprintf(out, n, "%s", online_guest() ? (online_spectating() ? "A: rejoin" : "A: leave") : "-");
             break;
@@ -8182,6 +8195,12 @@ void pc_settings_row_change(int group, int row, int dir, bool ok) {
             break;
         case SRC_MODS: modsRowChange(r->idx, left, right); break;
         case SRC_DATA:
+#if defined(__IPHONEOS__) && defined(NECTAR_IOS_COOP_ROOM)
+            if (r->idx == 5) {
+                if (ok) nectar_ios_open_coop_room();
+                return;
+            }
+#endif
             if (r->idx == 4) {
                 if (ok || left || right) sPending.onlineStun = !sPending.onlineStun;
                 return;

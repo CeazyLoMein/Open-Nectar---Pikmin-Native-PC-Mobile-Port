@@ -138,6 +138,33 @@ target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE
     "-framework GameController")
 
 if(NECTAR_IOS_COOP_TRANSPORT)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+    execute_process(COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/generate_coop_build_identity.py"
+        --root "${NECTAR_ROOT}"
+        --output "${CMAKE_CURRENT_BINARY_DIR}/generated/nectar_coop_build_identity.h"
+        --game-version "${PIKMIN_GAME_VERSION}"
+        RESULT_VARIABLE identity_result OUTPUT_VARIABLE identity_summary ERROR_VARIABLE identity_error)
+    if(NOT identity_result EQUAL 0)
+        message(FATAL_ERROR "Cannot generate co-op source identity: ${identity_error}")
+    endif()
+    message(STATUS "${identity_summary}")
+    # UIKit must not inherit the legacy GameCube BOOL forced include.
+    add_library(nectar_ios_coop STATIC "${CMAKE_CURRENT_SOURCE_DIR}/ios_coop_room.mm")
+    set_target_properties(nectar_ios_coop PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES
+        OBJCXX_STANDARD 17 OBJCXX_STANDARD_REQUIRED YES)
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ios_coop_room.mm"
+        PROPERTIES COMPILE_FLAGS "-fobjc-arc")
+    target_include_directories(nectar_ios_coop PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_CURRENT_BINARY_DIR}/generated")
+    target_link_libraries(nectar_ios_coop PRIVATE nectar_net "-framework UIKit" "-framework Foundation")
+    target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE nectar_ios_coop)
+    target_compile_definitions(${NECTAR_GAME_TARGET} PRIVATE NECTAR_IOS_COOP_ROOM=1)
+    target_compile_definitions(pikmin_legacy PRIVATE NECTAR_IOS_COOP_ROOM=1)
+    target_include_directories(pikmin_legacy PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+endif()
+
+if(NECTAR_IOS_COOP_TRANSPORT)
     # Retain notices inside the .app, without embedding libraries for another SDK.
     find_path(NECTAR_NET_LICENSE_ROOT NAMES OpenSSL.txt
         PATH_SUFFIXES share/nectar-net/licenses REQUIRED)
@@ -146,7 +173,9 @@ if(NECTAR_IOS_COOP_TRANSPORT)
         if(NOT EXISTS "${notice_file}")
             message(FATAL_ERROR "Missing static networking dependency notice: ${notice_file}")
         endif()
-        set_source_files_properties("${notice_file}" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/Licenses")
+        set_source_files_properties("${notice_file}" TARGET_DIRECTORY ${NECTAR_GAME_TARGET}
+            PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/Licenses")
+        set_property(TARGET ${NECTAR_GAME_TARGET} APPEND PROPERTY RESOURCE "${notice_file}")
         target_sources(${NECTAR_GAME_TARGET} PRIVATE "${notice_file}")
     endforeach()
 endif()
@@ -154,6 +183,15 @@ endif()
 # Resolve bundle metadata with CMake for every generator, including Makefiles.
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
     "${CMAKE_CURRENT_BINARY_DIR}/Nectar-${NECTAR_IOS_GAME}-Info.plist" @ONLY)
+if(NECTAR_IOS_COOP_TRANSPORT)
+    set(bundle_info "${CMAKE_CURRENT_BINARY_DIR}/Nectar-${NECTAR_IOS_GAME}-Info.plist")
+    file(READ "${bundle_info}" info_text)
+    string(REPLACE "<key>UIRequiresFullScreen</key>"
+        "<key>NSLocalNetworkUsageDescription</key><string>Connect to your partner's iPhone for a private Open Nectar co-op room.</string>\n  <key>UIRequiresFullScreen</key>"
+        info_text "${info_text}")
+    file(WRITE "${bundle_info}" "${info_text}")
+endif()
+
 set_target_properties(${NECTAR_GAME_TARGET} PROPERTIES
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Nectar-${NECTAR_IOS_GAME}-Info.plist"
