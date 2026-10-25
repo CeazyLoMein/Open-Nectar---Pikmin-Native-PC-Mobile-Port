@@ -9,7 +9,7 @@ common=r'''
 #include <cstddef>
 #include <cstdint>
 struct Vec{float x=0,y=0,z=0;};
-struct Creature{virtual ~Creature()=default;struct{Vec t;}mSRT;Vec mVelocity;
+struct Creature{virtual ~Creature()=default;struct{Vec t,r;}mSRT;Vec mVelocity,mLastPosition;
  float mFaceDirection=0,mHealth=100;bool alive=true,canRemove=true;
  virtual bool isAlive(){return alive;}bool removable(){return canRemove;}};
 struct Navi:Creature{int mNaviID=0;};
@@ -105,6 +105,49 @@ int main(){
  check(!pc_coop_world_begin_host(100,1)&&pc_coop_world_begin_host(100,2)&&pc_coop_world_capture(records),"new scene requires a higher epoch");
  check(pc_coop_world_actor_id(&p0,EntityKind::Pikmin)!=replacement,"previous scene identity cannot alias next scene");
  pc_coop_world_end_scene();
+
+ // Guest engine application: real adapter TU, no copied transform implementation.
+ check(!pc_coop_world_guest_active(),"guest is inactive in ordinary gameplay");
+ navis.objects={&n0};
+ check(!pc_coop_world_begin_guest(101,3),"guest scene requires both actual local presentation captains");
+ navis.objects={&n0,&n1};
+ check(pc_coop_world_begin_guest(101,3)&&pc_coop_world_guest_active()&&pc_coop_world_active(),"explicit guest scene binds both captain lifetimes");
+ check(!pc_coop_world_begin_host(102,1)&&!pc_coop_world_capture(records),"guest cannot become host or capture authoritative world");
+ ActorFrame view;view.frame=1;view.tick=100;
+ CaptainState ca,cb;ca.player=0;cb.player=1;ca.position={100,20,30};cb.position={200,21,31};
+ ca.velocity={1,2,3};cb.velocity={4,5,6};ca.faceDirection=1;cb.faceDirection=2;
+ const auto id0=NetEntityId{3,EntityKind::Captain,0,40}.pack();
+ const auto id1=NetEntityId{3,EntityKind::Captain,0,41}.pack();
+ view.captains[id0]=ca;view.captains[id1]=cb;
+ const float oldNaviX=n0.mSRT.t.x;
+ check(!pc_coop_world_apply_guest_captains(999,3,view)&&n0.mSRT.t.x==oldNaviX,"wrong trusted session rejected with no writes");
+ check(!pc_coop_world_apply_guest_captains(101,2,view),"wrong scene context refused");
+ auto invalidView=view;invalidView.captains[id1].position.y=std::numeric_limits<float>::quiet_NaN();
+ check(!pc_coop_world_apply_guest_captains(101,3,invalidView)&&n0.mSRT.t.x==oldNaviX,"bad SECOND actor cannot partially move first captain");
+ invalidView=view;invalidView.captains[id1].player=0;
+ check(!pc_coop_world_apply_guest_captains(101,3,invalidView),"duplicate remote player cannot alias captain");
+ invalidView=view;invalidView.captains.erase(id1);
+ check(!pc_coop_world_apply_guest_captains(101,3,invalidView),"partial remote captain set cannot apply");
+ check(pc_coop_world_apply_guest_captains(101,3,view)&&n0.mSRT.t.x==100&&n1.mSRT.t.x==200&&
+       n1.mVelocity.z==6&&n1.mFaceDirection==2&&n1.mSRT.r.y==2&&n1.mLastPosition.x==200,
+       "both actual guest captains receive host transforms, velocity, facing and coherent previous-position");
+ check(!pc_coop_world_apply_guest_captains(101,3,view),"same guest frame cannot apply twice");
+ view.frame=2;view.tick=99;check(!pc_coop_world_apply_guest_captains(101,3,view),"authoritative clock cannot rewind");
+ view.tick=101;invalidView=view;invalidView.captains.erase(id1);
+ invalidView.captains[NetEntityId{3,EntityKind::Captain,0,42}.pack()]=cb;
+ check(!pc_coop_world_apply_guest_captains(101,3,invalidView),"remote actor ID cannot silently change mid-scene");
+ invalidView=view;invalidView.captains.erase(id1);
+ invalidView.captains[NetEntityId{2,EntityKind::Captain,0,41}.pack()]=cb;
+ check(!pc_coop_world_apply_guest_captains(101,3,invalidView),"previous-scene actor ID refused");
+ Navi replacementNavi;replacementNavi.mNaviID=1;navis.objects={&n0,&replacementNavi};
+ check(!pc_coop_world_apply_guest_captains(101,3,view),"replaced local captain not overwritten");
+ navis.objects={&n0,&n1};pc_coop_world_forget(&n1);
+ check(!pc_coop_world_guest_active()&&!pc_coop_world_apply_guest_captains(101,3,view),"same-address pool reuse invalidates entire guest binding");
+ pc_coop_world_end_scene();
+ check(!pc_coop_world_active()&&!pc_coop_world_apply_guest_captains(101,3,view),"stage exit clears guest references before game heap reset");
+ check(!pc_coop_world_begin_guest(101,3)&&pc_coop_world_begin_guest(101,4),"guest new scene requires higher accepted epoch");
+ pc_coop_world_end_scene();
+
  if(!bad)std::puts("PASS actual P1 capture and pool hooks: default inert, ownership, recycled actors, finite/atomic snapshot and stage lifetime");
  return bad?1:0;
 }

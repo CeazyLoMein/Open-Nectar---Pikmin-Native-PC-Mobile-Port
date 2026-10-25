@@ -10,6 +10,18 @@
 // Caller owns the session ID/scene barrier; session IDs must never be reused.
 bool pc_coop_world_begin_host(std::uint64_t sessionId, std::uint32_t sceneEpoch);
 bool pc_coop_world_active();
+// Guest visual bridge only. Must be explicitly entered AFTER an accepted scene
+// loads TWO local presentation captains. Caller suppresses guest simulation.
+// No scene boot, spawning, inputs, Piki/jobs, camera selection or saving here.
+bool pc_coop_world_begin_guest(std::uint64_t sessionId, std::uint32_t sceneEpoch);
+bool pc_coop_world_guest_active();
+// Apply both captain transforms atomically, between ticks, from the current
+// authenticated session's fully assembled frame. Session ID is trusted context
+// supplied by the adapter (ActorFrame itself intentionally carries no session).
+// Fails without changing either captain on stale epoch/frame, duplicate player,
+// missing/recycled local actor, invalid values or changed bound host actor IDs.
+bool pc_coop_world_apply_guest_captains(std::uint64_t sessionId, std::uint32_t sceneEpoch,
+                                       const nectar::net::ActorFrame& frame);
 // Complete current captain/Pikmin record list for a future keyframe. Failed
 // capture leaves output intact; do NOT transmit old output when false is returned.
 // Does not yet include jobs' targets, enemies, items, Onions or campaign state.

@@ -132,12 +132,29 @@ int main() {
                  "both deliberately ready after fixture baseline loads")) return 1;
     if (!require(until(pump, [&] { return h.hostShouldAdvanceWorld() && g.canIssueCommands(); }),
                  "host alone owns simulation; ready partner may issue commands")) return 1;
+    NetInputFrame movement; movement.tick = 4; movement.stickX = 90; movement.held = 1;
+    if (!require(g.publishInput({movement}, nowMs()) &&
+                 until(pump, [&] { return h.receivedGuestInputTick() == 4; }),
+                 "guest movement reaches host through real encrypted iOS socket")) return 1;
+    NetInputFrame applied; InputHealth health;
+    if (!require(h.consumeGuestInput(4, applied, health) && health == InputHealth::Live &&
+                 applied.stickX == 90 && (applied.pressed & 1) &&
+                 h.consumeGuestInput(5, applied, health) && !applied.pressed,
+                 "host applies movement once and never repeats action edge")) return 1;
+    movement.tick = 8;
+    if (!require(until(pump, [&] { return g.publishInput({movement}, nowMs()); }) &&
+                 until(pump, [&] { return h.receivedGuestInputTick() == 8; }),
+                 "future movement buffered before pause regression")) return 1;
     if (!require(g.setBlocked(CoopBlock::Settings, true) &&
                  until(pump, [&] { return h.phase() == CoopPhase::Paused; }),
                  "partner settings pauses official world")) return 1;
     if (!require(g.setBlocked(CoopBlock::Settings, false) &&
                  until(pump, [&] { return h.phase() == CoopPhase::Running; }),
                  "closing settings clears only that pause")) return 1;
+    if (!require(h.receivedGuestInputTick() == 0 &&
+                 h.consumeGuestInput(8, applied, health) && health == InputHealth::Neutral &&
+                 applied.stickX == 0,
+                 "pre-pause queued movement is discarded before real socket session resumes")) return 1;
     if (!require(g.placeMarker(MarkerKind::Help, {17, 2, 39}, nowMs()) &&
                  until(pump, [&] { return h.marker(1, nowMs()).visible; }) &&
                  h.marker(1, nowMs()).position.x == 17,

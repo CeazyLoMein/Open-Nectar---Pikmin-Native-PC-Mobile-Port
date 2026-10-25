@@ -94,12 +94,16 @@ void CoopSession::end() {
     mLocalLoaded = mLocalReady = mHaveView = false;
     mLocalBlocks = 0;
     mView = CoopView{};
+    resetInput();
+    mLastInputTick = 0;
+    mInputConsumed = false;
     mActors.end();
     mMarkers = {};
     mLastMarker = {};
     mMarked = {};
 }
 void CoopSession::lost() {
+    resetInput();
     mLost = true;
     mLocalReady = false;
 }
@@ -132,6 +136,7 @@ bool CoopSession::control(std::uint8_t op, std::uint8_t value, std::uint64_t fra
     return send(MessageType::CoopControl, w.bytes());
 }
 bool CoopSession::publishView() {
+    if (mInputRevision != mView.revision) resetInput();
     ByteWriter w(12);
     w.writeU64(mView.revision);
     w.writeU8(static_cast<std::uint8_t>((mView.loaded[0] ? 1 : 0) | (mView.loaded[1] ? 2 : 0)));
@@ -168,6 +173,48 @@ bool CoopSession::publishActors(const std::vector<std::vector<std::uint8_t>> &pa
     mLastPublished = check.current().frame;
     mLastPublishedTick = check.current().tick;
     mLastActorAt = now;
+    return true;
+}
+void CoopSession::resetInput() {
+    mGuestInput = InputReceiver{};
+    mInputRevision = mView.revision;
+    mInputSent = false;
+    mLastInputAt = mLastInputTarget = mReceivedInputTick = 0;
+}
+bool CoopSession::publishInput(const std::vector<NetInputFrame>& frames, std::uint64_t now) {
+    if (mRole != CoopRole::Guest || !canIssueCommands() || frames.empty() ||
+        mActors.current().tick > std::numeric_limits<std::uint64_t>::max() - 64 ||
+        frames.front().tick < mActors.current().tick ||
+        frames.front().tick > mActors.current().tick + 30 ||
+        (mInputSent && (now < mLastInputAt || now - mLastInputAt < 33 ||
+                        frames.front().tick <= mLastInputTarget)))
+        return false;
+    TransportStats stats;
+    if (mLink.stats(stats) && stats.pendingReliableBytes >= kReliableBacklogLimit) return false;
+    const auto bytes = encodeInputBundle(frames);
+    std::vector<NetInputFrame> checked;
+    if (bytes.empty() || !decodeInputBundle(bytes.data(), bytes.size(), {}, checked)) return false;
+    ByteWriter w(8 + bytes.size());
+    w.writeU64(mView.revision);
+    w.writeBytes(bytes.data(), bytes.size());
+    if (!send(MessageType::InputBundle, w.bytes())) return false;
+    mInputSent = true;
+    mLastInputAt = now;
+    mLastInputTarget = frames.front().tick;
+    return true;
+}
+bool CoopSession::consumeGuestInput(std::uint64_t tick, NetInputFrame& input, InputHealth& health) {
+    input = NetInputFrame{};
+    input.tick = tick;
+    health = InputHealth::Neutral;
+    if (mRole != CoopRole::Host || !hostShouldAdvanceWorld() ||
+        tick > std::numeric_limits<std::uint64_t>::max() - 64 ||
+        tick < mLastPublishedTick || (mInputConsumed && tick <= mLastInputTick)) return false;
+    const auto previous = mInputConsumed ? mLastInputTick : mLastPublishedTick;
+    if (tick - previous > 64) mGuestInput = InputReceiver{}; // bounded skip, no catch-up loop
+    input = mGuestInput.consume(tick, health);
+    mLastInputTick = tick;
+    mInputConsumed = true;
     return true;
 }
 bool CoopSession::confirmWorldLoaded() {
@@ -322,8 +369,25 @@ void CoopSession::receive(const TransportEvent &event, std::uint64_t now) {
                 v.ready[i] = (ready & (1U << i)) != 0;
             }
             mView = v;
+            if (mInputRevision != mView.revision) resetInput();
             mHaveView = true;
             accepted = true;
+        }
+    } else if (mRole == CoopRole::Host && msg.header.type == MessageType::InputBundle &&
+               hostShouldAdvanceWorld() && msg.payload.size() > 8) {
+        ByteReader r(msg.payload);
+        std::uint64_t revision = 0;
+        std::vector<NetInputFrame> frames;
+        if (r.readU64(revision) && revision == mView.revision &&
+            decodeInputBundle(msg.payload.data() + 8, msg.payload.size() - 8, {}, frames)) {
+            // Host tick is only our own consumed/published clock. No client
+            // timestamp or claimed player number can choose host authority.
+            const auto tick = mInputConsumed ? mLastInputTick : mLastPublishedTick;
+            if (tick <= std::numeric_limits<std::uint64_t>::max() - 64 &&
+                frames.front().tick <= tick + 30 && frames.front().tick >= tick)
+                accepted = mGuestInput.receive(frames, tick) > 0;
+            if (accepted && frames.front().tick > mReceivedInputTick)
+                mReceivedInputTick = frames.front().tick;
         }
     } else if (mRole == CoopRole::Guest && msg.header.type == MessageType::WorldSnapshot) {
         const auto result = mActors.receive(msg.payload.data(), msg.payload.size(), now);

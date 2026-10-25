@@ -2,6 +2,7 @@
 #include "nectar_net/actor_frame.h"
 #include "nectar_net/gated_transport.h"
 #include "nectar_net/protocol.h"
+#include "nectar_net/input.h"
 #include <array>
 
 namespace nectar::net {
@@ -46,12 +47,24 @@ class CoopSession {
     // Engine callback must attest ALL required world state is loaded, not just
     // these actor positions. Guest also requires an assembled baseline frame.
     bool confirmWorldLoaded();
+    // Guest submits host-tick-addressed inputs only while both are ready.
+    // Each bundle is tied to the exact host readiness/pause revision. Frames
+    // queued before any pause cannot move a captain after it resumes.
+    // The engine adapter supplies target HOST ticks, never render/phone ticks.
+    bool publishInput(const std::vector<NetInputFrame>& newestFirst, std::uint64_t nowMs);
+    // Host simulation thread, once per increasing host tick. On gaps briefly
+    // hold continuous movement; then neutralize. Never repeats one-shot edges.
+    // Not a position-write API: guest never selects its captain/player slot.
+    bool consumeGuestInput(std::uint64_t hostTick, NetInputFrame& input, InputHealth& health);
     bool setReady(bool ready);
     bool setBlocked(CoopBlock reason, bool blocked);
     bool placeMarker(MarkerKind kind, const Vec3 &point, std::uint64_t nowMs);
     CoopPhase phase() const;
     bool hostShouldAdvanceWorld() const;
     bool canIssueCommands() const;
+    // Diagnostic acknowledgement of buffered input, NOT a simulation clock or
+    // proof it was applied. Clears at every pause/readiness revision.
+    std::uint64_t receivedGuestInputTick() const { return mReceivedInputTick; }
     const CoopView &view() const { return mView; }
     const ActorFrame &actors() const { return mActors.current(); }
     CoopMarker marker(std::uint8_t player, std::uint64_t nowMs) const;
@@ -72,6 +85,11 @@ class CoopSession {
     std::uint32_t mSent = 0, mReceived = 0;
     bool mActive = false, mLost = false, mLocalLoaded = false, mLocalReady = false, mHaveView = false;
     std::uint8_t mLocalBlocks = 0;
+    InputReceiver mGuestInput;
+    std::uint64_t mInputRevision = 0, mLastInputAt = 0, mLastInputTarget = 0, mLastInputTick = 0;
+    std::uint64_t mReceivedInputTick = 0;
+    bool mInputSent = false, mInputConsumed = false;
+    void resetInput();
     CoopView mView;
     ActorFrameReceiver mActors;
     std::array<CoopMarker, 2> mMarkers{};

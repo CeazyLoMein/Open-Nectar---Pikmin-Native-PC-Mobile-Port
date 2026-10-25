@@ -329,6 +329,72 @@ int main() {
     p.guest.end();
     check(p.guest.phase() == CoopPhase::Closed && p.guest.actors().pikmin.empty(),
           "leave clears protocol replicas, not game saves");
+
+    {
+        Pair q;
+        NetInputFrame input; input.tick=3; input.stickX=90; input.held=1; input.flags=1;
+        InputHealth health;
+        NetInputFrame applied;
+        q.begin();
+        check(!q.guest.publishInput({input},q.now),"no guest commands before baseline/ready");
+        check(!q.host.consumeGuestInput(1,applied,health)&&health==InputHealth::Neutral,
+              "loading world cannot consume remote movement");
+        q.load();q.ready();
+        check(!q.host.publishInput({input},q.now),"host cannot impersonate guest input sender");
+        check(!q.guest.consumeGuestInput(3,applied,health),"guest cannot consume authoritative input");
+        auto invalid=input;invalid.stickX=-128;
+        check(!q.guest.publishInput({invalid},q.now),"out-of-range stick rejected before send");
+        invalid=input;invalid.tick=50000;
+        check(!q.guest.publishInput({invalid},q.now),"future timestamp cannot fill host input buffer");
+        auto older=input;older.tick=1;
+        check(!q.guest.publishInput({input,older},q.now),"noncontiguous redundant bundle refused");
+        q.meter->pending=0;
+        check(q.guest.publishInput({input},q.now),"guest publishes one target HOST tick");
+        auto next=input;next.tick=4;
+        check(!q.guest.publishInput({next},q.now),"120FPS renderer cannot flood input sends");
+        q.settle();
+        check(q.host.consumeGuestInput(3,applied,health)&&health==InputHealth::Live&&
+              applied.stickX==90&&(applied.pressed&1)&&applied.flags==1,
+              "authenticated impaired link delivers guest movement/one-shot to host only");
+        check(!q.host.consumeGuestInput(3,applied,health)&&health==InputHealth::Neutral,
+              "same host tick cannot apply input twice");
+        check(q.host.consumeGuestInput(4,applied,health)&&health==InputHealth::Repeated&&
+              applied.stickX==90&&!applied.pressed&&!applied.flags,
+              "gap briefly holds movement without repeating action press");
+        check(q.host.consumeGuestInput(10,applied,health)&&health==InputHealth::Neutral&&
+              applied.stickX==0&&(applied.released&1),"expired guest input releases held buttons");
+        check(q.host.consumeGuestInput(11,applied,health)&&applied.released==0,
+              "missing partner release is not repeated");
+        // Queue movement for a later host tick, then pause/resume before it is used.
+        input.tick=14;check(q.guest.publishInput({input},q.now),"queue movement before pause");
+        q.settle();
+        const auto oldRevision=q.host.view().revision;
+        check(q.host.setBlocked(CoopBlock::Manual,true),"pause clears pending input generation");
+        q.settle();
+        check(!q.host.consumeGuestInput(12,applied,health)&&applied.stickX==0,
+              "paused host returns neutral and does not consume tick");
+        check(!q.guest.publishInput({input},q.now),"paused guest cannot publish commands");
+        check(q.host.setBlocked(CoopBlock::Manual,false),"resume changes control revision");q.settle();
+        check(q.host.consumeGuestInput(14,applied,health)&&health==InputHealth::Neutral&&applied.stickX==0,
+              "pre-pause queued movement never leaks into resumed host world");
+        ByteWriter oldInput(8+128);oldInput.writeU64(oldRevision);
+        input.tick=16;auto payload=encodeInputBundle({input});oldInput.writeBytes(payload.data(),payload.size());
+        q.inject(MessageType::InputBundle,oldInput.bytes(),999999);q.settle();
+        check(q.host.consumeGuestInput(16,applied,health)&&health==InputHealth::Neutral,
+              "old-revision delayed input rejected without sequence poisoning");
+        input.tick=18;check(q.guest.publishInput({input},q.now),"new revision accepts fresh guest controls");
+        q.settle();
+        check(q.host.consumeGuestInput(18,applied,health)&&health==InputHealth::Live&&applied.stickX==90,
+              "legitimate stream still works after rejected high-sequence replay");
+        check(q.host.consumeGuestInput(1000000000,applied,health)&&health==InputHealth::Neutral,
+              "large trusted host-tick jump discards history in bounded time");
+        check(!q.host.consumeGuestInput(std::numeric_limits<std::uint64_t>::max(),applied,health),
+              "tick wraparound refused before buffering math");
+        q.h.disconnectPeer(false);q.settle(10);
+        check(!q.host.consumeGuestInput(1000000001,applied,health)&&applied.stickX==0&&
+              !q.guest.publishInput({input},q.now),"disconnect stops all movement commands");
+    }
+
     if (!failures)
         std::puts("PASS co-op session over real join/compatibility gate:19-stage "
                   "ready/pause/background/rejoin lifecycle, whole squad transfer, safe authority, typed "
