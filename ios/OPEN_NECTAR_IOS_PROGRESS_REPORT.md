@@ -1,3 +1,7 @@
+## Build59 correction dispatched — exact checkpoint
+
+Run40162073334 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40162073334), sourced698f880af334690551a9bfb692521aec1551739; last API snapshot IN_PROGRESS, no conclusion.58 failed exactly one Objective-C ARC property/getter naming error in new room UI; renamed copyButton to clipboardButton. Local actual8-property synthesized-getter compilation PASS; negative control recreates exact error. Regression check and full iPhoneOS screen compile included in59. P1 only; P2/phones unchanged. Wait actual native/socket/private-code/package result, then stage verified IPA and conduct two-phone connection-only test.57 remains last full successful native/simulator result. No phone or install needed now; user reports59 passed/failed, avoid idle polling.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** 2026-10-25T04:29:37.692671+00:00 (October25 session).
@@ -29,10 +33,10 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental.
 - Starting commit: f65dd2e7771cae0d345ac43f7d937dabeebefb13.
-- Latest commit: Correction not committed at report creation; exact source/run checkpoint follows.
-- Commits created: Pending source+guard+docs commit.
-- Changes pushed: None yet for this correction.
-- Uncommitted changes: Listed source/test/workflow/journals, all scoped.
+- Latest source commit:d698f880af334690551a9bfb692521aec1551739; following documentation-only commit records59.
+- Commits created:d698f880af334690551a9bfb692521aec1551739 corrects ARC getter name and adds compiler guard; documentation checkpoint follows.
+- Changes pushed: Correction and compiler guard pushed to ios-experimental;59 dispatched.
+- Uncommitted changes: Clean after final documentation checkpoint, all source/journals pushed.
 - GitHub Actions run IDs:58 run40161054040/source4f8ac1356f69fa1f47bbfab1ab411ab1ac4b2a76. Last successful57 run40158088407/source03cd0be08157613b020cb59c678271b44065a997.
 - Build results:58 FAILED. Scene121072507969 SUCCESS; P1121074322192 failed early full-screen syntax check. Game compile, real socket private-room probe and packaging SKIPPED. Not a runtime result.
 - Artifacts produced:58 log-summary artifact12586334223 only; no IPA. Full failing P1 log downloaded directly.57 checked app/artifact retained privately;57 omitted dependency notices are already corrected in58 source and next build must verify actual packaged notices.
