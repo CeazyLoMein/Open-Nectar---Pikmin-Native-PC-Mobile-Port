@@ -1,3 +1,9 @@
+## Build60 dispatched; cross-progression/host-loss design saved — exact checkpoint
+
+Run40204287553 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40204287553), source53466a4065fe017d5f3fa88b311e652885300ec2; last API snapshot IN_PROGRESS, no conclusion/artifact yet.59 retry scene SUCCESS but P1 failed OUR ARC regression-tool clang-driver flag ordering before full UIKit compile; fixed direct driver order while retaining clang-tidy convention. Both local fixture semantics and direct-driver argument-order adapter checks PASS; actual Apple driver/UI/native/private-code/package pending60. P1 only; no phone/PC/P2 changes. No install needed; user reports60 passed/failed.
+
+New full user requirements/research saved in COOP_CROSS_PROGRESSION_AND_RECOVERY.md: live retained-host pause/rejoin versus durable full mid-day crash checkpoint, optional guest recovery copy, later opt-in host continuation and PC-home/iPhone-away single-campaign handoff with shared gameplay rules/local graphics preferences. No save/cloud/desktop features implemented by these notes. Continue iPhone milestones first.57 remains last full native/simulator networking success.
+
 ## October25 — Build59 retry result and cross-device/host recovery requirements
 
 59 attempt2: shared scene121105139764 SUCCESS; P1121107438150 FAILED in the new ARC regression tool command before actual screen/game compile. Exact diagnostic: clang++ -x objective-c++ appeared after the last input and was an unused-command-line-argument error under Werror. Fixed standalone clang invocation to place flags BEFORE source; clang-tidy keeps source BEFORE its -- delimiter. Local actual8-getter and original ownership-negative controls PASS; standalone argument ordering checked through a driver adapter delegating semantics to real Clang frontend. Standalone Apple driver/full UIKit/native room/package still require next CI. No phone changes, P2 preserved.

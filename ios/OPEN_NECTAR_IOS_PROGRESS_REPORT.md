@@ -1,3 +1,9 @@
+## Build60 dispatched; cross-progression/host-loss design saved — exact checkpoint
+
+Run40204287553 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40204287553), source53466a4065fe017d5f3fa88b311e652885300ec2; last API snapshot IN_PROGRESS, no conclusion/artifact yet.59 retry scene SUCCESS but P1 failed OUR ARC regression-tool clang-driver flag ordering before full UIKit compile; fixed direct driver order while retaining clang-tidy convention. Both local fixture semantics and direct-driver argument-order adapter checks PASS; actual Apple driver/UI/native/private-code/package pending60. P1 only; no phone/PC/P2 changes. No install needed; user reports60 passed/failed.
+
+New full user requirements/research saved in COOP_CROSS_PROGRESSION_AND_RECOVERY.md: live retained-host pause/rejoin versus durable full mid-day crash checkpoint, optional guest recovery copy, later opt-in host continuation and PC-home/iPhone-away single-campaign handoff with shared gameplay rules/local graphics preferences. No save/cloud/desktop features implemented by these notes. Continue iPhone milestones first.57 remains last full native/simulator networking success.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** 2026-10-25T14:52:33.277408+00:00 (October25 America/New_York session).
@@ -29,12 +35,12 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental.
 - Starting commit:dda93a4c50183b77687c40154c944366009016ea; clean and matched origin after fetch.
-- Latest commit: Correction/design batch pending commit; exact source/run checkpoint follows.
-- Commits created: Pending one source-tool+design+docs commit.
-- Changes pushed: None yet at report creation.
-- Uncommitted changes: Listed compiler tool and design/journal files only.
+- Latest source commit:53466a4065fe017d5f3fa88b311e652885300ec2; following documentation-only checkpoint records60.
+- Commits created:53466a4065fe017d5f3fa88b311e652885300ec2 fixes compiler invocation and saves researched recovery/cross-progression design; documentation checkpoint follows.
+- Changes pushed: Correction/design batch pushed;60 dispatched.
+- Uncommitted changes: Clean after final documentation checkpoint; all source/design/journals pushed.
 - GitHub Actions run IDs:59 run40162073334, attempt2, source d698f880af334690551a9bfb692521aec1551739; last complete successful57/run40158088407.
-- Build results:59 attempt1 boot timeout; retry attempt2 scene121105139764 SUCCESS, P1121107438150 FAILED compiler-test command. Actual room/native/package checks SKIPPED. No new run/result claimed yet.
+- Build results:59 attempt1 boot timeout; retry attempt2 scene121105139764 SUCCESS, P1121107438150 FAILED compiler-test command. Actual room/native/package checks SKIPPED. New60 run40204287553/source53466a4065fe017d5f3fa88b311e652885300ec2, last snapshot IN_PROGRESS; no result yet.
 - Artifacts produced:59 attempt2 scene12590981778 SHA256df64200ae68e8c1dbb83832062e9e8902fba6739bbd8b25a5e4bd16e2b93ae03 metadata; P1 log summary12591136635 SHA256128cb9d4c2e643db21a3ed0027acc88f6b6f384592c75fcdaac54aaa9752526a. No59 IPA. Full failed P1 log retrieved directly.
 
 ### Next steps
