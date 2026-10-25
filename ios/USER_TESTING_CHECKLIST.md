@@ -4,13 +4,13 @@ Updated October25,2026. This is the running list of things Chazz and Raye will e
 
 I will give you a small batch at a time, prepare the files in Documents, handle logs/build checks myself, and tell you whether a phone must stay connected/open. When I need you, I will send a clear message and an audio alert where available. No need to stay connected or leave a game running unless I ask.
 
-## Ready to test
+## Ready to test — Build62 (T01–T04)
 
-**Nothing requested on either phone right now.** Build61 compiled the app and passed the networking test, and Build62 is validating the packaging folder-layout correction. Local PC network tests have finished; Cancel their firewall prompts if still visible. Keep your existing apps installed. I need to verify the next usable update before asking you to install or test it.
+Build62 native build, actual simulator networking and downloaded IPA checks PASSED. The real phones still need the tests below. This is CONNECTION ONLY, not playable online campaign.
 
-When a GitHub build is running, sending “passed” or “failed” is helpful. I will verify the actual result myself; a successful build does not tick off a phone test.
+**File:** Documents > Open Nectar > 1 - Install on iPhone > CURRENT - P1 Build 62 - Connection Test > Pikmin 1 - Build 62 - Connection Test.ipa. Read START HERE.txt in that folder. Use an in-place update; do not delete P1/change app identity. P2 stays unchanged.
 
-## Next batch — private-room connection (not ready yet)
+**Current step:** T01 in progress. Both phones are available. Your phone is connected; its settings/layout/achievements and both save folders are verified backed up (12files/352195bytes). You are using Sideloadly's normal drag/select/Start process. Installation completion has not been reported. Raye's backup/update comes next; leave her P1 closed when connecting it. No new device task is marked passed yet.
 
 - [ ] **T01 — Prepare both phones.** Have both available, unlocked and on the same Wi-Fi. I will prepare the verified update and exact file location. If signing/installing requires your input, I will give that one action; keep the existing app and its files.
 - [ ] **T02 — Connect a private room.** On both phones, open gear > Data > Online Co-op: Connection Test and wait for the data check. Host on your phone, copy/share the code manually, return the host to P1, then paste/join on Raye's. Allow Local Network access if asked. Tell me the status on BOTH phones; a screenshot is useful if something fails.
@@ -71,6 +71,7 @@ New connection/gameplay/recovery tests have not yet been reported. I will record
 | Date | Task | Build / phones | What you observed | Status / next action |
 |---|---|---|---|---|
 | October25 | Checklist created | Existing working apps preserved | No new device test requested | Wait for verified update and a small active batch |
+| October25 | T01 | Build62; your phone | Package staged and first-phone backup verified; installation not yet reported | IN PROGRESS; Raye backup/update next |
 
 ## How I maintain this list
 
