@@ -1,3 +1,13 @@
+# Raye iPhone setup — verified launch after folder repair
+
+Updated 2026-10-24 America/New_York. User confirms P1 now opens normally with title/music/controls after the repair below; user also confirms P2 works. Phone can be unplugged. No further phone access or new IPA needed for this correction.
+
+P1 installed executable UUID1760960b-2d27-3a21-960f-2dcc404350c6, read from three actual crash reports, confirms Build54. My original transfer copied correct files to the WRONG parent: Documents/pikmin1/dataDir. Native DVDOpen prepends assets/, so audio startup could not open its sequence archive and Jac_InitEventSystem waited forever. iOS watchdog reports0x8BADF00D identify that wait, not a graphics failure. After user closed P1, relocated only the imported disc roots into staged assets/ then activated it. Correct location: Documents/pikmin1/assets/dataDir; touch PNGs remain Documents/pikmin1/art. All3529files/669952108bytes re-read and hash-verified at correct paths. Settings hash unchanged; save/Load not modified. User fresh launch confirmed normal. Corrected local importer for future transfers. No P1/P2 source or original phone changes.
+
+Private corrective receipt: work/raye-p1-layout-repair.json, copied to Documents/Open Nectar/folder3/Pikmin 1/Raye - Corrected Layout Verification.json. Earlier transfer receipt retained for history and is superseded on DIRECTORY PLACEMENT by corrective receipt. Original ISO log.txt is historical desktop output, not current phone evidence.
+
+## Historical initial transfer checkpoint (superseded by correction above)
+
 # Raye iPhone setup — current status
 
 Updated 2026-10-24 21:15 EDT. Identified by model before all operations: iPhone17Pro (iPhone18,1), iOS27.0.1. User reported public/non-beta. Developer Mode menu was missing; exposed only the switch with AMFI action0. USER enabled/restarted/confirmed. Readback showed DeveloperMode=true. No account credentials entered or requested by agent.

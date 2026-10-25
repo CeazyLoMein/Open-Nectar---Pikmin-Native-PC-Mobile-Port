@@ -1,3 +1,62 @@
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-24 America/New_York; recorded 2026-10-25T02:10:40.760072+00:00.
+
+**Overall project status:** Raye now confirms BOTH games open. P1's black-screen startup was caused by this session's import layout error, now corrected on her phone and verified by a fresh user launch. No game source changed, no new IPA required. Co-op Build55 remains a separate engineering milestone.
+
+### Pikmin 1
+
+- Current objective: Resolve Raye's black screen after first-install asset transfer.
+- What was investigated: Identified Raye's iPhone17Pro (iPhone18,1), iOS27.0.1. Read P1 Documents, three existing P1 crash reports, and a brief filtered startup log. Crash executable UUID1760960b-2d27-3a21-960f-2dcc404350c6 matches Build54, independently confirming her installed version.
+- Root cause or leading hypothesis: CONFIRMED folder placement error in local import helper. It copied dataDir directly into Documents/pikmin1, while DVDOpen in pc_port/dolphin_stubs/dvd_stubs.cpp ALWAYS prefixes assets/. Jac_Start requests /dataDir/SndData; the missing expected assets/dataDir/SndData/Seqs/pikiseq.arc leaves Jac_InitEventSystem waiting for track0x20000. All three reports show Jac_InitEventSystem under Jac_Start/System::Initialise; iOS watchdog0x8BADF00D killed the unresponsive app. This is startup before drawing, distinct from the earlier in-game world-only black screen.
+- Files changed: Phone only: relocated already verified disc roots into Documents/pikmin1/assets; kept art at Documents/pikmin1/art. Local work/import_raye_p1_assets.py now maps disc files to assets/* and art to art/* for future imports. Corrective helper work/repair_raye_p1_asset_layout.py used staged directory rename, refuses overwrite, and supports pre-activation rollback. Project/setup journals and accessible handoff updated. No P1 gameplay/audio/renderer source changed.
+- Tests and results: Critical audio archive/bank/font hashes checked before move. ALL3529files/669952108bytes read back at CORRECT paths after activation with matching original SHA256; settings hash unchanged; saves/Load not written. Corrected importer syntax and mapping checked. User then confirmed title screen/music/touch-controls open normally.
+- Confirmed working: Build54 on Raye's phone now launches normally, user-confirmed after repair. Original user's working app untouched.
+- Remaining issues: Full campaign, longer performance/device-specific settings and existing rare gameplay bugs remain outside this launch check. Old Jac_InitEventSystem unbounded missing-resource wait still exists in source; no claim general startup failure handling was improved.
+
+### Pikmin 2
+
+- Current objective: Verify Raye's first installation; preserve existing source baseline.
+- What was investigated: User's direct result after completed assets/art transfer.
+- Root cause or leading hypothesis: No current P2 failure; P2 importer already used assets/* correctly.
+- Files changed: None in P2 source or phone during this repair.
+- Tests and results: User says P2 works on her phone; prior full2797file/1013544103byte readback transfer preserved.
+- Confirmed working: User-reported normal P2 launch on Raye's phone. This is not a full campaign/audio-feature certification.
+- Remaining issues: Longer gameplay/full story still unverified; P2 development remains paused while P1 co-op proceeds.
+
+### GitHub
+
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port, C:/Dev/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
+- Branch: ios-experimental; fetched origin and verified clean matching b1f020b30aa468e9d153412c853d553967281507 before journal edits.
+- Starting commit: b1f020b30aa468e9d153412c853d553967281507.
+- Latest commit: Documentation-only checkpoint for this repair is recorded in the external Exact Resume State.json after commit/push.
+- Commits created: This repair needs only a scoped documentation commit with skip-ci; no game source change.
+- Changes pushed: Updated journals/setup instructions; exact new commit recorded externally after push.
+- Uncommitted changes: Only journals until documentation commit; private recordings/crash reports/assets/helpers not staged.
+- GitHub Actions run IDs:55=40149838089, source5bfa4fba17e9083deabeddc0033bc8a4a002ce06. Last known in_progress from previous checkpoint, NOT refreshed during this phone repair.54=40145860255, sourcea7888f24009133fd3818355e35bfc5475c279e16, previously verified SUCCESS.
+- Build results: No new build needed/triggered for relocating files.55's native result remains unverified at this checkpoint;17 local core tests+capture fixture previously passed.
+- Artifacts produced: No new artifact this repair. Existing Build54 IPA unchanged;53 rollback retained.
+
+### Next steps
+
+- Next Pikmin 1 task: Continue co-op plan in ios/PIKMIN1_COOP_IMPLEMENTATION.md. First inspect55 once complete, then real transport/session/scene compatibility and guest actor application; bridge Onion authority to real engine accounting. Current capture is inert and is NOT playable online.
+- Next Pikmin 2 task: No immediate code task; user can test ordinary gameplay when convenient.
+- GitHub/build task: Save docs without extra CI; inspect55 once completion is reported, avoid idle repeated polling.
+- Anything requiring my involvement: NOTHING else needed from either phone now; user explicitly told Raye can unplug. No reinstall or update for this repair.
+
+### ChatGPT continuation notes
+
+- What another ChatGPT conversation needs to know: Prior “all files verified” transfer receipt verified CONTENT but used wrong P1 parent directory. This correction supersedes the prior claim that the first P1 transfer was ready to launch. Both files and paths now verified and user-confirmed boot. P2 worked already. Preserve working apps/settings and prototype isolation.
+- Important source-file locations: games/pikmin1/pc_port/dolphin_stubs/dvd_stubs.cpp DVDOpen prefixes assets/; games/pikmin1/src/sysDolphin/system.cpp Jac_Start uses /dataDir/SndData/; src/jaudio/pikiinter.c Jac_InitEventSystem waits on Jam_GetTrackHandle(0x20000). Correct install root Documents/pikmin1/assets/dataDir; control art Documents/pikmin1/art. No need to duplicate game data at both levels.
+- Relevant logs: PRIVATE work/raye-p1-diagnostics contains three Oct24 crash reports205748/211009/211206 and live-p1.log; old imported ISO log.txt is historical developer output, NOT current iPhone startup evidence. work/raye-p1-layout-repair.json is definitive corrected-path verification receipt. Original transfer manifest/receipt retained for history; new repair receipt appended separately.
+- Unverified fixes: No source-level startup timeout/recovery implemented. No claim online play, full campaign or all sounds tested. Fresh P1 boot with music/controls is user-confirmed.
+- Risks and warnings: No unrelated files deleted, no original phone changed, no save/settings reset, no security/account changes, no proprietary assets or private reports committed. Keep120 selectable and AO-off known performance baseline. No final-boss spoilers.
+- Exact next actions: Inspect55 when complete, preserve54 installed baseline and53 backup, continue co-op integration from documented active plan. Future P1 fresh imports MUST map extracted disc root under assets/, art separately beside it. Phone is no longer needed.
+
+**END PROGRESS REPORT**
+
+---
+
 # OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
 
 
