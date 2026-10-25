@@ -1,3 +1,7 @@
+## Build66 dispatched — native room convenience and hidden-work reduction
+
+Source5bf89a24b059fb37fd4aba9da99aeda16ad8a579; run40229474228 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40229474228); last observed IN_PROGRESS, no new IPA/native/phone pass.66 adds native title Online Co-op row, Rejoin Last Room from authenticated invitation held only in process memory, and narrow opaque-room hidden tick/draw pause with SDL/audio pumping and scheduler rebase. Local actual-source native/desktop menu+pause fixtures PASS;10 getters pass iOS ARC;2 identity+3 bundle checks PASS. No FPS/120 option, resolution, textures/models, save/P2 changes. Physical heat benefit unmeasured, especially during normal gameplay.65 remains BOTH-PHONE SAME-WIFI T01-T04 PASS; old mismatch photo clarified as previous62. Full campaign/internet/host-kill recovery and separate Solo/shared slot adapter are not implemented. No phone action until verified new package; await user build result without idle polling.
+
 ## Native room UX/hidden-work batch implemented — awaiting Apple build
 
 Build65 is the new confirmed BOTH-PHONE SAME-WIFI baseline: stable minute+,11ms low; Leave/rejoin/reverse hosts/normal solo pass. Old mismatch screenshot clarified as older62. No internet/shared gameplay pass claimed. Preserve65 IPA/backups.
