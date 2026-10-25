@@ -8,9 +8,34 @@
 #include <cstdio>
 #include <memory>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <cstdlib>
 
 using namespace nectar::net;
 namespace {
+// A stuck constructor/poll/destructor must produce a FAIL, not an endless CI hang.
+// Test process only: never built into the game's room UI.
+class ProbeDeadline {
+    std::mutex mutex;
+    std::condition_variable wake;
+    bool done = false;
+    std::thread worker;
+public:
+    ProbeDeadline() : worker([this] {
+        std::unique_lock<std::mutex> lock(mutex);
+        if (!wake.wait_for(lock, std::chrono::seconds(60), [this] { return done; })) {
+            std::fputs("FAIL native probe deadline reached; inspect the last completed stage\n", stderr);
+            std::fflush(stderr);
+            std::_Exit(124);
+        }
+    }) {}
+    ~ProbeDeadline() {
+        { std::lock_guard<std::mutex> lock(mutex); done = true; }
+        wake.notify_one();
+        worker.join();
+    }
+};
 std::uint64_t nowMs() {
     return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -41,10 +66,14 @@ CompatibilityInfo identity() {
 }
 }
 int main() {
+    std::setvbuf(stdout, nullptr, _IONBF, 0);
+    std::puts("NECTAR_COOP_SOCKET_PROBE_STARTED");
+    ProbeDeadline deadline;
     JoinCredentials secret;
     if (!require(secureRandomBytes(secret.sessionNonce.data(), secret.sessionNonce.size()) &&
                  secureRandomBytes(secret.joinSecret.data(), secret.joinSecret.size()),
                  "OS random source; private credentials never printed")) return 1;
+    std::puts("STAGE encrypted transport creation");
     GatedTransport host(std::make_unique<GnsTransport>(), GatedTransport::Role::Host, secret);
     host.requireCompatibility(identity());
     Endpoint address{"127.0.0.1", 0};
@@ -135,6 +164,7 @@ int main() {
     loopback.address = {127, 0, 0, 1};
     loopback.port = config.localPort;
     config.manualEndpoints.push_back(loopback);
+    std::puts("STAGE private room creation");
     HostRoom room;
     RoomStatus status;
     constexpr std::uint64_t unixNow = 1790000000;
@@ -168,6 +198,7 @@ int main() {
         partner.cancel();
     }
     room.close();
+    std::puts("STAGE private room closed; leaving native probe");
     std::puts("NECTAR_COOP_SOCKET_PROBE_PASS");
     return 0;
 }

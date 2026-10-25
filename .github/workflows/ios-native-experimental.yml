@@ -337,7 +337,8 @@ jobs:
           python3 tests/ios_coop_socket_runner_test.py
           bash scripts/netplay-deps.sh ios-arm64
           bash scripts/netplay-deps.sh ios-simulator-arm64
-      - name: Build and run real encrypted iOS co-op socket session probe
+      - name: Build real encrypted iOS co-op socket session probe
+        id: coop_socket_build
         if: matrix.game == 'pikmin1'
         shell: bash
         run: |
@@ -352,9 +353,6 @@ jobs:
             -DNECTAR_NET_ENABLE_UPNP=OFF -DNECTAR_NET_BUILD_COOP_SOCKET_PROBE=ON
           cmake --build "$RUNNER_TEMP/nectar-coop-socket" --target nectar_net_coop_socket_probe --parallel 3 \
             2>&1 | tee ios-coop-socket-build.log
-          python3 tests/run_ios_coop_socket_probe.py \
-            --binary "$RUNNER_TEMP/nectar-coop-socket/nectar_net_coop_socket_probe" \
-            --output ios-coop-socket-results
       - name: Configure iPhoneOS ARM64 target without signing
         shell: bash
         run: |
@@ -417,6 +415,14 @@ jobs:
               --licenses "$HOME/.cache/open-nectar/netplay-deps/install/ios-arm64/share/nectar-net/licenses"
           fi
           tar -czf "$GITHUB_WORKSPACE/nectar-${GAME}-compiled-app.tar.gz" -C "$(dirname "$APP")" "$(basename "$APP")"
+      - name: Run real encrypted iOS co-op socket session probe
+        if: ${{ !cancelled() && matrix.game == 'pikmin1' && steps.coop_socket_build.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/run_ios_coop_socket_probe.py \
+            --binary "$RUNNER_TEMP/nectar-coop-socket/nectar_net_coop_socket_probe" \
+            --output ios-coop-socket-results
       - name: Index compiler and linker errors
         if: always()
         run: python3 tests/ios_build_error_summary.py ios-build.log ios-build-errors.md

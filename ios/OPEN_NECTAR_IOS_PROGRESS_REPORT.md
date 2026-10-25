@@ -1,66 +1,56 @@
-## Running user testing checklist — October25
-
-User explicitly requested a maintained list of their future testing tasks. Canonical [USER_TESTING_CHECKLIST.md](USER_TESTING_CHECKLIST.md), accessible Documents/Open Nectar/START HERE - What to Test.md/.txt. Ready now: no phone test requested until a verified update is prepared. Stable task IDs track room test, actual gameplay, disconnect/rejoin, checkpoint/host loss, PC/phone handoff, internet and P2. Future lists are not active instructions or implementation claims. Promote only small ready batches, record exact build/phone observations, preserve failures/results and send clear notification when human input is needed. Compiler/CI success must never mark a device task complete. Historical app-opening confirmations separated from new co-op tasks.
-
-## Build60 dispatched; cross-progression/host-loss design saved — exact checkpoint
-
-Run40204287553 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40204287553), source53466a4065fe017d5f3fa88b311e652885300ec2; last API snapshot IN_PROGRESS, no conclusion/artifact yet.59 retry scene SUCCESS but P1 failed OUR ARC regression-tool clang-driver flag ordering before full UIKit compile; fixed direct driver order while retaining clang-tidy convention. Both local fixture semantics and direct-driver argument-order adapter checks PASS; actual Apple driver/UI/native/private-code/package pending60. P1 only; no phone/PC/P2 changes. No install needed; user reports60 passed/failed.
-
-New full user requirements/research saved in COOP_CROSS_PROGRESSION_AND_RECOVERY.md: live retained-host pause/rejoin versus durable full mid-day crash checkpoint, optional guest recovery copy, later opt-in host continuation and PC-home/iPhone-away single-campaign handoff with shared gameplay rules/local graphics preferences. No save/cloud/desktop features implemented by these notes. Continue iPhone milestones first.57 remains last full native/simulator networking success.
-
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-25T14:52:33.277408+00:00 (October25 America/New_York session).
+**Date/time:** 2026-10-25T15:41:02.272578+00:00 (October25 America/New_York session).
 
-**Overall project status:** User thought59 retry passed. Actual attempt2: simulator SUCCESS, overall P1 job FAILED in our ARC regression command argument order. Corrected, locally checked both invocation paths; next P1-only Apple run pending. User's PC/iPhone cross-progression and disconnect/host-crash requirements researched and saved; iPhone development remains current priority, PC app untouched. No new phone installation.
+**Overall project status:**60 failed during simulator launch/execution of the real network probe, after Apple compiled the room screen successfully. Exact timeout root cause is not observable because previous runner lost partial stdout. Fixed evidence capture and bounded test execution; added failure regression tests; prepared isolated Windows real-network environment and verified23 tests plus complete private-room/session probe. Next P1-only CI batch will compile native app before strict runtime probe, collecting more independent results in one run. No hardware test ready yet.
 
 ### Pikmin1
 
-- Current objective: Complete current native Host/Join connection-screen validation and real two-phone room proof; plan durable recovery and cross-device campaigns accurately.
-- What was investigated: Live59 attempt2 metadata/jobs/full log; previous save audit and actual card_stubs.cpp/card paths plus CoopSession header; official Stardew developer mobile guide, Grounded Shared Worlds notes and Factorio joining/catch-up developer article.
-- Root cause or leading hypothesis: Confirmed standalone clang++ invocation put -x objective-c++ after its input, unlike clang-tidy's -- argument convention. Fixed command ordering separately for each tool. The UI property rename itself was not rejected; actual full UIKit check was never reached. Recovery design separates retained live host/network loss from host process loss. Existing normal card is not a full live-world checkpoint, and guest visual replicas are not host-recovery saves.
-- Files changed: tests/ios_coop_arc_names_test.py; new ios/COOP_CROSS_PROGRESSION_AND_RECOVERY.md; saved design/save/research/implementation/status/progress/handoff notes. No game or save-system source change in this batch.
-- Tests and results: Corrected test on installed Clang frontend PASS for actual8 synthesized screen getters and negative control reproducing original ownership error. Standalone driver path exercised through an argument-order-checking adapter feeding the REAL Clang frontend for both fixtures; this is NOT an actual Apple standalone compiler/SDK result. Git diff check PASS. Unchanged gameplay tests not repeated locally. Native screen/private-code/game/package checks pending next CI.
-- Confirmed working:59 retry's shared simulator startup/background/resume PASS.57 remains last fully successful native P1 + real encrypted socket/session test, including2captains/60Pikmin data transfer. Existing user-tested P154 installs remain unchanged.
-- Remaining issues: Connection-screen/full UIKit/code join/native app/notices packaging checks still pending. No playable full-world co-op, exact host recovery, mid-day save, cloud sync, PC cross-play/progression or auto host migration implemented. PC/iPhone save round trips not yet validated. Optional120FPS/AO OFF baseline preserved.
+- Current objective: Finish phone room-screen/app/package validation and obtain useful exact evidence if simulator networking stalls again.
+- What was investigated: Actual60 run/jobs/full log and SHA-verified artifact; runner timeout/output handling; native watchdog/room probe lifecycle; experimental workflow sequencing. Built pinned GNS/protobuf sources locally in workspace only, verified existing SHA pins, using Windows BCrypt crypto and static dependencies.
+- Root cause or leading hypothesis: CONFIRMED simctl spawn timeout90s after simulator boot returned and network binary linked. No native partial output retained in old failure artifact, so simulator infrastructure versus code hang remains UNKNOWN. Confirmed diagnostic defect fixed: TimeoutExpired.output and nonzero child output now retained with stage/main-entry evidence. Native watchdog produces bounded failure if test code hangs. Local complete network test passes but does not rule out Apple-specific failures.
+- Files changed: tests/run_ios_coop_socket_probe.py; tests/ios_coop_socket_runner_test.py; libs/nectar_net/tests/coop_socket_probe.cpp; experimental workflow execution order; journals/checklist status.
+- Tests and results:8 runner tests PASS covering timeout bytes/text partial output, absent main marker, wrong platform, missing success marker, nonzero output, diagnostic failures and simulator ownership. Strict new probe translation-unit compile PASS. Existing ARC getter check PASS. NEW isolated Windows CMake23/23 core+GNS real-UDP tests PASS, including gated auth/room and12s stress; complete revised co-op probe PASS from encrypted join through2captains/60Pikmin, pause/background/marker/loss and private-code/content-mismatch checks. Windows native process exited0, test watchdog/cleanup completed. Not an iPhone runtime result.
+- Confirmed working:60 full iPhoneOS room-screen syntax check PASSED,19 CI core tests passed; shared scene startup/resume SUCCESS. Native simulator probe binary COMPILED/LINKED with correct platform.57 remains last full native P1+simulator networking successful build. User-tested P154 apps preserved.
+- Remaining issues: Underlying Apple spawn timeout unknown. Full native app/resource-copy and updated simulator runtime checks still pending. No new IPA/phone connection result. Full co-op gameplay/world/private camera/Onion/save/PC handoff remains future work; existing plans unchanged.
 
 ### Pikmin2
 
-- Current objective: Preserve working app until its later stronger solo audit and adapter.
-- What was investigated: No new P2 source or phone investigation.
+- Current objective: Preserve working app.
+- What was investigated: No P2 source/phone investigation.
 - Root cause or leading hypothesis: None.
 - Files changed: None.
-- Tests and results: Not rebuilt or installed.
-- Confirmed working: Prior user-confirmed app on both phones.
-- Remaining issues: Full story not verified; P2 needs separate world/save codec despite reusable networking/container.
+- Tests and results: Not rebuilt/installed.
+- Confirmed working: Prior user-confirmed apps remain unchanged.
+- Remaining issues: Later engine-specific audit/co-op/save adapter.
 
 ### GitHub
 
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental.
-- Starting commit:dda93a4c50183b77687c40154c944366009016ea; clean and matched origin after fetch.
-- Latest source commit:53466a4065fe017d5f3fa88b311e652885300ec2; following documentation-only checkpoint records60.
-- Commits created:53466a4065fe017d5f3fa88b311e652885300ec2 fixes compiler invocation and saves researched recovery/cross-progression design; documentation checkpoint follows.
-- Changes pushed: Correction/design batch pushed;60 dispatched.
-- Uncommitted changes: Clean after final documentation checkpoint; all source/design/journals pushed.
-- GitHub Actions run IDs:59 run40162073334, attempt2, source d698f880af334690551a9bfb692521aec1551739; last complete successful57/run40158088407.
-- Build results:59 attempt1 boot timeout; retry attempt2 scene121105139764 SUCCESS, P1121107438150 FAILED compiler-test command. Actual room/native/package checks SKIPPED. New60 run40204287553/source53466a4065fe017d5f3fa88b311e652885300ec2, last snapshot IN_PROGRESS; no result yet.
-- Artifacts produced:59 attempt2 scene12590981778 SHA256df64200ae68e8c1dbb83832062e9e8902fba6739bbd8b25a5e4bd16e2b93ae03 metadata; P1 log summary12591136635 SHA256128cb9d4c2e643db21a3ed0027acc88f6b6f384592c75fcdaac54aaa9752526a. No59 IPA. Full failed P1 log retrieved directly.
+- Starting commit:ac5ece003633be656597828182fb7364b021b5c5, clean and matched origin after fetch.
+- Latest commit: Diagnostic/CI batch pending commit; exact source/run follows.
+- Commits created: Pending source+tests+CI+journal batch.
+- Changes pushed: None yet at report creation.
+- Uncommitted changes: Listed diagnostic/test/workflow/journal files only.
+- GitHub Actions run IDs:60 run40204287553/source53466a4065fe017d5f3fa88b311e652885300ec2.
+- Build results:60 scene121201787820 SUCCESS. P1121204903697 failed runtime runner TimeoutExpired, not compiler error. Full native game configure/compile/package SKIPPED under old ordering. New ordering preserves strict overall failure while letting native compilation run before runtime probe.
+- Artifacts produced:60 P112603398343 SHA2563869c339dc2a799c5dfd51ecab233260dc53b03b250870ca28e337fcd1a03347 downloaded+verified; scene12603606981 metadata digest396fb79eae2d532f3b312c146896ea903544e67fa2ac1ce0cbd6d67cdf87ca33. No IPA. Probe binary hash cee406c0c1b62adc2ff830c68f4aad5b1e686576b4078332f433ede490ab7e96.
 
 ### Next steps
 
-- Next Pikmin1 task: Run corrected Apple checks, then verify/stage native package and ask for focused two-phone private-room test. Continue actual game/world/guest camera/ownership integration after transport proof.
-- Next Pikmin2 task: Keep working app untouched.
-- GitHub/build task: One P1-only build for corrected compiler tool; record exact source/run and avoid idle polling.
-- Anything requiring my involvement: Nothing on either phone now; report new build passed/failed when linked. PC installation and cloud/provider choices are deferred, not blockers to phone work.
+- Next Pikmin1 task: Review full native build/notices and updated simulator output. If successful, verify/stage exact IPA in Documents and activate only phone-checklist T01-T04. If runtime fails, use retained last phase/native-entry/stages and bounded logs rather than guess.
+- Next Pikmin2 task: Preserve app.
+- GitHub/build task: Commit/push one P1-only evidence+CI batch; record run/source and stop idle polling.
+- Anything requiring my involvement: User was shown Windows Firewall dialogs for our two LOCAL test executables and told Cancel; those tests already finished successfully. No need to allow firewall, connect phones or reinstall. Report next build result when linked.
 
 ### ChatGPT continuation notes
 
-- What another ChatGPT conversation needs to know: User's two latest messages add PC-to-iPhone shared progress, exact live-host reconnect, host-loss recovery, optional continue-alone and useful researched QOL. New design file records all of them. Earlier blanket together-only wording is refined for desired temporary host continuation; independent divergent campaign merging stays deferred. First deliver pause/wait/rejoin safely.
-- Important source-file locations: ios/COOP_CROSS_PROGRESSION_AND_RECOVERY.md links primary sources and staged acceptance; SAVE_AND_COOP_RECOVERY_PLAN.md and ONLINE_COOP_DESIGN_NOTES.md updated. Actual source-tool correction in tests/ios_coop_arc_names_test.py. Current connection-only UI remains ios/ios_coop_room.mm, real core session in libs/nectar_net. card_stubs.cpp writes native card buffers; cross-platform compatibility not proven by that alone.
-- Relevant logs: work/build59-latest-run.json/jobs.json/artifacts.json, work/build59-attempt2-p1-full.log. Actual final error is test command ordering, not a remaining owned-object property diagnostic. Local Clang-tidy/driver-adapter diagnostics are limited-scope test evidence.
-- Unverified fixes: Corrected standalone Apple invocation and full native screen/package pending. New recovery/cross-progression document is DESIGN, not implemented/runtime verified. Current frame replica does not serialize full jobs/AI/campaign state.
-- Risks and warnings: Live host pause/rejoin can target host freeze tick while process remains alive; a killed host only recovers last fully committed checkpoint. Guest emergency backup must be host-authored COMPLETE recovery state, not screenshot/visual replica; it does not make live migration trivial. A relay doesn't store the campaign. Quit before mid-day persistence must disclose return to actual last verified saved day; never falsely label Save here. No cloud service, account changes or paid deployment.
-- Exact next actions: Push corrected tool and durable plan in one P1-only run, record actual run. Verify actual UIKit/native/private-code/packaging output on completion. Stage verified IPA under Documents, alert user for two-phone test, preserve54/53 and P2. Then real world/ownership/rejoin adapter, complete checkpoint capture+restore, optional guest copy, later desktop parity/portable campaign handoff and cloud choice.
+- What another ChatGPT conversation needs to know: Underlying60 timeout not diagnosed as a game defect. Native UI compiler issues are now cleared. New local real-network cache makes broad test batches possible without GitHub; Windows success is not Apple/OpenSSL proof. No game source/functionality changes this batch; native watchdog only test executable, never in game's room UI.
+- Important source-file locations: tests/run_ios_coop_socket_probe.py stores last-command-output.log/socket-session.log and failed_stage/probe_entered_main_observed/boot_completed, collects bounded filtered simulator diagnostics. Probe emits main/stage markers and has60s watchdog; parent simctl spawn timeout90s. Workflow compiles game and verifies resources before runtime; network runtime also runs after game failure if its binary built, unless cancelled. IPA still requires all checks successful.
+- Relevant logs: Private work/build60-run.json/jobs.json/artifacts.json, build60-p1-full.log, build60-p1-artifact.zip. New local work/local-net-full-check.log has23 CTest passes and final NECTAR_COOP_SOCKET_PROBE_PASS; work/local-net-win-build.log builds dependencies. Reuse work/check_local_net_full.cmd and work/local-net-win/core-build. Dependencies and generated binaries are workspace-only, not a desktop game install or uploaded game assets.
+- Unverified fixes: New Apple diagnostic runner/watchdog and reordered CI require actual run. No claim that the underlying timeout is solved. Room/data hashing/permission and actual two-phone LAN still unverified. Save/recovery/cross-progression design remains unimplemented.
+- Risks and warnings: Local HostRoom tests listen and can trigger Windows Firewall prompts despite clients using loopback. Agent made NO firewall/security rule changes and advised Cancel. They already completed, so do not repeatedly reopen listeners while user plays another game. First local configure hit compiler PDB-service mismatch, fixed private build to embedded debug info/Release; private core config uses existing CRT convention, EHsc and static protobuf. These are environment/test setup changes, not product fixes.
+- Exact next actions: Push one P1-only batch, record actual run and update accessible checklist/handoff. After result verify native and runtime/package independently; retrieve partial stdout and main/stage marker on any timeout. Keep no human tasks active until a verified ready IPA is supplied. Preserve all working installs and54/53 rollback.
 
 **END PROGRESS REPORT**

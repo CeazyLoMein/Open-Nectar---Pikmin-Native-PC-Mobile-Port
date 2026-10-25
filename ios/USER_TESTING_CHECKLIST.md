@@ -6,7 +6,7 @@ I will give you a small batch at a time, prepare the files in Documents, handle 
 
 ## Ready to test
 
-**Nothing requested on either phone right now.** Keep your existing apps installed. I need to verify the next usable update before asking you to install or test it.
+**Nothing requested on either phone right now.** Build60 failed before app packaging; a corrected diagnostic/validation run is needed. Local PC network tests have finished; Cancel their firewall prompts if still visible. Keep your existing apps installed. I need to verify the next usable update before asking you to install or test it.
 
 When a GitHub build is running, sending “passed” or “failed” is helpful. I will verify the actual result myself; a successful build does not tick off a phone test.
 
