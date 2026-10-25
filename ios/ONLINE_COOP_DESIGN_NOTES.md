@@ -1,3 +1,7 @@
+## ACTIVE — 2026-10-24 20:13 EDT
+
+User explicitly authorized starting P1 online co-op now, preserving working53 and normal settings/campaign. This supersedes historical "online unstarted/future-only" restrictions below. New host Onion accounting source/tests exist but are not connected to live actors/network/saves. Full implementation/status and exact next milestones: [PIKMIN1_COOP_IMPLEMENTATION.md](PIKMIN1_COOP_IMPLEMENTATION.md). Raye install copies prepared; no phone install yet.
+
 CURRENT - 2026-10-21 00:40 EDT: User agrees to keep normal saving for this P1 fixes/fresh-save retest, then prototype co-op and build shared exact-scene snapshot recovery for solo/co-op. See SAVE_AND_COOP_RECOVERY_PLAN.md for source audit/research. Ship-return option superseded by exact-scene preference. After P1, stronger P2 cave/area/audio/save tests precede P2 co-op. No final-boss spoilers.
 
 ## Current user authorization - 2026-10-20 20:43 EDT

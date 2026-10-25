@@ -1,3 +1,7 @@
+## ACTIVE — 2026-10-24 20:13 EDT
+
+User explicitly authorized starting P1 online co-op now, preserving working53 and normal settings/campaign. This supersedes historical "online unstarted/future-only" restrictions below. New host Onion accounting source/tests exist but are not connected to live actors/network/saves. Full implementation/status and exact next milestones: [PIKMIN1_COOP_IMPLEMENTATION.md](PIKMIN1_COOP_IMPLEMENTATION.md). Raye install copies prepared; no phone install yet.
+
 # Shared solo-save and co-op recovery plan - agreed scope
 
 LATEST USER DECISION (October21): Keep normal saving for the current P1 bug-fix retest. After representative fresh-save validation, start the co-op prototype and design ONE snapshot/recovery system serving solo autosaves and co-op recovery. User briefly accepted ship-return checkpoints but then stated a preference for exact-scene resume; the ship-reset design is NOT the final target. No timed mid-day autosave, ship-reset checkpoint or new day-end autosave is implemented in this batch.

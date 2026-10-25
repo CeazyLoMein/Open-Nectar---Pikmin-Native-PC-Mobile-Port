@@ -216,6 +216,24 @@ jobs:
             -std=c++17 -Wall -Wextra -Werror -fsyntax-only -I"$ROOT/games/pikmin2/pc_port" platform-test.cpp
           xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
             -std=c++17 -Wall -Wextra -Werror -fsyntax-only parameters-test.cpp
+      - name: Check P1 upstream safety fixes and shared co-op accounting
+        if: matrix.game == 'pikmin1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/pikmin1_upstream_safety_test.py "$RUNNER_TEMP/p1-upstream-safety.cpp"
+          c++ -std=c++17 -Wall -Wextra -Werror "$RUNNER_TEMP/p1-upstream-safety.cpp" -o "$RUNNER_TEMP/p1-upstream-safety"
+          "$RUNNER_TEMP/p1-upstream-safety"
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
+            -std=c++17 -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/p1-upstream-safety.cpp"
+          # The offline library tests do not enable online play in the normal app.
+          cmake -S libs/nectar_net -B "$RUNNER_TEMP/nectar-coop-checks" -DCMAKE_BUILD_TYPE=Release \
+            -DNECTAR_NET_BUILD_TESTS=ON -DNECTAR_NET_ENABLE_GNS=OFF -DNECTAR_NET_ENABLE_UPNP=OFF
+          cmake --build "$RUNNER_TEMP/nectar-coop-checks" --parallel 3
+          ctest --test-dir "$RUNNER_TEMP/nectar-coop-checks" --output-on-failure --timeout 120
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
+            -std=c++17 -Wall -Wextra -Werror -fsyntax-only -Ilibs/nectar_net/include \
+            libs/nectar_net/src/onion_authority.cpp libs/nectar_net/tests/onion_authority_test.cpp
       - name: Check Pikmin 1 enhancement profile and mod imports
         if: matrix.game == 'pikmin1'
         shell: bash

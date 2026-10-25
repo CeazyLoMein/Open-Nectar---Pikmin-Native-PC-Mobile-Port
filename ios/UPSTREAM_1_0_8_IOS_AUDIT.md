@@ -1,3 +1,7 @@
+## Implementation follow-up - October24,2026
+
+User authorized the preventive P1 batch and starting online co-op. Commit407b7fa4 implements the reviewed carrying/Onion/collision/enemy/menu/cache/rectangle fixes and actual-method tests. See PIKMIN1_COOP_IMPLEMENTATION.md and current journals for implemented versus deferred work and CI status. This supersedes the historical audit-only state below. Additional compiler flags, movie/animation/text initializations and remaining RNG caller changes remain queued for their own boundary checks; no broad upstream merge or P2 update was made.
+
 # Upstream1.0.7 /1.0.8 and October24 main — iOS comparison
 
 Inspected 2026-10-24 19:47 EDT. Audit only: NO game source imported, no merge/rebase/reset, no new CI run. Current iOS branch/source checkpoint802cd294fb9fc088da1da5233687a7674d4e3c32; installed P1 package53 sourcec25ba6a79ed975ba5face0461805bbd330e99cee. Preserve the working53 display/touch/keyboard and AO-OFF baseline.
