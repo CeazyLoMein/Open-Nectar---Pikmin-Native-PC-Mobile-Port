@@ -1,3 +1,7 @@
+## Build65 — verified networking batch dispatched
+
+Source3f650f7851ae9e38ba528f54fd42b89fbb095781; run40220611984 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40220611984); last snapshot IN_PROGRESS, no new IPA/native/phone pass.64 actual hash/Unicode/path regression and full P1 app compilation PASS; later socket verdict loss was reproduced locally, then fixed with bounded receive-before-close, queue ordering, retired callback/null guards, injected endpoint discovery and explicit probe loopback. Slow secret rejection, all5 compatibility reasons, room reuse/rejoin covered. Full23 CTest+8 full stress flows PASS; final rebuilt code6 focused tests+3 complete flows PASS; Clang5 translation units and13 Python tests PASS. Both phone apps/data unchanged; wait for user result, retrieve actual evidence and stage verified new IPA for BOTH before T02 retry. No idle CI polling. P2 untouched; title-menu Online Co-op/separate solo-shared slots remain approved later work.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** 2026-10-25T18:18:20.806019+00:00 (UTC; client date October25,2026 EDT).
