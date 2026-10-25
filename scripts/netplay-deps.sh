@@ -2,7 +2,7 @@
 # Builds the pinned online transport dependencies (GameNetworkingSockets,
 # protobuf and the crypto backend) as static libraries for one target.
 #
-#   scripts/netplay-deps.sh linux|mingw64|android-arm64|macos [install-prefix]
+#   scripts/netplay-deps.sh linux|mingw64|android-arm64|macos|ios-arm64|ios-simulator-arm64 [install-prefix]
 #
 # macos se ejecuta en un Mac (brew install cmake ninja coreutils) y compila
 # para la arquitectura de ese Mac.
@@ -36,16 +36,49 @@ miniupnpc_version=2.3.3
 miniupnpc_sha=d52a0afa614ad6c088cc9ddff1ae7d29c8c595ac5fdd321170a05f41e634bd1a
 
 case "${target}" in
-    linux|mingw64|android-arm64|macos) ;;
+    linux|mingw64|android-arm64|macos|ios-arm64|ios-simulator-arm64) ;;
     *)
-        printf 'Uso: %s linux|mingw64|android-arm64|macos [prefijo]\n' "$0" >&2
+        printf 'Uso: %s linux|mingw64|android-arm64|macos|ios-arm64|ios-simulator-arm64 [prefijo]\n' "$0" >&2
         exit 2
         ;;
 esac
 
-for tool in cmake ninja curl sha256sum tar make perl; do
+for tool in cmake curl tar make perl; do
     command -v "${tool}" >/dev/null 2>&1 || { printf 'Falta la herramienta: %s\n' "${tool}" >&2; exit 1; }
 done
+
+generator=Ninja
+command -v ninja >/dev/null 2>&1 || generator="Unix Makefiles"
+# macOS ships shasum; sha256sum is an optional coreutils installation.
+verify_hash() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        printf '%s  %s\n' "$1" "$2" | sha256sum --check --quiet -
+    else
+        printf '%s  %s\n' "$1" "$2" | shasum -a 256 --check --status
+    fi
+}
+
+# A cache hit must match the SDK AND platform, not merely the ARM64 architecture.
+# Existing entries without a complete receipt are rebuilt from checked sources.
+if [[ "${target}" == ios-* ]]; then
+    sdk=iphoneos
+    [[ "${target}" != ios-simulator-arm64 ]] || sdk=iphonesimulator
+    receipt="$(printf 'target=%s\nsdk=%s\nopenssl=%s\nprotobuf=%s\ngns=%s\n' \
+        "${target}" "$(xcrun --sdk "${sdk}" --show-sdk-version)" \
+        "${openssl_sha}" "${protobuf_sha}" "${gns_sha}")"
+    saved="${prefix}/share/nectar-net/build-receipt.txt"
+    if [[ -f "${saved}" && "$(cat "${saved}")" == "${receipt}" \
+          && -f "${prefix}/lib/libGameNetworkingSockets_s.a" \
+          && -f "${prefix}/lib/libprotobuf.a" && -f "${prefix}/lib/libcrypto.a" \
+          && -f "${prefix}/share/nectar-net/licenses/OpenSSL.txt" \
+          && -f "${prefix}/share/nectar-net/licenses/protobuf.txt" \
+          && -f "${prefix}/share/nectar-net/licenses/GameNetworkingSockets.txt" ]]; then
+        printf 'Verified cached %s networking dependencies.\n' "${target}"
+        exit 0
+    fi
+    # A partial rebuild must never inherit a previous success receipt.
+    rm -f "${saved}"
+fi
 
 mkdir -p "${cache}"
 work="${cache}/work/${target}"
@@ -56,7 +89,7 @@ fetch() { # name url sha256
         curl -fL --retry 3 -o "${file}.part" "$2"
         mv "${file}.part" "${file}"
     fi
-    if ! printf '%s  %s\n' "$3" "${file}" | sha256sum --check --quiet -; then
+    if ! verify_hash "$3" "${file}"; then
         printf 'Huella SHA-256 incorrecta en %s; bórralo y repite.\n' "${file}" >&2
         exit 1
     fi
@@ -77,9 +110,11 @@ fetch "protobuf-cpp-${protobuf_version}.tar.gz" \
 fetch "GameNetworkingSockets-${gns_commit:0:8}.tar.gz" \
     "https://github.com/ValveSoftware/GameNetworkingSockets/archive/${gns_commit}.tar.gz" \
     "${gns_sha}"
-fetch "miniupnpc-${miniupnpc_version}.tar.gz" \
-    "https://miniupnp.tuxfamily.org/files/miniupnpc-${miniupnpc_version}.tar.gz" \
-    "${miniupnpc_sha}"
+if [[ "${target}" != ios-* ]]; then
+    fetch "miniupnpc-${miniupnpc_version}.tar.gz" \
+        "https://miniupnp.tuxfamily.org/files/miniupnpc-${miniupnpc_version}.tar.gz" \
+        "${miniupnpc_sha}"
+fi
 
 # Toolchain arguments shared by the CMake builds.
 cmake_target=()
@@ -108,12 +143,27 @@ TOOLCHAIN
         cmake_target=(-DCMAKE_TOOLCHAIN_FILE="${ndk}/build/cmake/android.toolchain.cmake"
                       -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM="android-${android_api}")
         ;;
+    ios-arm64|ios-simulator-arm64)
+        [[ "$(uname -s)" == Darwin ]] || { printf 'iOS dependencies require macOS/Xcode.\n' >&2; exit 1; }
+        sdk=iphoneos
+        openssl_target=ios64-xcrun
+        min_flag=-mios-version-min=15.0
+        if [[ "${target}" == ios-simulator-arm64 ]]; then
+            sdk=iphonesimulator
+            openssl_target=iossimulator-arm64-xcrun
+            min_flag=-mios-simulator-version-min=15.0
+        fi
+        sdkroot="$(xcrun --sdk "${sdk}" --show-sdk-path)"
+        cmake_target=(-DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT="${sdkroot}"
+                      -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0
+                      -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO)
+        ;;
     macos)
         export MACOSX_DEPLOYMENT_TARGET="${MACOS_DEPLOYMENT_TARGET:-11.0}"
         cmake_target=(-DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}")
         ;;
 esac
-cmake_common=(-G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="${prefix}"
+cmake_common=(-G "${generator}" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="${prefix}"
               -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_POSITION_INDEPENDENT_CODE=ON
               -DCMAKE_FIND_ROOT_PATH="${prefix}")
 
@@ -123,7 +173,7 @@ host_protoc="${cache}/host/protoc-${protobuf_version}/bin/protoc"
 if [[ ! -x "${host_protoc}" ]]; then
     extract "protobuf-cpp-${protobuf_version}.tar.gz" "protobuf-${protobuf_version}"
     rm -rf "${work}/protoc-host"
-    cmake -S "${work}/protobuf-${protobuf_version}" -B "${work}/protoc-host" -G Ninja \
+    cmake -S "${work}/protobuf-${protobuf_version}" -B "${work}/protoc-host" -G "${generator}" \
         -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="${cache}/host/protoc-${protobuf_version}" \
         -Dprotobuf_BUILD_TESTS=OFF -Dprotobuf_WITH_ZLIB=OFF -Dprotobuf_BUILD_SHARED_LIBS=OFF
     cmake --build "${work}/protoc-host" --target protoc -j "${jobs}"
@@ -143,6 +193,8 @@ if [[ "${target}" != mingw64 ]]; then
             export ANDROID_NDK_ROOT="${ndk}"
             export PATH="${ndk}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}"
             ./Configure android-arm64 -D__ANDROID_API__="${android_api}" "${options[@]}"
+        elif [[ "${target}" == ios-* ]]; then
+            SDKROOT="${sdkroot}" ./Configure "${openssl_target}" "${min_flag}" "${options[@]}"
         elif [[ "${target}" == macos ]]; then
             ./Configure "darwin64-$(uname -m)-cc" "${options[@]}"
         else
@@ -181,7 +233,8 @@ if [[ "${target}" == mingw64 ]]; then
     sed -i 's/;Iphlpapi;/;iphlpapi;/' "${prefix}/lib/cmake/GameNetworkingSockets/GameNetworkingSockets.cmake"
 fi
 
-# 5. miniupnpc for UPnP IGD port mapping (the PCP/NAT-PMP client is ours).
+# 5. miniupnpc for UPnP IGD port mapping (not needed for the initial iOS LAN milestone).
+if [[ "${target}" != ios-* ]]; then
 extract "miniupnpc-${miniupnpc_version}.tar.gz" "miniupnpc-${miniupnpc_version}"
 rm -rf "${work}/miniupnpc-build"
 cmake -S "${work}/miniupnpc-${miniupnpc_version}" -B "${work}/miniupnpc-build" "${cmake_common[@]}" \
@@ -189,5 +242,19 @@ cmake -S "${work}/miniupnpc-${miniupnpc_version}" -B "${work}/miniupnpc-build" "
     -DUPNPC_BUILD_SAMPLE=OFF
 cmake --build "${work}/miniupnpc-build" -j "${jobs}"
 cmake --install "${work}/miniupnpc-build"
+
+fi
+
+# Ship the original notices with iOS builds; all three dependencies are static.
+if [[ "${target}" == ios-* ]]; then
+    licenses="${prefix}/share/nectar-net/licenses"
+    mkdir -p "${licenses}"
+    cp "${work}/openssl-${openssl_version}/LICENSE.txt" "${licenses}/OpenSSL.txt"
+    cp "${work}/protobuf-${protobuf_version}/LICENSE" "${licenses}/protobuf.txt"
+    cp "${work}/GameNetworkingSockets-${gns_commit}/LICENSE" "${licenses}/GameNetworkingSockets.txt"
+    printf 'target=%s\nsdk=%s\nopenssl=%s\nprotobuf=%s\ngns=%s\n' \
+        "${target}" "$(xcrun --sdk "${sdk}" --show-sdk-version)" \
+        "${openssl_sha}" "${protobuf_sha}" "${gns_sha}" > "${prefix}/share/nectar-net/build-receipt.txt"
+fi
 
 printf '\nDependencias de red para %s instaladas en:\n  %s\n' "${target}" "${prefix}"

@@ -61,7 +61,7 @@ jobs:
         game: ${{ (contains(github.event.head_commit.message, '[ios-p1-update]') || contains(github.event.head_commit.message, '[ios-p1-only]')) && fromJSON('["pikmin1"]') || contains(github.event.head_commit.message, '[ios-p2-only]') && fromJSON('["pikmin2"]') || fromJSON('["pikmin1","pikmin2"]') }}
     # iOS 27.1 SDK opts into the Duo full display; the minimum OS stays 15.
     runs-on: xcode-27
-    timeout-minutes: 90
+    timeout-minutes: 120
     permissions:
       contents: read
     env:
@@ -305,6 +305,39 @@ jobs:
           ./zip-test
           c++ -std=c++17 -I"$ROOT/games/pikmin1/pc_port" "$ROOT/tests/pikmin1_ios_performance_test.cpp" "$ROOT/games/pikmin1/pc_port/timing/pc_ios_performance.cpp" -o performance-test
           ./performance-test
+      - name: Restore pinned Apple networking dependency cache
+        if: matrix.game == 'pikmin1'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/open-nectar/netplay-deps
+          key: ios-net-arm64-xcode27.1-v1-${{ hashFiles('scripts/netplay-deps.sh') }}
+      - name: Build pinned encrypted transport for iPhone and simulator
+        if: matrix.game == 'pikmin1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/netplay-deps.sh
+          python3 tests/ios_coop_socket_runner_test.py
+          bash scripts/netplay-deps.sh ios-arm64
+          bash scripts/netplay-deps.sh ios-simulator-arm64
+      - name: Build and run real encrypted iOS co-op socket session probe
+        if: matrix.game == 'pikmin1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          PREFIX="$HOME/.cache/open-nectar/netplay-deps/install/ios-simulator-arm64"
+          cmake -S libs/nectar_net -B "$RUNNER_TEMP/nectar-coop-socket" -G "Unix Makefiles" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
+            -DCMAKE_PREFIX_PATH="$PREFIX" -DCMAKE_FIND_ROOT_PATH="$PREFIX" \
+            -DNECTAR_NET_BUILD_TESTS=OFF -DNECTAR_NET_ENABLE_GNS=ON \
+            -DNECTAR_NET_ENABLE_UPNP=OFF -DNECTAR_NET_BUILD_COOP_SOCKET_PROBE=ON
+          cmake --build "$RUNNER_TEMP/nectar-coop-socket" --target nectar_net_coop_socket_probe --parallel 3 \
+            2>&1 | tee ios-coop-socket-build.log
+          python3 tests/run_ios_coop_socket_probe.py \
+            --binary "$RUNNER_TEMP/nectar-coop-socket/nectar_net_coop_socket_probe" \
+            --output ios-coop-socket-results
       - name: Configure iPhoneOS ARM64 target without signing
         shell: bash
         run: |
@@ -328,7 +361,11 @@ jobs:
             -DNECTAR_IOS_GAME="$GAME"
             -DNECTAR_IOS_VARIANT="$IOS_VARIANT"
             -DCMAKE_CXX_FLAGS="-ferror-limit=80")
-          if [ "$GAME" = pikmin1 ]; then CONFIGURE_COMMAND+=(-DNECTAR_COOP_WORLD=ON); fi
+          if [ "$GAME" = pikmin1 ]; then
+            PREFIX="$HOME/.cache/open-nectar/netplay-deps/install/ios-arm64"
+            CONFIGURE_COMMAND+=(-DNECTAR_COOP_WORLD=ON -DNECTAR_IOS_COOP_TRANSPORT=ON
+              "-DCMAKE_PREFIX_PATH=$PREFIX" "-DCMAKE_FIND_ROOT_PATH=$PREFIX")
+          fi
           if [ "$GAME" = pikmin2 ] && command -v gmake >/dev/null 2>&1; then
             CONFIGURE_COMMAND+=("-DCMAKE_MAKE_PROGRAM=$(command -v gmake)")
           fi
@@ -387,6 +424,8 @@ jobs:
           path: |
             ios-build.log
             ios-build-errors.md
+            ios-coop-socket-build.log
+            ios-coop-socket-results/
             Nectar-*-unsigned.ipa
             nectar-*-compiled-app.tar.gz
           if-no-files-found: warn

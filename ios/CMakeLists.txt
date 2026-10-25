@@ -34,6 +34,16 @@ set(PIKMIN_ENABLE_IPO OFF CACHE BOOL "" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(PIKMIN_STATIC_RUNTIME OFF CACHE BOOL "" FORCE)
 
+option(NECTAR_IOS_COOP_TRANSPORT "Compile the iOS co-op encrypted transport; no automatic session" OFF)
+if(NECTAR_IOS_COOP_TRANSPORT)
+    if(NOT NECTAR_IOS_GAME STREQUAL "pikmin1")
+        message(FATAL_ERROR "The initial co-op transport milestone is P1 only")
+    endif()
+    set(NECTAR_COOP_WORLD ON CACHE BOOL "" FORCE)
+    set(NECTAR_NET_ENABLE_GNS ON CACHE BOOL "" FORCE)
+    set(NECTAR_NET_ENABLE_UPNP OFF CACHE BOOL "" FORCE)
+endif()
+
 if(NECTAR_IOS_GAME STREQUAL "pikmin1")
     set(PIKMIN_GAME_VERSION "VERSION_GPIE01_01" CACHE STRING "" FORCE)
     set(PIKMIN_NATIVE_JAUDIO ON CACHE BOOL "" FORCE)
@@ -126,6 +136,20 @@ target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE
     "-framework CoreGraphics"
     "-framework AVFoundation"
     "-framework GameController")
+
+if(NECTAR_IOS_COOP_TRANSPORT)
+    # Retain notices inside the .app, without embedding libraries for another SDK.
+    find_path(NECTAR_NET_LICENSE_ROOT NAMES OpenSSL.txt
+        PATH_SUFFIXES share/nectar-net/licenses REQUIRED)
+    foreach(notice OpenSSL protobuf GameNetworkingSockets)
+        set(notice_file "${NECTAR_NET_LICENSE_ROOT}/${notice}.txt")
+        if(NOT EXISTS "${notice_file}")
+            message(FATAL_ERROR "Missing static networking dependency notice: ${notice_file}")
+        endif()
+        set_source_files_properties("${notice_file}" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/Licenses")
+        target_sources(${NECTAR_GAME_TARGET} PRIVATE "${notice_file}")
+    endforeach()
+endif()
 
 # Resolve bundle metadata with CMake for every generator, including Makefiles.
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
