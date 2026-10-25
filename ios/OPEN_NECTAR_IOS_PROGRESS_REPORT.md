@@ -1,62 +1,56 @@
-## Build65 — verified networking batch dispatched
-
-Source3f650f7851ae9e38ba528f54fd42b89fbb095781; run40220611984 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40220611984); last snapshot IN_PROGRESS, no new IPA/native/phone pass.64 actual hash/Unicode/path regression and full P1 app compilation PASS; later socket verdict loss was reproduced locally, then fixed with bounded receive-before-close, queue ordering, retired callback/null guards, injected endpoint discovery and explicit probe loopback. Slow secret rejection, all5 compatibility reasons, room reuse/rejoin covered. Full23 CTest+8 full stress flows PASS; final rebuilt code6 focused tests+3 complete flows PASS; Clang5 translation units and13 Python tests PASS. Both phone apps/data unchanged; wait for user result, retrieve actual evidence and stage verified new IPA for BOTH before T02 retry. No idle CI polling. P2 untouched; title-menu Online Co-op/separate solo-shared slots remain approved later work.
-
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-25T18:18:20.806019+00:00 (UTC; client date October25,2026 EDT).
+**Date/time:** 2026-10-25T18:46:55.677177+00:00 UTC (October25,2026 EDT).
 
-**Overall project status:** Build64 fixed the native Unicode/path tests and compiled P1 successfully, but failed the later real private-room socket rejection test. This session reproduced that defect locally before fixing it and implemented/verified one related transport/lifecycle/test batch. Next P1-only native build pending; current phones unchanged.
+**Overall project status:** Build65 native validation and IPA verification PASSED. Two-phone update/retest is now ready; actual phone success not yet claimed.
 
 ### Pikmin 1
 
-- Current objective: Get two-phone private rooms working, then proceed to real shared gameplay.
-- What was investigated: Full64 job log and hash-verified artifact; actual GNS terminal callbacks/receive queues; compatibility and GuestJoin state machines; address discovery; delayed polling, endpoint fallback and reconnect. No guessed compiler fix:64 had no compiler error.
-- Root cause: GnsTransport closed the native connection inside ClosedByPeer callback before receiving queued final reliable messages. GNS destroys unread messages when CloseConnection frees that handle. When the guest polls slowly, the final incompatibility verdict is discarded; GuestJoin receives only a disconnect, retries endpoints and eventually reports unreachable with no mismatch reason. Reproduced with a150ms raw receiver delay and100ms private-room guest polling. Fast baseline12/12 passed under unrestricted local test access; slow reproduction failed, proving timing sensitivity. Initial restricted-access baseline failure is excluded from this diagnosis.
-- Batch source changes: bounded drain-before-close (max256 messages/8MiB) with existing4MiB per-message validation and message Release; queue final messages before terminal event; deliver already queued events before advancing callbacks; ignore stale Connected callbacks for retired handles; guard null native interface; honor supplied address-discovery backends with automatic mapping OFF; optional explicit room listen address (normal app defaults preserved); make the probe bind/publish only127.0.0.1; use GuestJoin terminal progress and its actual deadline rather than transient inner state.
-- Regression changes: raw real-GNS final reliable payload must arrive exactly once before Disconnected; listener survives and guest reconnects; injected no-mapping discovery is honored; native co-op probe deliberately slows wrong-secret/private-room polling and verifies ALL5 incompatibility fields, reason retention, no accidental partner bans, valid join and same-room rejoin. No compatibility test disabled or expected result weakened.
-- Files changed: libs/nectar_net/include/nectar_net/room.h, libs/nectar_net/src/gns_transport.cpp, libs/nectar_net/src/room.cpp, libs/nectar_net/tests/coop_socket_probe.cpp, libs/nectar_net/tests/gns_transport_test.cpp, libs/nectar_net/tests/room_test.cpp.
-- Tests and results: Both deterministic pre-fix tests FAILED, then PASSED with fix. Full23/23 networking CTest suite PASS, including native socket/authentication/stress/room and actor/Onion/session tests.8 complete probe runs PASS across baseline,80ms lag/40ms jitter/2% loss,120ms lag/50ms jitter/5% loss:40 exact mismatch verdicts. Clang diagnostics/core analysis on all5 changed C++ translation units PASS after including the project's Windows CRT definition and fixing a null-interface edge. Final code rebuilt:6 directly affected CTest regressions PASS plus3 final complete baseline/impaired probes PASS (15 more mismatch verdicts). Final binary SHA256 1d4316ac20c84352d974619925efd2502639796a89f324da7ea56a5e78a2e50f.2 source-identity+3 bundle+8 runner tests PASS; diff check PASS. Windows uses pinned GNS/BCrypt; this is NOT Apple/OpenSSL or hardware proof.
-- Confirmed working:64 actual Foundation NFC/NFD, real changed content/name rejection, path aliases, independent hash vector and symlink tests ALL PASS; full iPhoneOS P1 BUILD SUCCEEDED. Independent compiled-app artifact checks PASS: original app ID, permission explanation, ARM64 iPhoneOS binary, exact3 pinned notices. The new network batch awaits Apple compilation/runtime and phone retest.
-- Remaining issues: Current installed62 still rejects the46 NFC/NFD names; corrected source is retained in next build. No successful actual two-phone room yet. No playable shared world/campaign, full mid-day recovery or cross-progression implemented. Approved later UX: title-menu Online Co-op Host/Join beside local Co-op and separately labelled personal Solo/shared campaign slots.
+- Current objective: Update BOTH phones to65 and retry first real private-room connection.
+- What was investigated: Actual run/jobs, artifact hash/CRC, iOS simulator receipt/full probe output and exact IPA resources/Mach-O identity.
+- Root cause or leading hypothesis: Confirmed62 false mismatch from46 NFC/NFD Japanese filenames with identical base bytes. Confirmed64 delayed-close bug discarded final reliable verdict.65 carries both corrections and the related lifecycle/discovery batch.
+- Files changed: This checkpoint changes documentation/checklist only.65 source batch: libs/nectar_net/src/gns_transport.cpp, src/room.cpp, include/nectar_net/room.h, tests/coop_socket_probe.cpp, tests/gns_transport_test.cpp, tests/room_test.cpp. Earlier Unicode helper/room fix retained in ios/ios_coop_content_identity.h and ios/ios_coop_room.mm.
+- Tests and results: Local23 CTest,8 stress flows, final6 focused+3 full impaired flows, Clang5 translation units and13 Python regressions PASS. Now actual Apple scene/native hash tests/full app build/package and real encrypted iOS simulator slow rejection/all5 mismatch reasons/join/rejoin/session probe PASS. Post-PASS simulator shutdown20s timeout recorded as cleanup warning. IPA digest/CRC/ARM64 device SDK/identity/icons/notices/new fix markers verified.
+- Confirmed working:65 compiles/packages and simulator fixture networking works; historical P1 solo and62 installs user-reported on both phones. These do not establish65 phone runtime.
+- Remaining issues: Both actual65 installs and T02-T04 pending. Real shared gameplay, mid-day crash recovery, PC/phone handoff remain future work. Title-menu Online Co-op and separate Solo/shared campaign slots are approved later UX, not included65.
 
 ### Pikmin 2
 
-- Current objective: Preserve the user-confirmed working port while P1 is tested.
-- What was investigated: No P2 gameplay/source audit in this batch.
-- Root cause or leading hypothesis: No new P2 runtime issue reported.
-- Files changed: No P2 game files or workflow selection changes; shared networking source changes are validated through P1 only.
-- Tests and results: No new P2 Apple build or phone runtime test claimed.
-- Confirmed working: Historical working installation on both phones, per user; not retested this session.
-- Remaining issues: P2 online adapter and broader campaign testing remain later work.
+- Current objective: Preserve working P2 while P1 networking is validated.
+- What was investigated: No new P2 runtime investigation.
+- Root cause or leading hypothesis: No new P2 issue reported.
+- Files changed: None in P2;65 selected P1 only.
+- Tests and results: No new P2 compile/device test requested.
+- Confirmed working: Earlier user-reported working apps on both phones, not retested here.
+- Remaining issues: P2 online adapter and broader campaign validation later.
 
 ### GitHub
 
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental
-- Starting commit: 318520db3dba9c2484e88d83a20dde8c8ccbf79a
-- Latest commit: Source batch commit/run recorded in next dispatch checkpoint and Exact Resume State.json.
-- Commits created: One scoped transport/lifecycle/regression/journal batch is committed and pushed by this checkpoint.
-- Changes pushed: P1-only [ios-build] marker; no P2 build requested and no history rewritten.
-- Uncommitted changes: None after successful checkpoint commit/push.
-- GitHub Actions run IDs:64/run40217032902/source f5a71297ab9c54b43157e402d6e05751a128fc35 FAILURE. Scene121240294349 PASS. P1121243384666 actual build PASS; socket gate FAIL `room code refuses a different game-data fingerprint`. Next run/source recorded at dispatch.
-- Build results:64 native Unicode/hash/path regression and P1 app build PASS; real socket test FAIL. New batch local verification PASS; Apple native/network/IPA/hardware milestones PENDING.
-- Artifacts produced:64 artifact12609440157 SHA2564fb0f6a71392c65f69a02a7e71166933b3b69bdb5ceb1a82160ecb23fac9c693 downloaded/verified. Contains compiled app.tar.gz and diagnostics, no completed IPA. No failed64 app installed or presented as safe-to-install.62 staged IPA and54 rollback preserved.
+- Starting commit: 5aab0507795ae741cddf1707c23cb6c4cfb75d86
+- Latest source commit:3f650f7851ae9e38ba528f54fd42b89fbb095781 (65); later docs checkpoint in Exact Resume State.json.
+- Commits created: Documentation-only verified65 checkpoint [skip ci].
+- Changes pushed: Source batch already built65; current journal/checklist push will not start a native build.
+- Uncommitted changes: None after checkpoint commit/push.
+- GitHub Actions run IDs:65/run40220611984 SUCCESS; scene121251174574/P1121253318001 success.64/run40217032902 failed socket gate after app compile;63/run40215584390 failed older hash fixture. Historical failures retained.
+- Build results:65 Apple native/simulator/package PASS; phone installation/runtime PENDING.
+- Artifacts produced:12610036177, SHA256e7067d41ba9d8d00490f104f9ed3a7f4e351050954a56e0136843faef401f8d4; unsigned IPA5288159bytes, SHA256c51d6ea0e6b9e86b8321435014f27db12904be723ef9394d7f591a17b2939aad, UUIDe4efb852-b36a-3fd5-ae8a-5561105c22b5, ARM64 iPhoneOS platform2/min15/SDK27.1. Staged at C:\Users\chazz\Documents\Open Nectar\1 - Install on iPhone\CURRENT - P1 Build 65 - Connection Fix\Pikmin 1 - Build 65 - Connection Fix.ipa. Standard bundle org.opennectar.experimental.pikmin1; six approved icons match; three original dependency notices match pinned bytes. Signed installation is user Sideloadly step, not done by agent.
 
 ### Next steps
 
-- Next Pikmin 1 task: Check next native batch result, retrieve exact logs/artifacts, verify/stage successful IPA, update BOTH existing P1 apps with same package/identity, retry T02 connection then T03 reconnect/reverse host and T04 ordinary solo.
-- Next Pikmin 2 task: Keep working app unchanged; no P2 installation or build now.
-- GitHub/build task: Record exact next source/run; do not poll idly. User reports build completion; retrieve evidence directly afterward.
-- Anything requiring user involvement: None while building. Both phones may unplug/P1 may close. Do not reinstall game data/packs or remove either app.
+- Next Pikmin 1 task: User updates BOTH existing apps from SAME staged65 IPA, then T02 first room connection; after pass T03 leave/rejoin/reverse host and T04 solo/settings.
+- Next Pikmin 2 task: Keep working installation unchanged.
+- GitHub/build task: None while awaiting phone observations; no additional build required.
+- Anything requiring user involvement: Close P1 for update, select correct phone/account in Sideloadly, click Start, repeat on other phone. No uninstall, no game-data/pack recopy. USB can disconnect after installation; same-Wi-Fi connection test needs apps foreground, not USB.
 
 ### ChatGPT continuation notes
 
-- Full64 log work/build64-p1-full.log; artifact work/build64-p1-artifact.zip; independent archive receipt work/build64-compiled-app-check.json.
-- Before/after timing evidence, all test logs, Clang output and JSON results: work/build64-local-reproduction. Accessible copy beside the latest report in P1 - Build64 Network Failure and Batch Fix.
-- Base-file identity problem remains proven separately: both phones3463 files/634811175bytes identical;46 Japanese filename encodings.64's Apple Foundation tests now PASS that correction; do not conflate it with this final-message/close race.
-- New core bug is reproduced locally under real encrypted UDP, not merely assumed from an error label. Final reliable verdict must be consumed before freeing native handle. Bounds and privacy remain intact; no room codes, secret tokens or peer IPs printed.
-- Unverified fixes: New batch Apple/OpenSSL compilation/runtime and actual phone connection are not yet verified. Windows static/runtime passes do not certify iPhone behavior or internet connectivity.
-- Exact next actions: Check recorded next run; on success prepare new IPA for BOTH phones and small T02 test, retaining settings/save backups. On failure read the now-specific stage/state report before another batch.
+- Current phones presumed still62 until user reports65 updates. Never mark T02 pass from simulator/CI success.
+- Important source locations: ios/ios_coop_room.mm and ios/ios_coop_content_identity.h; libs/nectar_net/src/gns_transport.cpp and room.cpp; native probe/tests listed above.
+- Relevant logs: work/build65-run.json/jobs.json/artifacts.json; work/build65-package-verification.json; outputs/Build65-Pikmin1/result.json/socket-session.log/ios-build.log/cleanup-error.txt. Prior local before/after evidence is in accessible P1 - Build64 Network Failure and Batch Fix.
+- Unverified fixes:65 actual phone compatibility/reconnect/solo preservation still need observations.
+- Risks/warnings: Both phones need65; old62/new65 cannot join. Private room code must be fresh and kept private. Post-PASS simulator cleanup warning is not a phone issue. Existing pre62 settings/save backups and54 rollback preserved; do not call these new65 backups.
+- Exact next actions: After both installs confirmed, same Wi-Fi > P1 gear > Data > Online Co-op: Connection Test > wait checks > host NEW room/copy code > host returns to P1 > other pastes/joins. Ask status from BOTH phones, then proceed only from actual results. Do not begin shared campaign gameplay testing yet.
 
 **END PROGRESS REPORT**
