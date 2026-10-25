@@ -1,3 +1,5 @@
+FPS follow-up Oct24: user saw30FPS after selecting60 during gameplay. Live saved fpsMode1/AO0/native2622x1206/VSync1 confirmed. Source applies mode only in NewPikiGameSection constructor; user restarted and confirmed60 works. No phone/config/source change needed.30/60/120 remain selectable; re-enter gameplay/restart after changing mode. Both games working, phone may unplug.
+
 # Raye iPhone setup — verified launch after folder repair
 
 Updated 2026-10-24 America/New_York. User confirms P1 now opens normally with title/music/controls after the repair below; user also confirms P2 works. Phone can be unplugged. No further phone access or new IPA needed for this correction.

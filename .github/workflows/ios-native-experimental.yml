@@ -235,7 +235,8 @@ jobs:
             -std=c++17 -Wall -Wextra -Werror -fsyntax-only -Ilibs/nectar_net/include \
             libs/nectar_net/src/onion_authority.cpp libs/nectar_net/tests/onion_authority_test.cpp \
             libs/nectar_net/src/entity_registry.cpp libs/nectar_net/tests/entity_registry_test.cpp \
-            libs/nectar_net/src/pikmin_replication.cpp libs/nectar_net/tests/pikmin_replication_test.cpp
+            libs/nectar_net/src/pikmin_replication.cpp libs/nectar_net/tests/pikmin_replication_test.cpp \
+            libs/nectar_net/src/actor_frame.cpp libs/nectar_net/tests/actor_frame_test.cpp
       - name: Check actual P1 co-op capture and pooled actor lifecycle
         if: matrix.game == 'pikmin1'
         shell: bash
@@ -244,7 +245,7 @@ jobs:
           FIXTURE="$RUNNER_TEMP/p1-coop-capture"
           python3 tests/pikmin1_coop_capture_test.py "$FIXTURE"
           SOURCES=("$FIXTURE/capture-test.cpp" games/pikmin1/pc_port/netplay/pc_coop_world.cpp
-            libs/nectar_net/src/entity_registry.cpp libs/nectar_net/src/pikmin_replication.cpp
+            libs/nectar_net/src/actor_frame.cpp libs/nectar_net/src/entity_registry.cpp libs/nectar_net/src/pikmin_replication.cpp
             libs/nectar_net/src/replication.cpp libs/nectar_net/src/world.cpp libs/nectar_net/src/byte_io.cpp)
           c++ -std=c++17 -Wall -Wextra -Werror -DPIKI_PC_PORT=1 -DNECTAR_COOP_WORLD=1 \
             -I"$FIXTURE" -Igames/pikmin1/pc_port -Ilibs/nectar_net/include "${SOURCES[@]}" -o "$FIXTURE/capture-test"

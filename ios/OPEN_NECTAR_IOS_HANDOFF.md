@@ -1,5 +1,64 @@
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
+**Date/time:** 2026-10-24 22:23 EDT
+
+**Overall project status:** Both games launch on Raye's phone after P1 import-layout correction. Her P1 FPS change to60 was saved but only applied on re-entering gameplay; user confirms restart resolved30FPS. No phone needed now. Co-op55 passed native compilation; next batch implements complete captain/Pikmin frame packetization and an atomic guest-side data replica. This remains inactive engineering code, NOT online gameplay.
+
+### Pikmin 1
+
+- Current objective: Carry actual captured captains/squads through bounded multipart frames without applying partial/old/corrupt state.
+- What was investigated:55 full P1 job121040694720 and scene job121038855551 both SUCCESS.17/17 macOS core tests and actual-engine fixture passed; artifact metadata recorded. Source frame pacing reads fpsMode in NewPikiGameSection constructor; closing settings persists selection but doesn't reconfigure current gameplay clamp. Raye live config fpsMode1, native2622x1206/1.0, AO0, VSync1; restart then user-confirmed60 works.
+- Root cause or leading hypothesis: Confirmed FPS setting takes effect when gameplay reloads. For co-op, old packWorldDeltas splits a keyframe into independently decodable batches; none identifies completion of the WHOLE actor list. Replacing a guest world per batch would remove actors from other batches. New prototype frame envelope explicitly groups all parts and replaces only the complete validated replica.
+- Files changed: libs/nectar_net/include/nectar_net/actor_frame.h, src/actor_frame.cpp, tests/actor_frame_test.cpp; nectar_net CMake; P1 pc_coop_world.h/.cpp actual capture-to-packets API; tests/pikmin1_coop_capture_test.py; existing experimental CI and journals. No P2 game change, normal settings/save behavior untouched.
+- Tests and results: All18 core test executables PASS locally (previous17 unchanged passed; corrected new fixture rerun passed). Actual P1 capture/pool/packet-receiver fixture PASS, compile-out PASS, Clang diagnostics as errors PASS. New tests exercise1000 changing squads under loss/reordering/duplicates, timeout/non-sliding retries, stale frames/ticks/session/scene, checksums, malformed lengths/bounds, duplicate actors/captains, unknown schemas, nonfinite state and invalid owner/leader association. Two early assertions assumed a multipart frame that fit one packet and used stale test ticks; corrected fixture inputs, no runtime change to mask failures. New native Apple build pending.
+- Confirmed working: User's P154 quick test baseline and Raye P154 title/music/controls launch plus restarted60FPS.55 native compilation/artifact upload only; no55 install requested. New receiver guarantees tested all-or-nothing DATA state; it does NOT write guest engine actors yet.
+- Remaining issues: Actual iOS transport/session/invite UI, accepted build/content identity, guest actor creation/application/camera, host Onion-to-engine transaction bridge, enemies/jobs/items/world state and snapshot/reconnect. No claim online co-op is playable or full campaign tested.
+
+### Pikmin 2
+
+- Current objective: Preserve working P2 and its independent install.
+- What was investigated: User confirms P2 works on Raye's phone.
+- Root cause or leading hypothesis: No current P2 issue; source work remains paused.
+- Files changed: NONE under games/pikmin2.
+- Tests and results: No new P2 compilation/extended hardware test this batch.
+- Confirmed working: User-reported normal P2 launch on Raye's phone, plus prior gameplay/audio baseline on original phone.
+- Remaining issues: Longer campaign/device testing and eventual separate P2 co-op adapter.
+
+### GitHub
+
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; C:/Dev/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
+- Branch: ios-experimental; clean/fetched matching e2b9d47f5660fcd31b9bf292c16073fbc50428de at start of new co-op batch.
+- Starting commit: e2b9d47f5660fcd31b9bf292c16073fbc50428de.
+- Latest commit: New source/run and final docs checkpoint recorded in Exact Resume State.json after push.
+- Commits created: One scoped co-op frame/adapter/tests/CI/journal batch with ios-build/ios-p1-only markers; no redundant P2 build.
+- Changes pushed: New frame batch after passing local tests; exact source recorded externally once created.
+- Uncommitted changes: Only scoped listed source/fixture/CI/journals until commit. No game assets/private phone logs staged.
+- GitHub Actions run IDs:55=40149838089 source5bfa4fba17e9083deabeddc0033bc8a4a002ce06 SUCCESS. Next source/run recorded after push; NOT passed yet at this checkpoint.54=40145860255 SUCCESS, installed working baseline.
+- Build results:55 P1+scene SUCCESS. New source Apple compilation pending; no phone install needed for plumbing-only check.
+- Artifacts produced:55 P1 artifact12581478645 (5964282bytes, ZIP SHA256296fa46fa35f0498a3029c224cc2cab40cd67458759722e841cfc8c9e8b6e497); scene12581757882 (354779bytes, SHA256881ba0d61cd8f89b1f295114d6e01745fbdd08f61f179bbfc689361c70038376). Metadata/log upload verified, artifact binary NOT downloaded or independently package-verified this phase. No new55 staging/installation request.
+
+### Next steps
+
+- Next Pikmin 1 task: Real transport/session compatibility and accepted scene wiring, followed by bounded guest actor binding/application and each phone's own camera. Do not enable obsolete PC_ONLINE_ENABLED or independent guest simulation/save writes. Connect Onion authority to actual spawn/store and per-owner field limits, then remaining world state.
+- Next Pikmin 2 task: Preserve working app; ordinary user testing optional.
+- GitHub/build task: One P1-only Apple check for this batch, record exact source/run, stop idle polling. Native frame tests and actual capture fixture now in CI.
+- Anything requiring my involvement: None now; both phones can disconnect. Keep54 installed. No new IPA requested until a usable prototype milestone.
+
+### ChatGPT continuation notes
+
+- What another ChatGPT conversation needs to know: Raye P1 black screen was my import path mistake, corrected and phone-confirmed. P1 data belongs in assets/dataDir; art beside assets. Both phones' selectable FPS remain30/60/120/monitor; fpsMode changes require gameplay reload in current baseline. New actor-frame module solves complete DATA transfer only, not rendering/AI/state restoration.
+- Important source-file locations: actor_frame.h/.cpp (48byte NCF1 version1 envelope, session/epoch/frame/tick/whole-body size/FNV64 integrity/index/count); pc_coop_world_capture_packets validates increasing frame/tick and captures actual P1 actors before packing. Existing HostEntityRegistry/OnionAuthority remain.
+- Relevant logs: PRIVATE work/build55-result-run.json/jobs.json/artifacts.json, build55-p1-full.log; actor-frame-core-tests.log (17 PASS then two faulty test assumptions), actor-frame-target-tests.log corrected PASS; actor-frame-engine-tests.log, actor-frame-clang-checks.log; raye-p1-fps-investigation.json and current-fps-settings.conf. No private evidence committed.
+- Unverified fixes: No real phone-to-phone transport, session, actor application or new native56 result yet. No full-world snapshot/save or co-op gameplay. Existing solo rare bugs remain individually unverified.
+- Risks and warnings: Authentication is EXTERNAL and REQUIRED: receiver only accepts bytes from authenticated HOST; FNV detects accidental corruption, is NOT a MAC. Accepted session/epoch comes from trusted scene barrier, never packet. One pending frame,128KiB/512actors/512fragments default bounds, fixed2s timeout; latest complete state retained through loss/corruption. Caller must not use stale packet output after false. Current maps include only captains/Pikmin visual schema, no targets/FSM/enemies/items/campaign. No simulation/game actor writes. Future transport should reliably deliver initial keyframes; this module supplies neither ACK/retransmit nor congestion control. Queued P1 buffers must obey engine scene-heap lifetime; owning vectors aren't proof they can outlive heap reset. Keep normals saves/settings/53/54, optional120 and AO-off baseline. No spoilers.
+- Exact next actions: Inspect next Apple result once complete, then implement actual authenticated session/transport and guest actor bridge using complete frames. Continue P1_COOP_IMPLEMENTATION.md and SAVE_AND_COOP_RECOVERY_PLAN.md. No more phone setup required now.
+
+**END PROGRESS REPORT**
+
+---
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
 **Date/time:** 2026-10-24 America/New_York; recorded 2026-10-25T02:10:40.760072+00:00.
 
 **Overall project status:** Raye now confirms BOTH games open. P1's black-screen startup was caused by this session's import layout error, now corrected on her phone and verified by a fresh user launch. No game source changed, no new IPA required. Co-op Build55 remains a separate engineering milestone.

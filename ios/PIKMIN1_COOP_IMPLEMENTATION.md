@@ -1,14 +1,13 @@
 # P1 online co-op — active implementation
 
 <!-- CAPTURE MILESTONE -->
+## Current milestone — complete actor frames, 2026-10-24
 
-## Current milestone — 2026-10-24 21:15 EDT
-
-- User P154 very quick smoke test seems fine; proceed with prototype, not full campaign certification.53 remains rollback.
-- HostEntityRegistry +38byte Pikmin codec and actual P1 read-only captain/squad capture/lifecycle hooks now implemented/local tested.17 offline core tests, actual engine fixture, compile-out test and Clang PASS; disabling invalidation is caught by negative control. Build55 / run40149838089, source5bfa4fba17e9083deabeddc0033bc8a4a002ce06: in_progress / pending, https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40149838089
-- Local addresses never serialized; scene IDs/ownership survive actor reuse/working/idle transitions. Hook clears on pool birth/kill/Creature init and before stage heap reset. Prototype option is compile-time opt-in; sessions remain runtime inactive and normal online flagsOFF. No guest actor updates/transport/UI or Onion actor transaction bridge yet.
-- Raye iPhone17Pro/iOS27.0.1, DeveloperMode enabled by user. Both apps installed; ALL P13529files/34art and P22797files/28art read-back verified in their own sandboxes. Both transfers finished; phone may unplug. Post-import runtime awaiting feedback. See RAYE_IPHONE_SETUP_STATUS.md.
-- Next: real iOS session/scene/transport validation and guest binding/application with own full-screen camera; then actual Onion/field-cap/actor authority. Complete keyframes must apply atomically, and buffers must outlive the scene if queued. No new phone install requested for this plumbing-only compile check.
+- Both games now USER-CONFIRMED open on Raye iPhone17Pro/iOS27.0.1. P1 was imported one folder high, fixed to assets/dataDir; all3529 files reverified. Settings/save preserved. Her60FPS setting works after gameplay restart. Phone not needed now. See RAYE_IPHONE_SETUP_STATUS.md.
+- Build55/run40149838089/source5bfa4fba native P1+scene SUCCESS;17 core tests and real capture fixture PASS.55 artifact12581478645 uploaded; metadata only verified this phase, no new phone update requested.
+- NEW: complete captain/Pikmin actor-frame envelopes and bounded atomic guest-side DATA replica. Actual P1 pc_coop_world_capture_packets feeds it through48byte version1 NCF1 fragments.18 core tests plus actual engine-to-receiver fixture and Clang PASS. New Apple build pending; exact source/run in external Exact Resume State.json.
+- Captures/ownership/IDs survive pool reuse; all fragments must arrive/validate before a replica replacement or deletion. Loss/expiry/corruption keeps last good state. Session/scene/frame/tick guards and semantic validation. FNV is NOT authentication; transport must supply authenticated host and trusted accepted scene context. No guest engine writes/network socket/session UI activated. Normal app remains inactive prototype.
+- Next: real authenticated iOS transport/session/compatibility+scene integration and guest actor application/own camera, actual Onion/field-cap transactions, remaining world state, then snapshot/reconnect. No claim playable online, no new phone install for this engineering batch.
 <!-- END CAPTURE MILESTONE -->
 
 

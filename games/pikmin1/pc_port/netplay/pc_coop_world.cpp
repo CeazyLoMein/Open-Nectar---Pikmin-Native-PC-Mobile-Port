@@ -9,7 +9,7 @@
 
 namespace {
 namespace net = nectar::net;
-struct CaptureState { net::HostEntityRegistry registry; };
+struct CaptureState { net::HostEntityRegistry registry; std::uint64_t session=0, lastFrame=0, lastTick=0; };
 // No allocation or manager traversal until explicitly begun by a future session.
 std::unique_ptr<CaptureState> state;
 std::uint64_t lastSession = 0;
@@ -28,6 +28,7 @@ bool pc_coop_world_begin_host(std::uint64_t sessionId, std::uint32_t epoch)
     if (state || sessionId == 0 || !naviMgr || !pikiMgr || (sessionId == lastSession && epoch <= lastEpoch)) return false;
     auto pending = std::make_unique<CaptureState>();
     if (!pending->registry.beginScene(epoch)) return false;
+    pending->session=sessionId;
     state = std::move(pending); lastSession = sessionId; lastEpoch = epoch;
     return true;
 }
@@ -89,5 +90,16 @@ bool pc_coop_world_capture(std::vector<net::EntityRecord>& output)
         records.push_back(std::move(record));
     }
     output.swap(records);
+    return true;
+}
+
+bool pc_coop_world_capture_packets(std::uint64_t frame, std::uint64_t tick,
+    std::size_t budget, std::vector<std::vector<std::uint8_t>>& packets)
+{
+    if (!state || frame <= state->lastFrame || tick < state->lastTick) return false;
+    std::vector<net::EntityRecord> records;
+    if (!pc_coop_world_capture(records) || !net::packActorFrame(state->session, state->registry.epoch(),
+            frame, tick, records, budget, {}, packets)) return false;
+    state->lastFrame=frame;state->lastTick=tick;
     return true;
 }

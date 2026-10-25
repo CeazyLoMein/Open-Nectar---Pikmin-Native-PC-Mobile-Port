@@ -63,6 +63,21 @@ int main(){
  check(!pc_coop_world_begin_host(0,1)&&!pc_coop_world_begin_host(100,0),"invalid session/epoch refused");
  check(pc_coop_world_begin_host(100,1)&&!pc_coop_world_begin_host(100,1),"explicit host begin once");
  check(pc_coop_world_capture(records)&&records.size()==4,"two captains and two Pikmin captured");
+
+ std::vector<std::vector<std::uint8_t>> packets;
+ check(pc_coop_world_capture_packets(1,50,100,packets)&&packets.size()>1,"actual engine capture produces bounded owned multipart packets");
+ ActorFrameReceiver guest;check(guest.begin(100,1),"guest accepted matching session scene");
+ for(auto it=packets.rbegin();it!=packets.rend();++it){
+  const auto result=guest.receive(it->data(),it->size(),0);
+  if(it+1!=packets.rend())check(result==ActorFrameReceiver::Result::Buffered&&!guest.hasFrame(),"actual engine squad invisible until all packets arrive");
+ }
+ check(guest.current().captains.size()==2&&guest.current().pikmin.size()==2,"actual engine capture reaches guest replica intact");
+ const auto beforePackets=packets;
+ check(!pc_coop_world_capture_packets(1,51,100,packets)&&packets==beforePackets,"capture packet sequence cannot repeat");
+ check(!pc_coop_world_capture_packets(2,49,100,packets)&&packets==beforePackets,"capture tick cannot rewind");
+ check(!pc_coop_world_capture_packets(2,51,48,packets)&&packets==beforePackets,"packetization failure never emits partial engine capture");
+ check(pc_coop_world_capture_packets(2,51,100,packets),"failed packetization doesn't consume frame sequence");
+
  const auto original=pc_coop_world_actor_id(&p0,EntityKind::Pikmin);
  check(original&&!pc_coop_world_actor_id(&p0,EntityKind::Enemy),"actual actors have typed IDs");
  auto s=read(records,original);check(s.position.x==40&&s.owner==0&&s.leader==0,"capture actual transform and association");
