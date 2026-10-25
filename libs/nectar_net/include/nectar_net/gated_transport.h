@@ -56,6 +56,7 @@ public:
     // explain an incompatible pair to the user until the next connect/listen.
     const CompatibilityCheck* compatibility() const { return mCompat.get(); }
 
+    Role role() const { return mRole; }
     JoinState joinState() const;
     // Last quarantine failure, for diagnostics; never contains secrets.
     JoinError lastJoinError() const { return mLastError; }

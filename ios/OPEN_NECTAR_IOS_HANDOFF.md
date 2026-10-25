@@ -1,3 +1,62 @@
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-24 22:43 EDT
+
+**Overall project status:** User authorized researched, fully developed co-op features. Primary-source comparison completed; feature plan saved. Implemented authenticated session/data adapter, loaded/ready gates, shared pause/interruption policy, typed partner markers and bounded actor update pacing.19 local tests and Clang PASS. No usable phone co-op mode yet. Build56 is previous actor-frame source and still running; new source saved without another immediate native run.
+
+### Pikmin 1
+
+- Current objective: Turn researched co-op design into a complete safe two-player session foundation, preserving normal54.
+- What was investigated: Nintendo Pikmin3 leader/squad guide; Stardew developer multiplayer FAQ; Factorio latency/traffic postmortems; Mindustry developer server snapshot source; Deep Rock developer teammate/waypoint notes; Grounded shared-world notes. Findings/adaptations linked in PIKMIN1_COOP_RESEARCH_AND_FEATURES.md. Live56 metadata: shared scene successful, P1 configuring; no completed native result yet.
+- Root cause or leading hypothesis: Complete actor frames alone don't define readiness, safe pause, mobile interruption or authoritative command permission. Protocol now models these explicitly. Stale queued status must never revive a timed-out phone. Previous loopback reconnect fixture tried opening a new connection before draining old closed-connection events; corrected lifecycle and verified re-auth/new-scene path. Initial new module compile missed explicit protocol header include, corrected locally before commit.
+- Files changed: New libs/nectar_net/include/nectar_net/coop_session.h, src/coop_session.cpp, tests/coop_session_test.cpp; protocol.h/.cpp new types; core CMake/test list; experimental workflow Apple syntax checks; research/active-plan/status/handoff journals. NO games/pikmin1 gameplay source changed in this batch; no source flags activated.
+- Tests and results:19/19 core test executables PASS with MSVC/O2/W4/WX. Clang diagnostic checks PASS including new source/test/protocol and existing actor/capture fixtures. Real authenticated gate + simulator test covers60owned actors, both-ready+loaded, host-only world advance, guest commands, independent pause reasons, background/foreground, heartbeat timeout and old queued packets, wrong ownership/epoch/sequence/payload, marker TTL/cooldown/nonfinite data, complete-update backpressure and20Hz network pacing. New source Apple/native runtime PENDING; no two-phone sockets/UI/gameplay verified.
+- Confirmed working: Both phones' normal P154 launch baseline, Raye60FPS after restart; P2 working. Existing prototype actor-frame tests retained. New features confirmed only through core simulated peer tests, not real phone play.
+- Remaining issues: iOS encrypted sockets/permission/session UI, generated build/content identity, scene/start-tick integration, real pause/lifecycle/input hooks, guest actors/fullscreen camera/audio, full world/Onions/workers/enemies/save/reconnect. Current confirmWorldLoaded is an adapter contract; the complete world bridge is absent. Fully fleshed design is saved; fully playable mode is not finished.
+
+### Pikmin 2
+
+- Current objective: Preserve working separate app while P1 prototype matures.
+- What was investigated: No new P2 code this batch; future design accounts for forced shared cave travel and distinct local audio perspective.
+- Root cause or leading hypothesis: No new P2 failure.
+- Files changed: NONE under games/pikmin2.
+- Tests and results: No new native/hardware validation requested.
+- Confirmed working: User-reported P2 working on Raye's phone and prior original-phone baseline.
+- Remaining issues: Longer campaign checks and P2-specific actor/cave/save adapter later.
+
+### GitHub
+
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; C:/Dev/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
+- Branch: ios-experimental; clean/fetched matching673581d9c6dda927d5a227e146e1dbc18d8f6ec9 before changes.
+- Starting commit:673581d9c6dda927d5a227e146e1dbc18d8f6ec9.
+- Latest commit: New research/session source exact commit written to external Exact Resume State.json after push.
+- Commits created: One scoped research/session-feature source+tests+journal batch with skip-ci, preserving the in-flight56 native check.
+- Changes pushed: New source batch; no extra native build immediately dispatched. Include it in the next meaningful P1 integration/validation run after56 result.
+- Uncommitted changes: Only scoped listed source/workflow/docs until source commit; private evidence/helpers/assets never staged.
+- GitHub Actions run IDs:56=40154273299, sourceb28a5d7b13037c68c76e66d730dd86fc679df59c. scene121052160673 SUCCESS; P1121055004543 in_progress/configuring at last check.55=40149838089 SUCCESS.
+- Build results:56 pending.19 local tests/Clang PASS for NEWER source, NOT included in56. No claim native57 exists.
+- Artifacts produced: No newly completed56/new-source IPA at this checkpoint.55 artifact upload metadata retained, not staged as a required update. Keep54 installed and53 backup.
+
+### Next steps
+
+- Next Pikmin 1 task: Actual iOS transport/build-content manifest, Room+accepted scene+new CoopSession wiring; then engine lifecycle/pause/input and guest actor/camera/audio bridge. Keep existing online flags OFF until isolated activation is deliberate. Current core is compatible-policy plumbing, not game mode UI.
+- Next Pikmin 2 task: Preserve current game; later stronger cave/audio/save/system test and adapter.
+- GitHub/build task: Save tested batch without redundant native run; inspect56 once completed, address real failures if any, then validate newer source together with next integration step.
+- Anything requiring my involvement: None now; phones can unplug, no new IPA requested. User can report56 completion; do not consume usage polling idle.
+
+### ChatGPT continuation notes
+
+- What another ChatGPT conversation needs to know: User explicitly wants complete co-op with useful features, not merely two captains connected. New research document is the product/architecture feature contract. Accepted user constraints (together-only/one host/free same-area separation/own screens/shared stock/separate allowances/forced travel/health-led difficulty) remain. Independent offline play/cloud-host switching/host migration deferred despite Grounded supporting more.
+- Important source-file locations: coop_session.h/.cpp/test: requires existing authenticated compatible GatedTransport, nonzero peer build/content digests and capability0x10000; MessageTypes67/68/69; WorldSnapshot carries prior complete actor frames. Active plan/research doc detail adapter APIs. Original FPS setting applies in gameplay constructor, user restart resolved it; no forced60 change.
+- Relevant logs: PRIVATE work/coop-session-core-tests.log (final all19 PASS), coop-session-clang-checks.log, build56-result-run.json/jobs.json; research links in committed design document. No external game source/assets copied into repo.
+- Unverified fixes: Actual iOS transport/UI/engine hooks and world snapshot/reconstruction remain absent. Heartbeat state API does not itself pause UIKit/game actors. Marker protocol does not draw markers yet. Caller must attest full engine readiness before confirmWorldLoaded; actor replica alone insufficient. No new native pass/phone co-op proof.
+- Risks and warnings: Update pacing20Hz is networking only; user's selectable120 rendering not changed. Known reliable backlog64KiB defers whole updates; unseen transport queues require their own limits. Pause requests take network travel time. Secure rejoin identity/token and full world keyframe still to implement; tests re-authenticate the same private test gate. No accounts/security settings/paid services/other projects altered. No original saves reset; no finale spoilers.
+- Exact next actions: Inspect56 when complete. Then implement actual native transport/manifest/accepted-scene glue and explicit experimental menu using disposable campaign data, wire pause/foreground and guest rendering. Add ownership-safe game actions/Onion transactions, full-world snapshots and two-network tests before release. Read PIKMIN1_COOP_RESEARCH_AND_FEATURES.md and active implementation plan first.
+
+**END PROGRESS REPORT**
+
+---
+
 ## Exact Build56 checkpoint — 2026-10-24 America/New_York
 
 Source pushed: b28a5d7b13037c68c76e66d730dd86fc679df59c, branch ios-experimental. Build56 run40154273299, https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40154273299. Last metadata status in_progress, conclusion pending; no native result/artifact verified yet. P1-only + shared scene validation.18 local core tests, actual engine capture-to-complete-replica fixture, compile-out and Clang PASS. Both phones keep working54; no new install requested. Raye60FPS confirmed after restart. No phone needed.55 separately verified SUCCESS. Stop idle CI polling; user will report completion. Next integration is actual authenticated iOS transport/session/scene compatibility and safe guest engine actor/camera application; current data replica alone isn't online gameplay. Full world, Onion engine transactions and snapshots remain.

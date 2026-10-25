@@ -32,6 +32,9 @@ bool isKnownMessageType(MessageType type)
     case MessageType::LeaveCoopRequest:
     case MessageType::RejoinRequest:
     case MessageType::PlayerControlChanged:
+    case MessageType::CoopControl:
+    case MessageType::CoopStatus:
+    case MessageType::CoopMarker:
     case MessageType::ContentManifest:
     case MessageType::ContentDecision:
     case MessageType::ContentChunk:

@@ -1,3 +1,7 @@
+## Research-driven session feature checkpoint — 2026-10-24 22:43 EDT
+
+User explicitly authorized a fully fleshed mode and useful feature implementation. Read [PIKMIN1_COOP_RESEARCH_AND_FEATURES.md](PIKMIN1_COOP_RESEARCH_AND_FEATURES.md) for primary references, decisions and full player flow. New CoopSession binds actual authenticated+compatible GatedTransport to complete actor transfer, both-loaded/ready, separate pause/background blockers,500ms heartbeat/3s timeout with old-queue safety, typed temporary partner markers and20Hz/known64KiB-backlog actor-update limits.19 core tests +Clang PASS. No game actor/lifecycle/UI/socket integration activated. Current56 remains previous b28a5d7b actor-frame native build, last seen running; NEW source is saved skip-ci and needs inclusion in next native integration check. No additional phone install now. Both ordinary phone games work; preserve54/53 and optional120.
+
 ## ACTIVE — 2026-10-24 20:14 EDT
 
 User explicitly authorized starting P1 online co-op now, preserving working53 and normal settings/campaign. This supersedes historical "online unstarted/future-only" restrictions below. New host Onion accounting source/tests exist but are not connected to live actors/network/saves. Full implementation/status and exact next milestones: [PIKMIN1_COOP_IMPLEMENTATION.md](PIKMIN1_COOP_IMPLEMENTATION.md). Raye install copies prepared; no phone install yet.
