@@ -1,3 +1,7 @@
+## Build61 dispatched — exact checkpoint
+
+Run40208103332 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40208103332), sourcecda57702b309552934609c167c3397c15bcc3ea8; last API snapshot IN_PROGRESS, no conclusion/IPA verified.60 Apple UI syntax passed, but simctl spawn timed out with partial stdout lost. Underlying simulator-versus-native-hang cause unknown.61 preserves failure output/stages and bounds native test lifetime; native game/resource compile happens before runtime, runtime remains required and runs independently after compile failure unless cancelled. Local23 core+actual GNS tests and full encrypted co-op/private-room probe PASS;8 runner failure-path tests PASS. No phone tests ready; T01-T04 wait verified package. Local network test processes are confirmed finished; user told Cancel both firewall prompts, no security rules changed by agent. P2/phone/PC game installs preserved; full co-op/recovery/cross-progression still pending.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** 2026-10-25T15:41:02.272578+00:00 (October25 America/New_York session).
@@ -29,10 +33,10 @@
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental.
 - Starting commit:ac5ece003633be656597828182fb7364b021b5c5, clean and matched origin after fetch.
-- Latest commit: Diagnostic/CI batch pending commit; exact source/run follows.
-- Commits created: Pending source+tests+CI+journal batch.
-- Changes pushed: None yet at report creation.
-- Uncommitted changes: Listed diagnostic/test/workflow/journal files only.
+- Latest source commit:cda57702b309552934609c167c3397c15bcc3ea8; following documentation-only checkpoint records61.
+- Commits created:cda57702b309552934609c167c3397c15bcc3ea8 implements runtime evidence/watchdog/CI batch; documentation checkpoint follows.
+- Changes pushed: Complete batch pushed;61 dispatched.
+- Uncommitted changes: Clean after final documentation checkpoint; all source/journals pushed.
 - GitHub Actions run IDs:60 run40204287553/source53466a4065fe017d5f3fa88b311e652885300ec2.
 - Build results:60 scene121201787820 SUCCESS. P1121204903697 failed runtime runner TimeoutExpired, not compiler error. Full native game configure/compile/package SKIPPED under old ordering. New ordering preserves strict overall failure while letting native compilation run before runtime probe.
 - Artifacts produced:60 P112603398343 SHA2563869c339dc2a799c5dfd51ecab233260dc53b03b250870ca28e337fcd1a03347 downloaded+verified; scene12603606981 metadata digest396fb79eae2d532f3b312c146896ea903544e67fa2ac1ce0cbd6d67cdf87ca33. No IPA. Probe binary hash cee406c0c1b62adc2ff830c68f4aad5b1e686576b4078332f433ede490ab7e96.
