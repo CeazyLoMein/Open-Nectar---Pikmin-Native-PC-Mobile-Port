@@ -312,6 +312,9 @@ jobs:
           set -euo pipefail
           python3 tests/coop_build_identity_test.py
           python3 tests/coop_bundle_test.py
+          python3 tests/ios_coop_arc_names_test.py \
+            --compiler "$(xcrun --sdk iphoneos --find clang++)" \
+            --sdk-root "$(xcrun --sdk iphoneos --show-sdk-path)"
           python3 ios/generate_coop_build_identity.py --root "$GITHUB_WORKSPACE" \
             --output "$RUNNER_TEMP/nectar-coop-ui/nectar_coop_build_identity.h" \
             --game-version VERSION_GPIE01_01
