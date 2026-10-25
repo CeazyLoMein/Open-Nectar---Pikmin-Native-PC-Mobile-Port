@@ -17,6 +17,13 @@ Build62 native build, actual simulator networking and downloaded IPA checks PASS
 - [ ] **T03 — Leave and reconnect.** Leave the room and join again, then try Raye hosting. We are checking the connection only; this screen does not start a shared campaign yet.
 - [ ] **T04 — Return to normal P1.** Close the connection screen and confirm ordinary gameplay, controls, graphics and your settings still work on both phones.
 
+## Later — clear menu access and separate solo/shared campaigns
+
+These wait for the relevant new UI/save support; no action requested now.
+
+- [ ] **T05 — Online Co-op on title menu.** Reach Host/Join directly without Advanced Settings. Existing local Co-op and normal solo remain accessible; connection-only tests must be clearly labelled until shared gameplay exists.
+- [ ] **T06 — Separate campaigns and safe Continue.** On backed-up test saves, keep Solo in one slot and the shared campaign in another. Confirm correct labels/day/progress, solo save-load/relaunch, online save-load/rejoin, and that joining never overwrites the guest's solo campaign. Slot numbers may differ between devices; shared campaign identity must still match.
+
 ## Later — first playable two-phone co-op
 
 These wait until shared gameplay exists, not merely a Connected label.
