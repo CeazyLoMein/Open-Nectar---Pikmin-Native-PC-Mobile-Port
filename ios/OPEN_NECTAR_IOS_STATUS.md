@@ -1,3 +1,7 @@
+## Running user testing checklist — October25
+
+User explicitly requested a maintained list of their future testing tasks. Canonical [USER_TESTING_CHECKLIST.md](USER_TESTING_CHECKLIST.md), accessible Documents/Open Nectar/START HERE - What to Test.md/.txt. Ready now: no phone test requested until a verified update is prepared. Stable task IDs track room test, actual gameplay, disconnect/rejoin, checkpoint/host loss, PC/phone handoff, internet and P2. Future lists are not active instructions or implementation claims. Promote only small ready batches, record exact build/phone observations, preserve failures/results and send clear notification when human input is needed. Compiler/CI success must never mark a device task complete. Historical app-opening confirmations separated from new co-op tasks.
+
 ## Build60 dispatched; cross-progression/host-loss design saved — exact checkpoint
 
 Run40204287553 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40204287553), source53466a4065fe017d5f3fa88b311e652885300ec2; last API snapshot IN_PROGRESS, no conclusion/artifact yet.59 retry scene SUCCESS but P1 failed OUR ARC regression-tool clang-driver flag ordering before full UIKit compile; fixed direct driver order while retaining clang-tidy convention. Both local fixture semantics and direct-driver argument-order adapter checks PASS; actual Apple driver/UI/native/private-code/package pending60. P1 only; no phone/PC/P2 changes. No install needed; user reports60 passed/failed.
