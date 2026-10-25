@@ -1,3 +1,7 @@
+## October25 — cross-progression and interruption design update
+
+New user-requested PC-at-home/iPhone-away shared campaign, live-host exact pause/rejoin, host-crash recovery and optional host continuation are documented in [COOP_CROSS_PROGRESSION_AND_RECOVERY.md](COOP_CROSS_PROGRESSION_AND_RECOVERY.md). This supersedes older blanket together-only wording only for desired FUTURE temporary host continuation; independent offline timeline merging remains deferred. First implement pause/wait/rejoin; host stays in session. Live network loss with world retained does not require a disk reload; host process loss requires a full durable checkpoint (guest visual state is insufficient). Save-and-quit labels must accurately describe current saved checkpoint; no false mid-day save claims. Portable campaign handoff and desktop parity planned AFTER iPhone fundamentals, no PC installs/settings changed now. Primary Stardew/Grounded/Factorio references, state schema, honest UI/QOL and acceptance sequence saved in that document. These are design targets, not newly implemented features.
+
 # Open Nectar — researched two-player campaign design
 
 Updated 2026-10-24 22:43 EDT. User explicitly asked to research established comparable games, develop a complete co-op mode and implement useful features autonomously. This is an active implementation plan, not a claim that online gameplay is finished. P1 first; working P2 source remains paused. Both phones retain working54/installed P2.

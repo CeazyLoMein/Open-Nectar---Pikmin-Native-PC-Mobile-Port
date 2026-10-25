@@ -1,3 +1,9 @@
+## October25 — Build59 retry result and cross-device/host recovery requirements
+
+59 attempt2: shared scene121105139764 SUCCESS; P1121107438150 FAILED in the new ARC regression tool command before actual screen/game compile. Exact diagnostic: clang++ -x objective-c++ appeared after the last input and was an unused-command-line-argument error under Werror. Fixed standalone clang invocation to place flags BEFORE source; clang-tidy keeps source BEFORE its -- delimiter. Local actual8-getter and original ownership-negative controls PASS; standalone argument ordering checked through a driver adapter delegating semantics to real Clang frontend. Standalone Apple driver/full UIKit/native room/package still require next CI. No phone changes, P2 preserved.
+
+Saved new user-approved design direction: PC-home/iPhone-away one official campaign, deliberate platform handoff/mod-rule parity later; live host retained-world reconnect first, full persistent mid-day checkpoint for host app loss, optional guest recovery copy and later continue-alone behavior with explicit squad safety. Full researched decisions and QOL in COOP_CROSS_PROGRESSION_AND_RECOVERY.md. No new save/cloud/PC gameplay implementation activated. Next P1-only build includes tool correction and these durable notes; exact source/run follows.
+
 ## Build59 attempt1 infrastructure boot failure; same-run retry queued — October25
 
 Run40162073334/source d698f880af334690551a9bfb692521aec1551739: scene job121075548313 compiled probe successfully but simctl bootstatus for iOS27.1/Duo timed out after180s BEFORE install/launch. Artifact12586923613 SHA256358852e725dd39114978ccee7e1b235e66871a76f77c5f313f905a37649ba2d2 downloaded+verified; failure.json stage=boot. Both diagnostic simctl spawn commands also timed out45s. No native app execution/error is evidenced; P1 job121078373671 SKIPPED, no IPA. Underlying simulator stall cause unknown; do not claim new gameplay regression or verified room fix.

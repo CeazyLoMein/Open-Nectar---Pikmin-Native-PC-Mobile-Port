@@ -1,3 +1,7 @@
+## October25 — cross-progression and interruption design update
+
+New user-requested PC-at-home/iPhone-away shared campaign, live-host exact pause/rejoin, host-crash recovery and optional host continuation are documented in [COOP_CROSS_PROGRESSION_AND_RECOVERY.md](COOP_CROSS_PROGRESSION_AND_RECOVERY.md). This supersedes older blanket together-only wording only for desired FUTURE temporary host continuation; independent offline timeline merging remains deferred. First implement pause/wait/rejoin; host stays in session. Live network loss with world retained does not require a disk reload; host process loss requires a full durable checkpoint (guest visual state is insufficient). Save-and-quit labels must accurately describe current saved checkpoint; no false mid-day save claims. Portable campaign handoff and desktop parity planned AFTER iPhone fundamentals, no PC installs/settings changed now. Primary Stardew/Grounded/Factorio references, state schema, honest UI/QOL and acceptance sequence saved in that document. These are design targets, not newly implemented features.
+
 ## ACTIVE — 2026-10-24 20:14 EDT
 
 User explicitly authorized starting P1 online co-op now, preserving working53 and normal settings/campaign. This supersedes historical "online unstarted/future-only" restrictions below. New host Onion accounting source/tests exist but are not connected to live actors/network/saves. Full implementation/status and exact next milestones: [PIKMIN1_COOP_IMPLEMENTATION.md](PIKMIN1_COOP_IMPLEMENTATION.md). Raye install copies prepared; no phone install yet.

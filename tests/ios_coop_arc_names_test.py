@@ -34,10 +34,14 @@ def run(compiler, sdk_root=None):
         ]:
             path = Path(folder) / (label + '.mm')
             path.write_text(text, encoding='utf-8')
-            command = [str(compiler), str(path)]
             if tidy:
-                command += ['--checks=-*,clang-analyzer-core.DivideZero', '--warnings-as-errors=*', '--']
-            result = subprocess.run(command + flags, text=True, capture_output=True, timeout=60)
+                # clang-tidy takes its source before -- and forwards the flags.
+                command = [str(compiler), str(path), '--checks=-*,clang-analyzer-core.DivideZero',
+                           '--warnings-as-errors=*', '--', *flags]
+            else:
+                # clang's -x applies to FOLLOWING inputs, including .mm fixtures.
+                command = [str(compiler), *flags, str(path)]
+            result = subprocess.run(command, text=True, capture_output=True, timeout=60)
             output = result.stdout + result.stderr
             if success and result.returncode:
                 raise AssertionError('Actual UI getters fail ARC compilation:\n' + output)
