@@ -140,6 +140,7 @@ option(PIKMIN_BUILD_LAUNCHER "Build the standalone first-run launcher" ${PIKMIN_
 option(PIKMIN_BUILD_TESTS "Build the host-run test executables" ${PIKMIN_DESKTOP_DEFAULT})
 option(NECTAR_BUILD_MAPMAKER "Build the VS map editor (tools/mapmaker)" ${PIKMIN_DESKTOP_DEFAULT})
 option(NECTAR_ONLINE "Build the experimental direct online co-op layer" OFF)
+option(NECTAR_COOP_WORLD "Compile inert host actor capture prototype (no online session UI)" OFF)
 
 if(PIKMIN_BUILD_TESTS)
     enable_testing()
@@ -579,6 +580,19 @@ if(NECTAR_ONLINE)
     endif()
 else()
     target_compile_definitions(${NECTAR_GAME} PRIVATE PIKI_NECTAR_ONLINE=0)
+endif()
+
+# The capture prototype has no GNS dependency and stays inactive unless a
+# future session explicitly begins it. Both legacy hooks and the adapter must
+# agree on this macro. Normal solo builds may compile it completely out.
+if(NECTAR_COOP_WORLD)
+    if(NOT TARGET nectar_net)
+        add_subdirectory("${NECTAR_LIBS_DIR}/nectar_net" "${CMAKE_BINARY_DIR}/nectar_net")
+    endif()
+    target_sources(${NECTAR_GAME} PRIVATE pc_port/netplay/pc_coop_world.cpp)
+    target_link_libraries(${NECTAR_GAME} PRIVATE nectar_net)
+    target_compile_definitions(${NECTAR_GAME} PRIVATE NECTAR_COOP_WORLD=1)
+    target_compile_definitions(${NECTAR_LEGACY} PRIVATE NECTAR_COOP_WORLD=1)
 endif()
 
 # GX display lists, game logic and the software audio mixer execute on the host

@@ -1,6 +1,67 @@
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 
+**Date/time:** 2026-10-24 21:12 EDT
+
+**Overall project status:** User's quick P154 check seems fine; proceed with co-op. New stable actor identity, Pikmin state codec and actual P1 read-only capture/lifetime hooks implemented and locally verified. Native engineering check: One P1-only native engineering build prepared; no new native result yet. Raye's two apps installed manually; both complete private asset/art transfers finished and verified. Her phone can be disconnected; runtime after import awaits feedback.
+
+### Pikmin 1
+
+- Current objective: Continue controlled co-op prototype while preserving54/53, existing settings and normal campaign.
+- What was investigated: Actual MonoObjectMgr pool reuse/birth/kill, Creature init and stage heap teardown; old captain-only adapter and generic nectar_net records; Raye's startup folder contents and source assets.
+- Root cause or leading hypothesis: Pool addresses are reused, so address-only identity can direct delayed commands at a different Pikmin. Worker/idle leader pointers change, so owner must persist independently. New registry prevents stale identity reuse, codec validates finite bounded state, hooks clear bindings before reuse/teardown. Raye's missing dataDir/art confirmed; likely first-install black-screen cause, fresh post-import launch not yet verified.
+- Files changed: libs/nectar_net entity_registry.h/.cpp, pikmin_replication.h/.cpp +tests/CMake; games/pikmin1/pc_port/netplay/pc_coop_world.h/.cpp and minimal hooks; objectMgr.cpp birth/kill hooks plus already-audited missing diagnostic argument, creature.cpp init invalidation, gameCoreSection.cpp stage cleanup. P1 CMake opt-in NECTAR_COOP_WORLD; experimental workflow and tests/pikmin1_coop_capture_test.py. No renderer/input/save-setting rewrite.
+- Tests and results:17 core network/accounting tests PASS with MSVC/O2/W4/WX (existing200000 decoder fuzz + simulated30-minute loss test, new20000 recycled identities and codec malformed/truncation/NaN cases). Actual capture translation unit and actual pool birth/kill methods compiled/run against controlled engine dependencies PASS: two captains/two Pikmin, retained working/idle ownership, no partial snapshot on bad state, stale pool command rejection, scene cleanup, inactive default. Feature-compiled-out fixture PASS. Clang diagnostics PASS for new source/tests and actual capture fixture. Negative control disabling lifetime invalidation causes fixture failure as intended. One P1-only native engineering build prepared; no new native result yet. No new live two-phone gameplay proof.
+- Confirmed working: User's P154 brief smoke check fine; earlier53 graphics/keyboard/control edges. Raye P1 all3529files/34PNG/669952108bytes imported and SHA256 read-back verified, P1 preferences unchanged. Import does not itself prove launch/audio.
+- Remaining issues: Live transport on iOS, host/join UI, guest actor creation/application, full-screen camera/input per phone, authoritative Onion spawn/store bridge and global field-limit reconciliation, complete world/jobs/enemy/item/campaign sync, atomic keyframes, exact-world save/reconnect/internet relay all remain. Capture is read-only, explicitly inactive unless begun; no online menu/playable campaign yet.
+
+### Pikmin 2
+
+- Current objective: Preserve existing source; finish Raye's requested game-file setup.
+- What was investigated: Existing source manifest2768 disc assets +28 source touch PNGs, exact signed P2 app sandbox on identified iPhone17Pro.
+- Root cause or leading hypothesis: Fresh installation also needed local proprietary assets, independent of co-op development.
+- Files changed: NO P2 source. Added only assets/art in Raye's P2 sandbox; no save/preferences deletion/replacement. Original user's P2 phone untouched.
+- Tests and results: Source hashes rechecked against prior canonical GPVE01 audit;2797files/1013544103bytes copied and read-back SHA256 verified; staging activated. No new P2 build or runtime test.
+- Confirmed working: Prior user's P2 audio/gameplay; Raye's transfer is complete, launch after import unverified.
+- Remaining issues: User's fresh relaunch/input/audio/pause feedback; stronger later campaign/cave/save tests before P2 co-op.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: ios-experimental; starting clean b5cb2b79ecdd4b9685b495a089f116902912f73a, fetched origin matched before edits.
+- Starting commit:b5cb2b79ecdd4b9685b495a089f116902912f73a.
+- Latest commit:b5cb2b79ecdd4b9685b495a089f116902912f73a at checkpoint generation; new build source:pending source commit. Final local/remote hashes saved in Exact Resume State.json after final push.
+- Commits created: Scoped co-op capture/identity batch prepared, not committed yet; documentation checkpoint afterward uses[skip ci].
+- Changes pushed: Pending coordinated P1-only push after these local checks.
+- Uncommitted changes: Current scoped code/journals before push; final external state records clean tree after checkpoint.
+- GitHub Actions run IDs:One P1-only native engineering build prepared; no new native result yet. Previous54=40145860255 SUCCESS, sourcea7888f24009133fd3818355e35bfc5475c279e16;53=40133259493;52=40131000336.
+- Build results: New capture source local tests/Clang PASS; current new Apple native result pending.54 native/IPA plus user's quick check retained. No P2 CI now.
+- Artifacts produced: No new prototype IPA verified yet. User can keep54; this engineering build is not a request for another phone update.54 SHA256cdf46924e6cb350eb1df571325254f55d0a479c4fab5e4e564ad950335b50ae5;53 preserved unchanged. Raye's prepared P1 copy updated to54 with53 moved to verified backup subfolder; P252 unchanged.
+
+### Next steps
+
+- Next Pikmin 1 task: Review one native prototype build after completion, then implement bounded reliable session/scene handshake, guest actor binding/application and full-screen per-player camera. Next bridge actual atomic Onion spawn/store and one squad/job/enemy/carried object. Existing read-only capture is not enough to play online.
+- Next Pikmin 2 task: Raye reopen/basic audio/game check; retain paused source and later stronger campaign tests.
+- GitHub/build task: One P1-only technical check; no idle repeated polling. No phone update/retest demanded just for invisible capture plumbing.
+- Anything requiring my involvement: NONE to continue coding/CI. Both file transfers done; user already told phone can unplug and games need full close/reopen. Raye exact public iOS27.0.1 verified; no more need to ask model/version. Report only actual runtime failures when convenient.
+
+### ChatGPT continuation notes
+
+- What another ChatGPT conversation needs to know: Co-op explicitly authorized.54 very quick smoke check seems fine, not full campaign certification. Registry/Pikmin codec plus actual-engine read-only capture now exist, beyond previous Onion-only state. No live sessions started and NECTAR_ONLINE remainsOFF. Prototype capture compiled in CI via NECTAR_COOP_WORLD=ON but begins only via explicit future API; normal solo remains inactive. No original save format changed.
+- Important source-file locations: ios/PIKMIN1_COOP_IMPLEMENTATION.md, SAVE_AND_COOP_RECOVERY_PLAN.md; new pc_coop_world_begin_host/pc_coop_world_capture/pc_coop_world_forget/pc_coop_world_end_scene in pc_port/netplay; HostEntityRegistry in libs/nectar_net; PikminState codec38bytes. Registry owner persists independently of current leader. Monotonic16-bit scene epochs must not wrap; transport session IDs must never be reused.
+- Relevant logs: work/coop-capture-fixture, coop-capture-bin, coop-direct; coop-capture-negative.log; work/raye-p1/p2-import-progress.json and private source/transfer receipts. Public notes only metadata, no proprietary game files. New native run metadata saved in work/coop-capture-new-runs.json after push.
+- Unverified fixes: Real iOS compilation of the new bridge until CI finishes; no two-iPhone actor/world synchronization/real network/reconnect/save proof. Post-import Raye game launch/audio pending. P154 rare bugs remain untested individually.
+- Risks and warnings: Never serialize local addresses; guest packets must pass session/scene/lifecycle freshness and authenticated ownership checks. Capture records are NOT full AI/job/campaign or exact-scene snapshots. Do not treat each split datagram as a whole keyframe; full keyframe assembly/application must be atomic. Registry lifecycle hooks must precede pool reuse and heap reset. Read-only capture buffers currently belong to scene lifetime; future network queues require safe owned buffers across transitions. Preserve54/53/settings/AO OFF/user120 choice, avoid fourth-app requirement, no finale spoilers or security/account changes.
+- Exact next actions: Record native source/run and clean Git state; inspect resulting compile after user reports completion; implement real iOS transport/handshake + guest visual/squad vertical on disposable data, then complete game authority/Onions and recovery. User/ Raye can meanwhile reopen both freshly populated apps; if still black inspect new evidence rather than re-copy blind.
+
+**END PROGRESS REPORT**
+
+
+<!-- BEFORE CAPTURE MILESTONE -->
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+
 **Date/time:** 2026-10-24 20:39 EDT
 
 **Overall project status:** P1 Build54 native compile/IPA/package verification PASS; staged for a brief optional phone regression check. New game fixes are not hardware-verified. Co-op development has started with tested shared Onion accounting; online gameplay is not yet integrated. P2 unchanged. Raye reports iPhone17Pro/public non-beta iOS; exact version/connection later when available.

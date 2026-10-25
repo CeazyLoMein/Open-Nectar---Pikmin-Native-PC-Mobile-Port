@@ -1,4 +1,7 @@
 #include "ObjectMgr.h"
+#if defined(PIKI_PC_PORT)
+#include "netplay/pc_coop_world_hooks.h"
+#endif
 #include "AIPerf.h"
 #include "Creature.h"
 #include "CreatureNode.h"
@@ -334,7 +337,7 @@ Creature* MonoObjectMgr::birth()
 		PRINT("numObjects(%d) exceeds maxObjects(%d)\n", mNumObjects, mMaxElements);
 		for (int i = 0; i < mMaxElements; i++) {
 			if (mEntryStatus[i] == -2) {
-				PRINT("*** (%d) WANT TO DIE : %s (%d refs)\n", mObjectList[i]->removable() ? "removable" : "not removable",
+				PRINT("*** (%d) WANT TO DIE : %s (%d refs)\n", i, mObjectList[i]->removable() ? "removable" : "not removable",
 				      mObjectList[i]->getCnt());
 			}
 		}
@@ -349,6 +352,10 @@ Creature* MonoObjectMgr::birth()
 
 	mEntryStatus[id] = 0;
 	mNumObjects++;
+	// A recycled pool address must never keep its previous online identity.
+#if defined(PIKI_PC_PORT)
+	pc_coop_world_forget(mObjectList[id]);
+#endif
 	return mObjectList[id];
 }
 
@@ -359,6 +366,9 @@ void MonoObjectMgr::kill(Creature* obj)
 {
 	int id = getIndex(obj);
 	if (id != -1) {
+#if defined(PIKI_PC_PORT)
+		pc_coop_world_forget(obj);
+#endif
 		if (!obj->removable()) {
 			mEntryStatus[id] = -2;
 		} else {

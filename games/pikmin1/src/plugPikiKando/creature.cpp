@@ -1,4 +1,7 @@
 #include "Creature.h"
+#if defined(PIKI_PC_PORT)
+#include "netplay/pc_coop_world_hooks.h"
+#endif
 #include "AIConstant.h"
 #include "AIPerf.h"
 #include "BombItem.h"
@@ -409,6 +412,9 @@ void Creature::adjustDistance(immut Vector3f& targetPos, f32 targetDist)
  */
 void Creature::init()
 {
+#if defined(PIKI_PC_PORT)
+	pc_coop_world_forget(this);
+#endif
 	mSearchBuffer.invalidate();
 	mConstrainedMoveMtx.makeIdentity();
 	mWorldMtx.makeIdentity();

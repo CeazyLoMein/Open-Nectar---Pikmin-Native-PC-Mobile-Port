@@ -233,7 +233,27 @@ jobs:
           ctest --test-dir "$RUNNER_TEMP/nectar-coop-checks" --output-on-failure --timeout 120
           xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
             -std=c++17 -Wall -Wextra -Werror -fsyntax-only -Ilibs/nectar_net/include \
-            libs/nectar_net/src/onion_authority.cpp libs/nectar_net/tests/onion_authority_test.cpp
+            libs/nectar_net/src/onion_authority.cpp libs/nectar_net/tests/onion_authority_test.cpp \
+            libs/nectar_net/src/entity_registry.cpp libs/nectar_net/tests/entity_registry_test.cpp \
+            libs/nectar_net/src/pikmin_replication.cpp libs/nectar_net/tests/pikmin_replication_test.cpp
+      - name: Check actual P1 co-op capture and pooled actor lifecycle
+        if: matrix.game == 'pikmin1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          FIXTURE="$RUNNER_TEMP/p1-coop-capture"
+          python3 tests/pikmin1_coop_capture_test.py "$FIXTURE"
+          SOURCES=("$FIXTURE/capture-test.cpp" games/pikmin1/pc_port/netplay/pc_coop_world.cpp
+            libs/nectar_net/src/entity_registry.cpp libs/nectar_net/src/pikmin_replication.cpp
+            libs/nectar_net/src/replication.cpp libs/nectar_net/src/world.cpp libs/nectar_net/src/byte_io.cpp)
+          c++ -std=c++17 -Wall -Wextra -Werror -DPIKI_PC_PORT=1 -DNECTAR_COOP_WORLD=1 \
+            -I"$FIXTURE" -Igames/pikmin1/pc_port -Ilibs/nectar_net/include "${SOURCES[@]}" -o "$FIXTURE/capture-test"
+          "$FIXTURE/capture-test"
+          c++ -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port "$FIXTURE/disabled-test.cpp" -o "$FIXTURE/disabled-test"
+          "$FIXTURE/disabled-test"
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
+            -std=c++17 -Wall -Wextra -Werror -DPIKI_PC_PORT=1 -DNECTAR_COOP_WORLD=1 -fsyntax-only \
+            -I"$FIXTURE" -Igames/pikmin1/pc_port -Ilibs/nectar_net/include "${SOURCES[@]}"
       - name: Check Pikmin 1 enhancement profile and mod imports
         if: matrix.game == 'pikmin1'
         shell: bash
@@ -306,6 +326,7 @@ jobs:
             -DNECTAR_IOS_GAME="$GAME"
             -DNECTAR_IOS_VARIANT="$IOS_VARIANT"
             -DCMAKE_CXX_FLAGS="-ferror-limit=80")
+          if [ "$GAME" = pikmin1 ]; then CONFIGURE_COMMAND+=(-DNECTAR_COOP_WORLD=ON); fi
           if [ "$GAME" = pikmin2 ] && command -v gmake >/dev/null 2>&1; then
             CONFIGURE_COMMAND+=("-DCMAKE_MAKE_PROGRAM=$(command -v gmake)")
           fi

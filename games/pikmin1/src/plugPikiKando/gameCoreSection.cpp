@@ -1,4 +1,7 @@
 #include "GameCoreSection.h"
+#if defined(PIKI_PC_PORT)
+#include "netplay/pc_coop_world_hooks.h"
+#endif
 #if NECTAR_P1_SOLO_TEST
 #include "pc_solo_test_log.h"
 #endif
@@ -923,6 +926,10 @@ void GameCoreSection::prepareBadEnd()
  */
 void GameCoreSection::exitStage()
 {
+	// Release local bindings before stage managers and their heap go away.
+#if defined(PIKI_PC_PORT)
+	pc_coop_world_end_scene();
+#endif
 #if defined(PIKI_PC_PORT)
 	// Stale focus would keep depth of field running on the file-select and
 	// title screens: those frames have no HUD ortho, so the pass hits the UI.
