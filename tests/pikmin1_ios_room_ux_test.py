@@ -1,5 +1,6 @@
 """Compile fixtures extracted from the actual title labels and opaque-room pause."""
 import argparse
+import subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 def block(text,needle):
@@ -102,5 +103,32 @@ int main(){
  fixture=fixture.replace('LABELS',labels).replace('MAPPING',mapping).replace('PAUSE',pause)
  output.parent.mkdir(parents=True,exist_ok=True);output.write_text(fixture,encoding='utf-8')
  print('Generated actual iOS/desktop title-row and opaque-room pause fixture')
+def compile_and_run(output, compiler, sdk_root=None):
+ source=ROOT/'games/pikmin1/pc_port/timing/pc_frame_scheduler.cpp'
+ include=source.parent
+ msvc=Path(compiler).name.lower() in ('cl','cl.exe')
+ for mode in ('desktop','native'):
+  build=output.parent/('room-ux-'+mode);build.mkdir(parents=True,exist_ok=True)
+  binary=build/('test.exe' if msvc else 'test')
+  if msvc:
+   command=[compiler,'/nologo','/std:c++17','/EHsc','/W4','/WX','/D_CRT_SECURE_NO_WARNINGS',
+            '/I'+str(include)]
+   if mode=='native':command+=['/DNECTAR_IOS_COOP_ROOM=1']
+   command += [str(output),str(source),'/Fe:'+str(binary)]
+  else:
+   command=[compiler,'-std=c++17','-Wall','-Wextra','-Werror','-I'+str(include)]
+   if sdk_root:command += ['-isysroot',str(sdk_root)]
+   if mode=='native':command += ['-DNECTAR_IOS_COOP_ROOM=1']
+   command += [str(output),str(source),'-o',str(binary)]
+  print('Compiling actual room UX fixture: '+mode,flush=True)
+  subprocess.run(command,cwd=build,check=True,timeout=120)
+  subprocess.run([str(binary)],cwd=build,check=True,timeout=30)
+
 if __name__=='__main__':
- parser=argparse.ArgumentParser();parser.add_argument('output',type=Path);generate(parser.parse_args().output)
+ parser=argparse.ArgumentParser()
+ parser.add_argument('output',type=Path)
+ parser.add_argument('--compiler')
+ parser.add_argument('--sdk-root',type=Path)
+ args=parser.parse_args()
+ output=args.output.resolve();generate(output)
+ if args.compiler:compile_and_run(output,args.compiler,args.sdk_root)
