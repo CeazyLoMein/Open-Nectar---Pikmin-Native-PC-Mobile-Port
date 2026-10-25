@@ -1,3 +1,7 @@
+## Build69 dispatched — guest input and actual captain bridge
+
+Source3ee9dcfbc9e562bf9a67d8945f4924fde3ed14f5; run40243925821 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40243925821); last observed IN_PROGRESS, no conclusion/new IPA. Local23CTest/real encrypted Windows loopback input+pause+rejoin/actual guest engine fixture/compile-out/Clang5/diff PASS. Apple full real game headers and expanded simulator probe pending. Explicit helpers remain inactive in ordinary game; no room-to-game retained link, disposable scene bootstrap, controller/camera mapping or actual shared gameplay activated yet. Keep accepted68 installed; no new phone task.68 heat improved during gameplay by user report, cause unconfirmed; no FPS/graphics/packs/P2/save changes. Await user result, no idle CI polling.
+
 ## Gameplay-data batch implemented; Apple validation pending — October25,2026 19:15 EDT
 
 User reports Build68 heat buildup noticeably improved INCLUDING normal gameplay; cause not independently isolated. A cooler starting phone after hidden menu work stopped is plausible, not proven. Record as user-observed thermal improvement so far, no temperature measurement/guarantee or automatic FPS/graphics changes.68 remains accepted phone baseline; preserve exact68/65/54 IPAs and earlier backups. No further heat tweak needed now.

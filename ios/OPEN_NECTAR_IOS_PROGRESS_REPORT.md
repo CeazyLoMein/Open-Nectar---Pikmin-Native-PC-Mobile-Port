@@ -1,3 +1,7 @@
+## Build69 dispatched — guest input and actual captain bridge
+
+Source3ee9dcfbc9e562bf9a67d8945f4924fde3ed14f5; run40243925821 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40243925821); last observed IN_PROGRESS, no conclusion/new IPA. Local23CTest/real encrypted Windows loopback input+pause+rejoin/actual guest engine fixture/compile-out/Clang5/diff PASS. Apple full real game headers and expanded simulator probe pending. Explicit helpers remain inactive in ordinary game; no room-to-game retained link, disposable scene bootstrap, controller/camera mapping or actual shared gameplay activated yet. Keep accepted68 installed; no new phone task.68 heat improved during gameplay by user report, cause unconfirmed; no FPS/graphics/packs/P2/save changes. Await user result, no idle CI polling.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** October25,2026 19:15 EDT.
