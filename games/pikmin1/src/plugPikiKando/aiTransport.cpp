@@ -465,7 +465,10 @@ bool ActTransport::gotoLiftPos()
 	f32 totalDist          = slotDirection.normalise();
 	f32 distToCentre       = totalDist - pellet->getCentreSize();
 
-	if (horizontalDist < 100.0f && ++mStateProgress >= 60) {
+	// 60 frames a 30 Hz (2 s). Sin escalar, a 120 fps eran 0,5 s: con el
+	// atasco normal alrededor de la pieza se rendían y se quedaban parados
+	// (issue #97).
+	if (horizontalDist < 100.0f && ++mStateProgress >= 60 * PC_TICKS30) {
 		int previousSlot = mSlotIndex;
 		mSlotIndex       = pellet->getNearestFreeSlotIndex(mPiki->mSRT.t);
 		if (previousSlot == mSlotIndex) {
@@ -1555,7 +1558,8 @@ void ActTransport::draw(Graphics& gfx)
 		sprintf(buf1, "%.1f/%.1f %s", val1, weightedProj, type[mPathType]);
 
 	} else {
-		sprintf(buf2, "%s %d %.1f %s", stateNames[mState], mNextPathIndex, type[mPathType]);
+		// Faltaba el argumento de %.1f: el %s final leía un puntero basura.
+		sprintf(buf2, "%s %d %s", stateNames[mState], mNextPathIndex, type[mPathType]);
 	}
 
 	gfx.useMatrix(Matrix4f::ident, 0);

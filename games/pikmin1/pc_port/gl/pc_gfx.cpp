@@ -1620,11 +1620,17 @@ static void map_gx_rect(float x, float y, float width, float height,
                         GLint& glX, GLint& glY, GLsizei& glWidth, GLsizei& glHeight) {
     float scaleX, scaleY, offsetX, offsetY;
     gx_rect_params(scaleX, scaleY, offsetX, offsetY);
-    glX = (GLint)lroundf(offsetX + x * scaleX);
+    // Round both edges and take the difference: rounding origin and size
+    // separately left 1 px gaps at fractional scales (2.5 at 1200 px, #144).
     const float virtH = sHudWide ? float(hud_virtual_height()) : 480.0f;
-    glY = (GLint)lroundf(offsetY + (virtH - y - height) * scaleY);
-    glWidth = (GLsizei)std::max(0L, lroundf(width * scaleX));
-    glHeight = (GLsizei)std::max(0L, lroundf(height * scaleY));
+    const long x0 = lroundf(offsetX + x * scaleX);
+    const long x1 = lroundf(offsetX + (x + width) * scaleX);
+    const long y0 = lroundf(offsetY + (virtH - y - height) * scaleY);
+    const long y1 = lroundf(offsetY + (virtH - y) * scaleY);
+    glX = (GLint)x0;
+    glY = (GLint)y0;
+    glWidth = (GLsizei)std::max(0L, x1 - x0);
+    glHeight = (GLsizei)std::max(0L, y1 - y0);
 }
 
 static void fill_ui_43_bars() {
