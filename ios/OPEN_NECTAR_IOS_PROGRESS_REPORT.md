@@ -1,9 +1,9 @@
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 
-**Date/time:** 2026-10-24 20:13 EDT
+**Date/time:** 2026-10-24 20:14 EDT
 
-**Overall project status:** User accepted P1 Build53 as the current working solo baseline and explicitly authorized beginning online co-op now. Preventive P1 upstream batch implemented and locally checked. First host Onion accounting component implemented/tested, but NOT connected to game actors or live networking. Raye install copies prepared; no installation/phone data changes performed. Local source/tests ready; coordinated P1-only push pending.
+**Overall project status:** User accepted P1 Build53 as the current working solo baseline and explicitly authorized beginning online co-op now. Preventive P1 upstream batch implemented and locally checked. First host Onion accounting component implemented/tested, but NOT connected to game actors or live networking. Raye install copies prepared; no installation/phone data changes performed. Pushed a7888f24009133fd3818355e35bfc5475c279e16 to ios-experimental. Build 54, run 40145860255: in_progress / pending; https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40145860255
 
 ### Pikmin 1
 
@@ -30,11 +30,11 @@
 - Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port ; upstream SSunnKing same project.
 - Branch: ios-experimental.
 - Starting commit:8af39affa4c0c863ccaa1b41dd8b96538836faaa (clean local=origin).
-- Latest commit: 407b7fa4f5479aeeb983de5c84a234d03641291e at report creation. Exact post-report local/remote hashes are in friendly Exact Resume State.json after push.
-- Commits created:407b7fa4f5479aeeb983de5c84a234d03641291e P1 preventive batch; co-op/checkpoint commit pending.
-- Changes pushed: Local source/tests ready; coordinated P1-only push pending.
-- Uncommitted changes: Scoped co-op library, experimental workflow and documentation; P1 fixes already locally committed.
-- GitHub Actions run IDs: Native P1-only build prepared; no new run result recorded yet. Previous53=40133259493 P1 SUCCESS,52=40131000336 P2 SUCCESS. No P2 build requested now.
+- Latest commit: a7888f24009133fd3818355e35bfc5475c279e16 at report creation. Exact post-report local/remote hashes are in friendly Exact Resume State.json after push.
+- Commits created:407b7fa4f5479aeeb983de5c84a234d03641291e P1 preventive batch; co-op/checkpoint commit pushed above.
+- Changes pushed: Pushed a7888f24009133fd3818355e35bfc5475c279e16 to ios-experimental. Build 54, run 40145860255: in_progress / pending; https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40145860255
+- Uncommitted changes: Only this updated documentation checkpoint before final skip-ci commit; verify git status.
+- GitHub Actions run IDs: Build 54, run 40145860255: in_progress / pending; https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40145860255 Previous53=40133259493 P1 SUCCESS,52=40131000336 P2 SUCCESS. No P2 build requested now.
 - Build results: Current local tests PASS; current Apple compile/IPA/runtime not yet established.
 - Artifacts produced: No new IPA from this source yet. Working P153 SHA256c483540e76cef95c002578724690fe8ebe649901b9a09906350ee0b93c5cff85; P252 SHA256fbf6b2512d91ccafc6c600ee8bddcdbbcef04a1c01ee0ea68da4c68fda40c793. Rehashed copies in Documents/Open Nectar/1 - Install on iPhone/For Raye - Start Here, with manifest and instructions. Original IPAs retained.
 
@@ -42,7 +42,7 @@
 
 - Next Pikmin 1 task: Review one P1-only native run and verify artifact/package before an optional short carrying/Onion-skip/menu/resume hardware check. Preserve53 rollback and settings. Continue co-op actor/world vertical slice on disposable data.
 - Next Pikmin 2 task: Raye solo install/asset import and basic audio/pause/resume test; no speculative P2 rebuild.
-- GitHub/build task: Commit co-op foundation/checks, push both related commits together with [ios-build] [ios-p1-only], record exact run ID.
+- GitHub/build task: Inspect the recorded run after completion; no idle polling.
 - Anything requiring my involvement: Raye's iPhone model/iOS and connection/unlock when ready for installation; sign in/verification stays under user's control. A read-only USB inventory probe stalled and was stopped; no phone identified or modified in this phase. No need to keep the original game/phone connected for CI.
 
 ### ChatGPT continuation notes

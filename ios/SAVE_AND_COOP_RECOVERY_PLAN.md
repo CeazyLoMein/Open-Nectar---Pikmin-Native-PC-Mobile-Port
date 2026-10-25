@@ -1,4 +1,4 @@
-## ACTIVE — 2026-10-24 20:13 EDT
+## ACTIVE — 2026-10-24 20:14 EDT
 
 User explicitly authorized starting P1 online co-op now, preserving working53 and normal settings/campaign. This supersedes historical "online unstarted/future-only" restrictions below. New host Onion accounting source/tests exist but are not connected to live actors/network/saves. Full implementation/status and exact next milestones: [PIKMIN1_COOP_IMPLEMENTATION.md](PIKMIN1_COOP_IMPLEMENTATION.md). Raye install copies prepared; no phone install yet.
 
