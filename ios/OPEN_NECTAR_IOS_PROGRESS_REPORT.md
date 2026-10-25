@@ -1,3 +1,7 @@
+## Build68 dispatched — related formatting and full error-collection batch
+
+Source54b873070d3ab331a6775e3a31aa85c8344c0ebf; run40232707062 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40232707062); last observed IN_PROGRESS.67 failed3 deprecated sprintf calls copied from title function under Apple SDK/Werror, no IPA.68 bounds ALL7 related title formatters and fixes PC volume-tag buffer; local forbidden-API negative control catches regression on Windows. Actual desktop/native fixtures PASS;9 collection/gate/failure/timeout/stale-binary tests PASS;10 ARC getters and2 identity+3 bundle checks PASS. Native preflight now collects12 independent checks and preserves logs; independent full app/runtime may run to collect more errors, but final mandatory original-outcome AND complete12-PASS receipt gate blocks any IPA on failure. No warning bypass. Native menu/Rejoin/opaque pause still await full Apple/phone validation.65 BOTH PHONE LAN baseline preserved; no phone/visual/FPS/packs/save/P2 changes or measured heat claim. Await user result; no idle polling.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** 2026-10-25T20:51:07.400812+00:00 UTC (October25,2026 EDT).
