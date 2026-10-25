@@ -1,3 +1,15 @@
+## Build65 TWO-PHONE SAME-WI-FI PASS — October25
+
+User confirms BOTH65 phones installed and tests1-5 passed: connected for over a minute, delay as low as11ms (initial100+ms sometimes decreases, sometimes starts low); guest Leave keeps host room waiting; guest rejoins; reversing hosts works; Done returns to normal solo with working visuals/controls/settings. T01-T04 PASS by user observation, scoped to SAME Wi-Fi ONLY. User explicitly confirms the last different-game-data screenshot was an OLD62 failure, not a65 regression. Screenshots support Connected/88ms and waiting/closed states; private invite codes are NOT copied into public journals. No internet/separate-network, actual shared gameplay, host Messages interruption or full campaign validation claimed.
+
+Verified current source behavior: ios_coop_room.mm backgrounded keeps HostRoom/code in memory but deliberately disconnects the active peer; foreground resumes the waiting room, provided iOS has not terminated the app. Guest background closes its link. This is a connection-only room, not retained gameplay/world persistence. There is no one-tap remembered Rejoin control yet. User requests reconnect without resending codes; next UX batch should remember the last authenticated room locally in memory, offer explicit Rejoin, revalidate/authenticate and explain expired/closed room. Full gameplay pause/wait/readiness and durable partner/campaign identity remain separate planned integration; do not claim app-kill recovery from this screen.
+
+Next authorized work: title-menu Online Co-op access alongside existing local Co-op, clear connection-only labelling until real shared gameplay; easier Rejoin; separately labelled solo/shared save slots with no overwrite when actual campaign support is integrated. P2 preserved.
+
+Thermal feedback: user's screenshot shows120FPS/8.33ms,CPU62%,RAM1761MiB/spare1615MiB,Heat Serious; Raye's phone user-reported less hot. Different packs/screens/devices are possible factors, not a confirmed cause. User will adjust FPS THEMSELVES. Do NOT change/cap FPS, resolution, texture/model packs or gameplay/visual quality. Latest authorization: investigate waste reduction only (hidden rendering, background/lobby work, redundant work/allocations) if it preserves visuals/gameplay. No heat test requested now and no thermal fix claimed. Graphics/120 option remain unchanged.
+
+Both phones can disconnect; no additional build needed merely to record these results. Next source UX/efficiency batch must preserve65 as verified LAN baseline and maintain the existing backup/rollback files. Exact report/checklist/state are updated; older sections below are historical snapshots.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** 2026-10-25T18:46:55.677177+00:00 UTC (October25,2026 EDT).

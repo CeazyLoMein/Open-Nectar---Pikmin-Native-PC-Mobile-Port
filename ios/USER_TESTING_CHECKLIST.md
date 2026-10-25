@@ -4,18 +4,18 @@ Updated October25,2026. This is the running list of things Chazz and Raye will e
 
 I will give you a small batch at a time, prepare the files in Documents, handle logs/build checks myself, and tell you whether a phone must stay connected/open. When I need you, I will send a clear message and an audio alert where available. No need to stay connected or leave a game running unless I ask.
 
-## Ready to test — Build65 (T01–T04)
+## Completed — Build65 same-Wi-Fi room tests (T01–T04)
 
-Build65 native build, actual simulator delayed-rejection/rejoin tests and downloaded IPA checks PASSED. The real phones still need the tests below. This is CONNECTION ONLY, not playable online campaign.
+Build65 native build, actual simulator delayed-rejection/rejoin tests and downloaded IPA checks PASSED. The user confirms T01-T04 passed on both real phones over the SAME Wi-Fi; this does not test internet play. This is CONNECTION ONLY, not playable online campaign.
 
 **File:** Documents > Open Nectar > 1 - Install on iPhone > CURRENT - P1 Build 65 - Connection Fix > Pikmin 1 - Build 65 - Connection Fix.ipa. Read START HERE.txt in that folder. Use an in-place update; do not delete P1/change app identity. P2 stays unchanged.
 
-**Current step:** Verified65 IPA is staged; update BOTH phones with SAME65 package and existing signing identity. T01 reset for65 (previous62 preparation passed).65 phone install/runtime untested. Then retry T02;62 false mismatch failure remains in history. T03-T06 untested. No phone data writes by agent or P2 changes.
+**Current step:** T01-T04 PASSED by user report on both65 phones, same Wi-Fi only. Stable minute+, lowest11ms; leave/rejoin, reverse host and normal solo work. Old mismatch screenshot explicitly identified as earlier failure. No new phone task right now. Next UX batch: main-menu access/Rejoin; T05/T06 wait implementation. No requested FPS or graphics changes.
 
-- [ ] **T01 — Prepare both phones.** Have both available, unlocked and on the same Wi-Fi. I will prepare the verified update and exact file location. If signing/installing requires your input, I will give that one action; keep the existing app and its files.
-- [ ] **T02 — Connect a private room.** On both phones, open gear > Data > Online Co-op: Connection Test and wait for the data check. Host on your phone, copy/share the code manually, return the host to P1, then paste/join on Raye's. Allow Local Network access if asked. Tell me the status on BOTH phones; a screenshot is useful if something fails.
-- [ ] **T03 — Leave and reconnect.** Leave the room and join again, then try Raye hosting. We are checking the connection only; this screen does not start a shared campaign yet.
-- [ ] **T04 — Return to normal P1.** Close the connection screen and confirm ordinary gameplay, controls, graphics and your settings still work on both phones.
+- [x] **T01 — Prepare both phones.** Have both available, unlocked and on the same Wi-Fi. I will prepare the verified update and exact file location. If signing/installing requires your input, I will give that one action; keep the existing app and its files.
+- [x] **T02 — Connect a private room.** On both phones, open gear > Data > Online Co-op: Connection Test and wait for the data check. Host on your phone, copy/share the code manually, return the host to P1, then paste/join on Raye's. Allow Local Network access if asked. Tell me the status on BOTH phones; a screenshot is useful if something fails.
+- [x] **T03 — Leave and reconnect.** Leave the room and join again, then try Raye hosting. We are checking the connection only; this screen does not start a shared campaign yet.
+- [x] **T04 — Return to normal P1.** Close the connection screen and confirm ordinary gameplay, controls, graphics and your settings still work on both phones.
 
 ## Later — clear menu access and separate solo/shared campaigns
 
@@ -100,3 +100,5 @@ October25 — Build63 FAILED native Foundation regression (`hash valid fixture`)
 October25 —64 failed real socket mismatch rejection after native hash tests and app compile passed. Local delayed-close reproduction identified discarded final verdict; batch fix passes full networking and impaired/rejoin tests. Next Apple build pending; no new phone pass.
 
 October25 —65 native compilation/package and actual simulator rejection/all5 mismatches/join/rejoin PASS; verified IPA staged. T01 ready for BOTH65 updates; T02-T04 actual phone results pending.62 failure history retained; no phone pass from CI.
+
+October25 —65 TWO-PHONE LAN PASS: T01 both updates; T02 stable minute+/11ms minimum; T03 Leave/rejoin/reverse hosts; T04 normal solo/settings/controls. User confirms mismatch photo was older62. Host app-switch gameplay retention/internet/full co-op not tested. No new phone action now.
