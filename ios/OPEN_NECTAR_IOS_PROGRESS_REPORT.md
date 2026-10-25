@@ -1,68 +1,56 @@
-## Both Build62 installations user-reported ready — October25
-
-User confirms both phones ready after the two same-identity P1 updates. T01 installation preparation is complete by user report; both pre-update backups remain verified. No post-update phone file-hash comparison, room connection or gameplay pass is claimed. T02 is next: both on same Wi-Fi, gear > Data > Online Co-op: Connection Test, wait for data checks, host/copy code, return host to P1 before guest joins, and allow Local Network if prompted. Expect Connected and a delay reading on both. Only after that, T03 leave/rejoin/reverse host and T04 ordinary solo. USB no longer required for these Wi-Fi tests; keep both apps foreground during connection. Connection-only, no shared campaign gameplay yet. Build62/source b8abc62ecddd146f411d136c0ab9f6095ee9d858/run40210863029 unchanged. P2/PC games untouched; no new build needed.
-
-## Build62 phone update checkpoint — October25, 12:59 EDT
-
-User reports their own P1 updated to Build62. Installation is user-reported; no new phone runtime/networking pass or post-update settings hash comparison is claimed. Raye's iPhone17Pro/iOS27.0.1 is connected. Initial process check found P1 still present; after user opened/closed it, fresh check confirmed P1 not running. Read-only P1 backup VERIFIED:5files/158975bytes, every local SHA256 and second phone read matched. Includes settings, achievements, navigation report and save/card0; no custom touch-layout file exists on her phone. No phone files changed. Large assets/mods stay in the existing app container. P2 untouched.
-
-Raye can now install the SAME staged Build62 IPA through Sideloadly, selecting her phone and retaining the existing signing account/app identity. Her installation is PENDING. T01 remains partial; T02-T04 untested. After both installs: same Wi-Fi, gear > Data > Online Co-op: Connection Test, wait for data checks, host/copy code, return host to P1 before guest joins; then leave/rejoin, reverse host and verify ordinary solo. Connection only; shared campaign gameplay is not implemented yet. No new native build needed. User may disconnect USB after installation/post-update checks for Wi-Fi testing.
-
-Build62 source b8abc62ecddd146f411d136c0ab9f6095ee9d858; run40210863029 SUCCESS. Staged IPA SHA256 e74db6323261aa6cd9c621cbc00a8f5445cdd2f0d7a9975b436cea026c681f3c. Both private backups and known-working Build54 rollback are preserved in Documents/Open Nectar. Full manifests remain private, outside Git.
-
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-25T16:53:40.117833+00:00 (October25 session).
+**Date/time:** October25,2026; real-phone Build62 join failure investigated.
 
-**Overall project status:**62 SUCCESS independently verified. Complete IPA inspected and staged in Documents with instructions and working54 rollback. User's first phone app-data backup verified; user is performing familiar manual Sideloadly update. No phone installation completion or runtime pass reported yet. First human batch T01-T04 is ready; Raye backup/update pending. No new source changes/native build.
+**Overall project status:** Both Build62 installations user-reported ready. First private-room join rejected with different game data. Confirmed identity-check bug; source fix implemented and local checks passed. Next P1-only native build pending. No phone files modified.
 
-### Pikmin1
+### Pikmin 1
 
-- Current objective: Update both existing P1 apps safely and perform the first real same-Wi-Fi private-room test.
-- What was investigated:62 live jobs/artifact, actual IPA CRC/metadata/Mach-O/scene+room markers/icons/notices and simulator receipt. Confirmed first phone is user's iPhoneDuo/iOS27.2, exactly one normal installed P1 identity. Read-only app-scoped configuration/save backup with P1 closed.
-- Root cause or leading hypothesis: Prior packaging-path mismatch resolved. No new failure asserted. Real phone UI/data hash/permission/network behavior remains untested.
-- Files changed: Documentation/checklist only; no game or PC/P2 source change. Private staging/backup receipts saved.
-- Tests and results:62 native+scene+real encrypted simulator session/private-code/content mismatch SUCCESS. Artifact digest verified. Downloaded IPA CRC valid, normal org.opennectar.experimental.pikmin1/Pikmin1, ARM64 iPhoneOS platform2/min15/SDK27.1, executable UUID38750961-9ca5-35f6-b5b8-96c26647013f; compiled scene delegate and room entry present; original6 icon bytes and original3 notice bytes match sources. Unsigned, no game data/ISO/RVZ bundled. Working54 rollback hash verified. Phone backup12files/352195bytes, second source reread hashes unchanged, no source-phone writes.
-- Confirmed working: Compilation and IPA generation/inspection PASS. Simulator runtime PASS. Existing P1 user-confirmed solo baseline remains; NEW62 hardware install/runtime not yet reported.
-- Remaining issues: T01 install both phones, T02 connect, T03 leave/rejoin/reverse roles, T04 ordinary solo still works. Shared online campaign/world/actions/Onions/private cameras/save recovery not activated. Current screen is connection test only.
+- Current objective: Fix false game-data mismatch, then repeat T02 room connection.
+- What was investigated: Read-only inventories and complete per-file SHA256 of assets/dataDir on both USB phones; actual contentIdentity implementation.
+- Root cause: Both phones contain3463 base files/634811175bytes, all contents and sizes identical.46 Japanese filenames are NFC on Raye's phone versus NFD on yours. Build62 hashes literal UTF8 filename bytes; visually equivalent filenames therefore produce different tree hashes. This is proven from both actual phone inventories, not an assumed texture-pack difference.
+- Files changed: ios/ios_coop_content_identity.h (shared actual hash function, canonical NFC identity keys mapped to original filesystem paths, ambiguous alias rejection, domainv2); ios/ios_coop_room.mm (use helper); tests/ios_coop_content_identity_test.mm; experimental workflow (compile/run actual Foundation hash tests on macOS before full iPhoneOS UI compilation). Existing file size/content hashes, case distinctions, symlink rejection and source build gates retained.
+- Tests and results: Both phone manifests match canonical source file bytes exactly. Legacy digests differ; corrected independent NFC recomputation matches at 26719287a52022d2ced07b74edb4c7a990c310e8554a63e91deec87652bfb8ba. Local2 build-identity+3 bundle+8 network-runner tests PASS; diff check PASS. New actual Foundation test covers direct NFC/NFD equivalence, real trees, creation order, changed contents/names, independent golden hash, extra files and symlink rejection. Apple native execution/compilation pending CI; no claim of hardware fix yet.
+- Confirmed working: Historical solo baselines; both62 installs user-reported. Both pre-update backups retained. No successful new phone connection yet.
+- Remaining issues: T02 FAILED on62; full playable co-op, gameplay-state integration, durable mid-day saves and cross-device progress remain future work. User may disconnect both phones now; all reading finished.
 
-### Pikmin2
+### Pikmin 2
 
-- Current objective: Preserve working app.
-- What was investigated: No P2 app/source work.
-- Root cause or leading hypothesis: None.
-- Files changed: None.
-- Tests and results: No update or rebuild.
-- Confirmed working: Previous phone results retained.
-- Remaining issues: Later separate game adapter/audit.
+- Current objective: Preserve working port while P1 networking is validated.
+- What was investigated: Nothing new in P2 for this fix.
+- Root cause or leading hypothesis: No new P2 issue reported.
+- Files changed: None in P2; experimental build will select P1 only.
+- Tests and results: No new P2 run requested.
+- Confirmed working: Prior user-reported working P2 on both phones; not retested this turn.
+- Remaining issues: Future P2 co-op and wider campaign validation.
 
 ### GitHub
 
-- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
-- Branch: ios-experimental.
-- Starting commit:0aff10f7b7e054557c5d76313162d6091ae50b51; clean/matched origin after fetch.
-- Latest commit: Documentation/checklist milestone pending at report creation; exact final HEAD in accessible state.
-- Commits created: Documentation-only checkpoint; no new native run intended.
-- Changes pushed: Journal/checklist after staging/backup; source62 unchanged.
-- Uncommitted changes: Clean after final documentation checkpoint.
-- GitHub Actions run IDs:62 run40210863029/source b8abc62ecddd146f411d136c0ab9f6095ee9d858.
-- Build results:62 SUCCESS, scene121221580833/P1121223972527 SUCCESS. Runtime receipt iOS27.1/Duo PASS; post-test simulator cleanup timeout recorded separately, no claim cleanup succeeded.
-- Artifacts produced: P112606436543 SHA256e5277bdfc894fe5ca0afc80a85aee47590bb26b07100bff2ddeeb9737cdcda22 downloaded+verified; scene12605757693 metadata SHA25617ae37e9e09aaf229e66912a4d1ca7cd1ea3780f395cbb0e98f339ff0e89dd1f. IPA5287907bytes SHA256e74db6323261aa6cd9c621cbc00a8f5445cdd2f0d7a9975b436cea026c681f3c staged, not installed by agent.
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: ios-experimental
+- Starting commit: 59480c3b44e6d332ca43a3fb39882910a3a1ec03
+- Latest commit: Source fix commit/run recorded in the next dispatch checkpoint and Exact Resume State.json.
+- Commits created: Next source commit contains only identity fix, native regression and journal/checklist updates.
+- Changes pushed: Pending at this pre-build report.
+- Uncommitted changes: Listed source/test/workflow/docs changes until commit below.
+- GitHub Actions run IDs: Previous62/run40210863029/source b8abc62ecddd146f411d136c0ab9f6095ee9d858 SUCCESS; phone join FAILED. Next native run not yet assigned at this checkpoint.
+- Build results: New source not yet compiled on Apple; no native success claimed.
+- Artifacts produced: No new IPA yet. Existing verified62 and known-working54 rollback retained.
 
 ### Next steps
 
-- Next Pikmin1 task: User completes Sideloadly installation on own phone; before launching compare protected settings/save hashes where possible. Then connect Raye's phone with P1 closed, back up app-scoped settings/saves and update with same62 IPA. Both on same Wi-Fi for T02.
-- Next Pikmin2 task: Leave alone.
-- GitHub/build task: No new build while awaiting device results.
-- Anything requiring my involvement: User is doing familiar drag IPA > select phone > Start. Only one phone currently connected. Agent prepared file/rollback/backup; no credential entry or account change automated. Tell agent when own phone installation completes; Raye backup precedes her update.
+- Next Pikmin 1 task: Native compile/run actual hash regression and full P1 package validation; stage verified new IPA only after success.
+- Next Pikmin 2 task: Keep working installation unchanged.
+- GitHub/build task: Push one scoped P1-only [ios-build] commit; record exact source/run, no idle CI polling.
+- Anything requiring user involvement: Nothing while building. Both phones can unplug/P1 can close. After verified package, update BOTH with the same new IPA and repeat T02 before T03/T04.
 
 ### ChatGPT continuation notes
 
-- What another ChatGPT conversation needs to know: This build is finally SUCCESS and staged. Do not restart build loops or mark phone tests passed from CI. User clarified manual Sideloadly is familiar; accommodate that and avoid unnecessary desktop UI takeover. Computer-use skill/docs were read and announced, but no Sideloadly UI input was performed. Any Apple authentication remains user-operated.
-- Important source-file locations: ios/USER_TESTING_CHECKLIST.md now active T01-T04; ios/ios_coop_room.mm connection-only screen. Package under Documents/OpenNectar/1 - Install on iPhone/CURRENT - P1 Build62 - Connection Test (actual friendly path includes spaces as staged receipt). Source/backup paths and hashes in private exact state.
-- Relevant logs: work/build62-run.json/jobs.json/artifacts.json, build62-p1-artifact.zip, build62-package-verification.json; outputs/Build62-Pikmin1 runtime/socket logs. work/build62-your-phone-backup.json and backup folder manifest. Private backup helper work/backup_p1_before_build62.py targets user's phone only; do not reuse its fixed target for Raye without identification.
-- Unverified fixes: NEW62 not yet installed or phone-tested. USB availability/user P1 closure confirmed; no actual phone writes by backup. No Raye backup performed in this phase.
-- Risks and warnings: Preserve existing signed app identity/account for update, never uninstall or modify save/card/asset folders. Existing signed bundle team suffix discovered but no credentials read/transmitted by agent. Large base/mod assets are not duplicated in small backup; in-place update should retain them, verify after update. First-phone backup includes BOTH save and save-solo-test so real current progress protected. No desktop/firewall/P2 changes.
-- Exact next actions: Await installation completion; check same app and protected document hashes with P1 closed, then first launch/connection screen. Back up/update Raye after she connects. HostCopy/share code then return to hostP1 before guestJoin; allow Local Network prompt manually, retry join if interrupted. Record exact messages on both phones without publishing private code. T03 reverse host/rejoin, T04 solo sanity; only then proceed with next engine integration.
+- Both actual phone inventories prove identical base data; no recopy, cleanup, pack deletion or arbitrary compatibility bypass needed.
+- Important source-file locations: ios/ios_coop_content_identity.h and ios/ios_coop_room.mm; tests/ios_coop_content_identity_test.mm; .github/workflows/ios-native-experimental.yml.
+- Relevant logs: Private work/build62-your-content-audit.json, build62-raye-content-audit.json, build62-content-mismatch-root-cause.json. These contain game-file paths/hashes only and remain outside public Git. Room codes/credentials never collected or logged.
+- Unverified fixes: Native NFC implementation and actual two-phone join await next build and hardware test.
+- Risks and warnings: New identity domain/build must match on both phones; one62 plus one new build cannot join. No live gameplay networking is implemented by this change.
+- Exact next actions: Check next native run; on success verify/stage IPA, preserve backups and request same-Wi-Fi Host/Join retest. Record T02 failure on62 and keep future runtime tasks untested.
 
 **END PROGRESS REPORT**

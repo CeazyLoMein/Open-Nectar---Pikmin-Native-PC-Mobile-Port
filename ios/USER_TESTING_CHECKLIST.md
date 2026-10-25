@@ -4,13 +4,13 @@ Updated October25,2026. This is the running list of things Chazz and Raye will e
 
 I will give you a small batch at a time, prepare the files in Documents, handle logs/build checks myself, and tell you whether a phone must stay connected/open. When I need you, I will send a clear message and an audio alert where available. No need to stay connected or leave a game running unless I ask.
 
-## Ready to test — Build62 (T01–T04)
+## Waiting for corrected build — T02 failed on Build62
 
 Build62 native build, actual simulator networking and downloaded IPA checks PASSED. The real phones still need the tests below. This is CONNECTION ONLY, not playable online campaign.
 
 **File:** Documents > Open Nectar > 1 - Install on iPhone > CURRENT - P1 Build 62 - Connection Test > Pikmin 1 - Build 62 - Connection Test.ipa. Read START HERE.txt in that folder. Use an in-place update; do not delete P1/change app identity. P2 stays unchanged.
 
-**Current step:** Both Build62 installations are ready per user report; T01 complete. Both pre-update backups verified. T02 connection on same Wi-Fi is next; T02-T04 runtime tests remain untested. USB is not required for this test. No shared campaign gameplay yet.
+**Current step:** T01 complete for62 by user report. T02 FAILED: different game data; confirmed46 NFC/NFD Japanese filename differences, all actual bytes identical. Fix implemented; wait for next verified P1 update for BOTH phones before repeating T02. No phone action needed during build; USB can unplug. T03-T04 untested.
 
 - [x] **T01 — Prepare both phones.** Have both available, unlocked and on the same Wi-Fi. I will prepare the verified update and exact file location. If signing/installing requires your input, I will give that one action; keep the existing app and its files.
 - [ ] **T02 — Connect a private room.** On both phones, open gear > Data > Online Co-op: Connection Test and wait for the data check. Host on your phone, copy/share the code manually, return the host to P1, then paste/join on Raye's. Allow Local Network access if asked. Tell me the status on BOTH phones; a screenshot is useful if something fails.
@@ -85,3 +85,5 @@ New connection/gameplay/recovery tests have not yet been reported. I will record
 | October25,12:59 EDT | T01 | Build62; both phones | Own install user-reported complete; Raye pre-update backup verified5files/158975bytes | PARTIAL; Raye installation pending, networking/runtime untested |
 
 October25 milestone: user reports both Build62 updates ready. T01 COMPLETE by user report; T02-T04 not yet tested.
+
+October25 — T02 FAILED on both Build62 phones: false content mismatch from46 Unicode filename encodings. All3463 files byte-identical. Canonical NFC fix/native regression implemented; next Apple build and phone retest pending.

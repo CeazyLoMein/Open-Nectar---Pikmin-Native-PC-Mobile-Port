@@ -312,6 +312,10 @@ jobs:
           set -euo pipefail
           python3 tests/coop_build_identity_test.py
           python3 tests/coop_bundle_test.py
+          xcrun --sdk macosx clang++ -std=c++17 -fobjc-arc -Wall -Wextra -Werror \
+            -Wno-deprecated-declarations -Iios tests/ios_coop_content_identity_test.mm \
+            -framework Foundation -o "$RUNNER_TEMP/nectar-content-identity-test"
+          "$RUNNER_TEMP/nectar-content-identity-test"
           python3 tests/ios_coop_arc_names_test.py \
             --compiler "$(xcrun --sdk iphoneos --find clang++)" \
             --sdk-root "$(xcrun --sdk iphoneos --show-sdk-path)"
