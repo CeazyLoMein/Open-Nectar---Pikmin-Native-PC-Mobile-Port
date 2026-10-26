@@ -349,6 +349,7 @@ jobs:
           bash -n scripts/netplay-deps.sh
           python3 tests/ios_coop_socket_runner_test.py
           python3 tests/ios_coop_owned_runner_test.py
+          python3 tests/ios_coop_app_executor_test.py
           bash scripts/netplay-deps.sh ios-arm64
           bash scripts/netplay-deps.sh ios-simulator-arm64
       - name: Build real encrypted iOS co-op socket session probe
@@ -358,22 +359,14 @@ jobs:
         run: |
           set -euo pipefail
           PREFIX="$HOME/.cache/open-nectar/netplay-deps/install/ios-simulator-arm64"
-          cmake -S libs/nectar_net -B "$RUNNER_TEMP/nectar-coop-socket" -G "Unix Makefiles" \
+          cmake -S tests/ios_coop_app_probe -B "$RUNNER_TEMP/nectar-coop-socket" -G "Unix Makefiles" \
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=iOS \
             -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_ARCHITECTURES=arm64 \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
-            -DCMAKE_PREFIX_PATH="$PREFIX" -DCMAKE_FIND_ROOT_PATH="$PREFIX" \
-            -DNECTAR_NET_BUILD_TESTS=OFF -DNECTAR_NET_ENABLE_GNS=ON \
-            -DNECTAR_NET_ENABLE_UPNP=OFF -DNECTAR_NET_BUILD_COOP_SOCKET_PROBE=ON
-          cmake --build "$RUNNER_TEMP/nectar-coop-socket" --target nectar_net_coop_socket_probe --parallel 3 \
+            -DCMAKE_PREFIX_PATH="$PREFIX" -DCMAKE_FIND_ROOT_PATH="$PREFIX"
+          cmake --build "$RUNNER_TEMP/nectar-coop-socket" \
+            --target NectarCoopSocketProbe NectarCoopHealthProbe --parallel 3 \
             2>&1 | tee ios-coop-socket-build.log
-          # Independent executable: distinguish simulator execution health from
-          # game/GNS initialization. Never substitutes for the real probe PASS.
-          xcrun --sdk iphonesimulator clang -target arm64-apple-ios15.0-simulator \
-            -isysroot "$(xcrun --sdk iphonesimulator --show-sdk-path)" \
-            -std=c11 -Wall -Wextra -Werror tests/ios_simulator_health.c \
-            -o "$RUNNER_TEMP/nectar-coop-socket/nectar_simulator_health" \
-            2>&1 | tee -a ios-coop-socket-build.log
       - name: Run real encrypted iOS co-op socket session probe
         id: coop_socket_run
         # Execute before the heavy device compile, on a fresh owned simulator.
@@ -385,8 +378,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 tests/run_ios_coop_socket_probe.py \
-            --binary "$RUNNER_TEMP/nectar-coop-socket/nectar_net_coop_socket_probe" \
-            --health-binary "$RUNNER_TEMP/nectar-coop-socket/nectar_simulator_health" \
+            --app "$RUNNER_TEMP/nectar-coop-socket/NectarCoopSocketProbe.app" \
+            --health-app "$RUNNER_TEMP/nectar-coop-socket/NectarCoopHealthProbe.app" \
             --output ios-coop-socket-results
       - name: Configure iPhoneOS ARM64 target without signing
         shell: bash

@@ -1,3 +1,5 @@
+Latest checkpoint:72 failed standalone simulator health/recovery after game/card checks PASS. UIKit health/socket test-entry repair local34+ARC2 PASS, next Apple pending. No phone action; keep68; previous objectives remain queued.
+
 # Open Nectar co-op — running objective queue
 
 User instruction: new steering adds requirements/tasks; do not discard earlier objectives or silently replace the active task. Only explicit cancellation removes an objective. Statuses below are evidence boundaries, not completion percentages.

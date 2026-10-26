@@ -1,3 +1,5 @@
+Latest checkpoint:72 failed standalone simulator health/recovery after game/card checks PASS. UIKit health/socket test-entry repair local34+ARC2 PASS, next Apple pending. No phone action; keep68; previous objectives remain queued.
+
 # Your Open Nectar testing checklist
 
 Updated October25,2026. This is the running list of things Chazz and Raye will eventually test. **Only the Ready to test section is an active request.** Everything in Later waits until I provide a working build and clear instructions.

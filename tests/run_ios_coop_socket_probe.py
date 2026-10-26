@@ -40,7 +40,7 @@ def collect_failure(udid, output, execute):
         ('failure-simulator-state.json', ('xcrun', 'simctl', 'list', 'devices', 'available', '--json')),
         ('failure-probe-console.log', ('xcrun', 'simctl', 'spawn', udid, 'log', 'show',
              '--last', '2m', '--style', 'compact', '--predicate',
-             'process == "nectar_net_coop_socket_probe"')),
+             'process == "NectarCoopSocketProbe" OR process == "NectarCoopHealthProbe" OR process == "nectar_net_coop_socket_probe"')),
     ]
     for name, args in commands:
         try:
@@ -102,7 +102,8 @@ def verify_result(path, outcome):
     receipt = json.loads(path.read_text(encoding='utf-8'))
     if not (receipt.get('result') == 'PASS' and receipt.get('health_before_probe') == 'PASS'
             and receipt.get('probe_entered_main_observed') is True
-            and receipt.get('simulator_policy') == 'owned-disposable'):
+            and receipt.get('simulator_policy') == 'owned-disposable'
+            and receipt.get('execution_mode') == 'uikit-app'):
         raise AssertionError('Missing complete owned-simulator native runtime evidence')
     uuid.UUID(receipt['simulator_udid'])
     for key in ['binary_sha256', 'health_binary_sha256']:
@@ -119,6 +120,7 @@ def run(binary, output, execute=command, *, health_binary=None, isolated=True):
     receipt = {'result': 'FAIL', 'binary_sha256': hashlib.sha256(binary.read_bytes()).hexdigest(),
                'scope': 'iOS simulator encrypted loopback socket/session; no phone or campaign test',
                'simulator_policy': 'owned-disposable' if isolated else 'borrowed-fixture',
+               'execution_mode': getattr(execute, 'execution_mode', 'cli-fixture'),
                'setup_attempts': []}
     udid = None
     started = False
@@ -243,8 +245,8 @@ def run(binary, output, execute=command, *, health_binary=None, isolated=True):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--binary', type=Path)
-    parser.add_argument('--health-binary', type=Path)
+    parser.add_argument('--app', type=Path)
+    parser.add_argument('--health-app', type=Path)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--verify', type=Path)
     parser.add_argument('--outcome')
@@ -252,6 +254,11 @@ if __name__ == '__main__':
     if args.verify:
         verify_result(args.verify.resolve(), args.outcome)
     else:
-        if not (args.binary and args.health_binary and args.output):
-            parser.error('--binary, --health-binary and --output are required for execution')
-        run(args.binary.resolve(), args.output.resolve(), health_binary=args.health_binary.resolve())
+        if not (args.app and args.health_app and args.output):
+            parser.error('--app, --health-app and --output are required for execution')
+        from ios_coop_app_executor import AppExecutor, validate_app
+        app, health_app, output = args.app.resolve(), args.health_app.resolve(), args.output.resolve()
+        binary, _ = validate_app(app,'socket')
+        health_binary, _ = validate_app(health_app,'health')
+        execute = AppExecutor(app,health_app,output,command)
+        run(binary,output,execute,health_binary=health_binary)

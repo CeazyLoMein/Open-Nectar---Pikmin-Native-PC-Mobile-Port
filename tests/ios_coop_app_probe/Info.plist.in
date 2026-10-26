@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleIdentifier</key><string>@PROBE_ID@</string>
+<key>CFBundleExecutable</key><string>@PROBE_TARGET@</string>
+<key>CFBundleName</key><string>@PROBE_TARGET@</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>1.0</string>
+<key>CFBundleSupportedPlatforms</key><array><string>iPhoneSimulator</string></array>
+<key>MinimumOSVersion</key><string>15.0</string>
+<key>LSRequiresIPhoneOS</key><true/>
+<key>UIDeviceFamily</key><array><integer>1</integer></array>
+<key>UILaunchScreen</key><dict/>
+<key>UISupportedInterfaceOrientations</key><array><string>UIInterfaceOrientationLandscapeLeft</string><string>UIInterfaceOrientationLandscapeRight</string></array>
+<key>NSLocalNetworkUsageDescription</key><string>Run asset-free local networking tests inside this simulator only.</string>
+<key>UIApplicationSceneManifest</key><dict>
+<key>UIApplicationSupportsMultipleScenes</key><false/>
+<key>UISceneConfigurations</key><dict><key>UIWindowSceneSessionRoleApplication</key><array><dict>
+<key>UISceneConfigurationName</key><string>Probe</string>
+<key>UISceneDelegateClassName</key><string>NectarProbeScene</string>
+</dict></array></dict></dict>
+</dict></plist>

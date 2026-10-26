@@ -16,6 +16,7 @@ DEVICE_TYPE = 'com.apple.CoreSimulator.SimDeviceType.iPhone-test'
 
 
 class Simulator:
+    execution_mode = "uikit-app"  # Controlled execution fixture, not an Apple runtime claim.
     def __init__(self, *, health_timeouts=0, native='pass', fallback_type=False,
                  created=OWNED, health_marker=True, recovery_fails=False, cleanup_fails=False,
                  boot_timeouts=0):
@@ -174,7 +175,7 @@ class OwnedRunnerTests(unittest.TestCase):
                 with self.assertRaises(AssertionError):verify_result(result,outcome)
             for changes in [{'result':'FAIL'},{'health_before_probe':'FAIL'},
                             {'probe_entered_main_observed':False},{'simulator_policy':'borrowed-fixture'},
-                            {'binary_sha256':''},{'health_binary_sha256':''}]:
+                            {'binary_sha256':''},{'health_binary_sha256':''},{'execution_mode':'cli-fixture'}]:
                 result.write_text(json.dumps(dict(baseline,**changes)))
                 with self.assertRaises(AssertionError):verify_result(result,'success')
             result.write_text(json.dumps(baseline))
