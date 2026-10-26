@@ -1,4 +1,5 @@
 #include "pc_achievements.h"
+#include "dolphin_stubs/pc_card_paths.h"
 
 #include <SDL.h>
 #include <cstdio>
@@ -70,6 +71,8 @@ bool sBlockedToastShown          = false;
 
 void save()
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
+    if (pc_card_coop_practice_active()) return;
 	FILE* out = fopen(kFilename, "w");
 	if (!out) {
 		printf("[Achievements] Failed to write %s\n", kFilename);
@@ -152,6 +155,7 @@ int pc_achievements_unlocked_count(void)
 
 const char* pc_achievements_blocked_reason(void)
 {
+    if (pc_card_coop_practice_active()) return "Achievements are off in online practice.";
 	if (pc_vs_active()) return "Achievements are off in Versus mode.";
 	if (pc_settings_get_piki_invincible() || pc_settings_get_all_flowers() || pc_settings_get_unlock_zones()
 	    || pc_settings_get_no_day_advance() || pc_settings_get_all_onions() || pc_settings_get_infinite_day()

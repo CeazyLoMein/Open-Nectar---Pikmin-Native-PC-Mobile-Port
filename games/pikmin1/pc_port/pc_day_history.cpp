@@ -1,4 +1,5 @@
 #include "pc_day_history.h"
+#include "dolphin_stubs/pc_card_paths.h"
 
 #include "pc_speedrun.h"
 #include <algorithm>
@@ -42,6 +43,7 @@ bool pc_days_enabled(void) { return !pc_speedrun_active(); }
 
 void pc_days_store(int slot, int day, const void* data, int size)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
     if (!validSlot(slot) || day < 1 || !data || size <= 0) return;
     std::error_code error;
     fs::create_directories(slotDir(slot), error);
@@ -54,6 +56,7 @@ void pc_days_store(int slot, int day, const void* data, int size)
 
 int pc_days_list(int slot, int* days, int max)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
     if (!validSlot(slot)) return 0;
     int count = 0;
     std::error_code error;
@@ -67,6 +70,7 @@ int pc_days_list(int slot, int* days, int max)
 
 bool pc_days_read(int slot, int day, void* data, int size)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
     if (!validSlot(slot)) return false;
     std::ifstream in(dayPath(slot, day), std::ios::binary);
     if (!in) return false;
@@ -76,6 +80,7 @@ bool pc_days_read(int slot, int day, void* data, int size)
 
 void pc_days_delete_slot(int slot)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
     if (!validSlot(slot)) return;
     std::error_code error;
     fs::remove_all(slotDir(slot), error);
@@ -84,6 +89,7 @@ void pc_days_delete_slot(int slot)
 
 void pc_days_copy_slot(int from, int to)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
     if (!validSlot(from) || !validSlot(to) || from == to) return;
     std::error_code error;
     fs::remove_all(slotDir(to), error);

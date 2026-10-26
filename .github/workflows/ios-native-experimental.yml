@@ -258,6 +258,24 @@ jobs:
           xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
             -std=c++17 -Wall -Wextra -Werror -DPIKI_PC_PORT=1 -DNECTAR_COOP_WORLD=1 -fsyntax-only \
             -I"$FIXTURE" -Igames/pikmin1/pc_port -Ilibs/nectar_net/include "${SOURCES[@]}"
+      - name: Check actual temporary practice card and original save preservation
+        if: matrix.game == 'pikmin1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          FIXTURE="$RUNNER_TEMP/p1-practice-card-fixture"
+          python3 tests/pikmin1_practice_card_test.py "$FIXTURE"
+          SOURCES=("$FIXTURE/practice-card-test.cpp" games/pikmin1/pc_port/dolphin_stubs/card_stubs.cpp
+            games/pikmin1/pc_port/pc_day_history.cpp)
+          c++ -std=c++17 -pthread -Wall -Wextra -Werror -DNECTAR_P1_SOLO_TEST=0 \
+            -I"$FIXTURE" -Igames/pikmin1/pc_port "${SOURCES[@]}" -o "$FIXTURE/practice-card-test"
+          RUN="$RUNNER_TEMP/p1-practice-card-run"
+          mkdir -p "$RUN"
+          (cd "$RUN" && "$FIXTURE/practice-card-test" "$RUN/state")
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 \
+            -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
+            -std=c++17 -Wall -Wextra -Werror -DNECTAR_P1_SOLO_TEST=0 -fsyntax-only \
+            -I"$FIXTURE" -Igames/pikmin1/pc_port "${SOURCES[@]}"
       - name: Check Pikmin 1 enhancement profile and mod imports
         if: matrix.game == 'pikmin1'
         shell: bash

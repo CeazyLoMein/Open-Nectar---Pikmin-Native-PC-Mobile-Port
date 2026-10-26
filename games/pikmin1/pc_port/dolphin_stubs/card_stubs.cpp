@@ -9,6 +9,9 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cctype>
+#include <mutex>
+#include <utility>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -36,6 +39,10 @@ constexpr s32 kSectorSize = 0x2000;
 // releer memoria en cada vuelta.
 std::atomic<s32> sLastResult[2] = { CARD_RESULT_READY, CARD_RESULT_READY };
 std::atomic<s32> sTransferred[2] = {};
+std::atomic<bool> sPracticeCard{false}, sNormalRootInitialized{false};
+// Written once while holding the I/O lock, before release-publishing the latch.
+fs::path sPracticeRoot;
+
 
 bool validChannel(s32 channel) { return channel >= 0 && channel < 2; }
 
@@ -107,6 +114,8 @@ bool writableDir(const fs::path& dir)
 
 fs::path saveRoot()
 {
+    if (sPracticeCard.load(std::memory_order_acquire)) return sPracticeRoot;
+
 	static const fs::path resolved = [] {
 		std::error_code error;
 		// An explicit override always wins; portable setups can pin it.
@@ -161,6 +170,7 @@ fs::path saveRoot()
 		}
 		return preferred;
 	}();
+	sNormalRootInitialized.store(true, std::memory_order_release);
 	return resolved;
 }
 
@@ -322,9 +332,71 @@ bool resolve(const CARDFileInfo* info, std::string& name)
 }
 } // namespace
 
+
+std::recursive_mutex& pc_card_io_mutex()
+{
+    static std::recursive_mutex mutex;
+    return mutex;
+}
+bool pc_card_coop_practice_active() { return sPracticeCard.load(std::memory_order_acquire); }
+namespace {
+std::string comparisonPath(const fs::path& path)
+{
+    auto text = path.generic_string();
+    // Conservative for case-insensitive Windows/macOS volumes as well as Linux.
+    for (char& c : text) if (c >= 'A' && c <= 'Z') c = static_cast<char>(c - 'A' + 'a');
+    while (text.size() > 1 && text.back() == '/') text.pop_back();
+    return text;
+}
+bool overlappingRoots(const fs::path& a, const fs::path& b)
+{
+    const auto x = comparisonPath(a), y = comparisonPath(b);
+    if (x == y || x.rfind(y + "/", 0) == 0 || y.rfind(x + "/", 0) == 0) return true;
+    // Also detect existing inode aliases, including volume-specific casing.
+    for (const auto& pair : {std::make_pair(a,b),std::make_pair(b,a)}) {
+        for (auto p = pair.first; !p.empty();) {
+            std::error_code error;
+            if (fs::equivalent(p,pair.second,error) && !error) return true;
+            const auto parent = p.parent_path();if (parent == p) break;p = parent;
+        }
+    }
+    return false;
+}
+}
+bool pc_card_begin_coop_practice(const char* scratchDirectory)
+{
+    const std::lock_guard<std::recursive_mutex> guard(pc_card_io_mutex());
+    if (pc_card_coop_practice_active() || !sNormalRootInitialized.load(std::memory_order_acquire)) return false;
+    std::error_code error;
+    fs::path base = scratchDirectory ? fs::path(scratchDirectory) : fs::temp_directory_path(error);
+    if (error || !base.is_absolute() || !fs::is_directory(base,error) || error) return false;
+    base = fs::canonical(base,error);if (error || base == base.parent_path()) return false;
+    const auto real = fs::weakly_canonical(saveRoot(),error);
+    if (error || overlappingRoots(base,real)) return false;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (unsigned attempt = 0; attempt < 64; ++attempt) {
+        const auto child = base / ("nectar-coop-practice-" + std::to_string(stamp) + "-" + std::to_string(attempt));
+        error.clear();
+        if (!fs::create_directory(child,error)) { if (error) return false; continue; }
+        auto created = fs::canonical(child,error);
+        if (error || created.parent_path() != base || overlappingRoots(created,real)) {
+            // Only the newly created EMPTY child, never any recursive cleanup.
+            std::error_code ignored;fs::remove(child,ignored);return false;
+        }
+        sPracticeRoot = std::move(created);
+        sPracticeCard.store(true,std::memory_order_release);
+        sLastResult[0] = sLastResult[1] = CARD_RESULT_READY;
+        sTransferred[0] = sTransferred[1] = 0;
+        std::puts("[Co-op practice] Fresh temporary card active. Restart app to return to solo saves.");
+        return true;
+    }
+    return false;
+}
+
 // Carpeta de las tarjetas (F1 > Data > Open Save Folder).
 std::string pc_card_save_dir()
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	std::error_code error;
 	return fs::absolute(saveRoot(), error).string();
 }
@@ -332,12 +404,14 @@ std::string pc_card_save_dir()
 // Carpeta de la tarjeta en uso (normal, Randomizer...): historial de días.
 std::string pc_card_root_dir()
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	return root(0).string();
 }
 
 // Carpeta de datos del modo Speedrun (tarjeta propia y registro de tiempos).
 std::string pc_card_speedrun_dir()
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	std::error_code error;
 	const fs::path dir = saveRoot() / "speedrun";
 	fs::create_directories(dir, error);
@@ -363,12 +437,14 @@ fs::path storyCardDir() { return saveRoot() / "speedrun" / "card0"; }
 
 bool pc_speedrun_practice_exists(int day)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	std::error_code error;
 	return fs::is_directory(practiceDir(day), error);
 }
 
 bool pc_speedrun_practice_restore(int day)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	std::error_code error;
 	if (!pc_speedrun_practice_exists(day)) return false;
 	fs::remove_all(storyCardDir(), error);
@@ -378,6 +454,7 @@ bool pc_speedrun_practice_restore(int day)
 
 void pc_speedrun_practice_save(int day)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	std::error_code error;
 	if (!fs::is_directory(storyCardDir(), error)) return;
 	const fs::path dir = practiceDir(day);
@@ -389,12 +466,14 @@ void pc_speedrun_practice_save(int day)
 
 void pc_speedrun_practice_delete(int day)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	std::error_code error;
 	fs::remove_all(practiceDir(day), error);
 }
 
 bool pc_speedrun_race_restore(void)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	std::error_code error;
 	if (!fs::is_directory(raceDir(), error)) return false;
 	fs::remove_all(raceCardDir(), error);
@@ -404,6 +483,7 @@ bool pc_speedrun_race_restore(void)
 
 void pc_speedrun_race_save(void)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	std::error_code error;
 	if (fs::exists(raceDir(), error) || !fs::is_directory(raceCardDir(), error)) return;
 	fs::copy(raceCardDir(), raceDir(), fs::copy_options::recursive, error);
@@ -412,6 +492,7 @@ void pc_speedrun_race_save(void)
 
 void pc_speedrun_race_delete(void)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	std::error_code error;
 	fs::remove_all(raceDir(), error);
 }
@@ -420,6 +501,7 @@ extern "C" {
 
 void CARDInit(void)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	ensureCard(0);
 	// Print where it actually landed. The old message named a fixed relative
 	// path, which is exactly the detail a save-file bug report needs to be true.
@@ -429,7 +511,8 @@ void CARDInit(void)
 	       (error ? root(0) : shown).string().c_str());
 }
 
-BOOL CARDProbe(s32 channel) { return validChannel(channel) && ensureCard(channel); }
+BOOL CARDProbe(s32 channel) {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex()); return validChannel(channel) && ensureCard(channel); }
 s32 CARDProbeEx(s32 channel, s32* memSize, s32* sectorSize)
 {
 	cardtrace("CARDProbeEx", "-");
@@ -439,11 +522,18 @@ s32 CARDProbeEx(s32 channel, s32* memSize, s32* sectorSize)
 }
 s32 CARDMountAsync(s32 channel, CARDMemoryCard*, CARDCallback, CARDCallback callback)
 {
-	cardtrace("CARDMountAsync", "-");
-	return finish(channel, ensureCard(channel) ? CARD_RESULT_READY : CARD_RESULT_NOCARD, callback);
+    s32 result;
+    {
+        const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
+        result = ensureCard(channel) ? CARD_RESULT_READY : CARD_RESULT_NOCARD;
+    }
+    // Never hold the I/O barrier across a caller's asynchronous callback.
+    cardtrace("CARDMountAsync", "-");
+    return finish(channel, result, callback);
 }
 s32 CARDMount(s32 channel, CARDMemoryCard*, CARDCallback)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	cardtrace("CARDMount", "-");
 	return finish(channel, ensureCard(channel) ? CARD_RESULT_READY : CARD_RESULT_NOCARD);
 }
@@ -451,6 +541,7 @@ s32 CARDUnmount(s32 channel) { return finish(channel, CARD_RESULT_READY); }
 
 s32 CARDOpen(s32 channel, const char* fileName, CARDFileInfo* info)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	cardtrace("CARDOpen", fileName);
 	const std::string wanted = safeName(fileName);
 	const auto files = entries(channel);
@@ -465,6 +556,7 @@ s32 CARDOpen(s32 channel, const char* fileName, CARDFileInfo* info)
 }
 s32 CARDFastOpen(s32 channel, s32 fileNo, CARDFileInfo* info)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	cardtrace("CARDFastOpen", fileNo);
 	const auto files = entries(channel);
 	if (!info || fileNo < 0 || static_cast<size_t>(fileNo) >= files.size()) return finish(channel, CARD_RESULT_NOFILE);
@@ -476,6 +568,7 @@ s32 CARDClose(CARDFileInfo* info) { return finish(info ? info->chan : 0, CARD_RE
 
 s32 CARDCreate(s32 channel, const char* fileName, u32 size, CARDFileInfo* info)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	cardtrace("CARDCreate", fileName);
 	const std::string name = safeName(fileName);
 	if (name.empty() || name.size() >= CARD_FILENAME_MAX) return finish(channel, CARD_RESULT_NAMETOOLONG);
@@ -499,6 +592,7 @@ s32 CARDCreateAsync(s32 channel, const char* name, u32 size, CARDFileInfo* info,
 
 s32 CARDRead(CARDFileInfo* info, void* address, s32 length, s32 offset)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	cardtrace("CARDRead", info ? info->fileNo : -1);
 	std::string name;
 	if (!address || length < 0 || offset < 0 || !resolve(info, name)) return finish(info ? info->chan : 0, CARD_RESULT_NOFILE);
@@ -517,6 +611,7 @@ s32 CARDReadAsync(CARDFileInfo* info, void* address, s32 length, s32 offset, CAR
 }
 s32 CARDWrite(CARDFileInfo* info, void* address, s32 length, s32 offset)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	cardtrace("CARDWrite", info ? info->fileNo : -1);
 	std::string name;
 	if (!address || length < 0 || offset < 0 || !resolve(info, name)) return finish(info ? info->chan : 0, CARD_RESULT_NOFILE);
@@ -539,6 +634,7 @@ s32 CARDGetXferredBytes(s32 channel) { return validChannel(channel) ? sTransferr
 
 s32 CARDFastDelete(s32 channel, s32 fileNo)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	cardtrace("CARDFastDelete", fileNo);
 	const auto files = entries(channel);
 	if (fileNo < 0 || static_cast<size_t>(fileNo) >= files.size()) return finish(channel, CARD_RESULT_NOFILE);
@@ -554,6 +650,7 @@ s32 CARDFastDeleteAsync(s32 channel, s32 fileNo, CARDCallback callback)
 
 s32 CARDRename(s32 channel, const char* oldName, const char* newName)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	cardtrace("CARDRename", (std::string(oldName ? oldName : "-") + " -> " + (newName ? newName : "-")).c_str());
 	const std::string oldSafe = safeName(oldName), newSafe = safeName(newName);
 	if (!fs::exists(dataPath(channel, oldSafe))) return finish(channel, CARD_RESULT_NOFILE);
@@ -572,6 +669,7 @@ s32 CARDRenameAsync(s32 channel, const char* oldName, const char* newName, CARDC
 
 s32 CARDGetStatus(s32 channel, s32 fileNo, CARDStat* stat)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	cardtrace("CARDGetStatus", fileNo);
 	const auto files = entries(channel);
 	if (!stat || fileNo < 0 || static_cast<size_t>(fileNo) >= files.size()) return finish(channel, CARD_RESULT_NOFILE);
@@ -580,6 +678,7 @@ s32 CARDGetStatus(s32 channel, s32 fileNo, CARDStat* stat)
 }
 s32 CARDSetStatus(s32 channel, s32 fileNo, CARDStat* stat)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	cardtrace("CARDSetStatus", fileNo);
 	const auto files = entries(channel);
 	if (!stat || fileNo < 0 || static_cast<size_t>(fileNo) >= files.size()) return finish(channel, CARD_RESULT_NOFILE);
@@ -606,6 +705,7 @@ s32 CARDGetSerialNo(s32 channel, u64* serial) { if (serial) *serial = 0x50494b4d
 s32 CARDGetSectorSize(s32 channel, u32* size) { if (size) *size = kSectorSize; return finish(channel, CARD_RESULT_READY); }
 s32 CARDFormat(s32 channel)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	if (!validChannel(channel)) return finish(channel, CARD_RESULT_NOCARD);
 	std::error_code error; fs::remove_all(root(channel), error); ensureCard(channel);
 	return finish(channel, error ? CARD_RESULT_IOERROR : CARD_RESULT_READY);
@@ -613,6 +713,7 @@ s32 CARDFormat(s32 channel)
 s32 CARDFormatAsync(s32 channel, CARDCallback callback) { const s32 result = CARDFormat(channel); if (callback) callback(channel, result); return result; }
 s32 CARDFreeBlocks(s32 channel, s32* bytesUnused, s32* filesUnused)
 {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex());
 	std::uintmax_t used = 0; const auto files = entries(channel); std::error_code error;
 	for (const auto& name : files) { used += fs::file_size(dataPath(channel, name), error); error.clear(); }
 	if (bytesUnused) *bytesUnused = static_cast<s32>(used < kCapacity ? kCapacity - used : 0);
@@ -632,4 +733,5 @@ s32 __CARDSync(s32 channel) { return CARDGetResultCode(channel); }
 
 } // extern "C"
 
-std::string pc_card_channel_dir(int channel) { return root(channel == 1 ? 1 : 0).string(); }
+std::string pc_card_channel_dir(int channel) {
+    const std::lock_guard<std::recursive_mutex> cardIoGuard(pc_card_io_mutex()); return root(channel == 1 ? 1 : 0).string(); }
