@@ -1,3 +1,7 @@
+## Build70 dispatched — retained-room, buffered handoff and area agreement
+
+Source8bf43c8fd7a02d04c35bbd8ba2c8193daf1e77ab; run40247953593 (https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40247953593); last observed IN_PROGRESS, no conclusion/new IPA yet. Combined source includes native explicit main-thread detach, exclusive room/session owner and shutdown order, bounded64/64KiB early-message queue/replay and both actual-load/area/seed agreement before HELD session. Local24CTest/real Windows encrypted early-message+area+input/Clang6/ARC10/identity2/diff PASS. New Apple/UIKit/simulator probe pending.69 separately verified native/12 gates/simulator/package PASS, no cleanup warning and no69 install requested. Keep68 installed; no phone action. Actual disposable card/engine/camera/controller/guest-sim driver not activated; T10 remains future. card_stubs.saveRoot caches env statically: late NECTAR_SAVE_DIR change cannot protect normal card. No P2/FPS/packs/save changes or new thermal claim. Await user result, no idle polling.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** October25,2026 20:09 EDT.
