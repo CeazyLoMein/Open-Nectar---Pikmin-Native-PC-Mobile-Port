@@ -1,3 +1,5 @@
+Latest:73 test apps/game compiled; confirmed combined20s setup budget mistake fixed with separate phases, local38 PASS. Next native verification pending. All objectives below remain queued; no phone task.
+
 Latest checkpoint:72 failed standalone simulator health/recovery after game/card checks PASS. UIKit health/socket test-entry repair local34+ARC2 PASS, next Apple pending. No phone action; keep68; previous objectives remain queued.
 
 # Open Nectar co-op — running objective queue

@@ -44,7 +44,7 @@ def collect_failure(udid, output, execute):
     ]
     for name, args in commands:
         try:
-            (output / name).write_text(execute(*args, timeout=15), encoding='utf-8')
+            (output / name).write_text(execute(*args, timeout=45), encoding='utf-8')
         except Exception as error:
             partial = output_text(getattr(error, 'output', None))
             (output / name).write_text(partial, encoding='utf-8')
@@ -176,13 +176,15 @@ def run(binary, output, execute=command, *, health_binary=None, isolated=True):
                 break
             except Exception as error:
                 setup.update(failed_stage=stage, error=traceback.format_exc())
+                if getattr(error, 'app_phase', None):
+                    setup['failed_app_phase'] = error.app_phase
                 # Exactly one recovery for a timed-out SETUP, before any native
                 # probe executes. Never retry native failures or relax its gate.
                 if not (isolated and attempt == 1 and isinstance(error, subprocess.TimeoutExpired)):
                     raise
                 collect_failure(udid, setup_output, execute)
                 stage = 'setup-recovery'
-                execute('xcrun', 'simctl', 'shutdown', udid, timeout=20)
+                execute('xcrun', 'simctl', 'shutdown', udid, timeout=60)
                 receipt['setup_recovery_attempted'] = True
         stage = 'probe'
         (output / 'socket-session.log').write_text('', encoding='utf-8')
@@ -201,9 +203,14 @@ def run(binary, output, execute=command, *, health_binary=None, isolated=True):
             if stage == 'probe':
                 (output / 'socket-session.log').write_text(partial, encoding='utf-8')
         receipt['failed_stage'] = stage
+        app_phase = getattr(error, 'app_phase', None)
+        if app_phase:
+            receipt['failed_app_phase'] = app_phase
         entered = receipt.get('probe_entered_main_observed', False) or START_MARKER in partial.splitlines()
         receipt['probe_entered_main_observed'] = entered
-        if stage == 'health':
+        if app_phase in ('install', 'launch'):
+            receipt['failure_kind'] = 'simulator_app_' + app_phase + '_failed'
+        elif stage == 'health':
             receipt['failure_kind'] = 'simulator_execution_unhealthy_before_probe'
         elif stage == 'probe' and isinstance(error, subprocess.TimeoutExpired) and not entered:
             receipt['failure_kind'] = 'probe_preentry_timeout_unclassified'
@@ -233,7 +240,7 @@ def run(binary, output, execute=command, *, health_binary=None, isolated=True):
             commands = [('shutdown', udid)] + ([('delete', udid)] if isolated else [])
             for args in commands:
                 try:
-                    execute('xcrun', 'simctl', *args, timeout=20)
+                    execute('xcrun', 'simctl', *args, timeout=60)
                 except Exception:
                     errors.append(traceback.format_exc())
             receipt['cleanup_errors'] = errors

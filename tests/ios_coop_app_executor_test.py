@@ -14,12 +14,19 @@ RUNTIME='com.apple.CoreSimulator.SimRuntime.iOS-27-1'
 
 
 class Backend:
-    def __init__(self, text=None, health_fail_once=False):
+    def __init__(self, text=None, health_fail_once=False, delays=None, advance=None):
         self.calls=[];self.text=text;self.health_fail_once=health_fail_once
+        self.requests=[];self.delays=delays or {};self.advance=advance or (lambda seconds:None)
         self.native_launches=self.health_launches=0
 
     def __call__(self,*args,**kwargs):
         self.calls.append(args)
+        self.requests.append((args,kwargs))
+        delay=self.delays.get(args[2],0) if len(args)>2 else 0
+        if delay:
+            self.advance(delay)
+            if delay>kwargs['timeout']:
+                raise subprocess.TimeoutExpired(args,kwargs['timeout'],output=b'control phase still pending')
         if 'vtool' in args:return 'platform IOSSIMULATOR'
         if args[2:4]==('list','devices'):
             return json.dumps({'devices':{RUNTIME:[{'name':'iPhone fixture','udid':'borrowed',
@@ -130,6 +137,59 @@ class AppTests(unittest.TestCase):
         self.pipeline(Backend())
         (self.output/'socket-session.log').write_text('NECTAR_COOP_SOCKET_PROBE_PASS\n')
         with self.assertRaises(AssertionError):verify_result(self.output/'result.json','success')
+
+    def test_measured_slow_install_and_launch_do_not_consume_execution_budget(self):
+        backend=Backend(delays={'install':95,'launch':37},advance=self.sleep)
+        receipt=self.pipeline(backend)
+        self.assertEqual(receipt['result'],'PASS')
+        verify_result(self.output/'result.json','success')
+        for kind,budget in [('health',20),('socket',90)]:
+            path=next(self.output.glob(f'*-{kind}-app/app-result.json'))
+            phases=json.loads(path.read_text())['phases']
+            self.assertEqual([(p['phase'],p['budget_seconds']) for p in phases],
+                             [('install',180),('launch',90),('execution',budget),('terminate',60)])
+            self.assertEqual(phases[0]['elapsed_seconds'],95)
+            self.assertEqual(phases[1]['elapsed_seconds'],37)
+            self.assertEqual(phases[2]['elapsed_seconds'],0)
+
+    def test_install_timeout_is_not_reported_as_native_execution(self):
+        backend=Backend(delays={'install':181},advance=self.sleep)
+        with self.assertRaises(subprocess.TimeoutExpired) as caught:self.pipeline(backend)
+        self.assertEqual(caught.exception.timeout,180)
+        self.assertEqual(caught.exception.app_phase,'install')
+        receipt=json.loads((self.output/'result.json').read_text())
+        self.assertEqual(receipt['failure_kind'],'simulator_app_install_failed')
+        self.assertFalse(receipt['probe_entered_main_observed'])
+        self.assertEqual(backend.native_launches,0)
+        self.assertFalse(any(c[2]=='launch' for c in backend.calls))
+        for path in self.output.glob('*-health-app/app-result.json'):
+            app=json.loads(path.read_text());self.assertEqual(app['failed_phase'],'install')
+            self.assertFalse(any(p['phase']=='execution' for p in app['phases']))
+
+    def test_launch_timeout_has_own_budget_and_phase(self):
+        backend=Backend(delays={'launch':91},advance=self.sleep)
+        with self.assertRaises(subprocess.TimeoutExpired) as caught:self.pipeline(backend)
+        self.assertEqual(caught.exception.timeout,90)
+        self.assertEqual(caught.exception.app_phase,'launch')
+        receipt=json.loads((self.output/'result.json').read_text())
+        self.assertEqual(receipt['failure_kind'],'simulator_app_launch_failed')
+        self.assertEqual(backend.native_launches,0)
+        self.assertTrue(any(c[2]=='terminate' for c in backend.calls))
+
+    def test_native_execution_still_times_out_after_successful_slow_setup(self):
+        backend=Backend(text='NECTAR_UIKIT_PROBE_ENTERED\nNECTAR_COOP_SOCKET_PROBE_STARTED\n',
+                        delays={'install':95,'launch':37},advance=self.sleep)
+        with self.assertRaises(subprocess.TimeoutExpired) as caught:self.pipeline(backend)
+        self.assertEqual(caught.exception.timeout,90)
+        self.assertEqual(caught.exception.app_phase,'execution')
+        receipt=json.loads((self.output/'result.json').read_text())
+        self.assertEqual(receipt['failure_kind'],'native_probe_failed_or_incomplete')
+        self.assertTrue(receipt['probe_entered_main_observed'])
+        self.assertEqual(backend.native_launches,1)
+        app=json.loads(next(self.output.glob('*-socket-app/app-result.json')).read_text())
+        execution=next(p for p in app['phases'] if p['phase']=='execution')
+        self.assertGreaterEqual(execution['elapsed_seconds'],90)
+        self.assertLess(execution['elapsed_seconds'],90.2)
 
 
 if __name__=='__main__':unittest.main()

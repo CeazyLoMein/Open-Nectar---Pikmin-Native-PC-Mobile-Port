@@ -9,6 +9,11 @@ import time
 
 ENTRY = 'NECTAR_UIKIT_PROBE_ENTERED'
 EXIT_PREFIX = 'NECTAR_UIKIT_PROBE_EXIT '
+# Measured successful scene job: install ~95s and launch ~37s. Those are
+# simulator control-plane work, not the health/socket execution deadline.
+INSTALL_TIMEOUT = 180
+LAUNCH_TIMEOUT = 90
+CLEANUP_TIMEOUT = 60
 EXPECTED = {'socket':('org.opennectar.tests.coopsocket','NectarCoopSocketProbe'),
             'health':('org.opennectar.tests.coophealth','NectarCoopHealthProbe')}
 
@@ -61,8 +66,10 @@ class AppExecutor:
         base.mkdir()
         stdout, stderr = base/'stdout.log',base/'stderr.log'
         stdout.write_text('',encoding='utf-8');stderr.write_text('',encoding='utf-8')
-        deadline = self.clock()+timeout
         launch_attempted = False
+        phase = 'install'
+        receipt = {'kind':kind,'bundle':bundle,'simulator_udid':udid,'result':'FAIL','phases':[]}
+        deadline = None
         def remaining():
             seconds = deadline-self.clock()
             if seconds <= 0:
@@ -70,13 +77,30 @@ class AppExecutor:
             return seconds
         def read():
             return stdout.read_text(encoding='utf-8',errors='replace')+stderr.read_text(encoding='utf-8',errors='replace')
+        def control_step(name,budget,*args):
+            event={'phase':name,'budget_seconds':budget,'result':'FAIL'}
+            receipt['phases'].append(event)
+            begun=self.clock()
+            try:
+                text=self.execute(*args,timeout=budget)
+                event['result']='PASS'
+                return text
+            finally:
+                event['elapsed_seconds']=round(self.clock()-begun,3)
         try:
-            self.execute('xcrun','simctl','install',udid,str(app),timeout=remaining())
+            control_step('install',INSTALL_TIMEOUT,'xcrun','simctl','install',udid,str(app))
+            phase = 'launch'
             launch_attempted = True
-            launch = self.execute('xcrun','simctl','launch','--stdout='+str(stdout),
-                                  '--stderr='+str(stderr),udid,bundle,timeout=remaining())
+            launch = control_step('launch',LAUNCH_TIMEOUT,'xcrun','simctl','launch','--stdout='+str(stdout),
+                                  '--stderr='+str(stderr),udid,bundle)
             (base/'launch.txt').write_text(launch,encoding='utf-8')
+            phase = 'execution'
+            begun=self.clock()
+            deadline=begun+timeout
+            event={'phase':phase,'budget_seconds':timeout,'result':'FAIL'}
+            receipt['phases'].append(event)
             while True:
+                remaining()
                 text = read()
                 lines = text.splitlines()
                 exits = [line for line in lines if line.startswith(EXIT_PREFIX)]
@@ -88,16 +112,29 @@ class AppExecutor:
                     code = int(exits[0][len(EXIT_PREFIX):])
                     if code != 0:
                         raise AppProbeFailed(f'Native UIKit test returned {code}',text)
+                    event.update(result='PASS',elapsed_seconds=round(self.clock()-begun,3))
+                    receipt['result']='PASS'
                     return text
                 self.sleep(min(.1,remaining()))
         except subprocess.TimeoutExpired as error:
             # Retain actual native progress, including START, for runner's
             # native-failure classification. A timeout never becomes success.
             text=read()
-            raise subprocess.TimeoutExpired(error.cmd,timeout,output=text or error.output) from error
+            failure=subprocess.TimeoutExpired(error.cmd,error.timeout,output=text or error.output)
+            failure.app_phase=phase
+            receipt.update(failed_phase=phase,error=str(failure))
+            raise failure from error
+        except Exception as error:
+            error.app_phase=phase
+            receipt.update(failed_phase=phase,error=str(error))
+            raise
         finally:
+            if phase == 'execution' and receipt['phases'][-1]['result']=='FAIL':
+                receipt['phases'][-1]['elapsed_seconds']=round(self.clock()-begun,3)
             if launch_attempted:
                 try:
-                    self.execute('xcrun','simctl','terminate',udid,bundle,timeout=10)
+                    control_step('terminate',CLEANUP_TIMEOUT,'xcrun','simctl','terminate',udid,bundle)
                 except Exception as error:
                     (base/'terminate-error.txt').write_text(str(error),encoding='utf-8')
+                    receipt['cleanup_error']=str(error)
+            (base/'app-result.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8')
