@@ -1,3 +1,9 @@
+## Research complete; independent personal settings and additive queue confirmed — October26
+
+See COOP_MOD_RESEARCH.md for source-based QSB/Skyrim Together/Elden Ring Seamless/BBSC comparison, evidence limits and transferred design patterns; COOP_OBJECTIVE_QUEUE.md retains earlier and new objectives. New steering adds work unless explicitly canceled. Independent camera, graphics/FPS, controls and touch layout are CORE; per-player difficulty optional. Host-agreed gameplay rules may be temporary without overwriting personal config. Different cosmetic packs intended after validation; arbitrary gameplay mods need explicit support.
+
+NEW REUSE LIMIT FOUND: old pc_settings_netplay_session_begin forces30FPS; PC_NETPLAY_SESSION_FIELDS includes freeCamera/firstPerson/gyro/coop camera fields. Exact replay cannot be enabled unchanged under user requirements. It remains a bounded candidate with a strict independence test, not an architectural switch or production shortcut. Keep host-owned world/campaign and reuse local two-captain/camera/HUD/audio/room/input/storage mechanisms. Research did not implement gameplay or trigger a build.72 last observed in progress, not polled here; keep68, no phone task.
+
 ## Co-op reuse audit — correction and faster-path candidate (October26)
 
 User asked whether established local co-op/upstream research could accelerate online development. Read actual local/online source, not only earlier journal summaries. No gameplay/architecture switch implemented and no native build requested for this audit.
