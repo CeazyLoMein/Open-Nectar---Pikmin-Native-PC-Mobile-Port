@@ -87,6 +87,7 @@ bool CoopSession::begin(std::uint64_t session, std::uint16_t epoch, std::uint64_
 void CoopSession::end() {
     mActive = false;
     mLost = false;
+    mBuffered.clear();
     mSession = 0;
     mEpoch = 0;
     mRequiredFrame = mLastPublished = mLastPublishedTick = mLastActorAt = 0;
@@ -423,7 +424,9 @@ void CoopSession::pump(std::uint64_t now) {
         return;
     }
     TransportEvent event;
-    for (std::size_t i = 0; i < 64 && mLink.poll(event); ++i) {
+    for (std::size_t i = 0; i < 64; ++i) {
+        if (!mBuffered.empty()) {event=std::move(mBuffered.front());mBuffered.pop_front();}
+        else if (!mLink.poll(event)) break;
         receive(event, now);
         if (mLost)
             return;

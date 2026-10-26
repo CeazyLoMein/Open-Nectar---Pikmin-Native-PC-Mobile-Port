@@ -1,3 +1,5 @@
+#include "nectar_net/coop_connection.h"
+#include "nectar_net/practice_bootstrap.h"
 // Real encrypted loopback UDP, authentication, compatibility and session flow.
 // No game assets, save files, router mapping or synthetic transport involved.
 #include "nectar_net/coop_session.h"
@@ -184,10 +186,10 @@ int main() {
     loopback.port = config.localPort;
     config.manualEndpoints.push_back(loopback);
     std::puts("STAGE private room creation");
-    HostRoom room(defaultTransportFactory(), PublisherBackends{});
+    auto room = std::make_unique<HostRoom>(defaultTransportFactory(), PublisherBackends{});
     RoomStatus status;
     constexpr std::uint64_t unixNow = 1790000000;
-    if (!require(room.open(config, unixNow, status) == RoomError::None && !status.code.empty(),
+    if (!require(room->open(config, unixNow, status) == RoomError::None && !status.code.empty(),
                  "private one-code room opens without router mapping")) return 1;
     ConnectionCode decoded;
     if (!require(decodeConnectionCode(status.code,decoded)==ConnectionCodeError::None &&
@@ -198,7 +200,7 @@ int main() {
         JoinProgress progress = JoinProgress::Connecting;
         const bool settled = until([&] {
             TransportEvent event;
-            while (room.transport()->poll(event)) {}
+            while (room->transport()->poll(event)) {}
             // Deliberately let reliable verdict and peer-close arrive together.
             // A loaded phone/simulator need not poll every two milliseconds.
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -209,7 +211,7 @@ int main() {
         }, GuestJoin::kAttemptTimeoutMs + 1000);
         std::printf("JOIN verdict: settled=%d progress=%d failure=%s mismatch=%s attempts=%zu rejected=%u\n",
             static_cast<int>(settled),static_cast<int>(progress),joinFailureString(join.failure()),
-            compatibilityFieldString(join.incompatibility()),join.attemptedEndpoints(),room.transport()->rejectedPeers());
+            compatibilityFieldString(join.incompatibility()),join.attemptedEndpoints(),room->transport()->rejectedPeers());
         return settled;
     };
     const CompatibilityField fields[] = {CompatibilityField::Content,CompatibilityField::Build,
@@ -229,10 +231,10 @@ int main() {
         if (!require(mismatch.start(status.code,different,1,unixNow,nowMs())==JoinFailure::None &&
                      settleJoin(mismatch) && mismatch.failure()==JoinFailure::Incompatible &&
                      mismatch.incompatibility()==field && mismatch.host()!=nullptr &&
-                     mismatch.attemptedEndpoints()==1 && room.transport()->state()==TransportState::Listening,
+                     mismatch.attemptedEndpoints()==1 && room->transport()->state()==TransportState::Listening,
                      "delayed guest receives exact incompatibility; host remains available")) return 1;
     }
-    if (!require(room.transport()->bannedOrigins()==0,"version/content differences never ban the partner")) return 1;
+    if (!require(room->transport()->bannedOrigins()==0,"version/content differences never ban the partner")) return 1;
     {
         GuestJoin partner;
         if (!require(partner.start(status.code, identity(), 1, unixNow, nowMs()) == JoinFailure::None &&
@@ -241,13 +243,53 @@ int main() {
         partner.cancel();
     }
     {
-        GuestJoin rejoin;
-        if (!require(rejoin.start(status.code,identity(),1,unixNow,nowMs())==JoinFailure::None &&
-                     settleJoin(rejoin) && rejoin.transport()->state()==TransportState::Connected,
+        auto rejoin = std::make_unique<GuestJoin>();
+        if (!require(rejoin->start(status.code,identity(),1,unixNow,nowMs())==JoinFailure::None &&
+                     settleJoin(*rejoin) && rejoin->transport()->state()==TransportState::Connected,
                      "matching partner rejoins after leaving the same room")) return 1;
-        rejoin.cancel();
+        CoopConnection hostGame, guestGame;
+        if (!require(hostGame.adoptHost(room) && !room && hostGame.connected(),
+                     "live private host room transfers without reconnecting or copying credentials")) return 1;
+        PracticeBootstrap hostLoad(hostGame), guestLoad(guestGame);
+        auto loadPump = [&] {hostLoad.pump(nowMs());guestLoad.pump(nowMs());};
+        bool earlyStart = false;
+        if (!require(hostLoad.beginHost(200,42,nowMs()) && until([&] {
+                hostLoad.pump(nowMs());TransportEvent e;bool has=false;
+                const auto progress=rejoin->poll(nowMs(),e,has);
+                if(progress==JoinProgress::Connected&&has&&e.type==TransportEventType::Message)
+                    earlyStart=guestGame.bufferBeforeHandoff(std::move(e));
+            },[&] {return earlyStart;}) && guestGame.adoptGuest(rejoin) && !rejoin && guestGame.connected(),
+            "early host area message survives guest native-style UI ownership handoff")) return 1;
+        if (!require(guestLoad.beginGuest(nowMs()) &&
+                     until(loadPump,[&] {return guestLoad.phase()==PracticeLoadPhase::Loading;}) &&
+                     hostLoad.worldLoaded(0,nowMs()) && guestLoad.worldLoaded(0,nowMs()) &&
+                     until(loadPump,[&] {return guestLoad.phase()==PracticeLoadPhase::SessionLoading;}),
+                     "both agreed actual fixture area loads before retained socket session starts")) return 1;
+        auto hp = [&] { hostGame.session()->pump(nowMs()); guestGame.session()->pump(nowMs()); };
+        std::vector<std::vector<std::uint8_t>> movedPackets;
+        if (!require(packActorFrame(200,1,1,1,{captainRecord(1,a),captainRecord(1,b)},1000,{},movedPackets) &&
+                     hostGame.session()->publishActors(movedPackets,nowMs()) &&
+                     until(hp,[&] { return guestGame.session()->actors().captains.size()==2; }),
+                     "both captain records reach guest after room-to-session handoff")) return 1;
+        if (!require(hostGame.session()->confirmWorldLoaded() && guestGame.session()->confirmWorldLoaded() &&
+                     hostGame.session()->setReady(true) && guestGame.session()->setReady(true) &&
+                     until(hp,[&] { return hostGame.session()->hostShouldAdvanceWorld() && guestGame.session()->canIssueCommands(); }),
+                     "retained session still requires explicit fixture loading and both ready")) return 1;
+        NetInputFrame movedInput;movedInput.tick=4;movedInput.stickY=85;
+        if (!require(guestGame.session()->publishInput({movedInput},nowMs()) &&
+                     until(hp,[&] { return hostGame.session()->receivedGuestInputTick()==4; }) &&
+                     hostGame.session()->consumeGuestInput(4,applied,health) && applied.stickY==85,
+                     "guest input crosses same encrypted room after UI relinquishes ownership")) return 1;
+        TransportEvent unused;
+        if (!require(!hostGame.pollBeforeSession(unused) && !guestGame.sendBeforeSession({1}),
+                     "bootstrap cannot steal gameplay messages after session takes over")) return 1;
+        guestGame.close();
+        if (!require(until([&] {hostGame.session()->pump(nowMs());},
+                          [&] {return hostGame.session()->phase()==CoopPhase::WaitingForPartner;}),
+                     "retained host safely pauses when moved guest owner closes")) return 1;
+        hostGame.close();
     }
-    room.close();
+    if (room) room->close();
     std::puts("STAGE private room closed; leaving native probe");
     std::puts("NECTAR_COOP_SOCKET_PROBE_PASS");
     return 0;

@@ -237,7 +237,9 @@ jobs:
             libs/nectar_net/src/entity_registry.cpp libs/nectar_net/tests/entity_registry_test.cpp \
             libs/nectar_net/src/pikmin_replication.cpp libs/nectar_net/tests/pikmin_replication_test.cpp \
             libs/nectar_net/src/actor_frame.cpp libs/nectar_net/tests/actor_frame_test.cpp \
-            libs/nectar_net/src/coop_session.cpp libs/nectar_net/tests/coop_session_test.cpp
+            libs/nectar_net/src/coop_session.cpp libs/nectar_net/tests/coop_session_test.cpp \
+            libs/nectar_net/src/coop_connection.cpp libs/nectar_net/tests/coop_connection_test.cpp \
+            libs/nectar_net/src/practice_bootstrap.cpp
       - name: Check actual P1 co-op capture and pooled actor lifecycle
         if: matrix.game == 'pikmin1'
         shell: bash

@@ -4,6 +4,7 @@
 #include "nectar_net/protocol.h"
 #include "nectar_net/input.h"
 #include <array>
+#include <deque>
 
 namespace nectar::net {
 constexpr std::uint32_t kCoopSessionCapability = 0x00010000;
@@ -70,6 +71,8 @@ class CoopSession {
     CoopMarker marker(std::uint8_t player, std::uint64_t nowMs) const;
 
   private:
+    friend class CoopConnection; // exclusive already-authenticated handoff queue
+    std::deque<TransportEvent> mBuffered;
     bool linked() const;
     bool send(MessageType type, const std::vector<std::uint8_t> &payload);
     bool control(std::uint8_t op, std::uint8_t value = 0, std::uint64_t frame = 0);

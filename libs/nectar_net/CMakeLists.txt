@@ -28,6 +28,8 @@ add_library(nectar_net STATIC
     src/sim_network.cpp
     src/upnp_client.cpp
     src/coop_session.cpp
+    src/coop_connection.cpp
+    src/practice_bootstrap.cpp
     src/actor_frame.cpp
     src/entity_registry.cpp
     src/pikmin_replication.cpp
@@ -96,7 +98,7 @@ if(NECTAR_NET_BUILD_TESTS AND NOT ANDROID)
     endfunction()
 
     foreach(name protocol_test connection_code_test join_gate_test gated_transport_test compatibility_test
-                 decoder_fuzz_test port_mapping_test port_publisher_test room_test input_test clock_test world_scene_test soak_test replication_test onion_authority_test entity_registry_test pikmin_replication_test actor_frame_test coop_session_test)
+                 decoder_fuzz_test port_mapping_test port_publisher_test room_test input_test clock_test world_scene_test soak_test replication_test onion_authority_test entity_registry_test pikmin_replication_test actor_frame_test coop_session_test coop_connection_test)
         nectar_net_add_test(${name})
     endforeach()
     if(NECTAR_NET_ENABLE_GNS)

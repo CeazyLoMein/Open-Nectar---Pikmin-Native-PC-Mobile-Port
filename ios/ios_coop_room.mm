@@ -1,6 +1,8 @@
 #import <UIKit/UIKit.h>
 #include "ios_coop_content_identity.h"
 #include "ios_coop_room.h"
+#include "ios_coop_handoff.h"
+#include "nectar_net/coop_connection.h"
 #include "nectar_coop_build_identity.h"
 #include "nectar_net/room.h"
 #include <chrono>
@@ -36,11 +38,14 @@ NSString* joinError(JoinFailure failure, CompatibilityField field) {
 @interface NectarCoopRoomController : UIViewController {
     std::unique_ptr<HostRoom> _host;
     std::unique_ptr<GuestJoin> _guest;
+    std::unique_ptr<CoopConnection> _handoff;
     CompatibilityInfo _identity;
     BOOL _checked;
     BOOL _closed;
     BOOL _away;
 }
+- (BOOL)detachConnection:(std::unique_ptr<CoopConnection>*)output;
+- (BOOL)rememberEvent:(TransportEvent*)event;
 @property(nonatomic, strong) UILabel* status;
 @property(nonatomic, strong) UITextView* code;
 @property(nonatomic, strong) UIButton* hostButton;
@@ -149,6 +154,7 @@ static std::atomic<bool> sRoomCoversGame{false};
                     controller->_identity.content = digest;
                     controller->_identity.capabilities = kConnectionCheckCapability;
                     controller->_identity.requiredCapabilities = kConnectionCheckCapability;
+                    requireCoopSessionCapability(controller->_identity);
                     controller.status.text = @"Ready. Host a room or paste a private room code.";
                 } else controller.status.text = @"Couldn't verify the game data. Close this screen and check that P1's assets are installed.";
                 [controller updateButtons];
@@ -168,10 +174,11 @@ static std::atomic<bool> sRoomCoversGame{false};
     self.leaveButton.enabled = busy;
 }
 - (void)stopConnection {
-    // No CoopSession borrows these links yet; future session must end FIRST.
+    // UI owns links only before handoff. Successful detach empties these slots;
+    // CoopConnection ends its borrowed session before closing the moved room.
     if (_guest) _guest->cancel();
     if (_host) _host->close();
-    _guest.reset(); _host.reset();
+    _guest.reset(); _host.reset(); _handoff.reset();
     self.code.text = @"";
     self.pendingJoinCode = nil;
     [self.view endEditing:YES];
@@ -223,13 +230,24 @@ static std::atomic<bool> sRoomCoversGame{false};
     self.code.text = sLastJoinedRoomCode;
     [self joinRoom]; // Fresh authentication/content validation; never bypass the gates.
 }
+- (BOOL)rememberEvent:(TransportEvent*)event {
+    if (event->type == TransportEventType::Connected || event->type == TransportEventType::Disconnected ||
+        event->type == TransportEventType::Error) { _handoff.reset(); return YES; }
+    if (event->type != TransportEventType::Message) return YES;
+    if (!_handoff) _handoff = std::make_unique<CoopConnection>();
+    if (_handoff->bufferBeforeHandoff(std::move(*event))) return YES;
+    [self stopConnection];
+    self.status.text = @"The connection sent invalid or too many startup messages. Please reconnect.";
+    return NO;
+}
 - (void)pump:(NSTimer*)timer {
     (void)timer;
     if (_closed || _away) return;
     GatedTransport* link = nullptr;
     if (_host) {
         TransportEvent event;
-        for (int count = 0; count < 64 && _host->transport()->poll(event); ++count) {}
+        for (int count = 0; count < 64 && _host->transport()->poll(event); ++count)
+            if (![self rememberEvent:&event]) return;
         link = _host->transport();
         if (link->state() == TransportState::Failed) {
             [self stopConnection];
@@ -256,6 +274,7 @@ static std::atomic<bool> sRoomCoversGame{false};
             sLastJoinedRoomCode = [self.pendingJoinCode copy];
             self.pendingJoinCode = nil;
         }
+        if (hasEvent && ![self rememberEvent:&event]) return;
         link = _guest->transport();
     }
     if (link && link->state() == TransportState::Connected) {
@@ -289,6 +308,7 @@ static std::atomic<bool> sRoomCoversGame{false};
         // Sharing the copied code through Messages must not invalidate the room.
         // No gameplay is active: drop any partner, keep listening/code in memory,
         // and require a fresh authenticated connection after returning.
+        _handoff.reset();
         _host->transport()->disconnectPeer(false);
         self.status.text = @"Room kept open. Return here after sharing the code, before your partner joins.";
     } else if (_guest) {
@@ -301,7 +321,24 @@ static std::atomic<bool> sRoomCoversGame{false};
     _away = NO;
     if (_host) self.status.text = @"Same room open. Your partner can rejoin now. Keep P1 in front.";
 }
+- (BOOL)detachConnection:(std::unique_ptr<CoopConnection>*)output {
+    // Exactly one main-thread handoff; failed validation leaves UI/owners intact.
+    if (!NSThread.isMainThread || !output || *output || !_checked || _closed || _away) return NO;
+    if (!_handoff) _handoff = std::make_unique<CoopConnection>();
+    const bool accepted = _host ? _handoff->adoptHost(_host) : _guest ? _handoff->adoptGuest(_guest) : false;
+    if (!accepted) return NO;
+    _closed = YES;
+    self.view.userInteractionEnabled = NO;
+    [self.timer invalidate]; self.timer = nil;
+    [NSNotificationCenter.defaultCenter removeObserver:self];
+    // Do NOT call stopConnection: it would close the link the game now owns.
+    [self.view endEditing:YES]; self.code.text = @""; self.pendingJoinCode = nil;
+    *output = std::move(_handoff);
+    [self dismissViewControllerAnimated:YES completion:^{ sRoomController = nil; sRoomCoversGame.store(false); }];
+    return YES;
+}
 - (void)closeScreen {
+    if (_closed) return;
     _closed = YES;
     [self stopConnection];
     [self.timer invalidate]; self.timer = nil;
@@ -332,6 +369,11 @@ extern "C" void nectar_ios_open_coop_room(void) {
         sRoomCoversGame.store(true);
         [presenter presentViewController:sRoomController animated:YES completion:nil];
     });
+}
+
+bool nectar_ios_coop_room_take_connection(std::unique_ptr<CoopConnection>& output) {
+    if (!NSThread.isMainThread || output || !sRoomController) return false;
+    return [sRoomController detachConnection:&output] == YES;
 }
 
 extern "C" int nectar_ios_coop_room_is_open(void) {

@@ -129,3 +129,5 @@ October25 —67 compiler failure:3 legacy sprintf calls rejected by Apple SDK. A
 | October25 | T05/T07/T08 | Build68 | User reports "all good so far, on the tests"; requested menu, remembered Rejoin and return checks accepted as overall limited pass | PASS user report; no new phone action; T10 waits real gameplay prototype |
 
 October25 engineering: authenticated guest input + actual guest captain transform helpers implemented, local23 tests/real Windows loopback/actual adapter fixture/Clang PASS; Apple pending. Not yet connected to scene/controller/camera/UI; T10 remains FUTURE, no phone task. User reports68 gameplay heat also noticeably improved, cause unconfirmed. Keep68 installed.
+
+October25 —69 full Apple/12 checks/simulator input+pause/package verified PASS; no install requested. New retained-link/native handoff/early-message queue/both-loaded area agreement implemented and local24 tests/real Windows encrypted probe/Clang6/ARC10/identity2 PASS, next Apple run pending. Actual disposable card+engine/camera/controller driver still missing; T10 remains future. Keep68 installed; no phone action.
