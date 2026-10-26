@@ -1,3 +1,10 @@
+## Current build: 75 — protected actual startup and independent views
+
+Run 40338639501; source 17e674e20aedf048aa0cea09de1c64ff87e1d962; last observed IN_PROGRESS, no final result or new IPA yet.
+https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40338639501
+
+One P1-only batch: protected CardUtil producer gate/drain/private admission and cached MemoryCard reset; actual title/setup reuse; independent fullscreen local camera/HUD/Onion/audio selection and teardown. Local actual-source fixtures, MSVC/Clang checks,24 networking CTests,6 failure/gate regressions,5 identity/bundle checks and2 rejecting negative controls PASS. Apple/full engine and phone behavior pending. VIEW selection does not freeze guest simulation; complete shared world/engine bridge still missing. No Start/UI exposure. Keep accepted68 on both phones; no USB or installation task. P2 untouched. User reports completion; no idle CI polling.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** 2026-10-26T14:19:45.162331+00:00 UTC (user timezone America/New_York).
