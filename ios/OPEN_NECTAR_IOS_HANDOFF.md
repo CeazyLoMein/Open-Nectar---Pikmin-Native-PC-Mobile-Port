@@ -1,3 +1,9 @@
+## Build75 SUCCESS — actual Apple practice startup/view checks verified
+
+Verified 2026-10-26T20:02:22.080315+00:00. Source17e674e20aedf048aa0cea09de1c64ff87e1d962; run40338639501 attempt1; scene121626913542 and P1121631623643 SUCCESS. All9 practice checks PASS, including actual admission/start/cache/backend and camera/HUD/Onion/audio fixtures on macOS plus iPhoneOS syntax. Full native game BUILD SUCCEEDED;12 room checks and actual encrypted UIKit simulator health/socket runtime PASS; no cleanup errors. Artifact12659725915 SHA256d8824bc53ba70e35b2e467ca339df2b35646ccee434b65d44ff737ab6d67e45f and ZIP CRC verified. IPA5299899bytes SHA2568c7eb9819a6ac8b3e04a282e42c1361713de55faff21aa6a797f23e2631f2b5f, UUIDcf1a69ff-1596-3ff2-96b3-4c78da1ec885; ARM64 iPhoneOS/platform, existing app identity/icons/notices checked. Retained privately under outputs/Build75-Pikmin1; NOT staged as phone update.
+
+This proves compilation/test/package validation, not real phone/shared-world gameplay. Keep accepted68 installed; no phone/USB task. P2 untouched. Next: actual guest Pikmin identity/state adapter and complete engine/world ownership/presentation/input integration; do not expose Start or attest complete world from captain-only transforms. All queued independent settings/FPS120/campaign/recovery/PC/P2 requirements retained. No new build for this documentation result.
+
 ## Current build: 75 — protected actual startup and independent views
 
 Run 40338639501; source 17e674e20aedf048aa0cea09de1c64ff87e1d962; last observed IN_PROGRESS, no final result or new IPA yet.
