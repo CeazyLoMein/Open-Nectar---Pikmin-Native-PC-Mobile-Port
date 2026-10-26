@@ -1,3 +1,10 @@
+## Current run: Build76 — actual guest Pikmin cohort adapter
+
+Run40393742757; source0ced5bbe83504842602cd03872409dc584065169; last observed IN_PROGRESS, no final result/new IPA yet.
+https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40393742757
+
+75/run40338639501 full native startup/view/networking/package SUCCESS independently verified. New source binds explicit host IDs to current local Pikmin and validates ALL captains/squad before any writes; rejects missing/extra/recycled/bad actors without partial movement. Local actual adapter fixtures/300-Pikmin reordered packet test/MSVC/Clang/compile-out and2 negative controls PASS. Fixed-cohort step only: population lifecycle, animation/jobs, full-world state, guest simulation authority and actual room/area/input driver still required. No playable Start enabled; keep accepted68 installed, no phone/USB task. P2/personal graphics/FPS120/settings unchanged. User reports result; no idle CI polling.
+
 # OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
