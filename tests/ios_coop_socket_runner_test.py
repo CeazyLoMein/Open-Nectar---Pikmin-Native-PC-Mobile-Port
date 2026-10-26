@@ -13,14 +13,23 @@ from run_ios_coop_socket_probe import run, command, CommandFailed
 
 
 class RunnerTest(unittest.TestCase):
+    def setUp(self):
+        # Expected negative fixtures must not look like real CI probe failures.
+        self.print_guard = mock.patch('builtins.print')
+        self.print_guard.start()
+        self.addCleanup(self.print_guard.stop)
+
     def exercise(self, *, platform='IOSSIMULATOR', marker=True, failed=False, booted=False,
-                 timeout=False, partial=None, boot_timeout=False, diagnostic_failure=False):
+                 timeout=False, partial=None, boot_timeout=False, diagnostic_failure=False,
+                 health=False, health_before_fail=False, health_after_fail=False,
+                 health_platform='IOSSIMULATOR', native_text=None):
         calls = []
+        health_calls = []
 
         def execute(*args, **kwargs):
             calls.append(args)
             if 'vtool' in args:
-                return f'platform {platform}'
+                return f'platform {health_platform if args[-1].endswith("health-probe") else platform}'
             if 'list' in args:
                 return json.dumps({'devices': {'com.apple.CoreSimulator.SimRuntime.iOS-27-1': [
                     {'name': 'iPhone probe', 'udid': 'test-only', 'isAvailable': True,
@@ -31,25 +40,36 @@ class RunnerTest(unittest.TestCase):
                 if diagnostic_failure:
                     raise RuntimeError('diagnostic unavailable')
                 return 'filtered console'
+            if 'spawn' in args and args[-1].endswith('health-probe'):
+                health_calls.append(args)
+                if (len(health_calls) == 1 and health_before_fail) or (len(health_calls) > 1 and health_after_fail):
+                    raise subprocess.TimeoutExpired(args, 20, output=b'health launch pending')
+                return 'NECTAR_SIMULATOR_HEALTH_PASS\n'
             if 'spawn' in args:
                 if timeout:
                     raise subprocess.TimeoutExpired(args, 90, output=partial)
                 if failed:
                     raise RuntimeError('child process failed')
-                return 'NECTAR_COOP_SOCKET_PROBE_PASS\n' if marker else 'partial progress'
+                if native_text is not None:
+                    return native_text
+                return ('NECTAR_COOP_SOCKET_PROBE_STARTED\nNECTAR_COOP_SOCKET_PROBE_PASS\n'
+                        if marker else 'partial progress')
             return ''
 
         with tempfile.TemporaryDirectory() as folder:
             base = Path(folder)
             binary = base / 'probe'
             binary.write_bytes(b'fixture executable')
+            companion = base / 'health-probe'
+            companion.write_bytes(b'separate health executable')
             output = base / 'evidence'
             try:
-                run(binary, output, execute)
+                run(binary, output, execute, health_binary=companion if health else None)
             except (RuntimeError, AssertionError, subprocess.TimeoutExpired):
                 pass
             receipt = json.loads((output / 'result.json').read_text())
             self.assertEqual(len(receipt['binary_sha256']), 64)
+            self.health_calls = health_calls
             self.logs = {p.name: p.read_text(encoding='utf-8') for p in output.iterdir() if p.is_file()}
         return calls, receipt
 
@@ -102,6 +122,65 @@ class RunnerTest(unittest.TestCase):
         self.assertIn('TimeoutExpired', receipt['error'])
         self.assertIn('diagnostic unavailable', self.logs['diagnostic-errors.json'])
         self.assertEqual(self.logs['last-command-output.log'], 'BOOT progress before timeout')
+
+    def test_independent_health_program_runs_before_real_probe(self):
+        calls, receipt = self.exercise(health=True)
+        self.assertEqual(receipt['result'], 'PASS')
+        self.assertEqual(receipt['health_before_probe'], 'PASS')
+        self.assertTrue(receipt['probe_entered_main_observed'])
+        self.assertEqual(len(self.health_calls), 1)
+        self.assertNotEqual(receipt['health_binary_sha256'], receipt['binary_sha256'])
+        launches = [call[-1] for call in calls if 'spawn' in call and 'log' not in call]
+        self.assertTrue(launches[0].endswith('health-probe'))
+        self.assertTrue(launches[1].endswith('probe'))
+
+    def test_unhealthy_simulator_fails_before_starting_real_probe(self):
+        calls, receipt = self.exercise(health=True, health_before_fail=True)
+        self.assertEqual(receipt['result'], 'FAIL')
+        self.assertEqual(receipt['failed_stage'], 'health')
+        self.assertEqual(receipt['failure_kind'], 'simulator_execution_unhealthy_before_probe')
+        self.assertFalse(receipt['probe_entered_main_observed'])
+        self.assertFalse(any('spawn' in call and call[-1].endswith('/probe') for call in calls))
+        self.assertIn('health launch pending', self.logs['health-before-probe.log'])
+
+    def test_wrong_platform_health_binary_never_runs(self):
+        calls, receipt = self.exercise(health=True, health_platform='IOS')
+        self.assertEqual(receipt['result'], 'FAIL')
+        self.assertEqual(receipt['failed_stage'], 'health-platform')
+        self.assertFalse(any('spawn' in call for call in calls))
+
+    def test_empty_probe_timeout_and_failed_health_still_fail(self):
+        _, receipt = self.exercise(health=True, timeout=True, health_after_fail=True)
+        self.assertEqual(receipt['result'], 'FAIL')
+        self.assertEqual(receipt['health_after_timeout'], 'FAIL')
+        self.assertEqual(receipt['failure_kind'], 'probe_preentry_timeout_and_simulator_execution_unhealthy')
+        self.assertEqual(len(self.health_calls), 2)
+        self.assertFalse(receipt['probe_entered_main_observed'])
+
+    def test_healthy_simulator_does_not_excuse_probe_launch_timeout(self):
+        _, receipt = self.exercise(health=True, timeout=True)
+        self.assertEqual(receipt['result'], 'FAIL')
+        self.assertEqual(receipt['health_after_timeout'], 'PASS')
+        self.assertEqual(receipt['failure_kind'], 'probe_preentry_timeout_with_healthy_simulator')
+        self.assertEqual(len(self.health_calls), 2)
+
+    def test_real_native_timeout_is_never_reclassified_as_infrastructure(self):
+        _, receipt = self.exercise(health=True, timeout=True, health_after_fail=True,
+            partial='NECTAR_COOP_SOCKET_PROBE_STARTED\nSTAGE native code\n')
+        self.assertEqual(receipt['result'], 'FAIL')
+        self.assertTrue(receipt['probe_entered_main_observed'])
+        self.assertEqual(receipt['failure_kind'], 'native_probe_failed_or_incomplete')
+        self.assertEqual(len(self.health_calls), 1)
+
+    def test_health_pass_never_replaces_ordered_complete_real_probe(self):
+        for text in ['NECTAR_COOP_SOCKET_PROBE_PASS\n',
+                     'NECTAR_COOP_SOCKET_PROBE_PASS\nNECTAR_COOP_SOCKET_PROBE_STARTED\n',
+                     'NECTAR_COOP_SOCKET_PROBE_STARTED\nFAIL native\nNECTAR_COOP_SOCKET_PROBE_PASS\n',
+                     'NECTAR_COOP_SOCKET_PROBE_STARTED\nlabel: FAIL native\nNECTAR_COOP_SOCKET_PROBE_PASS\n']:
+            with self.subTest(text=text):
+                _, receipt = self.exercise(health=True, native_text=text)
+                self.assertEqual(receipt['result'], 'FAIL')
+                self.assertEqual(receipt['failure_kind'], 'native_probe_failed_or_incomplete')
 
     def test_command_nonzero_retains_full_output(self):
         result = subprocess.CompletedProcess(['probe'], 124,

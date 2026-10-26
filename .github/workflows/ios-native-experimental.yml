@@ -348,6 +348,13 @@ jobs:
             -DNECTAR_NET_ENABLE_UPNP=OFF -DNECTAR_NET_BUILD_COOP_SOCKET_PROBE=ON
           cmake --build "$RUNNER_TEMP/nectar-coop-socket" --target nectar_net_coop_socket_probe --parallel 3 \
             2>&1 | tee ios-coop-socket-build.log
+          # Independent executable: distinguish simulator execution health from
+          # game/GNS initialization. Never substitutes for the real probe PASS.
+          xcrun --sdk iphonesimulator clang -target arm64-apple-ios15.0-simulator \
+            -isysroot "$(xcrun --sdk iphonesimulator --show-sdk-path)" \
+            -std=c11 -Wall -Wextra -Werror tests/ios_simulator_health.c \
+            -o "$RUNNER_TEMP/nectar-coop-socket/nectar_simulator_health" \
+            2>&1 | tee -a ios-coop-socket-build.log
       - name: Configure iPhoneOS ARM64 target without signing
         shell: bash
         run: |
@@ -418,6 +425,7 @@ jobs:
           set -euo pipefail
           python3 tests/run_ios_coop_socket_probe.py \
             --binary "$RUNNER_TEMP/nectar-coop-socket/nectar_net_coop_socket_probe" \
+            --health-binary "$RUNNER_TEMP/nectar-coop-socket/nectar_simulator_health" \
             --output ios-coop-socket-results
       - name: Index compiler and linker errors
         if: always()
