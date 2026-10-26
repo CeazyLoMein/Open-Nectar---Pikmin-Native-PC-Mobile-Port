@@ -1,3 +1,60 @@
+# OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-26T20:13:32.229011+00:00 UTC (America/New_York user timezone).
+
+**Overall project status:** Build75 SUCCESS independently verified. Next P1-only source batch extends the real guest engine adapter from captain transforms to a complete explicitly bound Pikmin cohort. It is internal, not playable online co-op. Keep accepted68 on both phones; no phone/USB/installation task. All previous objectives remain queued.
+
+### Pikmin 1
+- Current objective: authoritative shared-world integration, preserving the working solo build and independent personal settings.
+- What was investigated:75 complete log/artifact/9 Apple practice receipts/12 room checks/real encrypted UIKit runtime/IPA; actual Piki/PikiMgr lifecycle and guest state mapping.
+- Root cause or leading hypothesis: captain-only application can leave a partial world. Actor order/address reuse cannot identify the host's Pikmin safely. Ordinary Piki::doKill also changes GameStat counters, plays effects and can create a seed; replaying that as guest removal would duplicate host gameplay.
+- Files changed: pc_port/netplay/pc_coop_world.h/.cpp; tests/pikmin1_coop_capture_test.py; project journals/implementation/objective queue.
+- Source changes: explicit accepted session/epoch + host-ID to LOCAL live-Piki bindings, with no pointer/order guessing; all currently live local Pikmin required. Validate every captain and Pikmin BEFORE any engine write; apply transforms/velocity/facing/coherent previous position/health/maturity/local captain association together. Owner/action remain host metadata and do not execute or overwrite guest AI actions. Missing/extra/foreign/recycled/invalid actors reject the ENTIRE update. Captain-only apply is refused after binding a squad. Pool forget invalidates the complete guest context; scene exit clears all pointers. Bounded scratch storage reused for population checks instead of per-Pikmin tree allocation each frame.
+- Tests and results: strict MSVC /W4 /WX actual adapter + existing capture/pool fixture PASS, including wrong sessions/epochs/kinds, duplicate IDs/pointers, unknown/missing population, changed local captain/color, bad final actor/NaN/Inf/health/maturity/owner/leader, clock rewind, unchanged metadata on rejection, cancellation of partial output, whole-scene lifetime and empty squads.300 Pikmin through real packActorFrame/ActorFrameReceiver with reordered fragments apply only after complete assembly. Compile-out fixture PASS. Final Clang/core-analyzer actual adapter + fixture PASS. Two isolated negative controls correctly FAIL when removing last-Pikmin value validation or Pikmin pool-lifetime invalidation. Python AST/diff PASS. Apple/full game validation for this batch PENDING.
+- Confirmed working:75 macOS actual admission/view fixture runs + iPhoneOS syntax/full native app/package and real networking PASS.75 artifact12659725915 SHA256d8824bc53ba70e35b2e467ca339df2b35646ccee434b65d44ff737ab6d67e45f; IPA5299899bytes SHA2568c7eb9819a6ac8b3e04a282e42c1361713de55faff21aa6a797f23e2631f2b5f UUIDcf1a69ff-1596-3ff2-96b3-4c78da1ec885, existing icons/identity/notices preserved, no cleanup errors. No75 phone install requested.
+- Remaining issues: this is a FIXED-COHORT visual/state step. It does not create/remove/convert Pikmin, reproduce animation/jobs/targets, freeze guest simulation, replicate enemies/items/Onions/campaign, or start an actual room/area. A population change currently rejects rather than guessing. Native UI still connection-only; no Start caller enabled. Do not attest a complete world from this adapter alone.
+
+### Pikmin 2
+- Current objective: preserve working port; later campaign coverage and online adapter.
+- What was investigated: no new P2 code/phone behavior.
+- Root cause or leading hypothesis: no new P2 failure under investigation.
+- Files changed: none.
+- Tests and results: no P2 job requested.
+- Confirmed working: earlier user hardware report; full campaign unproven.
+- Remaining issues: stronger campaign validation, later online integration.
+
+### GitHub
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: ios-experimental
+- Starting commit: 4a8862c5451dc51c1be3d013959df6308740daa8
+- Latest commit: new source commit recorded in Exact Resume State.json after commit.
+- Commits created: verified75 documentation checkpoint4a8862c5; this scoped guest Pikmin source/fixture batch.
+- Changes pushed: P1-only native validation for whole-squad adapter; no P2/workflow/graphics/FPS/settings changes.
+- Uncommitted changes: checked after source commit.
+- GitHub Actions run IDs:75/run40338639501 SUCCESS; next run recorded after dispatch.
+- Build results:75 fully verified; next native result pending.
+- Artifacts produced:75 IPA retained privately under outputs/Build75-Pikmin1; no new batch artifact yet. Build68 remains installed baseline.
+
+### Next steps
+- Next Pikmin 1 task: inspect exact next native result, then guest-only population lifecycle/animation and engine simulation/presentation separation, actual room/area/input bridge. Reuse local co-op camera/captain/squad paths; preserve independent personal settings/FPS120.
+- Next Pikmin 2 task: preserve; broader campaign testing later.
+- GitHub/build task: existing actual adapter Apple fixture automatically covers this expanded code; one P1-only run, no idle polling. User reports result.
+- Anything requiring user involvement: nothing yet; keep68 and existing assets/settings/saves installed.
+
+### ChatGPT continuation notes
+- Important functions: pc_coop_world_bind_guest_pikmin, pc_coop_world_apply_guest_actors, pc_coop_world_guest_pikmin_state, shared prepareCaptains/commitCaptains and pc_coop_world_forget.
+- Relevant logs: work/build75-p1-full.log, work/build75-p1-artifact.zip, work/build75-package-verification.json; work/guest-pikmin-final-clang.log, work/guest-pikmin-negative-controls.json and generated actual adapter fixture/binaries under work/coop-capture-*.
+- Unverified fixes: new adapter Apple compilation/runtime and actual phone behavior; no real two-phone gameplay or thermal improvement claimed by this change.300-Pikmin fixture is an adapter/network transaction test, not a phone performance benchmark.
+- Risks/warnings: use explicit engine-created identities, never pointer values from packets or local enumeration order. Guest AI must be suppressed by future driver. Keep mode/FSM changes out of plain snapshot assignment. Ordinary death/birth paths have host gameplay side effects and need a separate visual population adapter. World simulation still lives partly in newPikiGame::draw; skipping updateAI alone is insufficient. Temporary practice card remains restart-latched and Start needs clear restart UI before exposure.
+- Exact next actions: verify native result for this exact source; implement safe replica population/animation callbacks, complete world baseline and engine presentation authority, then connect room startup/readiness/input. Keep queued shared saves/reconnect/host-loss/mid-day persistence/internet/PC/P2 work, all documented in COOP_OBJECTIVE_QUEUE.md and COOP_MOD_RESEARCH.md. No original install changes until a concrete playable milestone.
+
+**END PROGRESS REPORT**
+
+---
+Earlier checkpoint history:
+
 ## Build75 SUCCESS — actual Apple practice startup/view checks verified
 
 Verified 2026-10-26T20:02:22.080315+00:00. Source17e674e20aedf048aa0cea09de1c64ff87e1d962; run40338639501 attempt1; scene121626913542 and P1121631623643 SUCCESS. All9 practice checks PASS, including actual admission/start/cache/backend and camera/HUD/Onion/audio fixtures on macOS plus iPhoneOS syntax. Full native game BUILD SUCCEEDED;12 room checks and actual encrypted UIKit simulator health/socket runtime PASS; no cleanup errors. Artifact12659725915 SHA256d8824bc53ba70e35b2e467ca339df2b35646ccee434b65d44ff737ab6d67e45f and ZIP CRC verified. IPA5299899bytes SHA2568c7eb9819a6ac8b3e04a282e42c1361713de55faff21aa6a797f23e2631f2b5f, UUIDcf1a69ff-1596-3ff2-96b3-4c78da1ec885; ARM64 iPhoneOS/platform, existing app identity/icons/notices checked. Retained privately under outputs/Build75-Pikmin1; NOT staged as phone update.

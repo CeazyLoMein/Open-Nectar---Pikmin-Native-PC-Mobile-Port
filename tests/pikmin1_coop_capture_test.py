@@ -13,7 +13,7 @@ struct Creature{virtual ~Creature()=default;struct{Vec t,r;}mSRT;Vec mVelocity,m
  float mFaceDirection=0,mHealth=100;bool alive=true,canRemove=true;
  virtual bool isAlive(){return alive;}bool removable(){return canRemove;}};
 struct Navi:Creature{int mNaviID=0;};
-struct Piki:Creature{Navi*mNavi=nullptr;std::uint16_t mColor=0,mMode=0;int mHappa=0;};
+class Piki:public Creature{public:Navi*mNavi=nullptr;std::uint16_t mColor=0,mMode=0;int mHappa=0;};
 struct ObjectMgr{std::vector<Creature*>objects;};
 struct MonoObjectMgr:ObjectMgr{int mNumObjects=0,mMaxElements=1;Creature*mObjectList[4]={};int mEntryStatus[4]={-1,-1,-1,-1};
  int getEmptyIndex(){for(int i=0;i<mMaxElements;++i)if(mEntryStatus[i]==-1)return i;return -1;}
@@ -148,7 +148,96 @@ int main(){
  check(!pc_coop_world_begin_guest(101,3)&&pc_coop_world_begin_guest(101,4),"guest new scene requires higher accepted epoch");
  pc_coop_world_end_scene();
 
- if(!bad)std::puts("PASS actual P1 capture and pool hooks: default inert, ownership, recycled actors, finite/atomic snapshot and stage lifetime");
+ // Whole-squad guest adapter: IDs bind explicit local objects, never manager order.
+ p0.mColor=0;p1.mColor=2;p0.mMode=77;p1.mMode=88;
+ p0.mNavi=&n0;p1.mNavi=&n1;pikis.objects={&p0,&p1};navis.objects={&n0,&n1};
+ check(pc_coop_world_begin_guest(105,7),"new accepted guest cohort context");
+ const auto pId0=NetEntityId{7,EntityKind::Pikmin,0,110}.pack();
+ const auto pId1=NetEntityId{7,EntityKind::Pikmin,0,111}.pack();
+ const auto cId0=NetEntityId{7,EntityKind::Captain,0,112}.pack();
+ const auto cId1=NetEntityId{7,EntityKind::Captain,0,113}.pack();
+ std::vector<PcCoopGuestPikminBinding> bindings={{pId1,&p1},{pId0,&p0}};
+ check(!pc_coop_world_bind_guest_pikmin(999,7,bindings)&&!pc_coop_world_bind_guest_pikmin(105,6,bindings),"wrong accepted session/epoch cannot bind squad");
+ auto wrongBindings=bindings;wrongBindings.pop_back();
+ check(!pc_coop_world_bind_guest_pikmin(105,7,wrongBindings),"missing live local Pikmin cannot silently disappear");
+ wrongBindings=bindings;wrongBindings[1].local=&p1;
+ check(!pc_coop_world_bind_guest_pikmin(105,7,wrongBindings),"same local pool actor cannot represent two host Pikmin");
+ wrongBindings=bindings;wrongBindings[1].id=pId1;
+ check(!pc_coop_world_bind_guest_pikmin(105,7,wrongBindings),"duplicate host identity cannot alias local actors");
+ Piki foreign;wrongBindings=bindings;wrongBindings[1].local=&foreign;
+ check(!pc_coop_world_bind_guest_pikmin(105,7,wrongBindings),"foreign pointer outside live manager rejected before dereference");
+ wrongBindings=bindings;wrongBindings[1].id=cId0;
+ check(!pc_coop_world_bind_guest_pikmin(105,7,wrongBindings),"captain ID cannot bind a Pikmin");
+ wrongBindings=bindings;wrongBindings[1].id=NetEntityId{6,EntityKind::Pikmin,0,110}.pack();
+ check(!pc_coop_world_bind_guest_pikmin(105,7,wrongBindings),"previous-scene ID cannot bind a current Pikmin");
+ wrongBindings.assign(511,{pId0,&p0});
+ check(!pc_coop_world_bind_guest_pikmin(105,7,wrongBindings),"oversized cohort rejected before engine mutation");
+ navis.objects={&n0,&replacementNavi};check(!pc_coop_world_bind_guest_pikmin(105,7,bindings),"changed local captain prevents squad binding");navis.objects={&n0,&n1};
+ check(pc_coop_world_bind_guest_pikmin(105,7,bindings)&&!pc_coop_world_bind_guest_pikmin(105,7,bindings),"explicit complete cohort accepted once after failed attempts");
+ ActorFrame squad;squad.frame=1;squad.tick=100;squad.captains[cId0]=ca;squad.captains[cId1]=cb;
+ PikminState ps0,ps1;ps0.position={10,11,12};ps0.velocity={1,2,3};ps0.faceDirection=0.7f;ps0.health=60;ps0.owner=0;ps0.leader=1;ps0.color=0;ps0.maturity=2;ps0.action=9;
+ ps1.position={20,21,22};ps1.velocity={4,5,6};ps1.faceDirection=0.8f;ps1.health=80;ps1.owner=1;ps1.leader=255;ps1.color=2;ps1.maturity=1;ps1.action=3;
+ squad.pikmin[pId0]=ps0;squad.pikmin[pId1]=ps1;
+ PikminState diagnostic;diagnostic.position.x=555;
+ check(!pc_coop_world_guest_pikmin_state(pId0,diagnostic)&&diagnostic.position.x==555,"unapplied diagnostic getter leaves output intact");
+ const auto unchangedX=p0.mSRT.t.x;
+ check(!pc_coop_world_apply_guest_captains(105,7,squad)&&p0.mSRT.t.x==unchangedX,"captain-only path cannot consume a bound squad's frame");
+ check(pc_coop_world_apply_guest_actors(105,7,squad),"whole captain+squad frame applied through actual engine adapter");
+ check(p0.mSRT.t.x==10&&p1.mSRT.t.x==20&&p0.mVelocity.z==3&&p1.mVelocity.z==6&&p0.mLastPosition.x==10&&p0.mSRT.r.y==0.7f,
+       "explicit IDs map correctly despite reversed binding order and coherent velocity/facing/previous positions");
+ check(p0.mHealth==60&&p1.mHealth==80&&p0.mHappa==2&&p1.mHappa==1&&p0.mNavi==&n1&&!p1.mNavi,"actual health, maturity and local leader association updated");
+ check(p0.mMode==77&&p1.mMode==88&&pc_coop_world_guest_pikmin_state(pId0,diagnostic)&&diagnostic.owner==0&&diagnostic.action==9,
+       "host owner/job metadata retained without starting or overwriting guest AI actions");
+ check(!pc_coop_world_apply_guest_actors(105,7,squad),"whole actor frame cannot apply twice");
+ auto snapshot=[&]{return std::vector<float>{n0.mSRT.t.x,n1.mSRT.t.x,p0.mSRT.t.x,p1.mSRT.t.x,p0.mVelocity.z,p1.mVelocity.z,
+    p0.mHealth,p1.mHealth,float(p0.mHappa),float(p1.mHappa),p0.mFaceDirection,p1.mFaceDirection};};
+ auto expectRejected=[&](const ActorFrame& badFrame,const char* reason){
+  const auto before=snapshot();Navi* leader0=p0.mNavi;Navi* leader1=p1.mNavi;
+  check(!pc_coop_world_apply_guest_actors(105,7,badFrame)&&snapshot()==before&&p0.mNavi==leader0&&p1.mNavi==leader1,reason);
+  PikminState last;check(pc_coop_world_guest_pikmin_state(pId0,last)&&last.position.x==10&&last.owner==0,"rejected complete frame keeps previous host metadata");
+ };
+ squad.frame=2;squad.tick=101;squad.captains[cId0].position.x=999;squad.pikmin[pId0].position.x=333;
+ auto badSquad=squad;badSquad.pikmin[pId1].health=std::numeric_limits<float>::quiet_NaN();expectRejected(badSquad,"invalid LAST Pikmin vetoes ALL captain and Pikmin writes");
+ badSquad=squad;badSquad.pikmin[pId1].color=4;expectRejected(badSquad,"P2-only color rejected by actual P1 adapter");
+ badSquad=squad;badSquad.pikmin[pId1].color=1;expectRejected(badSquad,"unprepared color conversion cannot corrupt local model identity");
+ badSquad=squad;badSquad.pikmin[pId1].maturity=3;expectRejected(badSquad,"invalid maturity rejects entire actor frame");
+ badSquad=squad;badSquad.pikmin[pId1].owner=2;expectRejected(badSquad,"invalid owner rejects entire actor frame");
+ badSquad=squad;badSquad.pikmin[pId1].leader=2;expectRejected(badSquad,"invalid leader cannot select an absent captain");
+ badSquad=squad;badSquad.pikmin[pId1].health=-1;expectRejected(badSquad,"negative health rejects entire actor frame");
+ badSquad=squad;badSquad.pikmin.erase(pId1);expectRejected(badSquad,"missing/dead remote actor requires explicit lifecycle adapter, no partial survivors");
+ badSquad=squad;badSquad.pikmin[NetEntityId{7,EntityKind::Pikmin,0,114}.pack()]=ps1;expectRejected(badSquad,"new remote birth cannot be guessed onto an existing pool actor");
+ badSquad=squad;badSquad.pikmin.erase(pId1);badSquad.pikmin[NetEntityId{7,EntityKind::Pikmin,1,111}.pack()]=ps1;expectRejected(badSquad,"recycled host identity cannot silently reuse guest binding");
+ badSquad=squad;badSquad.tick=99;expectRejected(badSquad,"whole squad clock cannot rewind");
+ badSquad=squad;badSquad.captains[cId1].position.x=std::numeric_limits<float>::infinity();expectRejected(badSquad,"invalid captain also vetoes squad updates");
+ p1.mColor=1;expectRejected(squad,"local color/model changed outside admitted baseline");p1.mColor=2;
+ pikis.objects={&p0,&p0};expectRejected(squad,"duplicate manager pointer cannot impersonate complete cohort");pikis.objects={&p0,&p1};
+ Piki unexpected;pikis.objects.push_back(&unexpected);expectRejected(squad,"unbound live guest actor cannot be left as a ghost");pikis.objects.pop_back();
+ pikis.objects={&p0};expectRejected(squad,"lost local bound actor rejects whole frame");pikis.objects={&p0,&p1};
+ check(pc_coop_world_apply_guest_actors(105,7,squad)&&p0.mSRT.t.x==333&&n0.mSRT.t.x==999,"invalid attempted frames do not consume valid sequence");
+ pc_coop_world_forget(&p0);
+ check(!pc_coop_world_guest_active()&&!pc_coop_world_apply_guest_actors(105,7,squad)&&!pc_coop_world_guest_pikmin_state(pId0,diagnostic),"same-address Pikmin pool reuse invalidates whole guest cohort and metadata");
+ pc_coop_world_end_scene();check(!pc_coop_world_apply_guest_actors(105,7,squad),"scene exit drops all squad pointers");
+ pikis.objects.clear();check(pc_coop_world_begin_guest(105,8)&&pc_coop_world_bind_guest_pikmin(105,8,{}),"explicit empty-squad baseline is valid");
+ ActorFrame empty;empty.frame=1;empty.tick=1;empty.captains[NetEntityId{8,EntityKind::Captain,0,1}.pack()]=ca;empty.captains[NetEntityId{8,EntityKind::Captain,0,2}.pack()]=cb;
+ check(pc_coop_world_apply_guest_actors(105,8,empty),"empty complete squad still atomically updates both captains");pc_coop_world_end_scene();
+ // 300 actors through real multipart encoding/receiver, not a hand-waved count.
+ std::vector<Piki> many(300);std::vector<PcCoopGuestPikminBinding> manyBindings;std::vector<EntityRecord> manyRecords;
+ ActorFrame manyFrame;manyFrame.frame=1;manyFrame.tick=50;
+ for(int i=0;i<2;++i){const auto id=NetEntityId{9,EntityKind::Captain,0,static_cast<std::uint32_t>(i+1)}.pack();const auto value=i?cb:ca;
+  manyFrame.captains[id]=value;auto r=captainRecord(9,value);r.id=id;manyRecords.push_back(r);}
+ for(std::size_t i=0;i<many.size();++i){many[i].mColor=static_cast<std::uint16_t>(i%3);pikis.objects.push_back(&many[i]);
+  const auto id=NetEntityId{9,EntityKind::Pikmin,0,static_cast<std::uint32_t>(i+10)}.pack();manyBindings.push_back({id,&many[i]});
+  PikminState value;value.color=static_cast<std::uint8_t>(i%3);value.position.x=static_cast<float>(i);value.health=100;
+  value.owner=static_cast<std::uint8_t>(i%2);value.leader=value.owner;manyFrame.pikmin[id]=value;manyRecords.push_back(pikminRecord(id,value));}
+ check(pc_coop_world_begin_guest(106,9)&&pc_coop_world_bind_guest_pikmin(106,9,manyBindings),"large explicit cohort binds stable real adapter identities");
+ std::vector<std::vector<std::uint8_t>> fragments;check(packActorFrame(106,9,1,50,manyRecords,1200,{},fragments)&&fragments.size()>1,"300-Pikmin full actor frame packetized under network budget");
+ ActorFrameReceiver assembled;check(assembled.begin(106,9),"accepted receiver context for large squad");
+ for(std::size_t i=fragments.size();i>0;--i){assembled.receive(fragments[i-1].data(),fragments[i-1].size(),0);
+  if(i>1)check(!pc_coop_world_apply_guest_actors(106,9,assembled.current())&&many[299].mSRT.t.x==0,"partial reordered fragments never move any engine actor");}
+ check(assembled.current().pikmin.size()==300&&pc_coop_world_apply_guest_actors(106,9,assembled.current())&&many[299].mSRT.t.x==299&&many[299].mNavi==&n1,"complete reordered network frame reaches all 300 actual guest Pikmin bindings");
+ pc_coop_world_end_scene();pikis.objects.clear();
+
+ if(!bad)std::puts("PASS actual P1 capture and pool hooks: default inert, ownership, recycled actors, finite/atomic snapshot, whole guest squad, 300-Pikmin packet apply and stage lifetime");
  return bad?1:0;
 }
 '''

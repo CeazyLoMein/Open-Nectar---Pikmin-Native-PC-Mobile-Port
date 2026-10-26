@@ -4,10 +4,10 @@ User instruction: new steering adds requirements/tasks; do not discard earlier o
 
 ## Immediate sequence
 
-1. Build74/run40265585036 networking runtime/package SUCCESS. New protected startup and independent-view batch implemented and locally checked; inspect its exact Apple result when user reports it. Keep68; no phone task yet.
-2. Research/reuse comparison COMPLETE: QSB, Skyrim Together, Elden Ring Seamless and BBSC; personal view settings remain independent. Do not enable old30FPS/settings-locking session unchanged.
-3. Protected actual title/setup and view context now implemented but UI not exposed. Finish game-thread room ownership/pump, complete world baseline, guest simulation freeze, own input/camera mapping and restart/exit UI before enabling playable practice. View context alone does not solve simulation authority.
-4. Only then validate actual two-phone independent views/actions with a concrete staged package, preserving normal saves/apps/rollback. No connection-only retests as a substitute for gameplay.
+1. Build75/run40338639501 actual startup/view Apple fixtures/full native app/networking/package SUCCESS. New guest captain+Pikmin whole-cohort adapter locally checked; inspect its exact next native result when user reports it. Keep68; no phone task.
+2. Research COMPLETE: QSB/Skyrim Together/Elden Ring Seamless/BBSC. Independent camera/graphics/FPS120/controls/touch/audio remain core; old settings-locking30FPS session is not enabled.
+3. Actual protected title/setup and independent view context implemented. New guest explicit Pikmin binding/atomic state apply is fixed-cohort ONLY: no spawning/removal/conversion, animation/jobs, guest freeze or complete world yet. Normal Piki death has counter/seed/effect side effects; create a guest visual lifecycle adapter rather than replaying host gameplay.
+4. Complete game-thread room ownership/pump, full world baseline, guest simulation/presentation separation, controller/camera mapping and restart/exit UI before enabling Start. Then request one concrete same-Wi-Fi two-phone gameplay test; avoid more connection-only retests as a substitute.
 
 ## Core requirements carried forward
 
