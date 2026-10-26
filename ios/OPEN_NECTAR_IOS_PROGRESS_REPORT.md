@@ -1,3 +1,9 @@
+## Build71 dispatched — practice-card isolation and simulator health diagnostics
+
+Source 50360b19dbb8f4ce89c86e33f69ec55e96ec766c; run 40255974650; https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40255974650. Last observed IN_PROGRESS, no result or IPA yet. This source adds explicit process-latched temporary practice card, overlap refusal, full CARD/history transaction barrier, callback separation, practice achievement write/award guards and actual-source preservation test. Includes previously committed176128 independent simulator health guard (not part of70 retry). Strict actual-source MSVC/Clang3/local preservation PASS; Apple pending. Normal card not switched: no practice API game/UI caller enabled. Future driver MUST stop new save requests/drain CardUtil before teardown, abort failed admission and require restart before normal solo after practice latch. Disk-backed temp child, no existing solo copy or nonempty cleanup. Actual title/area/two-captain/controller/own-camera/guest non-sim/pause driver still required; T10 remains future.
+
+70 attempt2/run40247953593/source8bf43c8fd7a02d04c35bbd8ba2c8193daf1e77ab native/12 gates/simulator/package SUCCESS. Same probe SHA as failed attempt1 strongly supports simulator/runner problem; original failure retained. Keep phone-accepted68 installed. No new phone task or FPS/resolution/packs/heat/P2 change. Await user result; no idle polling.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** October 25, 2026 21:47 EDT
