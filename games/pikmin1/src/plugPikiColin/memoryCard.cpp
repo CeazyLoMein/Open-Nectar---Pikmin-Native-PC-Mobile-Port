@@ -8,6 +8,7 @@
 #if defined(PIKI_PC_PORT)
 #include "pc_permadeath.h"
 #include "pc_day_history.h"
+#include "dolphin_stubs/pc_card_paths.h"
 #include "randomizer/pc_randomizer.h"
 #include "netplay/pc_netplay_loadguard.h"
 // Netplay keep-alive (pc_netplay_loadguard.h): a save waits here for the card
@@ -1564,6 +1565,27 @@ void MemoryCard::getQuickInfos(CardQuickInfo* infos)
 /**
  * @todo: Documentation
  */
+#if defined(PIKI_PC_PORT)
+bool MemoryCard::pcResetForCoopPractice()
+{
+	if (CardUtilCoopPracticeState() != PcCardPracticeAdmission::Ready
+	    || !pc_card_coop_practice_active() || CardUtilIsCardBusy()) return false;
+	// Called once at the title -> CardSelect boundary on the game thread.
+	// No producer runs between this check and invalidation.
+	memset(cardData, 0, sizeof(cardData));
+	memset(&cst, 0, sizeof(cst));
+	memset(mFilePath, 0, sizeof(mFilePath));
+	mCardChannel = mSaveFileIndex = mTempFileIndex = -1;
+	mRequiredFreeSpace = CARD_DATA_SIZE;
+	mErrorCode = mOkSectionsMask = 0;
+	for (int i = 0; i < 4; ++i) mValidSlots[i] = false;
+	mValidBlockCount = mValidOptionsCount = 0;
+	mSectorSize = 0;
+	mDidSaveFail = false;
+	return true;
+}
+#endif
+
 void MemoryCard::init()
 {
 	CardUtilInit(&CardStack[0x2000], 0x2000, 0xe);

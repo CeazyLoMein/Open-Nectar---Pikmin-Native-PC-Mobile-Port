@@ -1,4 +1,5 @@
 #include "pc_coop.h"
+#include "netplay/pc_netplay_present.h"
 #include "GlobalGameOptions.h"
 #include "mods/pc_hd_model_convert.h"
 #include "mods/pc_hd_models.h"
@@ -98,6 +99,8 @@ void pc_coop_begin_run(void)
 bool pc_coop_active(void) { return sActive; }
 void pc_coop_end_run(void)
 {
+	// Local view ownership cannot survive the actor/camera lifetime it used.
+	pc_netplay_present_end_practice_view();
 	sActive   = false;
 	sVsActive = false;
 }

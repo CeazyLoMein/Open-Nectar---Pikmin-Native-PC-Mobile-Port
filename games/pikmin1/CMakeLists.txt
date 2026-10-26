@@ -335,6 +335,7 @@ set(PC_PORT_SOURCES
     pc_port/netplay/pc_netplay_navilead.cpp
     # Co-op switch and direct boot (--coop-direct, netplay).
     pc_port/netplay/pc_coop_switch.cpp
+    pc_port/netplay/pc_coop_practice_start.cpp
     pc_port/audio/pc_audio.cpp
     pc_port/audio/pc_envelope.cpp
     pc_port/audio/pc_jam.cpp

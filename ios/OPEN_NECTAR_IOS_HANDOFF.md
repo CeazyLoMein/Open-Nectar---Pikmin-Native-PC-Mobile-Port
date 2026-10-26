@@ -2,6 +2,117 @@
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
+**Date/time:** 2026-10-26T14:19:45.162331+00:00 UTC (user timezone America/New_York).
+
+**Overall project status:** Resumed from explicit pause. Build74 remains the latest successful native package/runtime validation. This coordinated P1 source batch implements protected practice startup and independent fullscreen view selection. Apple validation is next. Online gameplay is NOT exposed; keep user-accepted Build68 on both phones. No phone/USB task.
+
+### Pikmin 1
+- Current objective: safely connect the accepted room to a disposable actual two-player area while preserving normal solo saves and independent personal settings.
+- What was investigated: actual CardUtil producer/worker completion boundaries, cached MemoryCard file indices/data, direct title/setup route, camera/HUD/Onion/audio branches, legacy deterministic behavior and run teardown.
+- Root cause or leading hypothesis: idle alone cannot prevent a new save job racing a root switch; old file/data/directory caches can survive admission. Existing fullscreen branches were tied to old deterministic mode, which also locks camera settings/forces30FPS elsewhere. Reuse the actual view paths without enabling that session.
+- Files changed: CardUtil.h/cardutil.cpp, MemoryCard.h/memoryCard.cpp, new pc_coop_practice_start.h/.cpp, title/cardSelect hooks, pc_netplay_present.h/.cpp, pc_coop.cpp teardown, newPikiGame.cpp/gameCoreSection.cpp view branches, P1 CMake, four practice test/runner files and the existing experimental workflow.
+- Source behavior: mutex-protected producer hold, nonblocking drain, explicit new private-card admission, safe pre-admission cancellation/failure retry, non-mutating readiness query, cache invalidation. Existing direct title/setup reused only after isolation, normal slot inheritance refused. Admitted practice remains process-latched; app restart required before normal solo. A future session driver must supply accepted-room intent, pump through drain/loading, timeout/cancel and show restart UI.
+- View behavior: explicit player0/1 context selects own fullscreen camera/HUD/Onion and sound listener; invalid/nested/legacy ownership refused; actual co-op teardown clears view. No FPS/graphics/camera/control configuration writes. This is view selection ONLY; it does not suppress guest world simulation or attest a complete replicated world. No native Start/UI caller yet.
+- Tests and results: strict MSVC actual-source admission/start/backend and view branch fixtures PASS; Clang/core-analyzer eight translation units PASS (final added race assertion subsequently MSVC compile/run PASS); 800 producer attempts, idle-window producer race, cancellation, invalid-path retry, busy-cache refusal and original bytes preserved. Actual camera/HUD/container/audio branch checks preserve ordinary solo/local split/legacy presentation. Two isolated negative controls correctly FAIL when removing producer hold or selecting the wrong audio listener.24 existing networking CTests PASS. Six new check-runner failure/timeout/gate regressions PASS. Two source-identity and three bundle tests PASS. Python AST/diff/structural workflow gate checks PASS; no full YAML parser claim.
+- Confirmed working: earlier Build68 phone tests and user-reported solo baseline retained. New fixtures use controlled engine/OS/graphics leaves with real changed method bodies and real CARD backend, not a phone/GPU/full engine runtime.
+- Remaining issues: game-thread room handoff/pump, actual complete world baseline and guest simulation/presentation separation, own controller/camera update mapping, world interactions, reconnect and campaign integration. Native compile/fixtures for this batch pending. No new hardware outcome claimed.
+
+### Pikmin 2
+- Current objective: preserve existing working build; stronger campaign validation/online adapter remains queued.
+- What was investigated: no P2 code or phone changes in this batch.
+- Root cause or leading hypothesis: no new P2 failure under investigation.
+- Files changed: none.
+- Tests and results: no new P2 tests/job requested.
+- Confirmed working: earlier user hardware/audio report; full campaign completion unproven.
+- Remaining issues: campaign coverage and later online development.
+
+### GitHub
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: ios-experimental
+- Starting commit: c2d80471fa5bcc7d7a7d5001dc1a915be86a7b0a
+- Latest commit: source commit recorded after this checkpoint in Exact Resume State.json.
+- Commits created: scoped protected startup/view source and checks batch.
+- Changes pushed: this source batch to ios-experimental, P1-only native validation requested.
+- Uncommitted changes: checked and recorded after commit.
+- GitHub Actions run IDs: latest completed74/run40265585036 SUCCESS; new run ID recorded after dispatch.
+- Build results:74 real encrypted UIKit simulator runtime/12 room checks/full app/package PASS. New Apple checks: macOS compile/run and iPhoneOS syntax for BOTH actual-source fixtures, independent failure collection, mandatory original step outcome plus all nine receipt checks before IPA packaging. New per-check logs retained.
+- Artifacts produced: no new artifact yet; verified74 IPA remains privately retained, Build68 remains phone baseline.
+
+### Next steps
+- Next Pikmin 1 task: inspect this exact native result, then continue actual room-to-engine driver and full-world/guest presentation integration. Do not enable Start using only captain transforms.
+- Next Pikmin 2 task: preserve; resume broader campaign testing after P1 milestone.
+- GitHub/build task: user reports new run; inspect complete logs and all new fixture receipts. No idle CI polling.
+- Anything requiring user involvement: nothing until a concrete playable package is staged. Keep68; no USB/installation.
+
+### ChatGPT continuation notes
+- Important source-file locations: games/pikmin1/pc_port/netplay/pc_coop_practice_start.*, pc_netplay_present.*, games/pikmin1/src/plugPikiColin/cardutil.cpp/memoryCard.cpp/titles.cpp/cardSelect.cpp/newPikiGame.cpp and plugPikiKando/gameCoreSection.cpp.
+- Relevant logs: work/practice-batch-clang.log, work/practice-checks-runner-test.log, work/practice-negative-controls.json, actual fixtures/binaries under work/practice-admission-* and work/practice-view-*;74 evidence retained.
+- Unverified fixes: new Apple full app/source fixtures and actual phone behavior; guest full-world immutability and playable shared-world are NOT implemented by this view context.
+- Risks and warnings: simulation advances inside newPikiGame::draw and other refresh callbacks; skipping updateAI alone is insufficient. Old lockstep mode still forces30/locks personal fields and is not enabled. Restart-only temporary routing is intentional until safe lifecycle restoration exists. New title restart guard needs a clear restart UI before exposure.
+- Exact next actions: verify new run/source/package; add game-thread accepted-room ownership and continuous pumping through startup, supply scene readiness only after actual two-captain/world load, complete authoritative world/guest presentation/input adapter, then stage one concrete two-phone independent-view test. Preserve all queued research/settings/recovery/PC/P2 goals.
+
+**END PROGRESS REPORT**
+
+---
+Earlier checkpoint history:
+
+# OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
+
+**Paused at user request:** 2026-10-26T13:39:41.923104+00:00. Stop development until resumed.
+
+Repository C:\Dev\Open-Nectar---Pikmin-Native-PC-Mobile-Port, branch ios-experimental.
+Latest local/last fetched remote commit: c2d80471fa5bcc7d7a7d5001dc1a915be86a7b0a. No commit/push/build in this work segment.
+Build74/run40265585036/sourcee896892cd0495dcf3bd064b2b7b9a6268833d291 passed; actual encrypted iOS simulator test, 12 room checks and IPA verified. Keep accepted Build68 installed on both phones. No phone/USB task. P2 untouched.
+
+UNCOMMITTED IMPLEMENTATION, not ready for installation:
+1. Actual CardUtil producer gate: closes under job-publishing mutex, drains existing work without blocking game loop, admits only the new private card, invalidates old directory/buffer pointers. Safe pre-admission cancellation, failed-path retry, non-mutating readiness query. Explicit worker idle initialization and exception-safe mutex guards.
+2. MemoryCard::pcResetForCoopPractice clears old file indices, metadata and campaign byte buffer only after admitted/drained state. Personal settings untouched.
+3. pc_coop_practice_start.h/.cpp wires protected requests into existing direct-title/setup route. No native UI caller is enabled. Admission precedes title exit; setup refuses a real-save fallback and inherited normal slot. After practice admission, app restart is required before normal solo.
+4. pc_netplay_present practice-view context separates fullscreen local camera/HUD/container/audio selection from old deterministic netplay. Does not force FPS/camera/graphics/control settings. Actual newPikiGame.cpp/gameCoreSection.cpp branches reuse this context. No active caller yet. This is VIEW selection only, NOT guest simulation freeze/full-world replication.
+
+VERIFICATION:
+- Strict MSVC /W4 /WX compilation and actual-source admission/start/card fixture PASSED.
+- Fixture tested an outstanding old job, 800 concurrent blocked producers, cancellation, invalid-path failure/retry, original-save byte preservation, actual private backend writes, stale cache reset and restart requirement.
+- Diff whitespace check passed BEFORE the final view edits.
+- Latest fullscreen view edits have NOT been compiled/tested yet. No Apple validation for any new work this segment. No new IPA/phone test.
+- Existing card/backend tests and broader regressions need rerun once source batch is complete.
+
+NEXT EXACT ACTIONS:
+1. Inspect this uncommitted diff and saved snapshot; do not reset/reapply old installers.
+2. Compile/test fullscreen context and actual camera/HUD/audio branches, including default solo/local split-screen preservation, both player identities, context teardown and legacy mode exclusion. Confirm no personal config writes/FPS cap.
+3. Audit startup guards for failure/cancellation/return-to-title and rendering mutation boundaries. Actual world simulation runs inside newPikiGame::draw; skipping updateAI alone is insufficient to freeze a guest.
+4. Continue game-thread room ownership/load/readiness and complete-world bridge before enabling Start Practice. Do not expose movement from incomplete captain-only state as a complete shared world.
+5. Wire new admission fixture into existing Apple checks and run appropriate batch verification before source commit/push. Avoid another native build for documentation alone.
+
+All queued objectives/research/independent personal settings/shared campaign/recovery/internet/PC/P2 requirements remain in ios/COOP_OBJECTIVE_QUEUE.md and ios/COOP_MOD_RESEARCH.md. Earlier full progress reports follow.
+
+Uncommitted source status at pause:
+```
+M games/pikmin1/CMakeLists.txt
+ M games/pikmin1/include/CardUtil.h
+ M games/pikmin1/include/MemoryCard.h
+ M games/pikmin1/pc_port/netplay/pc_netplay_present.cpp
+ M games/pikmin1/pc_port/netplay/pc_netplay_present.h
+ M games/pikmin1/src/plugPikiColin/cardSelect.cpp
+ M games/pikmin1/src/plugPikiColin/cardutil.cpp
+ M games/pikmin1/src/plugPikiColin/memoryCard.cpp
+ M games/pikmin1/src/plugPikiColin/newPikiGame.cpp
+ M games/pikmin1/src/plugPikiColin/titles.cpp
+ M games/pikmin1/src/plugPikiKando/gameCoreSection.cpp
+?? games/pikmin1/pc_port/netplay/pc_coop_practice_start.cpp
+?? games/pikmin1/pc_port/netplay/pc_coop_practice_start.h
+?? tests/pikmin1_practice_admission_test.py
+```
+
+Recovery snapshot: C:\Users\chazz\Documents\Open Nectar\2 - Progress and ChatGPT Handoff\Paused Work - Practice Admission and Views; includes tracked patch AND full copies of new/modified source with SHA256 manifest. These are private local backups; no game assets or credentials included.
+
+---
+Earlier checkpoint history:
+
+# OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
 **Date/time:** 2026-10-26T13:20:09.142413+00:00 (UTC; user timezone America/New_York)
 
 **Overall project status:** Paused at user usage limit. Build74 passed. Networking foundation is verified; actual online gameplay is not enabled. Keep accepted Build68 installed on both phones. No phone/USB or installation task now.

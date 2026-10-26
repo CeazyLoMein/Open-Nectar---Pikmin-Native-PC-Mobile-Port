@@ -87,6 +87,19 @@ void CardUtilOpen(s32 chan, s32 fileNo, void* workBuffer);
 void CardUtilSave(s32 chan, CARDStat* fileState, void* data);
 void CardUtilWrite(s32 chan, s32 fileNo, void* data, u32 offset, u32 length);
 void CardUtilInit(void* stack, u32 stackSize, s32 prio);
+#if defined(PIKI_PC_PORT)
+enum class PcCardPracticeAdmission { Idle, Draining, Ready, Failed };
+// Main/game-thread title boundary only. Request closes the command producer
+// gate under the SAME mutex used to publish jobs. Poll does not block on an
+// in-flight job: keep pumping the room until it reports Ready or Failed.
+// Ready means old jobs FINISHED, cached directory pointers were invalidated,
+// and all later CARD/history I/O goes to a new process-latched private card.
+bool CardUtilRequestCoopPractice(const char* scratchDirectory = nullptr);
+PcCardPracticeAdmission CardUtilPollCoopPractice();
+PcCardPracticeAdmission CardUtilCoopPracticeState();
+// Cancellation is allowed only before the private card has been admitted.
+bool CardUtilCancelCoopPractice();
+#endif
 
 ////////////////////////////////////////////
 

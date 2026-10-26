@@ -3303,7 +3303,7 @@ void GameCoreSection::updateDynamicSplit(f32 dt)
 	Camera* own[2] = { mNavi->mNaviCamera, mGameCamera2 };
 	// Netplay: each peer shows its own captain, so the merged camera is off;
 	// both captains' cameras are still simulated.
-	if (pc_netplay_present_two_pass_active() || !pc_settings_get_coop_merge_camera()) {
+	if (pc_netplay_present_single_view() || !pc_settings_get_coop_merge_camera()) {
 		// Pantalla partida fija: J1 izquierda/arriba, cámaras propias.
 		mSplitBlend = 1.0f;
 		mP1Side     = 0;
@@ -3417,7 +3417,7 @@ Camera* GameCoreSection::getViewCamera(int view)
 {
 	// Netplay presentation pass: the merged views are never built (see
 	// updateDynamicSplit), so present the captain's own camera.
-	if (!pc_settings_get_coop_merge_camera() || !pc_netplay_present_sim_side()) {
+	if (pc_netplay_present_local_view_pass() || !pc_settings_get_coop_merge_camera() || !pc_netplay_present_sim_side()) {
 		return view == 1 ? mGameCamera2 : mNavi->mNaviCamera;
 	}
 	return &mViewCam[view == 1 ? 1 : 0];
@@ -3431,7 +3431,7 @@ void GameCoreSection::drawGameInfoHud(Graphics& gfx)
 	if (pc_netplay_present_sim_pass()) {
 		return;
 	}
-	if (pc_netplay_present_two_pass_active() && isSplitScreen() && !gameflow.mMoviePlayer->mIsActive) {
+	if (pc_netplay_present_single_view() && isSplitScreen() && !gameflow.mMoviePlayer->mIsActive) {
 		const int local        = pc_netplay_present_local_player();
 		zen::DrawGameInfo* hud = (local == 1 && mDrawGameInfo2) ? mDrawGameInfo2 : mDrawGameInfo;
 		hud->draw(gfx);
@@ -3479,7 +3479,7 @@ void GameCoreSection::drawContainerWindows(Graphics& gfx)
 	if (pc_netplay_present_sim_pass()) {
 		return;
 	}
-	if (pc_netplay_present_two_pass_active() && isSplitScreen() && !gameflow.mMoviePlayer->mIsActive) {
+	if (pc_netplay_present_single_view() && isSplitScreen() && !gameflow.mMoviePlayer->mIsActive) {
 		const int local         = pc_netplay_present_local_player();
 		zen::DrawContainer* win = (local == 1 && containerWindow2) ? containerWindow2 : containerWindow;
 		win->draw(gfx);
@@ -3618,10 +3618,10 @@ void GameCoreSection::draw(Graphics& gfx)
 #endif
 	gsys->mTimer->start("se updt", true);
 #if defined(PIKI_PC_PORT)
-	// Netplay: audio is local output, updated in the presentation pass with
-	// the listener at the local captain; the sim pass never touches it.
-	if (pc_netplay_present_two_pass_active()) {
-		if (!pc_netplay_present_sim_side() && mRenderPass == 0) {
+	// Online audio is local output: one local listener on the visible pass.
+	// Legacy two-pass simulation still emits no audio in its null-GX pass.
+	if (pc_netplay_present_single_view()) {
+		if (pc_netplay_present_local_view_pass() && mRenderPass == 0) {
 			if (gameflow.mMoviePlayer->mIsActive) {
 				Vector3f pos;
 				gameflow.mMoviePlayer->getLookAtPos(pos);

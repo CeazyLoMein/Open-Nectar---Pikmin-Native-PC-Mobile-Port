@@ -2517,10 +2517,10 @@ public:
 		// Netplay: each peer draws only its local captain, full screen, with
 		// the same movie and memory-card exclusions; both captains are still
 		// simulated.
-		const bool detSingleView = pc_netplay_present_two_pass_active() && sGamecoreLive && gamecore
+		const bool localSingleView = pc_netplay_present_single_view() && sGamecoreLive && gamecore
 		                        && gamecore->isSplitScreen() && !gameflow.mMoviePlayer->mIsActive
 		                        && !(gameflow.mDemoFlags & CinePlayerFlags::NonGameMovie) && !memcardWindow;
-		const bool splitScreen = !detSingleView && sGamecoreLive && gamecore && gamecore->isSplitScreen()
+		const bool splitScreen = !localSingleView && sGamecoreLive && gamecore && gamecore->isSplitScreen()
 		                      && !gameflow.mMoviePlayer->mIsActive
 		                      && !(gameflow.mDemoFlags & CinePlayerFlags::NonGameMovie) && !memcardWindow;
 		mSplitViews = splitScreen ? 2 : 1;
@@ -2531,7 +2531,7 @@ public:
 			}
 			// The presentation pass shows the local captain's camera, updated
 			// for the full-screen aspect and clip as beginView does per view.
-			if (detSingleView && !pc_netplay_present_sim_side()) {
+			if (localSingleView && pc_netplay_present_local_view_pass()) {
 				const int localPlayer = pc_netplay_present_local_player();
 				Camera* localCam      = gamecore->getViewCamera(localPlayer);
 				if (localCam) {
@@ -2539,7 +2539,7 @@ public:
 					                 pc_first_person_active() ? 3.0f : 100.0f, mCameraFarClip);
 					// In a lockstep session the view leads with the local camera
 					// controls (a separate camera; the sim camera is unchanged).
-					Camera* viewCam = pc_netplay_camlead_view(localPlayer, localCam);
+					Camera* viewCam = pc_netplay_present_two_pass_active() ? pc_netplay_camlead_view(localPlayer, localCam) : localCam;
 					if (viewCam != localCam) {
 						viewCam->update(f32(gfx.mScreenWidth) / f32(gfx.mScreenHeight), viewCam->mFov,
 						                pc_first_person_active() ? 3.0f : 100.0f, mCameraFarClip);

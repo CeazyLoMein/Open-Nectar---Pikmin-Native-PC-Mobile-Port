@@ -276,6 +276,15 @@ jobs:
             -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
             -std=c++17 -Wall -Wextra -Werror -DNECTAR_P1_SOLO_TEST=0 -fsyntax-only \
             -I"$FIXTURE" -Igames/pikmin1/pc_port "${SOURCES[@]}"
+      - name: Check protected practice startup and independent local views
+        id: coop_practice_checks
+        if: matrix.game == 'pikmin1'
+        continue-on-error: true
+        # Collect both fixtures and full app compiler evidence, then require
+        # the original step outcome plus every check before packaging.
+        run: |
+          python3 tests/pikmin1_practice_checks_runner_test.py
+          python3 tests/run_pikmin1_practice_checks.py --output ios-practice-check-results
       - name: Check Pikmin 1 enhancement profile and mod imports
         if: matrix.game == 'pikmin1'
         shell: bash
@@ -457,6 +466,11 @@ jobs:
         env:
           SOCKET_CHECK_OUTCOME: ${{ steps.coop_socket_run.outcome }}
         run: python3 tests/run_ios_coop_socket_probe.py --verify ios-coop-socket-results/result.json --outcome "$SOCKET_CHECK_OUTCOME"
+      - name: Require actual practice startup and view checks before packaging
+        if: ${{ !cancelled() && matrix.game == 'pikmin1' }}
+        env:
+          PRACTICE_CHECK_OUTCOME: ${{ steps.coop_practice_checks.outcome }}
+        run: python3 tests/run_pikmin1_practice_checks.py --verify ios-practice-check-results/result.json --outcome "$PRACTICE_CHECK_OUTCOME"
       - name: Package unsigned app for later signing (only if compilation succeeds)
         if: success()
         shell: bash
@@ -485,6 +499,7 @@ jobs:
             ios-coop-socket-build.log
             ios-coop-socket-results/
             ios-room-check-results/
+            ios-practice-check-results/
             Nectar-*-unsigned.ipa
             nectar-*-compiled-app.tar.gz
           if-no-files-found: warn

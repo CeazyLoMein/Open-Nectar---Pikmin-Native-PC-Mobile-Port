@@ -26,6 +26,7 @@
 #include "pc_speedrun.h"
 #include "pc_vs.h"
 #include "netplay/pc_coop_switch.h"
+#include "netplay/pc_coop_practice_start.h"
 #endif
 
 class TitleSetupSection;
@@ -377,6 +378,13 @@ public:
 
 			if (mState == STATE_Active) {
 #if defined(PIKI_PC_PORT)
+				// An explicit future practice driver requests this on the game
+				// thread. Do not leave the title or accept another menu action
+				// while old card buffers are still owned by its worker.
+				if (pc_coop_practice_poll_start() == PcCoopPracticeStart::Draining) return;
+				// A private card is process-latched. Returning here after a test
+				// must not offer normal solo against the empty temporary card.
+				if (pc_coop_practice_restart_required()) return;
 				// Editor de mapas (--vs-map): directo al VS, como si se hubiera
 				// elegido en el menú (ogTitle) y sin pasar por él.
 				if (pc_vs_direct_take_title()) {

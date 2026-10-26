@@ -33,6 +33,7 @@ unsigned long long sSavedShapes = 0;
 int sLocalPlayerCached = 0;
 int sLocalPlayerDefault = 0;
 bool sLocalPlayerInit = false;
+int sPracticeView = -1;
 #if defined(PIKI_PC_PORT) && !defined(PC_NETPLAY_PRESENT_HOST)
 Camera* sSimCamera = nullptr;
 Graphics* sSavedGfx = nullptr;
@@ -53,6 +54,25 @@ void pc_netplay_present_set_skip_presentation(int skip)
 int pc_netplay_present_skip_presentation(void)
 {
 	return sSkipPresentation ? 1 : 0;
+}
+
+int pc_netplay_present_begin_practice_view(int player)
+{
+	if ((player != 0 && player != 1) || sPracticeView != -1 || pc_netplay_deterministic()) return 0;
+	sPracticeView = player;
+	return 1;
+}
+
+void pc_netplay_present_end_practice_view(void) { sPracticeView = -1; }
+
+int pc_netplay_present_single_view(void)
+{
+	return sPracticeView != -1 || pc_netplay_present_two_pass_active();
+}
+
+int pc_netplay_present_local_view_pass(void)
+{
+	return pc_netplay_present_single_view() && !pc_netplay_present_sim_pass();
 }
 
 int pc_netplay_present_two_pass_active(void)
@@ -122,6 +142,9 @@ void pc_netplay_present_reset_counters(void)
 
 int pc_netplay_present_local_player(void)
 {
+	// Session identity wins over any old process launch override, but ending
+	// this view restores the original cached/default behavior unchanged.
+	if (sPracticeView != -1) return sPracticeView;
 	if (!sLocalPlayerInit) {
 		sLocalPlayerInit = true;
 		const char* v = std::getenv("PIKMIN_NETPLAY_LOCAL_PLAYER");

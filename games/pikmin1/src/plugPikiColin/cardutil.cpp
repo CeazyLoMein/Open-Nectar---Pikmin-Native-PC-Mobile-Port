@@ -5,6 +5,10 @@
 #include "gameflow.h"
 #if defined(PIKI_PC_PORT)
 #include "netplay/pc_netplay_loadguard.h"
+#include "dolphin_stubs/pc_card_paths.h"
+#include <atomic>
+#include <exception>
+#include <string>
 // Netplay keep-alive (pc_netplay_loadguard.h): card waits run inside one
 // netplay tick. Strong-defined by pc_netplay_session.cpp in netplay builds
 // only, null otherwise.
@@ -16,6 +20,93 @@ CardUtilThread CardThread;
 
 /// Global object for handling card command queueing and execution.
 CardUtilControl CardControl;
+
+#if defined(PIKI_PC_PORT)
+namespace {
+std::atomic<bool> sCardUtilInitialized{false};
+PcCardPracticeAdmission sPracticeAdmission = PcCardPracticeAdmission::Idle;
+std::string sPracticeScratch;
+struct PcCardQueueGuard {
+	PcCardQueueGuard() { OSLockMutex(&CardControl.mMutex); }
+	~PcCardQueueGuard() { OSUnlockMutex(&CardControl.mMutex); }
+	PcCardQueueGuard(const PcCardQueueGuard&) = delete;
+	PcCardQueueGuard& operator=(const PcCardQueueGuard&) = delete;
+};
+}
+
+bool CardUtilRequestCoopPractice(const char* scratchDirectory)
+{
+	if (!sCardUtilInitialized.load(std::memory_order_acquire)) return false;
+	// Copy caller-owned storage before taking the producer lock. Network text
+	// must never supply this path; the practice driver uses the OS temp base.
+	std::string scratch = scratchDirectory ? scratchDirectory : "";
+	const PcCardQueueGuard guard;
+	const bool allowed = (sPracticeAdmission == PcCardPracticeAdmission::Idle
+	                      || sPracticeAdmission == PcCardPracticeAdmission::Failed)
+	                     && !pc_card_coop_practice_active();
+	if (allowed) {
+		sPracticeScratch.swap(scratch);
+		sPracticeAdmission = PcCardPracticeAdmission::Draining;
+	}
+	return allowed;
+}
+
+PcCardPracticeAdmission CardUtilPollCoopPractice()
+{
+	if (!sCardUtilInitialized.load(std::memory_order_acquire)) return PcCardPracticeAdmission::Idle;
+	const PcCardQueueGuard guard;
+	if (sPracticeAdmission == PcCardPracticeAdmission::Draining && CardControl.mChannel == -1) {
+		// Worker publishes -1 under this mutex only AFTER it has finished using
+		// the old scene's buffers. The producer gate remains closed while the
+		// filesystem switches roots, so no new real-card job can slip through.
+		bool admitted = false;
+		try {
+			admitted = pc_card_begin_coop_practice(sPracticeScratch.empty() ? nullptr : sPracticeScratch.c_str());
+		} catch (const std::exception&) {
+			// A rejected filesystem path must release the queue mutex and leave
+			// the title usable. Once published, private routing remains latched.
+			admitted = pc_card_coop_practice_active();
+		}
+		if (admitted) {
+			OSLockMutex(&CardControl.mDirMutex);
+			CardControl.mDirentList = nullptr;
+			CardControl.mDirentCount = 0;
+			OSUnlockMutex(&CardControl.mDirMutex);
+			CardControl.mFileNo = nullptr;
+			CardControl.mDataPtr = nullptr;
+			CardControl.mCommand = 0;
+			CardControl.mOffset = CardControl.mLength = 0;
+			CardControl.mByteNotUsed = CardControl.mFilesNotUsed = 0;
+			CardControl.mSectorSize = CardControl.mTransferredBytes = CardControl.mOperationSize = 0;
+			CardControl.mResultCode = CARD_RESULT_READY;
+		}
+		sPracticeAdmission = admitted ? PcCardPracticeAdmission::Ready : PcCardPracticeAdmission::Failed;
+		sPracticeScratch.clear();
+	}
+	const PcCardPracticeAdmission result = sPracticeAdmission;
+	return result;
+}
+
+bool CardUtilCancelCoopPractice()
+{
+	if (!sCardUtilInitialized.load(std::memory_order_acquire)) return false;
+	const PcCardQueueGuard guard;
+	const bool cancelled = sPracticeAdmission == PcCardPracticeAdmission::Draining;
+	if (cancelled) {
+		sPracticeAdmission = PcCardPracticeAdmission::Idle;
+		sPracticeScratch.clear();
+	}
+	return cancelled;
+}
+
+PcCardPracticeAdmission CardUtilCoopPracticeState()
+{
+	if (!sCardUtilInitialized.load(std::memory_order_acquire)) return PcCardPracticeAdmission::Idle;
+	const PcCardQueueGuard guard;
+	return sPracticeAdmission;
+}
+
+#endif
 
 /**
  * @note UNUSED Size: 00009C
@@ -647,6 +738,12 @@ static s32 CardUtilCommand(s32 chan, s32 command, void* file, void* workBuffer, 
 {
 	OSLockMutex(&CardControl.mMutex);
 	int res;
+#if defined(PIKI_PC_PORT)
+	if (sPracticeAdmission == PcCardPracticeAdmission::Draining) {
+		// Do not replace the in-flight job OR its result/buffer pointers.
+		res = CARD_RESULT_BUSY;
+	} else
+#endif
 	if (CardControl.mChannel != -1) {
 		// card thread is busy
 		res = CardControl.mResultCode;
@@ -934,8 +1031,17 @@ void CardUtilInit(void* stack, u32 stackSize, s32 prio)
 	OSInitMutex(&CardControl.mMutex);
 	OSInitMutex(&CardControl.mDirMutex);
 	OSInitCond(&CardControl.mCondition);
+#if defined(PIKI_PC_PORT)
+	// No command exists until the producer publishes one. Starting the worker
+	// with zero-initialized channel0 could execute uninitialized command0.
+	CardControl.mChannel = -1;
+	CardControl.mResultCode = CARD_RESULT_READY;
+#endif
 	OSCreateThread(&CardThread.mThread, CardUtilMain, nullptr, stack, stackSize, prio, OS_THREAD_ATTR_DETACH);
 	OSResumeThread(&CardThread.mThread);
+#if defined(PIKI_PC_PORT)
+	sCardUtilInitialized.store(true, std::memory_order_release);
+#endif
 }
 
 /**

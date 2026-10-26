@@ -27,6 +27,16 @@ extern "C" {
 void pc_netplay_present_set_skip_presentation(int skip);
 int pc_netplay_present_skip_presentation(void);
 
+// Main/game-thread scoped local view, independent of old deterministic
+// session settings. Select only after both captains exist. No FPS, graphics,
+// camera preference, input assignment or saved configuration is changed.
+// Refuses invalid/nested/legacy deterministic ownership; explicit end required.
+// VIEW ONLY: does not freeze guest simulation or validate a replicated world.
+int pc_netplay_present_begin_practice_view(int player);
+void pc_netplay_present_end_practice_view(void);
+int pc_netplay_present_single_view(void);
+int pc_netplay_present_local_view_pass(void);
+
 // True when the two-pass frame is active (deterministic mode, engine build).
 int pc_netplay_present_two_pass_active(void);
 

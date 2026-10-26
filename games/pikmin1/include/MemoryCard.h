@@ -73,6 +73,9 @@ public:
 #if defined(PIKI_PC_PORT)
 	// Selector de días (pc_day_history.h): datos de un día guardado de la
 	// ranura, y su carga en la tarjeta como un guardado más.
+	// Invalidates normal-card indices, data and metadata only after protected
+	// admission/drain. Does not load/save or change any personal preferences.
+	bool pcResetForCoopPractice();
 	bool pcDayQuickInfo(int slot, int day, CardQuickInfo& out);
 	bool pcRestoreDay(int slot, int day);
 #endif

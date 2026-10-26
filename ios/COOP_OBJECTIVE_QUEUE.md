@@ -1,17 +1,13 @@
-Latest:73 test apps/game compiled; confirmed combined20s setup budget mistake fixed with separate phases, local38 PASS. Next native verification pending. All objectives below remain queued; no phone task.
-
-Latest checkpoint:72 failed standalone simulator health/recovery after game/card checks PASS. UIKit health/socket test-entry repair local34+ARC2 PASS, next Apple pending. No phone action; keep68; previous objectives remain queued.
-
 # Open Nectar co-op — running objective queue
 
 User instruction: new steering adds requirements/tasks; do not discard earlier objectives or silently replace the active task. Only explicit cancellation removes an objective. Statuses below are evidence boundaries, not completion percentages.
 
 ## Immediate sequence
 
-1. Review exact Build72 result when user reports it: owned-simulator setup/health/real socket runtime, mandatory gates/full game/package. Last observed in progress; no phone action yet.
-2. Finish reusable-code comparison (RESEARCH COMPLETE, implementation not activated): QSB, Skyrim Together, Elden Ring Seamless and BBSC; see COOP_MOD_RESEARCH.md. Exact replay candidate retained with independent-settings/30FPS restrictions documented.
-3. Actual P1 disposable area driver: stop new save requests/drain CardUtil, explicit process-latched temporary card admission, main-thread accepted room ownership, real two captains/scene/baseline/ready, own controller/camera/HUD/audio, guest presentation and pause/background/exit. Not playable yet; restart before solo after practice latch.
-4. Validate same-Wi-Fi two-phone independent views and actions using preserved solo installs/rollback. Request only a concrete staged test; no repeated connection tests as a substitute for gameplay.
+1. Build74/run40265585036 networking runtime/package SUCCESS. New protected startup and independent-view batch implemented and locally checked; inspect its exact Apple result when user reports it. Keep68; no phone task yet.
+2. Research/reuse comparison COMPLETE: QSB, Skyrim Together, Elden Ring Seamless and BBSC; personal view settings remain independent. Do not enable old30FPS/settings-locking session unchanged.
+3. Protected actual title/setup and view context now implemented but UI not exposed. Finish game-thread room ownership/pump, complete world baseline, guest simulation freeze, own input/camera mapping and restart/exit UI before enabling playable practice. View context alone does not solve simulation authority.
+4. Only then validate actual two-phone independent views/actions with a concrete staged package, preserving normal saves/apps/rollback. No connection-only retests as a substitute for gameplay.
 
 ## Core requirements carried forward
 

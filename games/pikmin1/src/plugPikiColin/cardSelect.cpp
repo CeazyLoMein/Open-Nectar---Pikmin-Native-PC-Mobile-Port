@@ -34,6 +34,7 @@
 #include "pc_window.h"
 #include "settings/pc_settings.h"
 #include "netplay/pc_coop_switch.h"
+#include "netplay/pc_coop_practice_start.h"
 #endif
 
 // Macros for packing and unpacking the section compression flag.
@@ -131,6 +132,15 @@ struct CardSelectSetupSection : public Node {
 			// Co-op direct boot: a new file with no prompts. The captains and
 			// the controller assignment were armed by the co-op switch; the
 			// run takes no Permadeath, Hard mode, Randomizer or tutorial skip.
+			if (pc_coop_practice_start_state() != PcCoopPracticeStart::Idle
+			    && pc_coop_practice_start_state() != PcCoopPracticeStart::Failed
+			    && !pc_coop_practice_prepare_setup(gameflow.mMemoryCard)) {
+				// Never fall through to a normal save or fresh-file fallback.
+				mNextSectionsFlag = PACK_NEXT_ONEPLAYER(ONEPLAYER_GameExit);
+				mState = Exit;
+				gsys->setFade(0.0f);
+				return;
+			}
 			pc_coop_take_chosen_at_title();
 			pc_permadeath_set_pending(false);
 			pc_hardmode_set_pending(false);
