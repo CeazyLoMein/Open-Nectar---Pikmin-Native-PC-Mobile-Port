@@ -1,3 +1,9 @@
+## Build72 dispatched — owned simulator, bounded setup recovery, mandatory runtime gate
+
+Source 0b2eabc7e9ccd201150a13802f2bc9e7c85535d7; run40258515054; https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40258515054. Last observed IN_PROGRESS, result/IPA pending. Repair changes only test runner/experimental P1 workflow, local26 regression tests PASS. Fresh owned simulator, one setup-timeout reboot before native probe only, earlier runtime before heavy compile, preserved diagnostic attempts/owned-only cleanup, mandatory original step outcome + complete receipt and actual native log gate before packaging. No retries/waivers for real native failures and no whole-job automatic retry. Actual service recovery on Apple still unverified.
+
+71/run40255974650/source50360b19dbb8f4ce89c86e33f69ec55e96ec766c: full game compile/actual-card macOS fixture+iPhoneOS syntax/12 room checks PASS, separate simulator health20s timeout, native socket probe NOT RUN, no IPA.70 attempt2 remains last successful native/protocol package result;68 remains accepted phone baseline. No phone action/gameplay/FPS/resolution/packs/heat/P2 change. Actual disposable area/controller/camera driver not enabled; T10 FUTURE. Stop save requests/drain CardUtil before future practice admission/teardown; restart before solo after card latch. User reports new result; no idle polling.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** October 25, 2026 22:19 EDT
