@@ -1,62 +1,56 @@
-## Build71 dispatched — practice-card isolation and simulator health diagnostics
-
-Source 50360b19dbb8f4ce89c86e33f69ec55e96ec766c; run 40255974650; https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40255974650. Last observed IN_PROGRESS, no result or IPA yet. This source adds explicit process-latched temporary practice card, overlap refusal, full CARD/history transaction barrier, callback separation, practice achievement write/award guards and actual-source preservation test. Includes previously committed176128 independent simulator health guard (not part of70 retry). Strict actual-source MSVC/Clang3/local preservation PASS; Apple pending. Normal card not switched: no practice API game/UI caller enabled. Future driver MUST stop new save requests/drain CardUtil before teardown, abort failed admission and require restart before normal solo after practice latch. Disk-backed temp child, no existing solo copy or nonempty cleanup. Actual title/area/two-captain/controller/own-camera/guest non-sim/pause driver still required; T10 remains future.
-
-70 attempt2/run40247953593/source8bf43c8fd7a02d04c35bbd8ba2c8193daf1e77ab native/12 gates/simulator/package SUCCESS. Same probe SHA as failed attempt1 strongly supports simulator/runner problem; original failure retained. Keep phone-accepted68 installed. No new phone task or FPS/resolution/packs/heat/P2 change. Await user result; no idle polling.
-
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** October 25, 2026 21:47 EDT
+**Date/time:** October 25, 2026 22:19 EDT
 
-**Overall project status:** Build70 retry passed and produced a verified IPA. New practice-save isolation is implemented and locally verified; next Apple build pending. Build68 remains the accepted installed baseline. Playable two-phone practice is not yet exposed.
+**Overall project status:**71 game compilation and new save-isolation checks passed; simulator health execution failed before co-op testing. Grouped infrastructure correction implemented and locally verified; next Apple build pending. Keep accepted68 on phones. No playable co-op area exposed yet.
 
 ### Pikmin 1
 
-- Current objective: Protect normal solo data before wiring a disposable online practice area.
-- What was investigated: Exact70 attempt2 jobs, complete P1 log/artifact, simulator binary identity, cached save root, actual CARD/history operations, separate achievement file and delayed save callbacks.
-- Root cause or leading hypothesis:70 attempt1 likely unhealthy simulator; the exact same probe binary passed attempt2. A late environment-variable change cannot isolate the already cached normal save root; explicit routing and a permanent practice-session latch are needed.
-- Files changed: card_stubs.cpp, pc_card_paths.h, pc_day_history.cpp, pc_achievements.cpp; tests/pikmin1_practice_card_test.py; experimental P1 workflow and project journals.
-- Tests and results:70 Apple/native/simulator/package PASS. New actual-source filesystem fixture strict MSVC PASS; original file bytes preserved across mixed operations and delayed workers. Clang diagnostics/core analyzer3 units and diff PASS. New Apple/macOS actual-source fixture and full game compile pending next build. Previously committed simulator health guard local15 tests PASS, first Apple validation also pending.
-- Confirmed working: User-accepted68 connection/UI/Rejoin/solo-return tests and reported thermal improvement.70 helper protocol/native evidence verified. No new phone installation or practice-area runtime evidence.
-- Remaining issues: Actual scene/captain/controller/camera/guest simulation/pause driver; save worker drain and restart-only exit UX; later shared gameplay/Onions/co-op campaign/save recovery/internet.
+- Current objective: Reliable mandatory Apple runtime checks, then disposable two-player practice driver.
+- What was investigated: Full71 log, exact source/jobs, complete diagnostic artifact and CRC/SHA, independent health timeout, setup selection/ownership, workflow ordering and package failure gates.
+- Root cause or leading hypothesis: Confirmed independent health program could not execute; simulator inventory/log/shutdown also timed out. This is a simulator execution failure before co-op main. Exact host-service cause unknown; no game compiler failure. Fresh ownership and earlier runtime execution target stale/default device and post-build setup risk without claiming a proven root mechanism.
+- Files changed: tests/run_ios_coop_socket_probe.py, tests/ios_coop_socket_runner_test.py, new tests/ios_coop_owned_runner_test.py and experimental ios-native-experimental.yml; project journals/checklist only. No game source changed this repair.
+- Tests and results:71 actual macOS save-isolation fixture and iPhoneOS syntax PASS; full native app and12 room checks PASS.71 simulator health FAIL, encrypted probe NOT RUN, no IPA. Repair local26 host regression tests PASS; Python syntax/workflow gate structure/diff PASS. New Apple lifecycle validation pending next build; no full YAML parser claim.
+- Confirmed working: Accepted68 phone tests/thermal improvement reported by user;70 attempt2 actual native encrypted handoff/area/input fixture PASS.71 proves card-source Apple compilation/host filesystem test, not gameplay.
+- Remaining issues: New runner Apple validation; actual practice title/area/captains/controllers/cameras/guest presentation/lifecycle, then shared gameplay, Onion ownership, campaign saving/recovery/internet.
 
 ### Pikmin 2
 
-- Current objective: Preserve the working app.
+- Current objective: Preserve the working P2 app.
 - What was investigated: No new P2 symptom.
-- Root cause or leading hypothesis: None newly reported.
+- Root cause or leading hypothesis: None new.
 - Files changed: None in P2.
-- Tests and results: No new P2 build or phone test requested.
-- Confirmed working: Earlier user reports; not retested here.
-- Remaining issues: Broad campaign testing and later online adapter.
+- Tests and results: No new P2 native/device test requested.
+- Confirmed working: Earlier user report; not retested here.
+- Remaining issues: Broad campaign testing and later co-op adapter.
 
 ### GitHub
 
 - Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
 - Branch: ios-experimental.
-- Starting commit: 176128c51f00641f7c10afd8c23496e885a1e470, matched fetched origin before changes.
-- Latest commit: New scoped source checkpoint; exact hash and next run recorded in Exact Resume State.json after push.
-- Commits created: Practice-card isolation/source fixture/workflow/journal batch [ios-build] [ios-p1-only], followed by dispatch journal [skip ci].
-- Changes pushed: One coordinated native P1 build intended; no P2 source change.
-- Uncommitted changes: None after successful checkpoint.
-- GitHub Actions run IDs:70/run40247953593 attempt2 SUCCESS; P1 job121341674330 and scene121341711036 SUCCESS. Attempt1 failed simulator launch with no compiler/linker errors. Next source run pending lookup.
-- Build results:70 retry full native/protocol fixture/IPA PASS; new save-isolation batch local PASS, Apple pending.
-- Artifacts produced:70 artifact12621390344 SHA2561653a8106d4e7f2965e742b9108311a46f80e83c4e9f2c7ef9927c736d6c697c; IPA5291797bytes SHA256620be63ca87abd68dfcf9527368b8b3b1ec99a509c3fbe645530fecf7df40c8e, UUID08ea1e96-0fc5-3182-8ec5-ee7e3f44cca4, normal standard P1 bundle/deviceARM64/icons/notices verified. Saved at C:\Users\chazz\Documents\Codex\2026-10-19\got-it-you-want-codex-to\outputs\Build70-Attempt2-Pikmin1\Nectar-pikmin1-unsigned.ipa. No70 install requested; accepted68 install folder remains current.
+- Starting commit: 75949deb70bba6bd3e2cfe7f9423e3d1a4b4fbc3, clean and matched fetched origin.
+- Latest commit: New scoped runner/workflow checkpoint; exact source and run recorded after push in Exact Resume State.json.
+- Commits created: Owned simulator lifecycle/bounded pre-native recovery/mandatory package gate [ios-build] [ios-p1-only], then dispatch documentation [skip ci].
+- Changes pushed: One P1-only source build intended. No manual71 rerun dispatched and no production workflow/security changes.
+- Uncommitted changes: None after checkpoint.
+- GitHub Actions run IDs:71/run40255974650 failed, scene121357776731 PASS, P1 job121359982792 runtime health FAIL after native compile PASS.70/run40247953593 attempt2 SUCCESS. Next run pending exact lookup.
+- Build results:71 full game/card fixture/preflight PASS, independent simulator health FAIL, native socket probe NOT RUN. Repair26 local tests PASS; Apple pending.
+- Artifacts produced:71 artifact12622703467 SHA256232f9fe624eda4f0ff1b7ec0dba723baa1f9b5d810e2595e276567347417b871, CRC verified, retained compiled app/diagnostics but NO IPA.70 attempt2 IPA remains verified private engineering output;68 remains current accepted phone install.
 
 ### Next steps
 
-- Next Pikmin 1 task: Verify next Apple result, then actual disposable area driver with drained CardUtil, explicit card admission, two loaded captains, input/own-camera routing and guest presentation, pause/background/exit. Practice requires app restart before normal solo.
+- Next Pikmin 1 task: Review next Apple result; then actual disposable practice driver with save-worker drain/admission, two captains/own camera/controller and guest presentation/pause/exit. Restart before solo after practice latch.
 - Next Pikmin 2 task: Preserve working P2.
-- GitHub/build task: One P1-only native validation includes temporary-card fixture and previously committed independent simulator health guard. User reports result; no idle polling.
-- Anything requiring user involvement: Nothing now. Keep68 installed; phones may close/disconnect. No repeated connection test.
+- GitHub/build task: One combined P1 validation of owned simulator/recovery/gate changes. Full native runtime success still mandatory; no automatic native-test retries or health-only waiver.
+- Anything requiring user involvement: Nothing now. Keep68 installed; phones may close/disconnect. User reports next run result; no idle polling.
 
 ### ChatGPT continuation notes
 
-- What another ChatGPT conversation needs to know:70 attempt2 passed using IDENTICAL probe hash to failed attempt1.68 remains phone baseline. New save isolation has no game/UI caller yet and does not itself start co-op. No full campaign or live co-op claim.
-- Important source-file locations: games/pikmin1/pc_port/dolphin_stubs/card_stubs.cpp and pc_card_paths.h explicit begin/active/I/O mutex; pc_day_history.cpp transaction locks; pc_achievements.cpp practice award/write guards; tests/pikmin1_practice_card_test.py; prior ios/ios_coop_handoff.h and libs/nectar_net CoopConnection/PracticeBootstrap/CoopSession helpers.
-- Relevant logs: work/build70-attempt2-run.json/jobs.json/artifacts.json/p1-full.log/package-verification.json; outputs/Build70-Attempt2-Pikmin1; work/practice-card-local.log and practice-card-fixture; accessible Build70 Retry and Practice Card evidence folder.
-- Unverified fixes: New Apple actual-card fixture/full game build, simulator health guard Apple path, any real engine admission/drain/lifecycle, UIKit transfer execution and two-phone practice gameplay. No phone writes this session.
-- Risks and warnings: Barrier serializes filesystem access but cannot drain engine worker or protect freed engine buffers. Driver must stop requests/drain before teardown. Latch remains until process exit, so forbid normal solo Continue until restart. Temporary card is disk-backed; no nonempty cleanup implemented. Failed isolation aborts practice. Preserve68/65/54 rollback, real cards/settings/packs/FPS120/resolution/P2. Health-only success is not gameplay evidence.
-- Exact next actions: Inspect exact next source/run native result and batch real failures if any; then implement title/CardSelect/GameCore actual area driver with the above contracts. Do not enable old direct boot without admission or assume transform snapshots are a complete world. T10 phone practice test remains FUTURE.
+- What another ChatGPT conversation needs to know:71 did NOT fail compilation. New actual card fixture and full game built; tiny independent health program hung before co-op execution. New repair is only runner/workflow. Scope of host tests is orchestration correctness, not Apple runtime proof. Playable practice engine remains missing.
+- Important source-file locations: tests/run_ios_coop_socket_probe.py create_owned_simulator/run/verify_result; tests/ios_coop_owned_runner_test.py; experimental workflow coop_socket_run before full compile and mandatory final runtime gate. Prior card APIs in pc_card_paths.h/card_stubs.cpp remain process-latched, no game caller enabled.
+- Relevant logs: work/build71-run.json/jobs.json/p1-full.log/artifacts.json/p1-artifact.zip/failure-verification.json; outputs/Build71-Failure-Evidence; work/ios_coop_socket_runner_test-results.txt and ios_coop_owned_runner_test-results.txt. Accessible Build71 - Simulator Health Failure and Repair folder mirrors evidence.
+- Unverified fixes: New owned simulator/reboot/cleanup lifecycle on Apple; whether it remedies host service hangs. No new phone/test runtime evidence. Full YAML parse unavailable; workflow critical structure checked.
+- Risks and warnings: Only one setup timeout recovery BEFORE native execution; native error/timeout still fails. Never restart/delete borrowed devices or wipe global caches. Cleanup failures recorded, never used to invent success. Packaging requires original execution step outcome plus actual full runtime receipt/log. Future game driver must drain engine worker before teardown, abort failed card admission and require restart before solo. Preserve68/65/54 rollback, P2/FPS/resolution/packs/settings/saves.
+- Exact next actions: Inspect next exact source/run including health, socket log/result, full compile/gates/artifact. If infrastructure still fails, keep genuine failure and investigate service diagnostics; do not blindly alter game code or waive runtime. After native success implement actual practice engine/controller/camera integration before T10 phone task.
 
 **END PROGRESS REPORT**

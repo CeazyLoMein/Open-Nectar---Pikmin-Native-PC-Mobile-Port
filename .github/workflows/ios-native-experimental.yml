@@ -348,6 +348,7 @@ jobs:
           set -euo pipefail
           bash -n scripts/netplay-deps.sh
           python3 tests/ios_coop_socket_runner_test.py
+          python3 tests/ios_coop_owned_runner_test.py
           bash scripts/netplay-deps.sh ios-arm64
           bash scripts/netplay-deps.sh ios-simulator-arm64
       - name: Build real encrypted iOS co-op socket session probe
@@ -373,6 +374,20 @@ jobs:
             -std=c11 -Wall -Wextra -Werror tests/ios_simulator_health.c \
             -o "$RUNNER_TEMP/nectar-coop-socket/nectar_simulator_health" \
             2>&1 | tee -a ios-coop-socket-build.log
+      - name: Run real encrypted iOS co-op socket session probe
+        id: coop_socket_run
+        # Execute before the heavy device compile, on a fresh owned simulator.
+        # Continue collecting independent compile evidence; mandatory gate below
+        # still refuses packaging after any missing/failed runtime test.
+        continue-on-error: true
+        if: ${{ !cancelled() && matrix.game == 'pikmin1' && steps.coop_socket_build.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/run_ios_coop_socket_probe.py \
+            --binary "$RUNNER_TEMP/nectar-coop-socket/nectar_net_coop_socket_probe" \
+            --health-binary "$RUNNER_TEMP/nectar-coop-socket/nectar_simulator_health" \
+            --output ios-coop-socket-results
       - name: Configure iPhoneOS ARM64 target without signing
         shell: bash
         run: |
@@ -436,15 +451,6 @@ jobs:
             python3 ios/verify_coop_bundle.py --app "$APP" --variant "$IOS_VARIANT" \
               --licenses "$HOME/.cache/open-nectar/netplay-deps/install/ios-arm64/share/nectar-net/licenses"
           fi
-      - name: Run real encrypted iOS co-op socket session probe
-        if: ${{ !cancelled() && matrix.game == 'pikmin1' && steps.coop_socket_build.outcome == 'success' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 tests/run_ios_coop_socket_probe.py \
-            --binary "$RUNNER_TEMP/nectar-coop-socket/nectar_net_coop_socket_probe" \
-            --health-binary "$RUNNER_TEMP/nectar-coop-socket/nectar_simulator_health" \
-            --output ios-coop-socket-results
       - name: Index compiler and linker errors
         if: always()
         run: python3 tests/ios_build_error_summary.py ios-build.log ios-build-errors.md
@@ -453,6 +459,11 @@ jobs:
         env:
           ROOM_CHECK_OUTCOME: ${{ steps.coop_room_checks.outcome }}
         run: python3 tests/run_ios_room_checks.py --verify ios-room-check-results/result.json --outcome "$ROOM_CHECK_OUTCOME"
+      - name: Require complete real iOS socket runtime before packaging
+        if: ${{ !cancelled() && matrix.game == 'pikmin1' }}
+        env:
+          SOCKET_CHECK_OUTCOME: ${{ steps.coop_socket_run.outcome }}
+        run: python3 tests/run_ios_coop_socket_probe.py --verify ios-coop-socket-results/result.json --outcome "$SOCKET_CHECK_OUTCOME"
       - name: Package unsigned app for later signing (only if compilation succeeds)
         if: success()
         shell: bash

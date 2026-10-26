@@ -64,7 +64,7 @@ class RunnerTest(unittest.TestCase):
             companion.write_bytes(b'separate health executable')
             output = base / 'evidence'
             try:
-                run(binary, output, execute, health_binary=companion if health else None)
+                run(binary, output, execute, health_binary=companion if health else None, isolated=False)
             except (RuntimeError, AssertionError, subprocess.TimeoutExpired):
                 pass
             receipt = json.loads((output / 'result.json').read_text())

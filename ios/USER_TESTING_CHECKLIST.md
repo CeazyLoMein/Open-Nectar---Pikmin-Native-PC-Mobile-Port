@@ -135,3 +135,5 @@ October25 —69 full Apple/12 checks/simulator input+pause/package verified PASS
 October25 —70 attempt1 full game/preflight PASS; runtime simulator spawn timed out before observed main and basic diagnostics also timed out; noIPA. Same70 attempt2 already requested/in progress. New health runner guard locally15 tests PASS, saved for future source build [skip ci], not in executing retry. No phone action; keep68. T10 still future.
 
 October25:70 attempt2 native/simulator/IPA PASS, identical binary to failed attempt1. New explicit PROCESS-LATCHED disk-backed temporary practice card actual-source test and Clang3 PASS, Apple next. No UI caller/area enabled. Future driver must drain CardUtil before teardown, abort on failed isolation and require restart before normal solo. Keep68; T10 remains FUTURE; no phone task.
+
+October26:71 Apple actual-card/host fixture/full app/12 preflight PASS, simulator health timed out before native probe; no IPA. Owned simulator lifecycle + one setup-only recovery + early runtime + mandatory final evidence gate repair local26 tests PASS; next Apple pending. Keep68; T10 future; no phone/USB task.
