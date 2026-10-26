@@ -2,6 +2,10 @@
 
 User instruction: new steering adds requirements/tasks; do not discard earlier objectives or silently replace the active task. Only explicit cancellation removes an objective. Statuses below are evidence boundaries, not completion percentages.
 
+## Build batching rule — user reiterated after Build76
+
+Group related work toward a concrete two-phone practice milestone; use local tests between edits. Native CI is for meaningful integrated batches or demonstrated failure correction, not the default after each internal helper.76 is verified PASS; no77 triggered this checkpoint. Preserve all existing requirements below.
+
 ## Immediate sequence
 
 1. Build75/run40338639501 actual startup/view Apple fixtures/full native app/networking/package SUCCESS. New guest captain+Pikmin whole-cohort adapter locally checked; inspect its exact next native result when user reports it. Keep68; no phone task.
