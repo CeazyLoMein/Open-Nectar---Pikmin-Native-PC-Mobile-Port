@@ -1,3 +1,9 @@
+## Build73 dispatched — UIKit simulator app entry for exact native probes
+
+Source 3fedaf80a384fda8dba6bab0c10eeb7a4800fc6d; run40261792715; https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40261792715; last observed IN_PROGRESS, no result/IPA yet. This batch wraps the unchanged real socket and independent health test bodies in two separate scene-based UIKit apps, then install/launch/polls captured output and strict return markers. Full native START/PASS/noFAIL + zero wrapper return, UIKit entry, original execution step outcome and final receipt/log gate remain mandatory. Health20s/native90s not relaxed. Owned simulator lifecycle/one pre-native setup recovery/cleanup and diagnostic preservation retained. Local34 host tests +2 strict controlled-SDK ARC/core variants/plists/Python/workflow structure/diff PASS; real Apple CMake/app compile/runtime pending. No game/P2/FPS/packs/phone changes.
+
+72/run40258515054 full app/card fixture/12 room checks PASS, standalone health and recovery shutdown timeouts on fresh owned simulator; native test NOT RUN; no IPA. Prior simulator ownership change did not solve it. Exact service cause unknown.70 attempt2 last socket/native success; accepted68 stays on phones. Actual practice area/input/camera driver still not exposed; T10 future. Independent settings and every earlier objective retained in COOP_OBJECTIVE_QUEUE.md. User reports new result; no idle polling.
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** 2026-10-26T02:59:10.352738+00:00
