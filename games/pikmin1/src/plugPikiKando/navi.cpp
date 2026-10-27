@@ -1,3 +1,4 @@
+#include "netplay/pc_practice_squad_policy.h"
 #include "netplay/pc_coop_practice_runtime.h"
 #include <chrono>
 #include <cmath>
@@ -2566,6 +2567,9 @@ void Navi::callPikis(f32 radius, bool recallAll)
 	CI_LOOP(iterPiki)
 	{
 		Piki* piki = static_cast<Piki*>(*iterPiki);
+#if defined(PIKI_PC_PORT)
+		if (!pc_practice_may_whistle(pc_coop_practice_active(),mNaviID,piki->mPlayerId)) continue;
+#endif
 		if (!piki->isAlive()) {
 			continue;
 		}
