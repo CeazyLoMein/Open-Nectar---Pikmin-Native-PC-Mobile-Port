@@ -1,3 +1,91 @@
+# OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
+
+2026-10-27 11:13 EDT. Latest checkpoint: host/guest engine authority plus held-world camera and replica model integration. No new iOS build has been triggered.
+
+1. **Repository/branch:** C:/Dev/Open-Nectar---Pikmin-Native-PC-Mobile-Port; CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; ios-experimental.
+2. **Revisions:** fetched local/origin parent 5d6d4b9169b63630f599a6a76628d59b27cc27b4; this source/test/journal checkpoint has subject `Hold replicated co-op worlds across engine update and draw [skip ci]`. Exact resolved post-push revisions are in Documents/Open Nectar/2 - Progress and ChatGPT Handoff/Exact Resume State.json and its latest report.
+3. **Working tree:** this entry is committed with the scoped batch; always inspect git status on resume. Never overwrite another session's work. No binaries/proprietary assets are included.
+4. **P1:** installed Build68 retained. User-accepted solo/connection UI baseline; campaign completion not proven. Latest native Build76 verifies fixed-cohort captain/Pikmin apply, not playable online gameplay. New authority batch is local-only verification.
+5. **P2:** last user-confirmed working launch/gameplay/audio retained; no changes or new tests this batch.
+6. **Implemented:** explicit host running latch defaults held; invalidated guest remains non-authoritative; engine frame phase before update; clock/Node/AI/mode/message/timer guards; local controller and own camera updates while held; cursor/input-log side-effect guards; guest maturity mesh sync; held mouth drawing cannot change replica position.
+7. **Proposed but not implemented:** dynamic replica spawning/removal/conversion/animation/jobs, complete world baseline, live room/game-thread transfer, network gameplay input, playable Start UI. Do not treat an assembled ActorFrame as the full world.
+8. **Functions/files:** pc_coop_world_may_advance/has_guest/set_host_running; PlugPikiApp::idle; NewPikiGameSetupSection::update/draw; GameCoreSection::update/updateAI/pcUpdateCoopHeldView; PcamCamera::control; ViewPiki::refresh. Contract/compile-out hooks in pc_coop_world_hooks.h; independent presentation in pc_netplay_present.
+9. **Validation:** actual-source controlled fixtures PASS under MSVC strict; Clang/core analyzer PASS;300-actor packet fixture and compile-out PASS;6 runner/gate tests PASS;2 negative controls correctly detect removed guards.20 pure network tests PASS in restricted execution;4 encrypted localhost tests fail there but PASS unchanged with normal access. No new Apple/full-engine/hardware validation.
+10. **Latest native run:**76 /40393742757 / source0ced5bbe83504842602cd03872409dc584065169 / https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40393742757.
+11. **Native results:**76 SUCCESS (scene job121821186343; P1 job121828968175).75 SUCCESS. Earlier71–73 test-runner failures were repaired before74; do not diagnose them as current gameplay/compiler failures.
+12. **IPA:**76 private outputs/Build76-Pikmin1/Nectar-pikmin1-unsigned.ipa,5299633bytes SHA25666ad7aa47f99465874fb676ae1c815fd709782a63df1e1785d3acd621ab7ba16, UUID484f4c5d-796c-3b1e-b78c-60544382fced, unsignedARM64iPhoneOS, artifact12686618220. No new IPA. Preserve68/65/54 rollback.
+13. **Phone results:** no new phone test. Existing68 limited menus/rejoin/return tests accepted; user reported heat improvement. Same-Wi-Fi connection previously passed, including reversed host. Internet play and actual shared-area gameplay unverified.
+14. **Unresolved:** world lifecycle/animation/AI callback audit, world/HUD/interaction state, driver/thread/controls/load barriers, hardware validation. No automatic durable live save or host migration.
+15. **Next supported fixes:** Piki::doKill has gameplay side effects (seed creation/death/work counters), so add explicit replica lifecycle/visual cleanup rather than running normal death twice. ViewPiki::setFlower can apply local All Flowers cheat; new render mesh sync avoids that. Keep host tick independent of phone render rate.
+16. **Resume details:** local tools/receipts in workspace work/. Protected card admission drains worker under its queue lock and is process-latched; ending a practice run requires restart before normal solo. Match accepted session/epoch and pump session while paused. Independent view does not complete the full world. Native check runner now requires13 receipts (admission/view/authority), not9; all are mandatory before packaging.
+17. **User involvement:** none now; no USB required. Do not ask for another phone reinstall until there is a concrete integrated shared-area test with exact steps.
+18. **Exact development sequence:** inspect current tree/origin; extend population/lifecycle/visual baseline with tests; wire room ownership/bootstrap/loading/input to actual engine; expose truthful Start/Ready only after complete bounded practice world; run local batch checks; then one P1 native build and targeted two-phone test. Next stages: campaign main-menu flow and separate solo/shared slots, shared Onion stock/own squads/allowances, host pause and exact live rejoin, crash recovery/mid-day saves, internet reachability, PC/iPhone cross-progression, P2. Preserve personal views/settings and no finale spoilers.
+
+The full milestone progress report follows, then dated historical records.
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-27 11:13 EDT
+
+**Overall project status:** Working installed P1/P2 baselines preserved. Build76 passed native compilation and packaging; the larger next integration batch is in source and locally checked. No Build77 dispatched. Real two-phone shared-area gameplay remains unfinished; the current phone screen is still a connection test.
+
+### Pikmin 1
+
+- Current objective: one host-owned shared practice world, each phone with its own full-screen camera and controls, before campaign co-op.
+- What was investigated: actual PlugPikiApp frame loop, NewPikiGame update/draw/mode flow, GameCoreSection update/AI/cameras, Pcam camera-to-cursor writes, ViewPiki maturity/attachment rendering, and existing host/guest lifetime adapter.
+- Root cause or leading hypothesis: stopping updateAI alone would leave a guest advancing clock/Node updates, movie/mode callbacks and gameplay messages in drawing. Camera controls also write gameplay cursor state. Applying mHappa alone leaves its displayed leaf/bud/flower model stale. These are source findings, not newly reproduced phone bugs.
+- Files changed: games/pikmin1/pc_port/netplay/pc_coop_world.h/.cpp, pc_coop_world_hooks.h, pc_netplay_present.h/.cpp; include/GameCoreSection.h; src/plugPikiColin/plugPiki.cpp and newPikiGame.cpp; src/plugPikiKando/gameCoreSection.cpp and viewPiki.cpp; src/plugPikiNakata/pcamcamera.cpp; actual-source fixtures/mandatory practice-check runner and descriptions.
+- Source changes implemented: admitted hosts start held, and only a matching session/epoch can grant running after readiness. Guests stay held even after invalidated bindings; they cannot obtain host authority. The actual frame enters presentation before update, known gameplay update/draw/mode/message paths are gated, and local controllers/own camera remain available. Camera recenter/drag cannot write authoritative aiming/input while held. Guest maturity selects the matching local model without invoking the local All Flowers cheat. Mouth attachment drawing cannot overwrite a held replica's position.
+- Tests and results: strict MSVC actual adapter/pool/300-Pikmin packet fixture PASS, compile-out defaults PASS; actual local camera/HUD/Onion/audio branch fixture PASS; actual gameplay update/draw/frame/cursor/model fixture PASS across120 held frames; Clang diagnostics/core analyzer PASS;6 practice-runner/gate tests PASS;2 deliberately broken controls compile but correctly FAIL.20 pure network tests passed with restricted access;4 unchanged encrypted UDP tests timed out there and all4 passed with normal localhost access. No product networking fix was made for that environment failure.
+- Confirmed working: Build68 remains the user-accepted limited phone baseline. Build76 source0ced5bbe83504842602cd03872409dc584065169 has an independently verified native IPA. New authority/camera/model source is locally checked only.
+- Remaining issues: no room-to-game owner-thread driver, full accepted world baseline, dynamic replica birth/death/conversion/animation/job mapping, complete HUD/cursor/interaction state or actual phone gameplay yet. Additional render callbacks still need audit; do not call this an exhaustive guest-world proof. No playable Start is exposed.
+
+### Pikmin 2
+
+- Current objective: preserve its last user-confirmed working build while P1 co-op integration continues.
+- What was investigated: no new P2 source or phone investigation in this batch.
+- Root cause or leading hypothesis: none newly asserted.
+- Files changed: none.
+- Tests and results: no new P2 build/runtime test.
+- Confirmed working: last user reports P2 launches and missing Pikmin/enemy/environment audio was resolved; full campaign completion is not verified.
+- Remaining issues: later stronger campaign test and P2 online adapter; preserve existing installation/assets/settings.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: ios-experimental.
+- Starting commit: 5d6d4b9169b63630f599a6a76628d59b27cc27b4; fetched origin matched before this checkpoint.
+- Latest commit: this authority checkpoint is saved with subject `Hold replicated co-op worlds across engine update and draw [skip ci]`; its parent is 5d6d4b9169b63630f599a6a76628d59b27cc27b4. The accessible Exact Resume State.json records its resolved local/remote hash after commit/push.
+- Commits created: one scoped source/test/journal checkpoint intended, with [skip ci].
+- Changes pushed: normal branch checkpoint only; no history rewrite or stable release.
+- Uncommitted changes: source/test/journal batch is being committed with this entry; any interrupted checkpoint must be recovered with git status before further edits. Accessible final state records post-commit status.
+- GitHub Actions run IDs: latest verified native run40393742757 (Build76), source0ced5bbe83504842602cd03872409dc584065169.
+- Build results: Build76 SUCCESS; new authority batch NOT compiled by Apple/Xcode yet. No new native run requested.
+- Artifacts produced: no new artifact. Existing verified Build76 IPA5299633bytes, SHA25666ad7aa47f99465874fb676ae1c815fd709782a63df1e1785d3acd621ab7ba16, artifact12686618220. Build68 remains installed;76 is private engineering evidence.
+
+### Next steps
+
+- Next Pikmin 1 task: integrate guest population lifecycle and safe visual animation with the actual world baseline. Ordinary Piki::doKill is unsafe for replica despawn because it changes counters, plays death effects and can generate a seed.
+- Next Pikmin 2 task: preserve working baseline; resume deeper testing/online adapter after the P1 practice milestone.
+- GitHub/build task: keep related population/animation/world/input/room-driver changes in a larger batch. Use local checks until a meaningful integrated native checkpoint, then one P1-only build. Do not dispatch one build per helper.
+- Anything requiring my involvement: nothing now; keep Build68. No phone connection, reinstall or new hardware test is requested.
+
+### ChatGPT continuation notes
+
+- What another ChatGPT conversation needs to know: this is a source integration checkpoint, not a playable co-op release. Build76 validates the earlier fixed-cohort adapter only. Personal graphics/FPS120/camera/controls/touch settings are retained; no new frame-rate cap or texture downgrade.
+- Important source-file locations: pc_coop_world.cpp authority/context; PlugPikiApp::idle phase/message guards; NewPikiGameSetupSection::update/draw; GameCoreSection::pcUpdateCoopHeldView/update/updateAI; PcamCamera::control; ViewPiki::refresh. New fixture tests/pikmin1_practice_authority_test.py exercises actual extracted branches with controlled engine leaves.
+- Relevant logs: workspace work/authority-final-local.log, authority-clang.log, authority-world-clang.log, authority-runner-tests.log, authority-negative-controls.json, authority-gns-permitted.log. Prior Build76 receipt work/build76-package-verification.json and full log work/build76-p1-full.log.
+- Unverified fixes: Apple/full-engine compilation and all phone behavior for this batch; dynamic/full-world replication, visual animation, complete HUD and new co-op interaction input are unfinished.
+- Risks and warnings: a render-phase serial is NOT the authoritative simulation tick. Drive set_host_running with CoopSession::hostShouldAdvanceWorld after each session pump; keep pumping while held. Establish the complete world/local view before confirming loaded. Held gameplay mode input cannot itself unpause the world; the driver must route session controls. Preserve process-latched private card admission and restart-required exit. Do not reuse session IDs or wrap scene epochs. Do not enable old deterministic netplay unchanged: it locks30FPS/personal settings.
+- Exact next actions: verify git/status/origin; read current authority entry; inspect Piki/ViewPiki creation/cleanup and animation callbacks; build a complete admitted baseline/lifecycle adapter, then wire owner-thread room/bootstrap/scene/input. Keep playable UI closed until those paths and local/native checks cover the bounded shared area. Later integrate campaign slots/shared Onion/per-player squads, disconnect/rejoin, durable recovery, internet, PC cross-progression and P2.
+
+**END PROGRESS REPORT**
+
+
+---
+
+## Historical entries — use the current checkpoint above
+
 ## Build76 verified PASS; larger integration batches required
 
 2026-10-26T21:03:01.111910+00:00 UTC. Run40393742757/source0ced5bbe83504842602cd03872409dc584065169 SUCCESS. Full log confirms expanded actual capture/pool/whole-squad/300-Pikmin packet fixture PASS; full native game BUILD SUCCEEDED;9 practice checks,12 room checks and real encrypted UIKit simulator runtime PASS; no cleanup errors. Artifact12686618220 SHA256c5409b50b594ef783566b8fc660ea8a085df32813c68ea06443d0090ae6d66bf and CRC verified; IPA5299633bytes SHA25666ad7aa47f99465874fb676ae1c815fd709782a63df1e1785d3acd621ab7ba16 UUID484f4c5d-796c-3b1e-b78c-60544382fced, ARM64 device, original identity/icons/notices checked. Retained privately under outputs/Build76-Pikmin1. No installation requested. Keep accepted68; P2 unchanged.

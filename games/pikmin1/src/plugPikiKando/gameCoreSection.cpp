@@ -16,6 +16,7 @@
 #include "settings/pc_settings.h"
 #include "netplay/pc_netplay_det.h"
 #include "netplay/pc_netplay_present.h"
+#include "netplay/pc_coop_world_hooks.h"
 #include "netplay/pc_coop_switch.h"
 #include "netplay/pc_state_hash.h"
 #if defined(PIKI_PC_PORT)
@@ -2799,6 +2800,9 @@ void GameCoreSection::update()
 {
 	STACK_PAD_VAR(2);
 #if defined(PIKI_PC_PORT)
+	if (!pc_coop_world_may_advance()) { pcUpdateCoopHeldView(); return; }
+#endif
+#if defined(PIKI_PC_PORT)
 	pcApplyPendingTutorialSkip();
 	if (pc_vs_active()) {
 		pcVsUpdate(mMapMgr);
@@ -2996,6 +3000,9 @@ void GameCoreSection::startSundownWarn()
 void GameCoreSection::updateAI()
 {
 	STACK_PAD_VAR(2);
+#if defined(PIKI_PC_PORT)
+	if (!pc_coop_world_may_advance()) return;
+#endif
 #if defined(PIKI_PC_PORT)
 	// Photo mode. This lives in updateAI rather than in update() because
 	// update() is reached through Node::update(), and newPikiGame guards that
@@ -3281,6 +3288,19 @@ void GameCoreSection::updateAI()
 
 #if defined(PIKI_PC_PORT)
 static PcamCameraManager* sCameraMgrP1 = nullptr;
+
+void GameCoreSection::pcUpdateCoopHeldView()
+{
+	if (!pc_netplay_present_single_view() || !mNavi || !mNavi2 || !cameraMgr || !mCameraMgr2) return;
+	if (!gameflow.mMoviePlayer->mIsActive) {
+		// setActiveView scopes the legacy camera singleton, not gameplay input
+		// ownership. Only this phone's camera advances; restore P1 afterward.
+		setActiveView(pc_netplay_present_local_player());
+		cameraMgr->update();
+		setActiveView(0);
+		updateDynamicSplit(gsys->getFrameTime());
+	}
+}
 
 void GameCoreSection::updateCoopCameras()
 {

@@ -106,6 +106,15 @@ int main(){
  check(pc_coop_world_actor_id(&p0,EntityKind::Pikmin)!=replacement,"previous scene identity cannot alias next scene");
  pc_coop_world_end_scene();
 
+ // Authority is explicit and session-scoped, not inferred from render FPS.
+ check(pc_coop_world_may_advance()&&!pc_coop_world_has_guest(),"scene teardown restores ordinary authority");
+ check(pc_coop_world_begin_host(110,3)&&!pc_coop_world_may_advance(),"admitted host begins held before readiness");
+ check(!pc_coop_world_set_host_running(999,3,true)&&!pc_coop_world_set_host_running(110,4,true)&&!pc_coop_world_may_advance(),"wrong accepted context cannot release host");
+ check(pc_coop_world_set_host_running(110,3,true)&&pc_coop_world_may_advance(),"matching ready driver releases actual host context");
+ check(pc_coop_world_set_host_running(110,3,false)&&!pc_coop_world_may_advance(),"pause or disconnect holds host without ending scene");
+ navis.objects={&n0};check(!pc_coop_world_set_host_running(110,3,true)&&!pc_coop_world_may_advance(),"missing live captain cannot resume host");navis.objects={&n0,&n1};
+ pc_coop_world_end_scene();check(!pc_coop_world_set_host_running(110,3,true)&&pc_coop_world_may_advance(),"old callback cannot revive ended host");
+
  // Guest engine application: real adapter TU, no copied transform implementation.
  check(!pc_coop_world_guest_active(),"guest is inactive in ordinary gameplay");
  navis.objects={&n0};
@@ -113,6 +122,7 @@ int main(){
  navis.objects={&n0,&n1};
  check(pc_coop_world_begin_guest(101,3)&&pc_coop_world_guest_active()&&pc_coop_world_active(),"explicit guest scene binds both captain lifetimes");
  check(!pc_coop_world_begin_host(102,1)&&!pc_coop_world_capture(records),"guest cannot become host or capture authoritative world");
+ check(pc_coop_world_has_guest()&&!pc_coop_world_may_advance()&&!pc_coop_world_set_host_running(101,3,true),"guest cannot acquire host advancement even with matching session context");
  ActorFrame view;view.frame=1;view.tick=100;
  CaptainState ca,cb;ca.player=0;cb.player=1;ca.position={100,20,30};cb.position={200,21,31};
  ca.velocity={1,2,3};cb.velocity={4,5,6};ca.faceDirection=1;cb.faceDirection=2;
@@ -143,6 +153,7 @@ int main(){
  check(!pc_coop_world_apply_guest_captains(101,3,view),"replaced local captain not overwritten");
  navis.objects={&n0,&n1};pc_coop_world_forget(&n1);
  check(!pc_coop_world_guest_active()&&!pc_coop_world_apply_guest_captains(101,3,view),"same-address pool reuse invalidates entire guest binding");
+ check(pc_coop_world_has_guest()&&!pc_coop_world_may_advance(),"invalidated guest binding stays held rather than silently falling back to solo");
  pc_coop_world_end_scene();
  check(!pc_coop_world_active()&&!pc_coop_world_apply_guest_captains(101,3,view),"stage exit clears guest references before game heap reset");
  check(!pc_coop_world_begin_guest(101,3)&&pc_coop_world_begin_guest(101,4),"guest new scene requires higher accepted epoch");
@@ -242,5 +253,5 @@ int main(){
 }
 '''
 (out/'capture-test.cpp').write_text(test,encoding='utf-8')
-(out/'disabled-test.cpp').write_text('#include "netplay/pc_coop_world_hooks.h"\nint main(){pc_coop_world_forget(nullptr);pc_coop_world_end_scene();}\n',encoding='utf-8')
+(out/'disabled-test.cpp').write_text('#include "netplay/pc_coop_world_hooks.h"\nint main(){pc_coop_world_forget(nullptr);pc_coop_world_end_scene();return (!pc_coop_world_may_advance()||pc_coop_world_has_guest())?1:0;}\n',encoding='utf-8')
 print('Generated actual capture/pool regression fixture and compile-out check:',out)

@@ -40,9 +40,10 @@ int pc_netplay_present_local_view_pass(void);
 // True when the two-pass frame is active (deterministic mode, engine build).
 int pc_netplay_present_two_pass_active(void);
 
-// True when this pass may write sim state: single-pass mode, or the
-// authoritative pass of a two-pass tick. The presentation pass only reads
-// sim state and writes view state.
+// True when this pass may write sim state: ordinary single-pass mode, or
+// the authoritative pass of a legacy two-pass tick. An explicitly admitted
+// guest or held co-op host always returns false, independent of render phase.
+// The presentation pass reads sim state and writes local view state.
 int pc_netplay_present_sim_side(void);
 
 // True only inside the authoritative pass of a two-pass tick.

@@ -13,6 +13,7 @@
 #include "mods/pc_hd_models.h"
 #include "netplay/pc_netplay_policy.h"
 #include "netplay/pc_netplay_present.h"
+#include "netplay/pc_coop_world_hooks.h"
 #include "timing/pc_anim_timing.h"
 #endif
 #include "PikiState.h"
@@ -622,6 +623,14 @@ static void printMatrix(immut char* name, immut Matrix4f& mat)
 void ViewPiki::refresh(Graphics& gfx)
 {
 	STACK_PAD_VAR(2);
+#if defined(PIKI_PC_PORT)
+	// A host-applied maturity value also needs its matching visible model.
+	// Do not call setFlower here: it can apply a local gameplay cheat instead
+	// of the host's state. This only selects this phone's leaf/bud/flower mesh.
+	if (pc_coop_world_has_guest() && pikiMgr && mHappa >= Leaf && mHappa <= Flower) {
+		mHappaModel = pikiMgr->mLeafModel[mHappa];
+	}
+#endif
 	u32 color = mColor;
 	if (color == Blue && gameflow.mDemoFlags & CinePlayerFlags::HideBluePiki) {
 		return;
@@ -729,6 +738,9 @@ void ViewPiki::refresh(Graphics& gfx)
 		Matrix4f mtx2;
 		mtx2.makeSRT(Vector3f(swallowScale, swallowScale, swallowScale), Vector3f(0.0f, 0.0f, HALF_PI), Vector3f(0.0f, 0.0f, 0.0f));
 		mouthMtx.multiplyTo(mtx2, mtx);
+#if defined(PIKI_PC_PORT)
+		if (pc_coop_world_may_advance())
+#endif
 		mSRT.t = mSwallowMouthPart->mCentre;
 	}
 

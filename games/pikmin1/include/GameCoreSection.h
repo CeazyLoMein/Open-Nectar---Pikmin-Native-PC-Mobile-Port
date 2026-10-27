@@ -129,6 +129,9 @@ struct GameCoreSection : public Node {
 	void setActiveView(int view);
 	Camera* getViewCamera(int view);
 	void updateCoopCameras();
+	// Local presentation only while the authoritative world is held. Never
+	// calls Node::update, playerState, route/AI/physics, or gameplay mode code.
+	void pcUpdateCoopHeldView();
 	/// Vista en curso: cámara, aspecto, viewport/scissor y limpieza de las
 	/// listas por frame (luces, shapes cacheadas) cuando view > 0.
 	void beginView(Graphics& gfx, int view, f32 farClip);

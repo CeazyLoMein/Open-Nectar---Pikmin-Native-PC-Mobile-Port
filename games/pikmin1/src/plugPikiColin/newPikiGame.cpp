@@ -1,4 +1,5 @@
 #include "NewPikiGame.h"
+#include "netplay/pc_coop_world_hooks.h"
 
 #include "Controller.h"
 #include "DayMgr.h"
@@ -2363,14 +2364,16 @@ public:
 	/// Updates for this frame - farms a lot of the work out to the active mode state.
 	virtual void update() // _10
 	{
-		mMenuRepeatTimer--;
-		if (!gameflow.mMoviePlayer->mIsActive) {
-			// if we have no active cutscene (or text screen), reset our movie heap to make sure we're not leaking memory
-			if (gsys->getHeap(SYSHEAP_Movie)->getTopUsed()) {
-				bool old           = gsys->mTogglePrint != FALSE;
-				gsys->mTogglePrint = TRUE;
-				gsys->resetHeap(SYSHEAP_Movie, AYU_STACK_GROW_DOWN);
-				gsys->mTogglePrint = old;
+		if (pc_coop_world_may_advance()) {
+			mMenuRepeatTimer--;
+			if (!gameflow.mMoviePlayer->mIsActive) {
+				// if we have no active cutscene (or text screen), reset our movie heap to make sure we're not leaking memory
+				if (gsys->getHeap(SYSHEAP_Movie)->getTopUsed()) {
+					bool old           = gsys->mTogglePrint != FALSE;
+					gsys->mTogglePrint = TRUE;
+					gsys->resetHeap(SYSHEAP_Movie, AYU_STACK_GROW_DOWN);
+					gsys->mTogglePrint = old;
+				}
 			}
 		}
 
@@ -2382,6 +2385,13 @@ public:
 		sP1InputPressedRaw = mController->mInputPressed;
 		sP1Controller      = mPlayer1Controller;
 		sP2Controller      = mPlayer2Controller;
+		// Keep collecting local controls for the future session input driver,
+		// but never run pause/skip/day-end mode transitions on a replica or
+		// held host. Its own camera stays responsive without advancing AI.
+		if (!pc_coop_world_may_advance()) {
+			if (sGamecoreLive && gamecore) gamecore->pcUpdateCoopHeldView();
+			return;
+		}
 		// Cooperativo: los menús de sección (texto de tutorial, mensajes de
 		// pieza, saltar fin de día, pausa) leen mController; se le suma P2
 		// para que cualquiera de los dos pueda avanzar el texto.
@@ -2676,9 +2686,7 @@ public:
 					   && gameflow.mWorldClock.mCurrentDay != MAX_DAYS;
 					if (!pcClockHeld && !gameflow.mMoviePlayer->mIsActive && (mUpdateFlags & UPDATE_WORLD_CLOCK)
 					    && !playerState->isTutorial()) {
-						f32 tod = gameflow.mWorldClock.mTimeOfDay;
 						gameflow.mWorldClock.update(1.0f);
-						f32 tod2 = gameflow.mWorldClock.mTimeOfDay;
 					}
 					pcWorkClockUpdate(gameflow.mWorldClock, pcClockHeld);
 #if defined(PIKI_PC_PORT)
@@ -2706,13 +2714,13 @@ public:
 				}
 #endif
 			}
-		} else {
+		} else if (pc_coop_world_may_advance()) {
 			// we're still in initial set up - finalise things so we can start properly
 			PRINT("final setup!\n");
 			gamecore->finalSetup();
 			mIsInitialSetup = false;
 		}
-		if (mNextModeState) {
+		if (mNextModeState && pc_coop_world_may_advance()) {
 			// force a mode transition if we have one pending
 			PRINT("FORCING MODE !!!!\n");
 			mCurrentModeState = mNextModeState;

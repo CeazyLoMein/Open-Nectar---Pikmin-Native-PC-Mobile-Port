@@ -13,6 +13,7 @@
 #include <cstdlib>
 
 #include "timing/pc_render_phase.h"
+#include "netplay/pc_coop_world_hooks.h"
 #include "timing/pc_tick_profiler.h"
 #ifdef NECTAR_IOS_PERFORMANCE_HUD
 #include "timing/pc_ios_performance.h"
@@ -321,6 +322,12 @@ int PlugPikiApp::idle()
 
 	// Begin authoritative tick
 	pc_render_begin_authoritative_tick();
+#if defined(PIKI_PC_PORT)
+	// Guest and held-host frames must enter the read-only render phase BEFORE
+	// update(), not just around updateAI(): this engine also mutates world state
+	// from draw(), shape callbacks, mode postUpdate(), and movie refresh.
+	if (!pc_coop_world_may_advance()) pc_render_begin_presentation(1.0);
+#endif
 
 	// Cost of the work a 60 Hz gameplay mode would have to run twice as often.
 	// waitRetrace below is deliberately outside every span: it is the wait, not
@@ -428,7 +435,7 @@ int PlugPikiApp::idle()
 	gsys->mTimer->stop("render");
 
 	// process any messages that have built up this frame
-	if (gameflow.mGameInterface) {
+	if (gameflow.mGameInterface && pc_coop_world_may_advance()) {
 		gameflow.mGameInterface->parseMessages();
 	}
 
@@ -441,6 +448,8 @@ int PlugPikiApp::idle()
 		pc_vs_det_tick_end();
 	}
 #endif
+	// Do not leak the read-only phase into title/load code after scene teardown.
+	pc_render_end_presentation();
 	gsys->waitRetrace();
 	gsys->setHeap(SYSHEAP_NULL);
 

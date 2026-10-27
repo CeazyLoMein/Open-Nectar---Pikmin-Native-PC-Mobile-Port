@@ -1,3 +1,12 @@
+## Current checkpoint — 2026-10-27 11:13 EDT: integrated authority source, local checks PASS, native deferred
+
+Build76 remains SUCCESS. Working phone baseline68 retained. New host/guest authority is wired through known engine update/draw/mode/message/camera paths, with guest maturity mesh and held attachment correction. Local source fixtures/Clang/negative controls pass. Apple/full-engine and phone validation for this batch have NOT run. No Build77 requested; no playable online Start exposed. P2 unchanged. Next: population/animation/full world baseline + room/area/input driver together, then meaningful native batch. Resolved post-push commit is in accessible Exact Resume State.json; checkpoint subject `Hold replicated co-op worlds across engine update and draw [skip ci]`.
+
+
+---
+
+## Historical entries — use the current checkpoint above
+
 # Open Nectar co-op — running objective queue
 
 User instruction: new steering adds requirements/tasks; do not discard earlier objectives or silently replace the active task. Only explicit cancellation removes an objective. Statuses below are evidence boundaries, not completion percentages.

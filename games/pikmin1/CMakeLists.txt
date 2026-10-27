@@ -140,7 +140,7 @@ option(PIKMIN_BUILD_LAUNCHER "Build the standalone first-run launcher" ${PIKMIN_
 option(PIKMIN_BUILD_TESTS "Build the host-run test executables" ${PIKMIN_DESKTOP_DEFAULT})
 option(NECTAR_BUILD_MAPMAKER "Build the VS map editor (tools/mapmaker)" ${PIKMIN_DESKTOP_DEFAULT})
 option(NECTAR_ONLINE "Build the experimental direct online co-op layer" OFF)
-option(NECTAR_COOP_WORLD "Compile inert host actor capture prototype (no online session UI)" OFF)
+option(NECTAR_COOP_WORLD "Compile internal co-op world bridge (no playable session UI)" OFF)
 
 if(PIKMIN_BUILD_TESTS)
     enable_testing()

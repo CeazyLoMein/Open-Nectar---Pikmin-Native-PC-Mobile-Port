@@ -39,7 +39,9 @@ test='''#include "Graphics.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
-static bool deterministic=false,merge=true,firstPerson=false;
+static bool deterministic=false,merge=true,firstPerson=false,worldAdvance=true;
+bool pc_coop_world_may_advance(){return worldAdvance;}
+bool pc_coop_world_has_guest(){return false;}
 bool pc_netplay_deterministic(){return deterministic;}unsigned pc_netplay_tick(){return 0;}
 void pc_netplay_present_restore_all_shapes(){}
 static int failures=0;
@@ -70,13 +72,18 @@ float pc_gfx_get_window_aspect_ratio(){return 1.5f;}void pc_gfx_set_view_aspect_
 void pc_gfx_set_out_tint(float,float,float){}void pc_gfx_clear_out_tint(){}void pc_gfx_clear_view_subrect(){}void pc_gfx_set_hud_virtual_size(int,int){}
 static int camleadCalls=0;Camera* pc_netplay_camlead_view(int,Camera* c){++camleadCalls;return c;}
 struct Sound{int calls=0;Vector3f listener;void update(Graphics&,Vector3f p){++calls;listener=p;}}sound;Sound* seSystem=&sound;
+struct PcamCameraManager {int updates=0;void update(){++updates;}};
+PcamCameraManager managers[2];PcamCameraManager*cameraMgr=&managers[0],*sCameraMgrP1=nullptr;
+struct System {float getFrameTime(){return 1.0f/120.0f;}}systemState;System*gsys=&systemState;
 struct GameCoreSection {
  bool split=true;Navi* mNavi=nullptr;Navi* mNavi2=nullptr;Camera* mGameCamera2=nullptr;Camera mViewCam[2];
  zen::DrawGameInfo* mDrawGameInfo=nullptr;zen::DrawGameInfo* mDrawGameInfo2=nullptr;int mRenderPass=0,subrects=0;
+ PcamCameraManager*mCameraMgr2=&managers[1];int splitUpdates=0;
+ void setActiveView(int);void pcUpdateCoopHeldView();void updateDynamicSplit(float){++splitUpdates;}
  bool isSplitScreen(){return split;}void setViewSubrect(int){++subrects;}void drawDownedLabel(Graphics&,Navi*,float){}
  Camera* getViewCamera(int);void drawGameInfoHud(Graphics&);void drawContainerWindows(Graphics&);void audio(Graphics&);
 };
-'''+methods+'\nstatic bool sActive=true,sVsActive=true;\n'+end_run+'''
+'''+methods+'\n'+block(core,'void GameCoreSection::setActiveView(int view)')+'\n'+block(core,'void GameCoreSection::pcUpdateCoopHeldView()')+'\nstatic bool sActive=true,sVsActive=true;\n'+end_run+'''
 void GameCoreSection::audio(Graphics& gfx){bool advanceState=pc_render_is_authoritative();if(mRenderPass!=0)advanceState=false;
 '''+audio+'''
 }
@@ -112,6 +119,11 @@ int main(){
   check(hud[local].full==1&&hud[1-local].full==0&&box[local].full==1&&box[1-local].full==0,"only own HUD and Onion window drawn");
   check(sound.calls==1&&sound.listener.x==float(local*80),"sound listener follows own captain, not distant other player");
   check(merge&&firstPerson==(local==1)&&!deterministic,"view entry never overwrites personal merge/first-person settings or simulation mode");
+  worldAdvance=false;pc_render_begin_presentation(1.0);int ownUpdates=managers[local].updates,otherUpdates=managers[1-local].updates;
+  core.pcUpdateCoopHeldView();
+  check(managers[local].updates==ownUpdates+1&&managers[1-local].updates==otherUpdates&&cameraMgr==&managers[0]&&sCameraMgrP1==nullptr,"held world advances only local camera and restores legacy singleton");
+  check(!pc_netplay_present_sim_side()&&pc_netplay_present_local_player()==local,"camera motion never releases held world or changes identity");
+  pc_render_end_presentation();worldAdvance=true;
   movie.mIsActive=true;core.audio(gfx);check(sound.calls==2&&sound.listener.x==99,"movie audio still uses movie position");movie.mIsActive=false;
   pc_netplay_present_end_practice_view();check(!pc_netplay_present_single_view()&&pc_netplay_present_local_player()==0,"view exit restores prior player choice and normal local mode");
  }

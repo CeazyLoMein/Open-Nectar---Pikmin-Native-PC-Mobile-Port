@@ -13,7 +13,7 @@ class Checks(unittest.TestCase):
  def test_success_and_gate(self):
   with tempfile.TemporaryDirectory() as d:
    out=Path(d)/'results';receipt=runner.run_checks(Path(d),out,self.execute())
-   self.assertEqual(receipt['result'],'PASS');self.assertEqual(len(receipt['checks']),9);runner.verify_receipt(out/'result.json','success')
+   self.assertEqual(receipt['result'],'PASS');self.assertEqual(len(receipt['checks']),13);runner.verify_receipt(out/'result.json','success')
  def test_generation_failure_still_attempts_other_fixture(self):
   with tempfile.TemporaryDirectory() as d:
    receipt=runner.run_checks(Path(d),Path(d)/'results',self.execute(fail='pikmin1_practice_admission_test.py'))
@@ -35,8 +35,12 @@ class Checks(unittest.TestCase):
     with self.assertRaises(ValueError):runner.verify_receipt(p,outcome)
    receipt['checks']['ios-view']['returncode']=1;p.write_text(json.dumps(receipt))
    with self.assertRaises(ValueError):runner.verify_receipt(p,'success')
-   del receipt['checks']['ios-view'];p.write_text(json.dumps(receipt))
-   with self.assertRaises(ValueError):runner.verify_receipt(p,'success')
+   for name in runner.CHECKS:
+    valid={'result':'PASS','checks':{k:{'status':'PASS','returncode':0} for k in runner.CHECKS}}
+    valid['checks'][name]['status']='BLOCKED';p.write_text(json.dumps(valid))
+    with self.assertRaises(ValueError):runner.verify_receipt(p,'success')
+    del valid['checks'][name];p.write_text(json.dumps(valid))
+    with self.assertRaises(ValueError):runner.verify_receipt(p,'success')
  def test_missing_receipt_refused(self):
   with tempfile.TemporaryDirectory() as d:
    with self.assertRaises(FileNotFoundError):runner.verify_receipt(Path(d)/'missing.json','success')

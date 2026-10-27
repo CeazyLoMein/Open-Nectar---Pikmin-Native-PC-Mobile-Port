@@ -276,7 +276,7 @@ jobs:
             -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
             -std=c++17 -Wall -Wextra -Werror -DNECTAR_P1_SOLO_TEST=0 -fsyntax-only \
             -I"$FIXTURE" -Igames/pikmin1/pc_port "${SOURCES[@]}"
-      - name: Check protected practice startup and independent local views
+      - name: Check protected practice startup, local views and world authority
         id: coop_practice_checks
         if: matrix.game == 'pikmin1'
         continue-on-error: true
@@ -466,7 +466,7 @@ jobs:
         env:
           SOCKET_CHECK_OUTCOME: ${{ steps.coop_socket_run.outcome }}
         run: python3 tests/run_ios_coop_socket_probe.py --verify ios-coop-socket-results/result.json --outcome "$SOCKET_CHECK_OUTCOME"
-      - name: Require actual practice startup and view checks before packaging
+      - name: Require actual practice startup, view and authority checks before packaging
         if: ${{ !cancelled() && matrix.game == 'pikmin1' }}
         env:
           PRACTICE_CHECK_OUTCOME: ${{ steps.coop_practice_checks.outcome }}

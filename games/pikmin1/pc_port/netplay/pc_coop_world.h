@@ -10,9 +10,15 @@
 // Caller owns the session ID/scene barrier; session IDs must never be reused.
 bool pc_coop_world_begin_host(std::uint64_t sessionId, std::uint32_t sceneEpoch);
 bool pc_coop_world_active();
+// Explicit host readiness/pause latch. Call from the owning game-thread driver
+// after every session pump, using hostShouldAdvanceWorld(), never phone FPS.
+// A matching host starts held; wrong/replaced session or scene cannot release it.
+// Capturing a baseline while held is allowed. Not a complete room driver.
+bool pc_coop_world_set_host_running(std::uint64_t sessionId, std::uint32_t sceneEpoch, bool running);
 // Guest visual bridge only. Must be explicitly entered AFTER an accepted scene
-// loads TWO local presentation captains. Caller suppresses guest simulation.
-// No scene boot, spawning, inputs, Piki/jobs, camera selection or saving here.
+// loads TWO local presentation captains. The admitted context holds guest
+// authority through the engine hooks; the driver must still establish a complete
+// replica world and local view. No scene boot, spawning, inputs or saving here.
 bool pc_coop_world_begin_guest(std::uint64_t sessionId, std::uint32_t sceneEpoch);
 bool pc_coop_world_guest_active();
 // Apply both captain transforms atomically, between ticks, from the current

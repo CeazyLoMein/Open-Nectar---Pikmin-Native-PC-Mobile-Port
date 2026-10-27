@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "netplay/pc_netplay_det.h"
+#include "netplay/pc_coop_world_hooks.h"
 
 #if defined(PIKI_PC_PORT) && !defined(PC_NETPLAY_PRESENT_HOST)
 #include "Camera.h"
@@ -86,6 +87,9 @@ int pc_netplay_present_two_pass_active(void)
 
 int pc_netplay_present_sim_side(void)
 {
+    // A paused host/replica cannot regain authority merely because an old
+    // helper begins an authoritative render phase. Solo remains unchanged.
+    if (!pc_coop_world_may_advance()) return 0;
 #if defined(PIKI_PC_PORT) && !defined(PC_NETPLAY_PRESENT_HOST)
 	if (pc_netplay_present_two_pass_active()) {
 		return pc_render_is_authoritative() ? 1 : 0;

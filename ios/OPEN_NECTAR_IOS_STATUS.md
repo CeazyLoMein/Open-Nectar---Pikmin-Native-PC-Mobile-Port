@@ -1,3 +1,12 @@
+## Current checkpoint — 2026-10-27 11:13 EDT: integrated authority source, local checks PASS, native deferred
+
+Build76 remains SUCCESS. Working phone baseline68 retained. New host/guest authority is wired through known engine update/draw/mode/message/camera paths, with guest maturity mesh and held attachment correction. Local source fixtures/Clang/negative controls pass. Apple/full-engine and phone validation for this batch have NOT run. No Build77 requested; no playable online Start exposed. P2 unchanged. Next: population/animation/full world baseline + room/area/input driver together, then meaningful native batch. Resolved post-push commit is in accessible Exact Resume State.json; checkpoint subject `Hold replicated co-op worlds across engine update and draw [skip ci]`.
+
+
+---
+
+## Historical entries — use the current checkpoint above
+
 ## Build76 verified PASS; larger integration batches required
 
 2026-10-26T21:03:01.111910+00:00 UTC. Run40393742757/source0ced5bbe83504842602cd03872409dc584065169 SUCCESS. Full log confirms expanded actual capture/pool/whole-squad/300-Pikmin packet fixture PASS; full native game BUILD SUCCEEDED;9 practice checks,12 room checks and real encrypted UIKit simulator runtime PASS; no cleanup errors. Artifact12686618220 SHA256c5409b50b594ef783566b8fc660ea8a085df32813c68ea06443d0090ae6d66bf and CRC verified; IPA5299633bytes SHA25666ad7aa47f99465874fb676ae1c815fd709782a63df1e1785d3acd621ab7ba16 UUID484f4c5d-796c-3b1e-b78c-60544382fced, ARM64 device, original identity/icons/notices checked. Retained privately under outputs/Build76-Pikmin1. No installation requested. Keep accepted68; P2 unchanged.

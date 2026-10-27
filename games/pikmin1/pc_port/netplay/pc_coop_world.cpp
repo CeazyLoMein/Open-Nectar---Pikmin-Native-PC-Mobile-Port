@@ -12,7 +12,11 @@
 
 namespace {
 namespace net = nectar::net;
-struct CaptureState { net::HostEntityRegistry registry; std::uint64_t session=0, lastFrame=0, lastTick=0; };
+struct CaptureState {
+    net::HostEntityRegistry registry;
+    std::uint64_t session = 0, lastFrame = 0, lastTick = 0;
+    bool running = false;
+};
 // No allocation or manager traversal until explicitly begun by a future session.
 std::unique_ptr<CaptureState> state;
 struct GuestPikmin {
@@ -50,6 +54,18 @@ std::uint8_t leader(Navi* associated, Navi* const (&captains)[2])
 }
 
 bool pc_coop_world_active() { return state != nullptr || guest != nullptr; }
+bool pc_coop_world_has_guest() { return guest != nullptr; }
+bool pc_coop_world_may_advance() { return !guest && (!state || state->running); }
+bool pc_coop_world_set_host_running(std::uint64_t sessionId, std::uint32_t epoch, bool running)
+{
+    if (!state || state->session != sessionId || state->registry.epoch() != epoch) return false;
+    if (running) {
+        Navi* captains[2] = {};
+        if (!findCaptains(captains)) { state->running = false; return false; }
+    }
+    state->running = running;
+    return true;
+}
 bool pc_coop_world_guest_active() { return guest && !guest->invalidated; }
 bool pc_coop_world_begin_guest(std::uint64_t sessionId, std::uint32_t epoch)
 {

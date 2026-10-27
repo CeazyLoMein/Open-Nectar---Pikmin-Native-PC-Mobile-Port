@@ -16,6 +16,7 @@
 #include "NaviMgr.h"
 #include "ParaParameters.h"
 #include "Pcam/Camera.h"
+#include "netplay/pc_coop_world_hooks.h"
 #include "Pcam/CameraParameters.h"
 #include "SoundMgr.h"
 #include "nlib/Geometry3D.h"
@@ -311,7 +312,7 @@ void PcamCamera::control(Controller& controller)
 	const bool detMode = pc_netplay_deterministic();
 	// Cámara libre: L1 la devuelve detrás del capitán, y el cursor (que ha
 	// girado con ella) vuelve también delante de él (issue #74).
-	if (pc_settings_get_free_camera() && controller.keyClick(KBBTN_L) && mTargetCreature
+	if (pc_coop_world_may_advance() && pc_settings_get_free_camera() && controller.keyClick(KBBTN_L) && mTargetCreature
 	    && mTargetCreature->mObjType == OBJTYPE_Navi) {
 		static_cast<Navi*>(mTargetCreature)->pcCursorToFront();
 	}
@@ -349,10 +350,10 @@ void PcamCamera::control(Controller& controller)
 		// mismo sitio de la pantalla: si no, se quedaba fijo en el mundo y,
 		// con la cámara girada, apuntaba a otro lado (issue #74).
 #if defined(PIKI_PC_PORT)
-		if (detMode && dragRoute == 1) {
+		if (pc_coop_world_may_advance() && detMode && dragRoute == 1) {
 			pc_input_log_local_rotate_add(cameraDrag * 3.2f);
 		}
-		if (!detMode && mTargetCreature && mTargetCreature->mObjType == OBJTYPE_Navi) {
+		if (pc_coop_world_may_advance() && !detMode && mTargetCreature && mTargetCreature->mObjType == OBJTYPE_Navi) {
 #else
 		if (mTargetCreature && mTargetCreature->mObjType == OBJTYPE_Navi) {
 #endif
