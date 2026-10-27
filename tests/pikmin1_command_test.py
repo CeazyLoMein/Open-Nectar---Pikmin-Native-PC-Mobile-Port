@@ -75,6 +75,8 @@ code=r'''
 FOLLOW_HEADER
 #define PIKI_PC_TOUCH 1
 using f32=float;
+bool pc_coop_practice_remote_input(int){return false;}
+std::uint8_t pc_coop_practice_ext(int){return 0;}
 void pc_follow_note(const char*,float,float,float,float,float,float,int=0){}
 struct Vector3f {float x=0,y=0,z=0; Vector3f()=default;Vector3f(float a,float b,float c):x(a),y(b),z(c){}
  Vector3f operator+(Vector3f b)const{return {x+b.x,y+b.y,z+b.z};}

@@ -2689,8 +2689,8 @@ public:
 					// when its clock reaches sunset after the engine. The last day is left
 					// alone too, so its sunset ends the game and plays the ending.
 					const bool pcClockHeld
-					    = pc_coop_practice_active() || pc_settings_get_infinite_day() != 0 && gameflow.mWorldClock.mCurrentDay != 1
-					   && gameflow.mWorldClock.mCurrentDay != MAX_DAYS;
+					    = pc_coop_practice_active() || (pc_settings_get_infinite_day() != 0 && gameflow.mWorldClock.mCurrentDay != 1
+					   && gameflow.mWorldClock.mCurrentDay != MAX_DAYS);
 					if (!pcClockHeld && !gameflow.mMoviePlayer->mIsActive && (mUpdateFlags & UPDATE_WORLD_CLOCK)
 					    && !playerState->isTutorial()) {
 						gameflow.mWorldClock.update(1.0f);

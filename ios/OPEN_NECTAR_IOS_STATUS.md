@@ -3112,3 +3112,7 @@ Next: submit one P1-only native build, record its run and source revision, exami
 ## Build 77 dispatched
 
 P1-only build 77, run 40579562780, source 02c3e5efa9ace37852db0d8b1d9859a653050ca6: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40579562780 . Status when dispatched: in progress; no IPA or hardware validation yet. Once the user reports completion, retrieve actual results/logs. If it passes, inspect the unsigned artifact and its identity before staging it in the user's accessible install folder. If it fails, batch the evidenced errors and preserve working P1/P2 installs. The user wants no polling while waiting and requests an audible notification when user action is needed.
+
+## Build 77 failure and follow-up
+
+Build 77, run 40579562780: startup passed; P1 failed before full application compilation. Actual logs show missing guest HUD methods in the view fixture, missing co-op input stubs in the extracted command fixture, and Apple's compiler rejecting ambiguous boolean precedence. Socket and room checks were skipped after the earlier failure, so their later gate errors were consequences. Fixed all three together; local view/authority, command scenarios and strict Clang checks pass. Room checks now collect independent diagnostics even after earlier failure. No IPA or device verification yet. Full log: work/build77-p1.log in the Codex workspace.
