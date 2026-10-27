@@ -44,6 +44,9 @@ public:
     bool send(Delivery delivery, const std::uint8_t* data, std::size_t size) override;
     bool poll(TransportEvent& event) override;
     void disconnectPeer(bool flushReliable) override;
+    // Drop old authenticated peer and its queued events but retain host listener,
+    // room secret and rate-limit history. For a new handshake only.
+    bool prepareHostRejoin();
     void close() override;
     TransportState state() const override;
     bool stats(TransportStats& output) const override;

@@ -334,6 +334,16 @@ void GatedTransport::disconnectPeer(bool flushReliable)
     mGuest.onDisconnected();
 }
 
+bool GatedTransport::prepareHostRejoin()
+{
+    if (!mInner || mRole != Role::Host) return false;
+    disconnectPeer(false);
+    mReady.clear();
+    mPeerAddress.clear();
+    if (mCompat) mCompat->reset();
+    return true;
+}
+
 void GatedTransport::close()
 {
     if (mInner) mInner->close();

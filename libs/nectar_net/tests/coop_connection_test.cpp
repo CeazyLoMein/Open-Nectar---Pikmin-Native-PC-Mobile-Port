@@ -139,9 +139,43 @@ int main() {
         check(!p.h.beginSession(100,1,1,p.now)&&!p.g.beginSession(100,1,1,p.now),"end/restart cannot replay retired scene context");
         check(p.h.beginSession(100,2,1,p.now)&&p.g.beginSession(100,2,1,p.now),"higher accepted epoch begins fresh held scene");
         check(p.g.session()->actors().captains.empty()&&!p.g.session()->confirmWorldLoaded(),"previous scene baseline does not imply loaded new world");
+        check(!p.h.prepareHostRejoin(),"a live or loading session cannot be silently replaced");
         p.g.close();p.advance();
         check(!p.g.session()&&!p.g.connected()&&p.h.session()->phase()==CoopPhase::WaitingForPartner,
               "guest close safely stops session and freezes retained host");
+        check(!p.g.prepareHostRejoin(),"guest cannot take ownership of host listener");
+        check(p.h.prepareHostRejoin()&&!p.h.session()&&!p.h.connected(),
+              "lost host session retires before resetting peer, retaining its listener");
+        check(!p.h.prepareHostRejoin(),"duplicate rejoin setup cannot reset a new peer");
+        auto mismatch=std::make_unique<GuestJoin>([&p]{return p.net.createGuest();});
+        auto wrong=identity();wrong.content[0]^=1;
+        check(mismatch->start(p.status.code,wrong,1,1790000000,p.now)==JoinFailure::None,
+              "incompatible guest starts a fresh handshake");
+        JoinProgress mismatchProgress=JoinProgress::Connecting;
+        for(int i=0;i<400 && mismatchProgress!=JoinProgress::Failed;++i) {
+            p.now+=5;p.net.advance(p.now);p.h.pollHostRejoin();
+            TransportEvent e;bool has=false;mismatchProgress=mismatch->poll(p.now,e,has);
+        }
+        std::printf("REJOIN mismatch progress=%d failure=%d hostConnected=%d hostSession=%d\n",int(mismatchProgress),int(mismatch->failure()),int(p.h.connected()),int(p.h.session()!=nullptr));
+        check(mismatchProgress==JoinProgress::Failed &&
+              (mismatch->failure()==JoinFailure::Incompatible || mismatch->failure()==JoinFailure::Unreachable) &&
+              !p.h.connected() && !p.h.session(),
+              "incompatible rejoin is rejected without opening a session or destroying host room");
+        mismatch->cancel();
+        auto rejoin=std::make_unique<GuestJoin>([&p]{return p.net.createGuest();});
+        check(rejoin->start(p.status.code,identity(),1,1790000000,p.now)==JoinFailure::None,
+              "partner can reuse the same private room code");
+        for(int i=0;i<400;++i) {
+            p.now+=5;p.net.advance(p.now);p.h.pollHostRejoin();
+            TransportEvent e;bool has=false;rejoin->poll(p.now,e,has);
+            if(p.h.connected() && rejoin->transport() && rejoin->transport()->state()==TransportState::Connected)break;
+        }
+        check(p.h.connected()&&p.g.adoptGuest(rejoin),"same host accepts a freshly authenticated compatible partner");
+        check(!p.h.beginSession(100,2,1,p.now),"retired session identity cannot be replayed after reconnect");
+        check(p.h.beginSession(101,1,1,p.now)&&p.g.beginSession(101,1,1,p.now),
+              "new session is created only after fresh authentication");
+        check(!p.h.session()->hostShouldAdvanceWorld()&&!p.g.session()->confirmWorldLoaded(),
+              "reconnection cannot resume without a fresh baseline and readiness");
         p.h.close();p.h.close();
         check(!p.h.session()&&!p.h.connected()&&!p.h.role(role),"close is idempotent and clears owned identity");
     }

@@ -33,6 +33,13 @@ class CoopConnection {
     // loading/paused as well as running; do not poll HostRoom/GuestJoin too.
     CoopSession* session() { return mSession.get(); }
     void endSession();
+    // Trusted host driver only, after its actual world has already been held.
+    // Retires the lost session and keeps the room listener/code. A fresh peer
+    // must authenticate and load a new baseline; never resumes gameplay alone.
+    bool prepareHostRejoin();
+    // Pump only while waiting; stops immediately on authentication to avoid
+    // consuming messages belonging to the next bootstrap.
+    bool pollHostRejoin();
     // Keep host's mapping lease alive without polling/consuming session events.
     bool maintain(std::uint64_t nowMs, std::uint64_t nowUnixSeconds, RoomStatus& updated);
     // End borrowed session FIRST, then close/wipe its owning room/link.
@@ -45,6 +52,7 @@ class CoopConnection {
     std::unique_ptr<CoopSession> mSession;
     std::deque<TransportEvent> mPending;
     std::size_t mPendingBytes = 0;
+    bool mWaitingForRejoin = false;
     std::uint64_t mLastSession = 0;
     std::uint16_t mLastEpoch = 0;
 };

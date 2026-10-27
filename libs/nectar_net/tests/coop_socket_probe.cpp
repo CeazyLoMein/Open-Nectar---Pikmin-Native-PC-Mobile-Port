@@ -287,6 +287,35 @@ int main() {
         if (!require(until([&] {hostGame.session()->pump(nowMs());},
                           [&] {return hostGame.session()->phase()==CoopPhase::WaitingForPartner;}),
                      "retained host safely pauses when moved guest owner closes")) return 1;
+        if (!require(hostGame.prepareHostRejoin() && !hostGame.session(),
+                     "host retires disconnected session without closing room")) return 1;
+        GuestJoin wrongReturn;
+        auto wrongIdentity=identity();wrongIdentity.content[0]^=1;
+        if (!require(wrongReturn.start(status.code,wrongIdentity,1,unixNow,nowMs())==JoinFailure::None,
+                     "incompatible returning guest starts fresh handshake")) return 1;
+        JoinProgress rejectedProgress=JoinProgress::Connecting;
+        if (!require(until([&] {
+                hostGame.pollHostRejoin();TransportEvent e;bool has=false;
+                rejectedProgress=wrongReturn.poll(nowMs(),e,has);
+            },[&] {return rejectedProgress==JoinProgress::Failed;}) &&
+            wrongReturn.failure()==JoinFailure::Incompatible && !hostGame.connected() && !hostGame.session(),
+            "incompatible returning guest is refused while host keeps room")) return 1;
+        wrongReturn.cancel();
+        auto returning=std::make_unique<GuestJoin>();
+        if (!require(returning->start(status.code,identity(),1,unixNow,nowMs())==JoinFailure::None,
+                     "returning guest can use the same room code")) return 1;
+        JoinProgress returnProgress=JoinProgress::Connecting;
+        if (!require(until([&] {
+                hostGame.pollHostRejoin();TransportEvent e;bool has=false;
+                returnProgress=returning->poll(nowMs(),e,has);
+            },[&] {return hostGame.connected() && returnProgress==JoinProgress::Connected;}) &&
+            guestGame.adoptGuest(returning),
+            "returning guest reauthenticates on retained encrypted host room")) return 1;
+        if (!require(!hostGame.beginSession(200,1,1,nowMs()) &&
+                     hostGame.beginSession(201,1,1,nowMs()) && guestGame.beginSession(201,1,1,nowMs()) &&
+                     !hostGame.session()->hostShouldAdvanceWorld() && !guestGame.session()->confirmWorldLoaded(),
+                     "rejoined peer cannot replay old context or advance before fresh baseline")) return 1;
+        guestGame.close();
         hostGame.close();
     }
     if (room) room->close();

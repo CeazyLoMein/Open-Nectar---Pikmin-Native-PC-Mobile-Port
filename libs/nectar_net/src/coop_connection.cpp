@@ -76,7 +76,26 @@ bool CoopConnection::beginSession(std::uint64_t id, std::uint16_t epoch,
     mPending.clear();
     mPendingBytes = 0;
     mSession = std::move(session);
+    mWaitingForRejoin = false;
     return true;
+}
+bool CoopConnection::prepareHostRejoin() {
+    if (!mHost || mGuest || !mSession || mWaitingForRejoin ||
+        mSession->phase()!=CoopPhase::WaitingForPartner) return false;
+    endSession(); // session borrows link; retire it before resetting the peer
+    mPending.clear();mPendingBytes=0;
+    if (!mHost->transport()->prepareHostRejoin()) return false;
+    mWaitingForRejoin=true;
+    return true;
+}
+bool CoopConnection::pollHostRejoin() {
+    if (!mHost || mSession || !mWaitingForRejoin) return false;
+    if (connected()) return true;
+    TransportEvent event;
+    for (int i=0;i<64 && mHost->transport()->poll(event);++i) {
+        if (connected()) return true;
+    }
+    return connected();
 }
 void CoopConnection::endSession() {
     if (mSession) mSession->end();
@@ -91,5 +110,6 @@ void CoopConnection::close() {
     if (mHost) mHost->close();
     mGuest.reset(); mHost.reset();
     mPending.clear();mPendingBytes=0;
+    mWaitingForRejoin=false;
 }
 } // namespace nectar::net
