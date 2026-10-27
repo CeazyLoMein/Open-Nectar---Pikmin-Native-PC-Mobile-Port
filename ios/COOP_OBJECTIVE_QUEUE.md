@@ -1,3 +1,10 @@
+# Current checkpoint — 2026-10-27: Build 78 ready for first two-phone test
+
+Build 78/run 40582347682 succeeded and its verified P1 IPA is staged in Documents/Open Nectar/1 - Install on iPhone/P1 Build 78 - Co-op Practice. It is a disposable practice-area experiment, not campaign co-op; no phone installation or gameplay has been verified yet. User and Raye will test when available. Existing P1/P2 and settings must be preserved.
+
+After Build 78, source-only checkpoints added practice-specific squad whistle ownership and an authenticated retained-room reconnection foundation; local tests including real encrypted loopback passed. Neither is included in Build 78. Reconnection is not yet integrated into the game UI or tested on iPhone; host-loss recovery, exact mid-day persistence, online across different networks, shared campaign/Onions and cross-progression remain open. Current and former requirements below remain binding. See OPEN_NECTAR_IOS_HANDOFF.md for full history and validation boundaries.
+
+---
 ## Current population/pose checkpoint — 2026-10-27 11:51 EDT
 
 Actual P1 guest population and sampled animation/render source implemented; local fixtures/Clang/24 rebuilt network tests/encrypted probe PASS. No Apple/full-engine or phone validation yet. No77 dispatched, keep installed68. Guest visual slots remain outside live AI; complete world/room/scene/input driver still pending. New mandatory native gate has17 checks. Pikmin wire schema2=50bytes. Checkpoint subject `Integrate guest Pikmin populations and host-sampled poses [skip ci]`, parent 6699108ac4ae81a0b23dcf7bb976ccbf509abc5a; resolved post-push revision in accessible Exact Resume State.json.
