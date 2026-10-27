@@ -452,3 +452,5 @@ P1-only build 77, run 40579562780, source 02c3e5efa9ace37852db0d8b1d9859a653050c
 ## Build 77 failure and follow-up
 
 Build 77, run 40579562780: startup passed; P1 failed before full application compilation. Actual logs show missing guest HUD methods in the view fixture, missing co-op input stubs in the extracted command fixture, and Apple's compiler rejecting ambiguous boolean precedence. Socket and room checks were skipped after the earlier failure, so their later gate errors were consequences. Fixed all three together; local view/authority, command scenarios and strict Clang checks pass. Room checks now collect independent diagnostics even after earlier failure. No IPA or device verification yet. Full log: work/build77-p1.log in the Codex workspace.
+
+Build 78 dispatched: run 40582347682, source 0cc123675a5290f9e378500f4577695ec6581a36, https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40582347682. In progress at last check; no IPA or hardware testing. Wait for user to report result, then inspect full diagnostics or verify artifact before asking for phone tests.
