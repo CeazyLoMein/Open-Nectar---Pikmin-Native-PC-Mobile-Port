@@ -1,3 +1,7 @@
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+#include "netplay/pc_coop_practice_map.h"
+#endif
+#include "netplay/pc_coop_practice_runtime.h"
 #include "system.h"
 #include <cstdint>
 #if PIKI_PC_PORT
@@ -189,6 +193,10 @@ void DVDStream::init()
  */
 RandomAccessStream* System::openFile(immut char* path, bool isRelativePath, bool)
 {
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+	if (isRelativePath && pc_coop_practice_map_path(path)) return pc_coop_practice_map_open(path);
+#endif
+
 #if defined(PIKI_PC_PORT)
 	// Arena del modo VS: rutas virtuales montadas en memoria desde los datos
 	// del juego (sin archivos nuevos en disco).
@@ -448,6 +456,7 @@ void System::run(BaseApp* app)
 			// tick -- the deadline sleep leaves a margin, and Windows' default
 			// timer granularity is coarse enough to overshoot it -- which lost
 			// walking and throw inputs at high refresh rates.
+			pc_coop_practice_tick_begin();
 			mControllerMgr.update();
 			pc_input_log_tick(); // netplay harness: record/replay this tick's pads
 			pc_gfx_enable_capture(pc_replay_test_enabled());

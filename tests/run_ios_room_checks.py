@@ -3,7 +3,7 @@ import argparse,json,subprocess,sys
 from pathlib import Path
 
 CHECK_NAMES={'mac-sdk','mac-compiler','ios-sdk','ios-compiler','room-fixture','source-identity',
-             'bundle','content-compile','content-run','arc-getters','generate-identity','room-ui'}
+             'bundle','content-compile','content-run','arc-getters','generate-identity','room-ui','practice-ui'}
 
 def run_checks(root,output,execute=subprocess.run):
  root=root.resolve();output=output.resolve();output.mkdir(parents=True,exist_ok=True)
@@ -42,8 +42,12 @@ def run_checks(root,output,execute=subprocess.run):
        '--output',str(header),'--game-version','VERSION_GPIE01_01'])
  check('room-ui',['xcrun','--sdk','iphoneos','clang++','-target','arm64-apple-ios15.0',
        '-isysroot',outputs.get('ios-sdk',''),'-std=c++17','-fobjc-arc','-Wall','-Wextra','-Werror',
-       '-fsyntax-only','-Iios','-Ilibs/nectar_net/include','-I'+str(header.parent),'ios/ios_coop_room.mm'],
+       '-DNECTAR_COOP_WORLD=1','-fsyntax-only','-Iios','-Ilibs/nectar_net/include',
+       '-Igames/pikmin1/pc_port','-I'+str(header.parent),'ios/ios_coop_room.mm'],
        ('ios-sdk','generate-identity'))
+ check('practice-ui',['xcrun','--sdk','iphoneos','clang++','-target','arm64-apple-ios15.0',
+       '-isysroot',outputs.get('ios-sdk',''),'-std=c++17','-fobjc-arc','-Wall','-Wextra','-Werror',
+       '-DNECTAR_COOP_WORLD=1','-fsyntax-only','-Igames/pikmin1/pc_port','ios/ios_coop_practice.mm'],('ios-sdk',))
  assert set(results)==CHECK_NAMES
  receipt={'result':'PASS' if all(v['status']=='PASS' for v in results.values()) else 'FAIL','checks':results}
  (output/'result.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8')

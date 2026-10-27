@@ -50,6 +50,8 @@ test = r'''
 #include "timing/pc_render_phase.h"
 #include <chrono>
 #include <cstdio>
+bool pc_coop_practice_active(){return false;}
+struct GameCoreSection;void pc_coop_practice_loaded(GameCoreSection&){}
 bool advance=true,guestContext=false;
 bool pc_coop_world_may_advance(){return advance;}
 bool pc_coop_world_has_guest(){return guestContext;}

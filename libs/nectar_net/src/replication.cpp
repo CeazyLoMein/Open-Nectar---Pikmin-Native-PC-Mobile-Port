@@ -50,6 +50,10 @@ std::vector<std::uint8_t> encodeCaptainState(const CaptainState& s)
         writer.writeU32(floatBits(f));
     }
     writer.writeU8(s.player);
+    for (float f : {s.cursor.x, s.cursor.y, s.cursor.z, s.health, s.upperFrame, s.lowerFrame})
+        writer.writeU32(floatBits(f));
+    writer.writeU16(s.upperAnimation); writer.writeU16(s.lowerAnimation);
+    writer.writeU8(s.cursorVisible);
     return writer.ok() ? writer.bytes() : std::vector<std::uint8_t>{};
 }
 
@@ -71,6 +75,19 @@ bool decodeCaptainState(const std::uint8_t* data, std::size_t size, CaptainState
     decoded.position = {values[0], values[1], values[2]};
     decoded.velocity = {values[3], values[4], values[5]};
     decoded.faceDirection = values[6];
+    float visual[6];
+    for (float& value : visual) {
+        std::uint32_t bits = 0;
+        if (!reader.readU32(bits)) return false;
+        value = bitsFloat(bits);
+    }
+    if (!reader.readU16(decoded.upperAnimation) || !reader.readU16(decoded.lowerAnimation)
+        || !reader.readU8(decoded.cursorVisible) || decoded.cursorVisible > 1
+        || decoded.upperAnimation >= 1024 || decoded.lowerAnimation >= 1024) return false;
+    for (int i=0; i<3; ++i) if (!finiteWithin(visual[i], kMaxWorldCoordinate)) return false;
+    for (int i=3; i<6; ++i) if (!std::isfinite(visual[i]) || visual[i]<0 || visual[i]>1000000) return false;
+    decoded.cursor = {visual[0], visual[1], visual[2]}; decoded.health = visual[3];
+    decoded.upperFrame = visual[4]; decoded.lowerFrame = visual[5];
     state = decoded;
     return true;
 }

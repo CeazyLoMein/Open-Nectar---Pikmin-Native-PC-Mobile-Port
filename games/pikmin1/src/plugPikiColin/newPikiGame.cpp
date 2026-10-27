@@ -1,3 +1,4 @@
+#include "netplay/pc_coop_practice_runtime.h"
 #include "NewPikiGame.h"
 #include "netplay/pc_coop_world_hooks.h"
 
@@ -934,13 +935,14 @@ void BaseGameSection::draw(Graphics& gfx)
 #endif
 
 	// Update fade transition - fade of 1 = black screen, fade of 0 = no fade
-	if (advanceState && mCurrentFade < mTargetFade) {
+	const bool advanceFade=advanceState || pc_coop_practice_active();
+	if (advanceFade && mCurrentFade < mTargetFade) {
 		// fade out
 		mCurrentFade += mFadeSpeed * gsys->getFrameTime();
 		if (mCurrentFade > mTargetFade) {
 			mCurrentFade = mTargetFade;
 		}
-	} else if (advanceState && mCurrentFade > mTargetFade) {
+	} else if (advanceFade && mCurrentFade > mTargetFade) {
 		// fade in
 		mCurrentFade -= mFadeSpeed * gsys->getFrameTime();
 		if (mCurrentFade < mTargetFade) {
@@ -2158,7 +2160,7 @@ public:
 	NewPikiGameSetupSection()
 	{
 		// start off in intro mode, to handle any area entry cutscenes
-		mCurrentModeState = new IntroGameModeState(this);
+		mCurrentModeState = pc_coop_practice_active() ? new ModeState(this) : new IntroGameModeState(this);
 
 		gameflow.mMoviePlayer->setGameCamInfo(false, 60.0f, Vector3f(0.0f, 0.0f, 0.0f), Vector3f(0.0f, 0.0f, 0.0f));
 
@@ -2412,6 +2414,11 @@ public:
 			}
 		}
 #endif
+
+		if (pc_coop_practice_active()) {
+			mUpdateFlags=UPDATE_AI;
+			return; // no story, pause menu, day end or save transitions
+		}
 
 		if (!mIsInitialSetup) {
 			// handle any pending mode state transitions
@@ -2682,7 +2689,7 @@ public:
 					// when its clock reaches sunset after the engine. The last day is left
 					// alone too, so its sunset ends the game and plays the ending.
 					const bool pcClockHeld
-					    = pc_settings_get_infinite_day() != 0 && gameflow.mWorldClock.mCurrentDay != 1
+					    = pc_coop_practice_active() || pc_settings_get_infinite_day() != 0 && gameflow.mWorldClock.mCurrentDay != 1
 					   && gameflow.mWorldClock.mCurrentDay != MAX_DAYS;
 					if (!pcClockHeld && !gameflow.mMoviePlayer->mIsActive && (mUpdateFlags & UPDATE_WORLD_CLOCK)
 					    && !playerState->isTutorial()) {
@@ -2719,6 +2726,7 @@ public:
 			PRINT("final setup!\n");
 			gamecore->finalSetup();
 			mIsInitialSetup = false;
+			pc_coop_practice_loaded(*gamecore);
 		}
 		if (mNextModeState && pc_coop_world_may_advance()) {
 			// force a mode transition if we have one pending

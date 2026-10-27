@@ -150,12 +150,14 @@ if(NECTAR_IOS_COOP_TRANSPORT)
     endif()
     message(STATUS "${identity_summary}")
     # UIKit must not inherit the legacy GameCube BOOL forced include.
-    add_library(nectar_ios_coop STATIC "${CMAKE_CURRENT_SOURCE_DIR}/ios_coop_room.mm")
+    add_library(nectar_ios_coop STATIC "${CMAKE_CURRENT_SOURCE_DIR}/ios_coop_room.mm" "${CMAKE_CURRENT_SOURCE_DIR}/ios_coop_practice.mm")
+    target_compile_definitions(nectar_ios_coop PRIVATE NECTAR_COOP_WORLD=1)
     set_target_properties(nectar_ios_coop PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES
         OBJCXX_STANDARD 17 OBJCXX_STANDARD_REQUIRED YES)
-    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ios_coop_room.mm"
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ios_coop_room.mm" "${CMAKE_CURRENT_SOURCE_DIR}/ios_coop_practice.mm"
         PROPERTIES COMPILE_FLAGS "-fobjc-arc")
     target_include_directories(nectar_ios_coop PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${NECTAR_ROOT}/games/pikmin1/pc_port"
         "${CMAKE_CURRENT_BINARY_DIR}/generated")
     target_link_libraries(nectar_ios_coop PRIVATE nectar_net "-framework UIKit" "-framework Foundation")
     target_link_libraries(${NECTAR_GAME_TARGET} PRIVATE nectar_ios_coop)

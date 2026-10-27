@@ -7,7 +7,7 @@
 
 namespace nectar::net {
 
-// One player's input for one 30 Hz simulation tick, in the game-neutral form
+// One player's input for one authoritative simulation tick, in the game-neutral form
 // both games produce before their controllers read it (PADStatus plus the
 // port's extra buttons). `flags` carries game-defined bits such as Pikmin 1's
 // Bomb/Lock-On/Charge/Swarm (#93); `cursorDx` its cursor rotation.
@@ -25,6 +25,7 @@ struct NetInputFrame {
     std::int16_t cursorDx = 0;
     std::int16_t cursorDy = 0;
     std::uint8_t flags = 0;
+    std::uint16_t controlYaw = 0; // camera basis, 1/65536 turns; never guest position
 
     bool operator==(const NetInputFrame& other) const;
     bool operator!=(const NetInputFrame& other) const { return !(*this == other); }
@@ -38,7 +39,7 @@ struct InputLimits {
     bool allowStickMinimum = false;
 };
 
-constexpr std::size_t kInputFrameBytes = 17;   // without the tick
+constexpr std::size_t kInputFrameBytes = 19;   // without the tick
 constexpr std::size_t kMaxInputFrames = 6;     // current tick + 5 previous
 constexpr std::size_t kInputBundleHeaderBytes = 9;
 

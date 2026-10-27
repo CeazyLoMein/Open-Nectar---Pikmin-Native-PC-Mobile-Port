@@ -50,11 +50,12 @@ void testCodec()
         f.triggerR = 200;
         f.cursorDx = -1234;
         f.cursorDy = 77;
+        f.controlYaw=static_cast<std::uint16_t>(43000+i);
         f.flags = kSwarm;
         frames.push_back(f);
     }
     const std::vector<std::uint8_t> bytes = encodeInputBundle(frames);
-    check(bytes.size() == kInputBundleHeaderBytes + 6 * kInputFrameBytes, "bundle size: 9 + 17 per frame");
+    check(bytes.size() == kInputBundleHeaderBytes + 6 * kInputFrameBytes, "bundle size: 9 + 19 per frame");
     std::vector<NetInputFrame> decoded;
     check(decodeInputBundle(bytes.data(), bytes.size(), InputLimits{}, decoded) && decoded == frames,
           "bundle round-trips");

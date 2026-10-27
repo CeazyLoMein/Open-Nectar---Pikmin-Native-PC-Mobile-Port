@@ -1,3 +1,4 @@
+#include "netplay/pc_coop_practice_runtime.h"
 #include "TitlesSection.h"
 
 #include "Camera.h"
@@ -381,6 +382,8 @@ public:
 				// An explicit future practice driver requests this on the game
 				// thread. Do not leave the title or accept another menu action
 				// while old card buffers are still owned by its worker.
+				pc_coop_practice_note_title(true);
+				if (pc_coop_practice_block_title()) return;
 				if (pc_coop_practice_poll_start() == PcCoopPracticeStart::Draining) return;
 				// A private card is process-latched. Returning here after a test
 				// must not offer normal solo against the empty temporary card.
@@ -396,12 +399,14 @@ public:
 					gameflow.mIsChallengeMode        = TRUE;
 					Jac_SceneExit(SCENE_Exit, 0);
 					mState = STATE_ExitPending;
+				pc_coop_practice_note_title(false);
 					gsys->setFade(0.0f);
 					return;
 				}
 				// Co-op direct boot (--coop-direct, netplay): straight into a
 				// new two-captain story run, as if Co-op had been chosen.
 				if (pc_coop_direct_take_title()) {
+					pc_coop_practice_note_title(false);
 					pc_coop_set_pending(true);
 					pc_coop_set_chosen_at_title(true);
 					mNextSectionsFlag                = PACK_NEXT_ONEPLAYER(ONEPLAYER_GameSetup);
@@ -409,6 +414,7 @@ public:
 					gameflow.mIsChallengeMode        = FALSE;
 					Jac_SceneExit(SCENE_Exit, 0);
 					mState = STATE_ExitPending;
+				pc_coop_practice_note_title(false);
 					gsys->setFade(0.0f);
 					return;
 				}
@@ -432,6 +438,7 @@ public:
 						gameflow.mIsChallengeMode        = true;
 						Jac_SceneExit(SCENE_Exit, 0);
 						mState = STATE_ExitPending;
+				pc_coop_practice_note_title(false);
 						gsys->setFade(0.0f);
 #else
 						// swap from PRESS START to the main title menu
@@ -455,6 +462,7 @@ public:
 						gameflow.mIsChallengeMode        = TRUE;
 						Jac_SceneExit(SCENE_Exit, 0);
 						mState = STATE_ExitPending;
+				pc_coop_practice_note_title(false);
 						gsys->setFade(0.0f);
 
 					} else if (titleState == zen::ogScrTitleMgr::STATUS_ExitToHiScore) {
@@ -475,6 +483,7 @@ public:
 						}
 						Jac_SceneExit(SCENE_Exit, 0);
 						mState = STATE_ExitPending;
+				pc_coop_practice_note_title(false);
 						gsys->setFade(0.0f);
 
 					} else if (titleState == zen::ogScrTitleMgr::STATUS_Unk5 || titleState == zen::ogScrTitleMgr::STATUS_ExitToStart) {
@@ -762,6 +771,7 @@ public:
 		Jac_SceneExit(SCENE_Exit, 0);
 		parent.close();
 		mState = STATE_ExitPending;
+				pc_coop_practice_note_title(false);
 		gsys->setFade(0.0f);
 	}
 
@@ -777,6 +787,7 @@ public:
 		Jac_SceneExit(SCENE_Exit, 0); // Just an educated guess, as this function is DLL-exclusive.
 		parent.close();
 		mState = STATE_ExitPending;
+				pc_coop_practice_note_title(false);
 		gsys->setFade(0.0f);
 	}
 

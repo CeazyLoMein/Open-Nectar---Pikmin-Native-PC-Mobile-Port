@@ -28,11 +28,14 @@ void testCodec()
     s.velocity = {10.0f, 0.0f, -300.0f};
     s.faceDirection = 1.5f;
     s.player = 1;
+    s.cursor={40,2,-30};s.health=80;s.upperAnimation=14;s.lowerAnimation=7;s.upperFrame=23.5f;s.lowerFrame=9;s.cursorVisible=0;
     const auto bytes = encodeCaptainState(s);
     CaptainState back;
     check(bytes.size() == kCaptainStateBytes && decodeCaptainState(bytes.data(), bytes.size(), back)
               && back.position.z == 9876.0f && back.velocity.z == -300.0f && back.faceDirection == 1.5f
-              && back.player == 1,
+              && back.player == 1 && back.cursor.x==40 && back.health==80
+              && back.upperAnimation==14 && back.lowerAnimation==7 && back.upperFrame==23.5f
+              && back.lowerFrame==9 && back.cursorVisible==0,
           "captain state round-trips exactly");
     auto poison = [&](std::size_t offset, float value) {
         std::vector<std::uint8_t> bad = bytes;
@@ -46,6 +49,10 @@ void testCodec()
     check(!poison(4, std::numeric_limits<float>::infinity()), "Inf position is refused");
     check(!poison(8, 2.0e5f), "a position outside any map is refused");
     check(!poison(12, 5.0e4f), "an absurd speed is refused");
+    check(!poison(29,std::numeric_limits<float>::quiet_NaN()),"NaN cursor is refused");
+    check(!poison(41,-1),"negative health is refused");
+    check(!poison(45,std::numeric_limits<float>::infinity()),"infinite animation sample is refused");
+    check(!decodeCaptainState(bytes.data(),29,back),"legacy captain schema is refused");
     std::vector<std::uint8_t> badPlayer = bytes;
     badPlayer[28] = 2;
     CaptainState out;

@@ -1,3 +1,6 @@
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+#include "netplay/pc_coop_practice_bridge.h"
+#endif
 #import <UIKit/UIKit.h>
 #include "ios_coop_content_identity.h"
 #include "ios_coop_room.h"
@@ -49,6 +52,7 @@ NSString* joinError(JoinFailure failure, CompatibilityField field) {
 @property(nonatomic, strong) UILabel* status;
 @property(nonatomic, strong) UITextView* code;
 @property(nonatomic, strong) UIButton* hostButton;
+@property(nonatomic, strong) UIButton* practiceButton;
 @property(nonatomic, strong) UIButton* joinButton;
 @property(nonatomic, strong) UIButton* clipboardButton;
 @property(nonatomic, strong) UIButton* pasteButton;
@@ -77,11 +81,11 @@ static std::atomic<bool> sRoomCoversGame{false};
     self.view.backgroundColor = UIColor.systemBackgroundColor;
     self.modalInPresentation = YES;
     UILabel* title = [UILabel new];
-    title.text = @"Online Co-op — Connection Test";
+    title.text = @"Online Co-op — Connect";
     title.font = [UIFont preferredFontForTextStyle:UIFontTextStyleTitle2];
     title.numberOfLines = 0;
     UILabel* explanation = [UILabel new];
-    explanation.text = @"Connect both phones to the same Wi-Fi. Host a private room, then copy its code to the other phone. This checks the connection only; it does not start co-op gameplay or change your save.";
+    explanation.text = @"Connect both phones to the same Wi-Fi. Host a private room, then copy its code to the other phone. After connecting, tap Start Co-op Practice on both phones from the title screen. The small practice area uses disposable state and does not change your campaign. Campaign co-op is still being developed.";
     explanation.font = [UIFont preferredFontForTextStyle:UIFontTextStyleBody];
     explanation.numberOfLines = 0;
     self.status = [UILabel new];
@@ -105,6 +109,9 @@ static std::atomic<bool> sRoomCoversGame{false};
     self.leaveButton = [self button:@"Leave Room" action:@selector(leaveRoom)];
     self.rejoinButton = [self button:@"Rejoin Last Room" action:@selector(rejoinRoom)];
     UIButton* done = [self button:@"Done" action:@selector(closeScreen)];
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+    self.practiceButton=[self button:@"Start Co-op Practice" action:@selector(startPractice)];
+#endif
     UIStackView* actions = [[UIStackView alloc] initWithArrangedSubviews:@[self.hostButton, self.joinButton]];
     actions.distribution = UIStackViewDistributionFillEqually;
     UIStackView* editing = [[UIStackView alloc] initWithArrangedSubviews:@[self.clipboardButton, self.pasteButton]];
@@ -112,6 +119,7 @@ static std::atomic<bool> sRoomCoversGame{false};
     UIStackView* ending = [[UIStackView alloc] initWithArrangedSubviews:@[self.leaveButton, done]];
     ending.distribution = UIStackViewDistributionFillEqually;
     UIStackView* content = [[UIStackView alloc] initWithArrangedSubviews:@[title, explanation, self.status, actions, self.code, editing, self.rejoinButton, ending]];
+    if(self.practiceButton) [content insertArrangedSubview:self.practiceButton atIndex:3];
     content.axis = UILayoutConstraintAxisVertical;
     content.spacing = 12;
     UIScrollView* scroll = [UIScrollView new];
@@ -172,6 +180,10 @@ static std::atomic<bool> sRoomCoversGame{false};
     self.pasteButton.enabled = _checked && !busy;
     self.code.editable = _checked && !busy;
     self.leaveButton.enabled = busy;
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+    GatedTransport* link=_host ? _host->transport() : _guest ? _guest->transport() : nullptr;
+    self.practiceButton.enabled=pc_coop_practice_can_enter() && link && link->state()==TransportState::Connected;
+#endif
 }
 - (void)stopConnection {
     // UI owns links only before handoff. Successful detach empties these slots;
@@ -277,13 +289,25 @@ static std::atomic<bool> sRoomCoversGame{false};
         if (hasEvent && ![self rememberEvent:&event]) return;
         link = _guest->transport();
     }
+    [self updateButtons];
     if (link && link->state() == TransportState::Connected) {
         TransportStats stats;
         if (link->stats(stats) && stats.rttMs >= 0)
-            self.status.text = [NSString stringWithFormat:@"Connected — same build and game data. Delay: %d ms. Connection check passed; co-op gameplay is still being developed.", stats.rttMs];
-        else self.status.text = @"Connected — same build and game data. Connection check passed; co-op gameplay is still being developed.";
+            self.status.text = [NSString stringWithFormat:@"Connected — same build and game data. Delay: %d ms. Connection check passed. From the title screen, tap Start Co-op Practice on BOTH phones.", stats.rttMs];
+        else self.status.text = @"Connected — same build and game data. Connection check passed. From the title screen, tap Start Co-op Practice on BOTH phones.";
     }
 }
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+- (void)startPractice {
+    if(!pc_coop_practice_can_enter()) {self.status.text=@"Return to P1's title screen before starting practice.";return;}
+    std::unique_ptr<CoopConnection> connection;
+    if(![self detachConnection:&connection]) return;
+    // Same UIKit/game owning thread; no second consumer of this connection.
+    if(!pc_coop_practice_adopt(connection)) {
+        connection->close();
+    }
+}
+#endif
 - (void)didTapCopy {
     if (!_host || !self.code.text.length) return;
     // User-initiated only, local clipboard, expires. Never logs or uploads secrets.

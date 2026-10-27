@@ -1,3 +1,4 @@
+#include "netplay/pc_coop_practice_runtime.h"
 #include <chrono>
 #include <cmath>
 #include "Navi.h"
@@ -1192,7 +1193,7 @@ void Navi::pcUpdateBombCommand()
 	// Netplay: deterministic mode takes the press from this captain's synced
 	// input instead (the session drains the local queue into it).
 	const bool detMode = pc_netplay_deterministic();
-	const bool pressed = detMode ? (pc_netplay_ext_bits(mNaviID) & pc_input_log::kExtBomb) != 0
+	const bool pressed = pc_coop_practice_remote_input(mNaviID) ? (pc_coop_practice_ext(mNaviID)&1)!=0 : detMode ? (pc_netplay_ext_bits(mNaviID) & pc_input_log::kExtBomb) != 0
 	                             : pc_window_take_bomb_press(mNaviID == 1 ? 1 : 0);
 	if (!pressed || !pc_settings_get_bomb_control() || !pikiMgr) {
 		return;
@@ -1458,8 +1459,8 @@ void Navi::pcUpdateLockOn()
 	// order only.
 	const bool detMode       = pc_netplay_deterministic();
 	const uint8_t ext        = detMode ? pc_netplay_ext_bits(mNaviID) : 0;
-	const bool lockPressed   = detMode ? (ext & pc_input_log::kExtLockOn) != 0 : pc_window_take_lockon_press(mNaviID);
-	const bool chargePressed = detMode ? (ext & pc_input_log::kExtCharge) != 0 : pc_window_take_swarm_press(mNaviID);
+	const bool lockPressed   = pc_coop_practice_remote_input(mNaviID) ? (pc_coop_practice_ext(mNaviID)&2)!=0 : detMode ? (ext & pc_input_log::kExtLockOn) != 0 : pc_window_take_lockon_press(mNaviID);
+	const bool chargePressed = pc_coop_practice_remote_input(mNaviID) ? (pc_coop_practice_ext(mNaviID)&4)!=0 : detMode ? (ext & pc_input_log::kExtCharge) != 0 : pc_window_take_swarm_press(mNaviID);
 	const int mode           = pc_settings_get_lock_on();
 	const bool extTrace      = detMode && pc_netplay_ext_trace();
 	Creature* const lockBefore = mPcLockTarget;
@@ -2321,6 +2322,9 @@ void Navi::pcPinCursorFirstPerson()
 // this captain's synced input (the camera only notes it, PcamCamera::control).
 static void pcApplySyncedCursorRotate(Navi* navi)
 {
+	if (pc_coop_practice_remote_input(navi->mNaviID)) {
+		navi->pcRotateCursor(pc_coop_practice_cursor_rotate(navi->mNaviID)*pc_input_log::kYawTurnsToRad);return;
+	}
 	if (!pc_netplay_deterministic()) {
 		return;
 	}
@@ -3370,6 +3374,7 @@ void Navi::reviseController(Vector3f& stickPos)
 // false and the camera path runs unchanged.
 static bool pcNaviControlSincos(int naviID, f32* outSin, f32* outCos)
 {
+	if (pc_coop_practice_control_yaw(naviID,outSin,outCos)) return true;
 	if (!pc_netplay_deterministic()) return false;
 	if (naviID < 0 || naviID > 3) return false;
 	f32 s = 0.0f, c = 1.0f;
@@ -3769,7 +3774,7 @@ void Navi::makeCStick(bool isSunset)
 	const bool swarmIsCharge = pc_settings_get_charge() != 0;
 	// Netplay: deterministic mode takes the held swarm button from this
 	// captain's synced input.
-	const bool swarmHeld = pc_netplay_deterministic() ? (pc_netplay_ext_bits(mNaviID) & pc_input_log::kExtSwarm) != 0
+	const bool swarmHeld = pc_coop_practice_remote_input(mNaviID) ? (pc_coop_practice_ext(mNaviID)&8)!=0 : pc_netplay_deterministic() ? (pc_netplay_ext_bits(mNaviID) & pc_input_log::kExtSwarm) != 0
 	                                                  : (mNaviID == 0 ? pc_window_swarm_held() : pc_window_swarm_held_p2());
 	// Durante el Charge el empuje va al objetivo fijado en vez de al cursor.
 	const bool charging = mPcChargeTime > 0.0f && mPcLockTarget;

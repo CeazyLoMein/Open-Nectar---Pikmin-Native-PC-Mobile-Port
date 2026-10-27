@@ -176,8 +176,14 @@ bool CoopSession::publishActors(const std::vector<std::vector<std::uint8_t>> &pa
     mLastActorAt = now;
     return true;
 }
+bool CoopSession::configureInputContinuousMask(std::uint8_t mask) {
+    if (!mActive || mRole != CoopRole::Host || mLocalLoaded || mInputConsumed) return false;
+    mInputPolicy.continuousFlags = mask;
+    resetInput();
+    return true;
+}
 void CoopSession::resetInput() {
-    mGuestInput = InputReceiver{};
+    mGuestInput = InputReceiver{mInputPolicy};
     mInputRevision = mView.revision;
     mInputSent = false;
     mLastInputAt = mLastInputTarget = mReceivedInputTick = 0;
@@ -212,7 +218,7 @@ bool CoopSession::consumeGuestInput(std::uint64_t tick, NetInputFrame& input, In
         tick > std::numeric_limits<std::uint64_t>::max() - 64 ||
         tick < mLastPublishedTick || (mInputConsumed && tick <= mLastInputTick)) return false;
     const auto previous = mInputConsumed ? mLastInputTick : mLastPublishedTick;
-    if (tick - previous > 64) mGuestInput = InputReceiver{}; // bounded skip, no catch-up loop
+    if (tick - previous > 64) mGuestInput = InputReceiver{mInputPolicy}; // bounded skip, no catch-up loop
     input = mGuestInput.consume(tick, health);
     mLastInputTick = tick;
     mInputConsumed = true;

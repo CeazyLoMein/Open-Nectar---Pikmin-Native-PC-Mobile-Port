@@ -1,3 +1,4 @@
+#include "netplay/pc_coop_practice_runtime.h"
 #include "App.h"
 
 #include "AtxStream.h"
@@ -449,6 +450,7 @@ int PlugPikiApp::idle()
 	}
 #endif
 	// Do not leak the read-only phase into title/load code after scene teardown.
+	pc_coop_practice_tick_end();
 	pc_render_end_presentation();
 	gsys->waitRetrace();
 	gsys->setHeap(SYSHEAP_NULL);

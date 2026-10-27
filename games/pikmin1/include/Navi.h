@@ -17,6 +17,7 @@
 #include "Dolphin/gx.h"
 #endif
 
+namespace nectar { namespace net { struct CaptainState; } }
 class CPlate;
 struct BurnEffect;
 struct RippleEffect;
@@ -114,6 +115,10 @@ public:
 	void startMotion(immut PaniMotionInfo&, immut PaniMotionInfo&);
 	void enableMotionBlend();
 	void updateWalkAnimation();
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+	bool pcCoopVisualValidate(const nectar::net::CaptainState&) const;
+	void pcCoopVisualApply(const nectar::net::CaptainState&);
+#endif
 	void callPikis(f32, bool recallAll = false);
 	void callDebugs(f32);
 	void releasePikis();

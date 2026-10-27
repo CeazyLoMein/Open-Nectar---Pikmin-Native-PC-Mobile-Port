@@ -5,7 +5,8 @@ from pathlib import Path
 CHECKS={'ios-sdk','generate-admission','compile-admission','run-admission','ios-admission',
         'generate-view','compile-view','run-view','ios-view',
         'generate-authority','compile-authority','run-authority','ios-authority',
-        'generate-population','compile-population','run-population','ios-population'}
+        'generate-population','compile-population','run-population','ios-population',
+        'generate-captain','compile-captain','run-captain','ios-captain'}
 
 def run_checks(root,output,execute=subprocess.run):
  root=root.resolve();output=output.resolve();output.mkdir(parents=True,exist_ok=True)
@@ -25,11 +26,12 @@ def run_checks(root,output,execute=subprocess.run):
   if text:print(text,flush=True)
  check('ios-sdk',['xcrun','--sdk','iphoneos','--show-sdk-path'])
  pc=root/'games/pikmin1/pc_port'
- for name in ['admission','view','authority','population']:
+ for name in ['admission','view','authority','population','captain']:
   fixture=output/(name+'-fixture');binary=fixture/('practice-'+name+'-test')
   check('generate-'+name,[sys.executable,root/('tests/pikmin1_practice_'+name+'_test.py'),fixture])
   sources=[fixture/('practice-'+name+'-test.cpp')]
   if name=='admission':sources+=[pc/p for p in ['dolphin_stubs/card_stubs.cpp','pc_day_history.cpp','netplay/pc_coop_switch.cpp','netplay/pc_coop_practice_start.cpp']]
+  elif name=='captain':sources+=[pc/'netplay/pc_coop_captain_visuals.cpp']
   elif name=='population':sources+=[pc/'netplay/pc_coop_pikmin_visuals.cpp',*[root/'libs/nectar_net/src'/p for p in ['pikmin_replication.cpp','world.cpp','byte_io.cpp']]]
   else:sources+=[pc/'netplay/pc_netplay_present.cpp',pc/'timing/pc_render_phase.cpp']
   flags=['-std=c++17','-pthread','-Wall','-Wextra','-Werror','-DPIKI_PC_PORT=1','-DNECTAR_P1_SOLO_TEST=0','-I'+str(fixture),'-I'+str(pc),'-I'+str(root/'libs/nectar_net/include')]

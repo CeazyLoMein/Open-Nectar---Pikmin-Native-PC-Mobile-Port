@@ -10,6 +10,8 @@
 // Caller owns the session ID/scene barrier; session IDs must never be reused.
 bool pc_coop_world_begin_host(std::uint64_t sessionId, std::uint32_t sceneEpoch);
 bool pc_coop_world_active();
+// Fail closed even if scene resources failed before either adapter could bind.
+void pc_coop_world_stop();
 // Explicit host readiness/pause latch. Call from the owning game-thread driver
 // after every session pump, using hostShouldAdvanceWorld(), never phone FPS.
 // A matching host starts held; wrong/replaced session or scene cannot release it.

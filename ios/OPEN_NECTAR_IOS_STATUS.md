@@ -3100,3 +3100,11 @@ travel acceptable; health-first difficulty, selected extra encounters only after
 performance/stability evidence; reconnect/pings/phone interruptions/backups and
 independent graphics accepted. No online implementation begun; remains last.
 P1 texture uploads already screenshot-confirmed354 replaced/0 failed; P1 untouched.
+
+## 2026-10-27 — P1 co-op practice integration, before native build
+
+User asked for continuous work until a meaningful build is submitted, larger batches, and preserving the installed P1/P2 baselines. Working tree starts at 8509f715. This batch connects the private, disposable-card practice area to the authenticated room, with two captains and separate small squads, a guest display, camera-relative input, pause/readiness, and explicit fail-closed behavior. It does not implement campaign co-op, enemies, Onions, internet, durable saves or seamless live reconnect. It has not run on either phone and its iPhone build has not yet passed.
+
+Local checks: 25 network tests plus encrypted socket probe passed; actual host/guest capture/pool and captain visual fixtures passed; view/authority fixtures and 15 check-runner tests passed; changed game translation units passed a Windows Clang syntax pass using actual game headers. Full Apple compilation and physical behavior remain unverified. Guest may need assets already installed; the practice map uses locally owned original game material. P1 Build 68 is the previously accepted phone baseline; P2 is untouched. Practice uses process-latched disposable card storage: close and reopen P1 to return to solo. Preserve existing saves and settings.
+
+Next: submit one P1-only native build, record its run and source revision, examine any failure logs and correct in batches. On success inspect IPA before staging. Phone test should begin only after successful packaging; first verify solo still starts, then both phones connect on the same Wi-Fi, each chooses Start Co-op Practice at title, Ready, and tries independent movement, throw, whistle, pause, and leaving. Do not claim these behaviors are verified until actually observed. Resume requires rebuilding the practice session after a disconnect for this first experiment; exact live rejoin and the full campaign remain planned.

@@ -8,7 +8,7 @@ bool NetInputFrame::operator==(const NetInputFrame& o) const
 {
     return tick == o.tick && held == o.held && pressed == o.pressed && released == o.released && stickX == o.stickX
         && stickY == o.stickY && cstickX == o.cstickX && cstickY == o.cstickY && triggerL == o.triggerL
-        && triggerR == o.triggerR && cursorDx == o.cursorDx && cursorDy == o.cursorDy && flags == o.flags;
+        && triggerR == o.triggerR && cursorDx == o.cursorDx && cursorDy == o.cursorDy && flags == o.flags && controlYaw == o.controlYaw;
 }
 
 std::vector<std::uint8_t> encodeInputBundle(const std::vector<NetInputFrame>& newestFirst)
@@ -32,6 +32,7 @@ std::vector<std::uint8_t> encodeInputBundle(const std::vector<NetInputFrame>& ne
         writer.writeU16(static_cast<std::uint16_t>(f.cursorDx));
         writer.writeU16(static_cast<std::uint16_t>(f.cursorDy));
         writer.writeU8(f.flags);
+        writer.writeU16(f.controlYaw);
     }
     return writer.ok() ? writer.bytes() : std::vector<std::uint8_t>{};
 }
@@ -54,7 +55,7 @@ bool decodeInputBundle(const std::uint8_t* data, std::size_t size, const InputLi
         if (!reader.readU16(f.held) || !reader.readU16(f.pressed) || !reader.readU16(f.released)
             || !reader.readU8(sx) || !reader.readU8(sy) || !reader.readU8(cx) || !reader.readU8(cy)
             || !reader.readU8(f.triggerL) || !reader.readU8(f.triggerR) || !reader.readU16(dx)
-            || !reader.readU16(dy) || !reader.readU8(f.flags)) {
+            || !reader.readU16(dy) || !reader.readU8(f.flags) || !reader.readU16(f.controlYaw)) {
             return false;
         }
         f.tick = tick - i;

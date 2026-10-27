@@ -1,3 +1,4 @@
+#include "netplay/pc_coop_practice_runtime.h"
 #include "GameCoreSection.h"
 #if defined(PIKI_PC_PORT)
 #include "netplay/pc_coop_world_hooks.h"
@@ -1679,7 +1680,7 @@ void GameCoreSection::initStage()
 
 	PRINT("--------------- GeneratorCache : preload start\n");
 	memStat->start("genCache");
-	const bool hasAuthoritativeStageCache = generatorCache->preload(flowCont.mCurrentStage->mStageIndex);
+	const bool hasAuthoritativeStageCache = !pc_coop_practice_active() && generatorCache->preload(flowCont.mCurrentStage->mStageIndex);
 	memStat->end("genCache");
 	PRINT("--------------- GeneratorCache : preload done\n");
 
@@ -1964,7 +1965,7 @@ void GameCoreSection::initStage()
 	generatorList->createRamGenerators();
 
 	memStat->start("genCache");
-	generatorCache->load(flowCont.mCurrentStage->mStageIndex);
+	if (!pc_coop_practice_active()) generatorCache->load(flowCont.mCurrentStage->mStageIndex);
 	memStat->end("genCache");
 
 	if (useDay) {
@@ -2103,6 +2104,7 @@ void GameCoreSection::finalSetup()
 	PRINT("======================= FINAL SETUP ==============================\n");
 	BUGPRINT("final setup!\n");
 	routeMgr->initLinks();
+	if (pc_coop_practice_active()) return; // no campaign arrival/extinction cutscenes
 
 	Iterator it(pelletMgr);
 	CI_LOOP(it)
@@ -2803,6 +2805,13 @@ void GameCoreSection::update()
 	if (!pc_coop_world_may_advance()) { pcUpdateCoopHeldView(); return; }
 #endif
 #if defined(PIKI_PC_PORT)
+	if (pc_coop_practice_active()) {
+		routeMgr->update();
+		pcUpdateCoopHeldView();
+		fillHudInfo(mDrawGameInfo->info(),mNavi);
+		if(mDrawGameInfo2) fillHudInfo(mDrawGameInfo2->info(),mNavi2);
+		Node::update();return;
+	}
 	pcApplyPendingTutorialSkip();
 	if (pc_vs_active()) {
 		pcVsUpdate(mMapMgr);
@@ -2910,6 +2919,11 @@ int GameCoreSection::countFormationPikis(Navi* navi)
 
 void GameCoreSection::fillHudInfo(zen::GameInfo* info, Navi* navi)
 {
+	int formation,total,nextType;
+	if (navi && pc_coop_practice_hud(navi->mNaviID,formation,total,nextType)) {
+		info->mFormationPikiNum=short(formation);info->mMapPikiNum=short(total);
+		info->mTotalPikiNum=short(total);info->mEncodedNextThrowType=nextType;return;
+	}
 	Piki* nextThrowPiki = navi->mNextThrowPiki;
 #else
 	Piki* nextThrowPiki = naviMgr->getNavi()->mNextThrowPiki;
@@ -3299,6 +3313,10 @@ void GameCoreSection::pcUpdateCoopHeldView()
 		cameraMgr->update();
 		setActiveView(0);
 		updateDynamicSplit(gsys->getFrameTime());
+	}
+	if (pc_coop_world_has_guest()) {
+		fillHudInfo(mDrawGameInfo->info(),mNavi);mDrawGameInfo->update();
+		if(mDrawGameInfo2){fillHudInfo(mDrawGameInfo2->info(),mNavi2);mDrawGameInfo2->update();}
 	}
 }
 

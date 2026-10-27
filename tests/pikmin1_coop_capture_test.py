@@ -14,10 +14,13 @@ struct Vec{float x=0,y=0,z=0;};
 struct Creature{virtual ~Creature()=default;struct{Vec t,r;}mSRT;Vec mVelocity,mLastPosition;
  float mFaceDirection=0,mHealth=100;bool alive=true,canRemove=true;
  virtual bool isAlive(){return alive;}bool removable(){return canRemove;}};
-struct Navi:Creature{int mNaviID=0;};
+
 class Graphics{};
 struct Animator{int mCurrentAnimID=0;float mAnimationCounter=0;};
 struct Animations{Animator upper,lower;Animator&getUpperAnimator(){return upper;}Animator&getLowerAnimator(){return lower;}};
+struct Navi:Creature{int mNaviID=0;Vec mCursorWorldPos;bool mIsCursorVisible=true;Animations mNaviAnimMgr;
+ bool pcCoopVisualValidate(const nectar::net::CaptainState&s)const{return s.upperAnimation<90&&s.lowerAnimation<90&&s.upperFrame<=64&&s.lowerFrame<=64;}
+ void pcCoopVisualApply(const nectar::net::CaptainState&s){mHealth=s.health;mCursorWorldPos={s.cursor.x,s.cursor.y,s.cursor.z};}};
 class Piki:public Creature{public:Navi*mNavi=nullptr;std::uint16_t mColor=0,mMode=0;int mHappa=0;Animations mPikiAnimMgr;};
 class ViewPiki:public Piki{public:bool ready=true;int applied=0,drawn=0;nectar::net::PikminState last;
  bool pcCoopVisualReady()const{return ready;}
@@ -303,6 +306,8 @@ int main(){
  dynamic.frame=4;dynamic.tick=103;dynamic.pikmin[dp0]=visual0;pc_coop_world_forget(&d2);
  check(!pc_coop_world_guest_active()&&!pc_coop_world_may_advance()&&!pc_coop_world_apply_guest_visuals(107,10,dynamic)&&pc_coop_world_draw_guest_pikmin(gfx),"even dormant slot reuse invalidates ownership, holds guest and suppresses normal fallback");
  pc_coop_world_end_scene();check(!pc_coop_world_draw_guest_pikmin(gfx),"scene teardown restores ordinary manager draw ownership");
+
+ pc_coop_world_stop();check(!pc_coop_world_may_advance(),"startup failure freezes even before adapter binding");pc_coop_world_end_scene();check(pc_coop_world_may_advance(),"scene teardown clears emergency hold");
 
  if(!bad)std::puts("PASS actual P1 capture and pool hooks: default inert, ownership, recycled actors, finite/atomic snapshot, whole guest squad, 300-Pikmin packet apply and stage lifetime");
  return bad?1:0;

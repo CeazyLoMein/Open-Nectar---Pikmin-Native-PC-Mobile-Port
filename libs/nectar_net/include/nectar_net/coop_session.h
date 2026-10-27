@@ -48,6 +48,8 @@ class CoopSession {
     // Engine callback must attest ALL required world state is loaded, not just
     // these actor positions. Guest also requires an assembled baseline frame.
     bool confirmWorldLoaded();
+    // Trusted game policy, before loading is confirmed. Retained across pause resets.
+    bool configureInputContinuousMask(std::uint8_t mask);
     // Guest submits host-tick-addressed inputs only while both are ready.
     // Each bundle is tied to the exact host readiness/pause revision. Frames
     // queued before any pause cannot move a captain after it resumes.
@@ -88,6 +90,7 @@ class CoopSession {
     std::uint32_t mSent = 0, mReceived = 0;
     bool mActive = false, mLost = false, mLocalLoaded = false, mLocalReady = false, mHaveView = false;
     std::uint8_t mLocalBlocks = 0;
+    InputPolicy mInputPolicy;
     InputReceiver mGuestInput;
     std::uint64_t mInputRevision = 0, mLastInputAt = 0, mLastInputTarget = 0, mLastInputTick = 0;
     std::uint64_t mReceivedInputTick = 0;

@@ -1,3 +1,4 @@
+#include "netplay/pc_coop_practice_runtime.h"
 #if NECTAR_P1_SOLO_TEST
 #include "PlayerState.h"
 #include "BaseInf.h"
@@ -538,7 +539,9 @@ struct CardSelectSetupSection : public Node {
 				// we picked a destination!
 				gameflow.mNextOnePlayerSectionID = UNPACK_NEXT_ONEPLAYER(mNextSectionsFlag);
 			} else {
-				if (!gameflow.mIsChallengeMode) {
+				if (pc_coop_practice_select_stage()) {
+					// Private practice scene, never a normal campaign file.
+				} else if (!gameflow.mIsChallengeMode) {
 					PRINT("NORMAL MODE!!!\n");
 
 					gameflow.mWorldClock.mCurrentDay = 1;

@@ -1,3 +1,4 @@
+#include "netplay/pc_coop_practice_runtime.h"
 /**
  * @file pad_stubs.cpp
  * @brief Stub implementations for Dolphin PAD (controller) functions.
@@ -34,6 +35,7 @@ BOOL PADReset(u32 mask)                       { (void)mask; return TRUE; }
 u32 PADRead(PADStatus* status) {
     pc_window_poll_events(sPadStatus);
     memcpy(status, sPadStatus, sizeof(PADStatus) * PAD_MAX_CONTROLLERS);
+    pc_coop_practice_filter_pad(status);
     return 0xf0000000; // Bitmask of connected controllers (channel 0)
 }
 void PADSetSamplingRate(u32 msec)             { (void)msec; }

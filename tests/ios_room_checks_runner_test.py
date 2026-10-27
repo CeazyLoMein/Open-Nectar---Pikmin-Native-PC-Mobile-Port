@@ -24,7 +24,7 @@ class RunnerTests(unittest.TestCase):
     with self.assertRaises(ValueError):checks.verify_receipt(receipt,'success')
   return result,calls
  def test_all_required_pass(self):
-  result,_=self.run_case();self.assertEqual(result['result'],'PASS');self.assertEqual(len(result['checks']),12)
+  result,_=self.run_case();self.assertEqual(result['result'],'PASS');self.assertEqual(len(result['checks']),13)
  def test_fixture_failure_collects_other_independent_errors(self):
   result,calls=self.run_case(lambda s:'pikmin1_ios_room_ux_test.py' in s or 'ios_coop_arc_names_test.py' in s)
   self.assertEqual(result['checks']['room-fixture']['status'],'FAIL')

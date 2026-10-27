@@ -19,6 +19,7 @@ struct CaptureState {
 };
 // No allocation or manager traversal until explicitly begun by a future session.
 std::unique_ptr<CaptureState> state;
+bool emergencyHold=false;
 struct GuestPikmin {
     Piki* local = nullptr;
     std::uint16_t color = 0;
@@ -59,7 +60,8 @@ std::uint8_t leader(Navi* associated, Navi* const (&captains)[2])
 
 bool pc_coop_world_active() { return state != nullptr || guest != nullptr; }
 bool pc_coop_world_has_guest() { return guest != nullptr; }
-bool pc_coop_world_may_advance() { return !guest && (!state || state->running); }
+bool pc_coop_world_may_advance() { return !emergencyHold && !guest && (!state || state->running); }
+void pc_coop_world_stop() { emergencyHold=true;if(state)state->running=false; }
 bool pc_coop_world_set_host_running(std::uint64_t sessionId, std::uint32_t epoch, bool running)
 {
     if (!state || state->session != sessionId || state->registry.epoch() != epoch) return false;
@@ -105,6 +107,7 @@ bool prepareCaptains(std::uint64_t sessionId, std::uint32_t epoch,
         auto bytes = net::encodeCaptainState(value);
         net::CaptainState checked;
         if (!net::decodeCaptainState(bytes.data(), bytes.size(), checked) ||
+            !pending.local[value.player]->pcCoopVisualValidate(value) ||
             (guest->ids[value.player] && guest->ids[value.player] != entry.first)) return false;
         pending.incoming[value.player] = &value;
         pending.ids[value.player] = entry.first;
@@ -120,6 +123,7 @@ void commitCaptains(const CaptainApply& pending, const net::ActorFrame& frame)
         n->mVelocity.x = value.velocity.x; n->mVelocity.y = value.velocity.y; n->mVelocity.z = value.velocity.z;
         n->mFaceDirection = value.faceDirection;
         n->mSRT.r.y = value.faceDirection;
+        n->pcCoopVisualApply(value);
         guest->ids[player] = pending.ids[player];
     }
     guest->lastFrame = frame.frame; guest->lastTick = frame.tick;
@@ -299,7 +303,7 @@ bool pc_coop_world_begin_host(std::uint64_t sessionId, std::uint32_t epoch)
     state = std::move(pending); lastSession = sessionId; lastEpoch = epoch;
     return true;
 }
-void pc_coop_world_end_scene() { state.reset(); guest.reset(); }
+void pc_coop_world_end_scene() { emergencyHold=false;state.reset(); guest.reset(); }
 void pc_coop_world_forget(const void* actor)
 {
     if (state && actor) state->registry.retireLocal(key(actor));
@@ -335,6 +339,14 @@ bool pc_coop_world_capture(std::vector<net::EntityRecord>& output)
         s.position = {n->mSRT.t.x, n->mSRT.t.y, n->mSRT.t.z};
         s.velocity = {n->mVelocity.x, n->mVelocity.y, n->mVelocity.z};
         s.faceDirection = n->mFaceDirection; s.player = player;
+        s.cursor = {n->mCursorWorldPos.x,n->mCursorWorldPos.y,n->mCursorWorldPos.z};
+        s.health=n->mHealth;s.cursorVisible=n->mIsCursorVisible ? 1 : 0;
+        const auto& upper=n->mNaviAnimMgr.getUpperAnimator();
+        const auto& lower=n->mNaviAnimMgr.getLowerAnimator();
+        if (upper.mCurrentAnimID<0 || upper.mCurrentAnimID>=1024 || lower.mCurrentAnimID<0 || lower.mCurrentAnimID>=1024) return false;
+        s.upperAnimation=static_cast<std::uint16_t>(upper.mCurrentAnimID);
+        s.lowerAnimation=static_cast<std::uint16_t>(lower.mCurrentAnimID);
+        s.upperFrame=upper.mAnimationCounter;s.lowerFrame=lower.mAnimationCounter;
         auto record = net::captainRecord(state->registry.epoch(), s);
         net::CaptainState validated;
         if (!net::decodeCaptainState(record.data.data(), record.data.size(), validated)) return false;
