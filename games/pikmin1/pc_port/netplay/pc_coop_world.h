@@ -8,7 +8,9 @@
 // Read-only host capture prototype. Main simulation thread, BETWEEN ticks only.
 // No input, actor spawning, save writing, network sockets or mode activation UI.
 // Caller owns the session ID/scene barrier; session IDs must never be reused.
-bool pc_coop_world_begin_host(std::uint64_t sessionId, std::uint32_t sceneEpoch);
+// Practice owners are read from existing host Pikmin, including idle Pikmin;
+// enable only for a scene whose host enforces that ownership invariant.
+bool pc_coop_world_begin_host(std::uint64_t sessionId, std::uint32_t sceneEpoch, bool practiceOwners = false);
 bool pc_coop_world_active();
 // Fail closed even if scene resources failed before either adapter could bind.
 void pc_coop_world_stop();

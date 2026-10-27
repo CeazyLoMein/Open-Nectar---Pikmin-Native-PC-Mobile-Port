@@ -73,7 +73,7 @@ void hold(bool run) {
 void enterWorld() {
     if (entered || !loaded || !loading || !loading->sessionId()) return;
     bool ok=role==net::CoopRole::Host
-        ? pc_coop_world_begin_host(loading->sessionId(),loading->scene().epoch)
+        ? pc_coop_world_begin_host(loading->sessionId(),loading->scene().epoch,true)
         : pc_coop_world_begin_guest(loading->sessionId(),loading->scene().epoch);
     if (!ok || !pc_netplay_present_begin_practice_view(role==net::CoopRole::Host ? 0 : 1)) {
         fail("Could not bind the two practice captains. Close P1 and reopen.");return;

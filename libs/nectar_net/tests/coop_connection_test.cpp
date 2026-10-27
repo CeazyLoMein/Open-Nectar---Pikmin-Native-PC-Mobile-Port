@@ -139,14 +139,15 @@ int main() {
         check(!p.h.beginSession(100,1,1,p.now)&&!p.g.beginSession(100,1,1,p.now),"end/restart cannot replay retired scene context");
         check(p.h.beginSession(100,2,1,p.now)&&p.g.beginSession(100,2,1,p.now),"higher accepted epoch begins fresh held scene");
         check(p.g.session()->actors().captains.empty()&&!p.g.session()->confirmWorldLoaded(),"previous scene baseline does not imply loaded new world");
-        check(!p.h.prepareHostRejoin(),"a live or loading session cannot be silently replaced");
+        check(!p.h.prepareHostRejoin(true),"a live or loading session cannot be silently replaced");
         p.g.close();p.advance();
         check(!p.g.session()&&!p.g.connected()&&p.h.session()->phase()==CoopPhase::WaitingForPartner,
               "guest close safely stops session and freezes retained host");
-        check(!p.g.prepareHostRejoin(),"guest cannot take ownership of host listener");
-        check(p.h.prepareHostRejoin()&&!p.h.session()&&!p.h.connected(),
+        check(!p.g.prepareHostRejoin(true),"guest cannot take ownership of host listener");
+        check(!p.h.prepareHostRejoin(false) && p.h.session() && !p.h.session()->hostShouldAdvanceWorld(), "caller must first attest that host world is held");
+        check(p.h.prepareHostRejoin(true)&&!p.h.session()&&!p.h.connected(),
               "lost host session retires before resetting peer, retaining its listener");
-        check(!p.h.prepareHostRejoin(),"duplicate rejoin setup cannot reset a new peer");
+        check(!p.h.prepareHostRejoin(true),"duplicate rejoin setup cannot reset a new peer");
         auto mismatch=std::make_unique<GuestJoin>([&p]{return p.net.createGuest();});
         auto wrong=identity();wrong.content[0]^=1;
         check(mismatch->start(p.status.code,wrong,1,1790000000,p.now)==JoinFailure::None,
@@ -172,10 +173,25 @@ int main() {
         }
         check(p.h.connected()&&p.g.adoptGuest(rejoin),"same host accepts a freshly authenticated compatible partner");
         check(!p.h.beginSession(100,2,1,p.now),"retired session identity cannot be replayed after reconnect");
+        Message stale;stale.header.sessionId=100;stale.header.sceneEpoch=2;
+        stale.header.sequence=0xffffffff;stale.header.type=MessageType::CoopControl;
+        stale.payload=std::vector<std::uint8_t>(10,0);std::vector<std::uint8_t> staleBytes;
+        check(encodeMessage(stale,staleBytes)&&p.g.sendBeforeSession(staleBytes),
+              "late old-session packet queued ahead of legitimate rejoin");
         check(p.h.beginSession(101,1,1,p.now)&&p.g.beginSession(101,1,1,p.now),
               "new session is created only after fresh authentication");
         check(!p.h.session()->hostShouldAdvanceWorld()&&!p.g.session()->confirmWorldLoaded(),
               "reconnection cannot resume without a fresh baseline and readiness");
+        std::vector<std::vector<std::uint8_t>> fresh;
+        check(packActorFrame(101,1,1,1,{captainRecord(1,a),captainRecord(1,b)},1000,{},fresh) &&
+              p.h.session()->publishActors(fresh,p.now),"fresh authoritative baseline published after rejoin");
+        p.advance();
+        check(p.g.session()->actors().captains.size()==2 && p.h.session()->confirmWorldLoaded() &&
+              p.g.session()->confirmWorldLoaded() && p.h.session()->setReady(true) && p.g.session()->setReady(true),
+              "both returning participants accept fresh complete fixture and choose ready");
+        p.advance();
+        check(p.h.session()->hostShouldAdvanceWorld()&&p.g.session()->canIssueCommands(),
+              "old high-sequence packet cannot poison a new resumed session");
         p.h.close();p.h.close();
         check(!p.h.session()&&!p.h.connected()&&!p.h.role(role),"close is idempotent and clears owned identity");
     }

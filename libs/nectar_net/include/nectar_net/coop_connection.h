@@ -36,7 +36,7 @@ class CoopConnection {
     // Trusted host driver only, after its actual world has already been held.
     // Retires the lost session and keeps the room listener/code. A fresh peer
     // must authenticate and load a new baseline; never resumes gameplay alone.
-    bool prepareHostRejoin();
+    bool prepareHostRejoin(bool worldHeld);
     // Pump only while waiting; stops immediately on authentication to avoid
     // consuming messages belonging to the next bootstrap.
     bool pollHostRejoin();

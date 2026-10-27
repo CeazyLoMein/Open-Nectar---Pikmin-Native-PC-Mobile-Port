@@ -21,7 +21,7 @@ struct Animations{Animator upper,lower;Animator&getUpperAnimator(){return upper;
 struct Navi:Creature{int mNaviID=0;Vec mCursorWorldPos;bool mIsCursorVisible=true;Animations mNaviAnimMgr;
  bool pcCoopVisualValidate(const nectar::net::CaptainState&s)const{return s.upperAnimation<90&&s.lowerAnimation<90&&s.upperFrame<=64&&s.lowerFrame<=64;}
  void pcCoopVisualApply(const nectar::net::CaptainState&s){mHealth=s.health;mCursorWorldPos={s.cursor.x,s.cursor.y,s.cursor.z};}};
-class Piki:public Creature{public:Navi*mNavi=nullptr;std::uint16_t mColor=0,mMode=0;int mHappa=0;Animations mPikiAnimMgr;};
+class Piki:public Creature{public:Navi*mNavi=nullptr;std::uint16_t mColor=0,mMode=0;int mHappa=0,mPlayerId=0;Animations mPikiAnimMgr;};
 class ViewPiki:public Piki{public:bool ready=true;int applied=0,drawn=0;nectar::net::PikminState last;
  bool pcCoopVisualReady()const{return ready;}
  bool pcCoopVisualValidate(const nectar::net::PikminState&s)const{return ready&&nectar::net::validPikminState(s)&&s.color<3&&s.upperAnimation<90&&s.lowerAnimation<90&&s.upperFrame<=64&&s.lowerFrame<=64;}
@@ -307,6 +307,14 @@ int main(){
  check(!pc_coop_world_guest_active()&&!pc_coop_world_may_advance()&&!pc_coop_world_apply_guest_visuals(107,10,dynamic)&&pc_coop_world_draw_guest_pikmin(gfx),"even dormant slot reuse invalidates ownership, holds guest and suppresses normal fallback");
  pc_coop_world_end_scene();check(!pc_coop_world_draw_guest_pikmin(gfx),"scene teardown restores ordinary manager draw ownership");
 
+ // New session after rejoin: both idle actors keep their original owner.
+ pikiMgr=&pikis;navis.objects={&n0,&n1};pikis.objects={&p0,&p1};
+ p0.mNavi=nullptr;p1.mNavi=nullptr;p0.mPlayerId=0;p1.mPlayerId=1;
+ check(pc_coop_world_begin_host(111,11,true)&&pc_coop_world_capture(records),"practice host captures idle followers for new session");
+ check(read(records,pc_coop_world_actor_id(&p0,EntityKind::Pikmin)).owner==0 &&
+       read(records,pc_coop_world_actor_id(&p1,EntityKind::Pikmin)).owner==1,"idle squads retain owners after host registry reconstruction");
+ p1.mPlayerId=0;check(!pc_coop_world_capture(records),"unexpected owner change fails whole practice capture");
+ pc_coop_world_end_scene();
  pc_coop_world_stop();check(!pc_coop_world_may_advance(),"startup failure freezes even before adapter binding");pc_coop_world_end_scene();check(pc_coop_world_may_advance(),"scene teardown clears emergency hold");
 
  if(!bad)std::puts("PASS actual P1 capture and pool hooks: default inert, ownership, recycled actors, finite/atomic snapshot, whole guest squad, 300-Pikmin packet apply and stage lifetime");

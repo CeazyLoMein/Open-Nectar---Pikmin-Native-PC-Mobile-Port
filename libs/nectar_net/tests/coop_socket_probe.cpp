@@ -287,7 +287,7 @@ int main() {
         if (!require(until([&] {hostGame.session()->pump(nowMs());},
                           [&] {return hostGame.session()->phase()==CoopPhase::WaitingForPartner;}),
                      "retained host safely pauses when moved guest owner closes")) return 1;
-        if (!require(hostGame.prepareHostRejoin() && !hostGame.session(),
+        if (!require(hostGame.prepareHostRejoin(true) && !hostGame.session(),
                      "host retires disconnected session without closing room")) return 1;
         GuestJoin wrongReturn;
         auto wrongIdentity=identity();wrongIdentity.content[0]^=1;

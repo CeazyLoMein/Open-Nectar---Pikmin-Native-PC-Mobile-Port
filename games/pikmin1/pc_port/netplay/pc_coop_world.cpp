@@ -15,7 +15,7 @@ namespace net = nectar::net;
 struct CaptureState {
     net::HostEntityRegistry registry;
     std::uint64_t session = 0, lastFrame = 0, lastTick = 0;
-    bool running = false;
+    bool running = false, practiceOwners = false;
 };
 // No allocation or manager traversal until explicitly begun by a future session.
 std::unique_ptr<CaptureState> state;
@@ -294,12 +294,12 @@ bool pc_coop_world_guest_pikmin_state(std::uint64_t id, net::PikminState& output
     return true;
 }
 
-bool pc_coop_world_begin_host(std::uint64_t sessionId, std::uint32_t epoch)
+bool pc_coop_world_begin_host(std::uint64_t sessionId, std::uint32_t epoch, bool practiceOwners)
 {
     if (state || guest || sessionId == 0 || !naviMgr || !pikiMgr || (sessionId == lastSession && epoch <= lastEpoch)) return false;
     auto pending = std::make_unique<CaptureState>();
     if (!pending->registry.beginScene(epoch)) return false;
-    pending->session=sessionId;
+    pending->session=sessionId;pending->practiceOwners=practiceOwners;
     state = std::move(pending); lastSession = sessionId; lastEpoch = epoch;
     return true;
 }
@@ -374,9 +374,12 @@ bool pc_coop_world_capture(std::vector<net::EntityRecord>& output)
         s.upperAnimation = static_cast<std::uint16_t>(upper.mCurrentAnimID);
         s.lowerAnimation = static_cast<std::uint16_t>(lower.mCurrentAnimID);
         s.upperFrame = upper.mAnimationCounter; s.lowerFrame = lower.mAnimationCounter;
-        const auto id = state->registry.observe(net::EntityKind::Pikmin, key(p), s.leader);
+        if (state->practiceOwners && (p->mPlayerId < 0 || p->mPlayerId > 1)) return false;
+        const auto initialOwner=state->practiceOwners ? static_cast<std::uint8_t>(p->mPlayerId) : s.leader;
+        const auto id = state->registry.observe(net::EntityKind::Pikmin, key(p), initialOwner);
         if (!id) return false;
-        s.owner = state->registry.owner(id); // workers/idle keep allowance ownership
+        s.owner = state->registry.owner(id);
+        if (state->practiceOwners && s.owner != initialOwner) return false; // workers/idle keep allowance ownership
         auto record = net::pikminRecord(id, s);
         if (!record.id) return false;
         records.push_back(std::move(record));

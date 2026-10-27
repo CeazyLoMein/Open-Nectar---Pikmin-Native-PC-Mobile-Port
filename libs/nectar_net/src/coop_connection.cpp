@@ -79,8 +79,8 @@ bool CoopConnection::beginSession(std::uint64_t id, std::uint16_t epoch,
     mWaitingForRejoin = false;
     return true;
 }
-bool CoopConnection::prepareHostRejoin() {
-    if (!mHost || mGuest || !mSession || mWaitingForRejoin ||
+bool CoopConnection::prepareHostRejoin(bool worldHeld) {
+    if (!worldHeld || !mHost || mGuest || !mSession || mWaitingForRejoin ||
         mSession->phase()!=CoopPhase::WaitingForPartner) return false;
     endSession(); // session borrows link; retire it before resetting the peer
     mPending.clear();mPendingBytes=0;
