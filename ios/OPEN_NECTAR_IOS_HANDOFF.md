@@ -1,5 +1,91 @@
 # OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
 
+2026-10-27 11:51 EDT. Current checkpoint: actual guest Pikmin visual population, sampled animation and render integration; local PASS, Apple/phone validation deferred. No next native build dispatched.
+
+1. Repository: C:/Dev/Open-Nectar---Pikmin-Native-PC-Mobile-Port; fork CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; branch ios-experimental.
+2. Revisions: parent/local/remote at start 6699108ac4ae81a0b23dcf7bb976ccbf509abc5a; checkpoint subject `Integrate guest Pikmin populations and host-sampled poses [skip ci]`; final accessible Exact Resume State.json resolves the post-push hash.
+3. Working tree: this report is committed with the source batch; inspect status on resume and consult exact accessible final state. Never overwrite unrelated changes.
+4. P1: installed68 retained. Prior solo/connection/menu limited tests accepted; no full campaign completion claim. Latest native76 covers earlier source0ced5bbe only.
+5. P2: last user-confirmed working launch/gameplay/audio retained; no game edits/update or test this batch.
+6. Fixes: actual dormant visual pool admission, full atomic guest population replacement, additions/removals/color changes without local gameplay birth/death, pool/scene lifetime invalidation, two-channel host pose capture/codec/apply, event-free local HD/original body/leaf draw, held BaseShape matrix/AnimContext timing correction.
+7. Not implemented: complete enemies/items/Onions/jobs/HUD/world/captain/cursor state; actual room/game-thread area/input driver; playable Start/Ready; live durable saving or internet/cross-progression/P2 adapter.
+8. Functions: pc_coop_world_prepare_guest_visuals/apply_guest_visuals/draw_guest_pikmin; PikiMgr::pcCoopVisualSlots/SlotsValid; ViewPiki::pcCoopVisualReady/Validate/Apply/Draw; PikiMgr::refresh; BaseShape::updateAnim/AnimContext::animate. Host capture now samples upper/lower mCurrentAnimID and mAnimationCounter.
+9. Tests: MSVC actual adapter/pool/300 records/compile-out and actual visual implementation PASS; Clang/core analyzer PASS; old view/authority PASS;6 runner/gate tests;24 rebuilt core/network tests + real encrypted socket/bootstrap/input probe PASS; malformed final pose-wire test PASS;2 negative controls correctly fail. Full engine/Apple/phone remains untested.
+10. Latest Actions:76/run40393742757/source0ced5bbe83504842602cd03872409dc584065169, https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40393742757.
+11. Results:76 SUCCESS and75 SUCCESS. No77 triggered. Earlier71–73 were repaired native test-harness failures; not current game compiler/runtime evidence.
+12. IPA: no new IPA. Private76 outputs/Build76-Pikmin1/Nectar-pikmin1-unsigned.ipa5299633bytes SHA25666ad7aa47f99465874fb676ae1c815fd709782a63df1e1785d3acd621ab7ba16; UUID484f4c5d-796c-3b1e-b78c-60544382fced; unsignedARM64iPhoneOS, artifact12686618220. Keep68 installed;65/54 rollback retained.
+13. iPhone: no new hardware test; both working apps retained. Earlier LAN connection, reversed hosting and native connection UI checks accepted; real shared gameplay/internet are not verified.
+14. Unresolved: world load/asset coverage, owner-thread handoff/input/server tick loop, complete world/HUD/captain state, interpolation and actual mobile graphics/performance.
+15. Supporting findings: normal Piki::doKill changes work/death counts and can leave a sprout; AnimMgr::findAnim can load from disk; old BaseShape presentation guard only recognized legacy lockstep. New display path avoids normal death/init/FSM/animation events and uses a pure loaded-asset lookup, with all incoming values checked first.
+16. Resume details: Pikmin visual schema2 is50bytes (was schema1/38); local pose frame bounded against actual loaded animation, exact end marker clamped to last valid frame. Dormant display objects never enter PikiMgr live count/allowance; incoming metadata supplies ownership. Keep same-build/content handshake, personal graphics/FPS120/camera/audio/control/touch and optional HD packs independent. Driver must fully load the world before confirming Ready, pump while held, and use authoritative host ticks rather than render serials. Temporary card admission remains process-latched; restart before normal solo after practice.
+17. User actions: none now. No phone connection/reinstall requested. Next test should be a concrete two-phone shared area with a short checklist.
+18. Exact next work: inspect tree/origin and this report; integrate trusted practice area/assets, complete world baseline and owner-thread room/bootstrap/input/server loop; keep Start closed until it is truthful; require17 native practice checks plus existing full build/network/package gates for one larger milestone. Then two-phone LAN gameplay test. Later campaign main-menu Host/Join/Rejoin, separate solo/shared slots, shared Onion stock/own squads/allowances, forced shared travel, health-based difficulty, safe disconnect/rejoin and durable recovery, internet, PC/iPhone progression and P2. Preserve existing progress and finale surprise.
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-27 11:51 EDT
+
+**Overall project status:** Working installed P1/P2 retained. Continued the larger shared-area integration with actual guest population/animation/render code. Local checks passed; no new native build or phone test. Latest successful native build remains76. Playable two-phone gameplay is not enabled yet.
+
+### Pikmin 1
+
+- Current objective: complete the host-owned shared practice area with independent full-screen views and controls.
+- What was investigated: actual PikiMgr pool/create/refresh, Piki init/death side effects, ViewPiki model/animation contexts, AnimMgr lazy loading, BaseShape/AnimContext render-time clocks, host capture and complete actor frames.
+- Root cause or leading hypothesis: ordinary guest birth/death would replay gameplay effects/counters/seeds; a fixed local cohort cannot display host population changes. Normal animation selection can load assets or run gameplay callbacks. BaseShape previously treated only legacy two-pass rendering as presentation, so a held snapshot guest could still advance a separate animation clock.
+- Files changed: pc_coop_world.h/.cpp/hooks; NEW pc_coop_pikmin_visuals.cpp; PikiMgr.h/ViewPiki.h, pikiMgr.cpp and shapeBase.cpp; PikminState wire codec/tests; CMake source list and actual-source fixtures/check runner; journals.
+- Source changes implemented: explicitly admit a completely dormant initialized local PikiMgr pool; keep all slots OUTSIDE its live population. Complete host snapshots atomically choose local display slots for new, retained, removed and recolored Pikmin. Validate all IDs/session/epoch/captains/capacity/resources/poses before any actor/model write. Removed IDs disappear without normal kill, death statistics, sprout creation or work interruption. Pool/scene reuse invalidates ownership and suppresses stale normal rendering. Guest display directly samples both host animation channels with listeners disabled; no FSM/action/animation events run. Per-device original or installed HD body/leaf models draw locally. Held shape clocks stay frozen and use presentation matrices even outside old deterministic netplay.
+- Tests and results: actual adapter plus actual pool admission/300-Pikmin multipart fixture MSVC PASS; compile-out PASS; new actual visual translation unit/resource/render fixture MSVC and Clang/core analyzer PASS; actual world TU/fixture Clang PASS; prior authority/view regressions PASS;6 mandatory-check runner tests PASS. Rebuilt networking24/24 PASS plus real encrypted socket/room/bootstrap/input probe PASS with normal localhost access. Final malformed pose-wire regression PASS. Two deliberately broken controls compile and correctly fail (skip final pose validation; remove end-frame clamp).
+- Confirmed working: these are LOCAL source fixtures, not real phone visuals. Build68 remains installed and user-accepted for prior solo/connection/menu tests. Build76 native/package success validates its earlier source, not this batch.
+- Remaining issues: full world baseline still needs enemies/items/Onions/jobs/HUD/interaction state; actual owner-thread room/load/input driver is incomplete. Captain animation/health/full cursor state and smooth render interpolation remain pending. The new guest display population intentionally contains no live AI/jobs; host gameplay input must drive the real host population. Trusted scene loading must ensure required animation data is loaded; packet-selected missing data rejects atomically and NEVER starts disk loading. No playable Start exposed.
+
+### Pikmin 2
+
+- Current objective: preserve its last user-confirmed working build while P1 online integration continues.
+- What was investigated: no P2 runtime/source investigation in this batch.
+- Root cause or leading hypothesis: none new.
+- Files changed: no P2 game files. Shared networking Pikmin visual schema advanced from1/38bytes to2/50bytes; no P2 update/build or multiplayer adapter enabled.
+- Tests and results: no new P2 build or phone test.
+- Confirmed working: last user-confirmed launch/gameplay and repaired audio retained; full campaign completion remains unverified.
+- Remaining issues: later stronger campaign testing and P2 online adapter.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: ios-experimental.
+- Starting commit: 6699108ac4ae81a0b23dcf7bb976ccbf509abc5a; fetched origin still matched before saving this batch.
+- Latest commit: this checkpoint is saved with subject `Integrate guest Pikmin populations and host-sampled poses [skip ci]`. Its resolved post-push hash is recorded in the accessible Exact Resume State.json.
+- Commits created: one scoped population/pose/render/schema/test/journal checkpoint, with [skip ci].
+- Changes pushed: normal development checkpoint only, no release/history rewrite.
+- Uncommitted changes: batch is saved with this report; final accessible state records post-commit status.
+- GitHub Actions run IDs: last independently verified native run40393742757 / Build76 / source0ced5bbe83504842602cd03872409dc584065169.
+- Build results:76 SUCCESS. This batch has NOT had Apple/full-engine compilation or hardware validation. No77 requested.
+- Artifacts produced: none new. Private Build76 IPA5299633bytes SHA25666ad7aa47f99465874fb676ae1c815fd709782a63df1e1785d3acd621ab7ba16, artifact12686618220; keep installed68 and65/54 rollback.
+
+### Next steps
+
+- Next Pikmin 1 task: integrate the complete bounded practice world and owner-thread room/bootstrap/area/input driver with this population renderer. Confirm all required world state and assets before Ready. Keep host simulation tick independent of phone rendering, including120FPS option.
+- Next Pikmin 2 task: preserve baseline now; deeper testing and its online adapter later.
+- GitHub/build task: continue meaningful related integration batches and local regressions. The next native build must require all17 admission/view/authority/population checks, full game build, existing room/socket gates and packaging checks. Do not build each helper separately.
+- Anything requiring my involvement: nothing now; no USB/reinstall/new phone test. Keep working apps installed.
+
+### ChatGPT continuation notes
+
+- What another ChatGPT conversation needs to know: guest visual lifecycle and host-sampled Pikmin pose paths now exist in actual engine code. They are NOT a complete gameplay replica or room driver. Fixed live-cohort adapter remains a separate diagnostic path and cannot mix with dormant display mode.
+- Important source-file locations: pc_coop_world_prepare_guest_visuals/apply_guest_visuals/draw_guest_pikmin; PikiMgr::pcCoopVisualSlots/SlotsValid; ViewPiki::pcCoopVisualReady/Validate/Apply/Draw in new pc_coop_pikmin_visuals.cpp; PikiMgr::refresh dispatch; BaseShape::updateAnim and AnimContext::animate in shapeBase.cpp. New tests/pikmin1_practice_population_test.py compiles the actual visual TU with controlled engine resources; capture fixture compiles actual world TU and actual admission method bodies.
+- Relevant logs: workspace work/population-capture.log, population-visual-local.log, population-world-clang.log, population-visual-clang.log, population-network-suite.log, population-protocol-final.log, population-authority-regression.log, population-runner-tests.log, population-negative-controls.json. Previous76 log/receipt retained.
+- Unverified fixes: full Apple/game compilation, actual appearance/animation/performance on phones, loaded animation coverage, full shared world and gameplay. Local HD fallback test does not prove phone pack rendering.
+- Risks and warnings: wire schema2 is50bytes; schema1/38bytes is refused. Same-build/content room compatibility remains required while personal graphics/camera/audio/controls/touch/cosmetic models stay local. Explicit guest display admission requires no live or pending-destruction Piki slots; do not abandon a loaded local job to force it through. Never call normal Piki::doKill/initColor/setFlower for these replicas. All applies/draws and scene teardown run on the owning game thread. Clear context before heap/shape reset. Pool capacity refusal must not silently drop actors. No network-triggered lazy asset loading.
+- Exact next actions: verify status/origin; inspect this batch; trace trusted practice loading to ensure empty guest pool and complete assets, then connect room ownership/bootstrap/load barrier/input/server ticks and complete world adapters. Use actual-source checks before one meaningful native build. Preserve separate solo/shared save slots, shared Onion stock, own squads/allowances, safe host pause/exact rejoin, durable recovery and PC cross-progression/internet/P2 objectives. Restart remains required after process-latched temporary practice card admission. No finale spoilers.
+
+**END PROGRESS REPORT**
+
+
+---
+
+## Historical checkpoints — current entry above supersedes current-state claims below
+
+# OPEN NECTAR iOS — CODEX TO CHATGPT MASTER HANDOFF
+
 2026-10-27 11:13 EDT. Latest checkpoint: host/guest engine authority plus held-world camera and replica model integration. No new iOS build has been triggered.
 
 1. **Repository/branch:** C:/Dev/Open-Nectar---Pikmin-Native-PC-Mobile-Port; CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; ios-experimental.

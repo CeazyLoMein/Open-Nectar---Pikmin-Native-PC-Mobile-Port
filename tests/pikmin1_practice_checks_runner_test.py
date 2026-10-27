@@ -13,7 +13,7 @@ class Checks(unittest.TestCase):
  def test_success_and_gate(self):
   with tempfile.TemporaryDirectory() as d:
    out=Path(d)/'results';receipt=runner.run_checks(Path(d),out,self.execute())
-   self.assertEqual(receipt['result'],'PASS');self.assertEqual(len(receipt['checks']),13);runner.verify_receipt(out/'result.json','success')
+   self.assertEqual(receipt['result'],'PASS');self.assertEqual(len(receipt['checks']),17);runner.verify_receipt(out/'result.json','success')
  def test_generation_failure_still_attempts_other_fixture(self):
   with tempfile.TemporaryDirectory() as d:
    receipt=runner.run_checks(Path(d),Path(d)/'results',self.execute(fail='pikmin1_practice_admission_test.py'))

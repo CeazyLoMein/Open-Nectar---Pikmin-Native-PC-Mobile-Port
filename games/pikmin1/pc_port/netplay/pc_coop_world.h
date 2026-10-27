@@ -43,6 +43,14 @@ bool pc_coop_world_bind_guest_pikmin(std::uint64_t sessionId, std::uint32_t scen
 // Never mix captain-only apply after a cohort has been bound.
 bool pc_coop_world_apply_guest_actors(std::uint64_t sessionId, std::uint32_t sceneEpoch,
     const nectar::net::ActorFrame& frame);
+// Guest visual population mode, exclusive with fixed live-cohort binding.
+// Requires an entirely dormant initialized PikiMgr; no live job is abandoned.
+// Complete incoming populations atomically replace the previous display set.
+// Missing IDs disappear visually; new IDs get local display slots. No normal
+// birth/death, counters, Onions, collision or gameplay animation events run.
+bool pc_coop_world_prepare_guest_visuals(std::uint64_t sessionId, std::uint32_t sceneEpoch);
+bool pc_coop_world_apply_guest_visuals(std::uint64_t sessionId, std::uint32_t sceneEpoch,
+    const nectar::net::ActorFrame& frame);
 // Last applied host ownership/action metadata; does NOT change guest AI/FSM.
 bool pc_coop_world_guest_pikmin_state(std::uint64_t id, nectar::net::PikminState& output);
 

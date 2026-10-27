@@ -8,18 +8,29 @@ common=r'''
 #include <vector>
 #include <cstddef>
 #include <cstdint>
+#include <set>
+#include "nectar_net/pikmin_replication.h"
 struct Vec{float x=0,y=0,z=0;};
 struct Creature{virtual ~Creature()=default;struct{Vec t,r;}mSRT;Vec mVelocity,mLastPosition;
  float mFaceDirection=0,mHealth=100;bool alive=true,canRemove=true;
  virtual bool isAlive(){return alive;}bool removable(){return canRemove;}};
 struct Navi:Creature{int mNaviID=0;};
-class Piki:public Creature{public:Navi*mNavi=nullptr;std::uint16_t mColor=0,mMode=0;int mHappa=0;};
+class Graphics{};
+struct Animator{int mCurrentAnimID=0;float mAnimationCounter=0;};
+struct Animations{Animator upper,lower;Animator&getUpperAnimator(){return upper;}Animator&getLowerAnimator(){return lower;}};
+class Piki:public Creature{public:Navi*mNavi=nullptr;std::uint16_t mColor=0,mMode=0;int mHappa=0;Animations mPikiAnimMgr;};
+class ViewPiki:public Piki{public:bool ready=true;int applied=0,drawn=0;nectar::net::PikminState last;
+ bool pcCoopVisualReady()const{return ready;}
+ bool pcCoopVisualValidate(const nectar::net::PikminState&s)const{return ready&&nectar::net::validPikminState(s)&&s.color<3&&s.upperAnimation<90&&s.lowerAnimation<90&&s.upperFrame<=64&&s.lowerFrame<=64;}
+ void pcCoopVisualApply(const nectar::net::PikminState&s){++applied;last=s;}
+ void pcCoopVisualDraw(Graphics&){++drawn;}};
 struct ObjectMgr{std::vector<Creature*>objects;};
-struct MonoObjectMgr:ObjectMgr{int mNumObjects=0,mMaxElements=1;Creature*mObjectList[4]={};int mEntryStatus[4]={-1,-1,-1,-1};
+struct MonoObjectMgr:ObjectMgr{int mNumObjects=0,mMaxElements=1;Creature*objectStorage[4]={};Creature**mObjectList=objectStorage;int statusStorage[4]={-1,-1,-1,-1};int*mEntryStatus=statusStorage;
  int getEmptyIndex(){for(int i=0;i<mMaxElements;++i)if(mEntryStatus[i]==-1)return i;return -1;}
  int getIndex(Creature*p){for(int i=0;i<mMaxElements;++i)if(mObjectList[i]==p)return i;return -1;}
  Creature*birth();void kill(Creature*);};
-struct NaviMgr:MonoObjectMgr{};struct PikiMgr:MonoObjectMgr{};
+struct NaviMgr:MonoObjectMgr{};struct PikiMgr:MonoObjectMgr{
+ bool pcCoopVisualSlots(std::vector<ViewPiki*>&);bool pcCoopVisualSlotsValid(const std::vector<ViewPiki*>&)const;};
 extern NaviMgr*naviMgr;extern PikiMgr*pikiMgr;
 struct Iterator{ObjectMgr*m;std::size_t i=0;explicit Iterator(ObjectMgr*p):m(p){}Creature*operator*(){return m->objects[i];}};
 #define CI_LOOP(it) for((it).i=0;(it).i<(it).m->objects.size();++(it).i)
@@ -34,6 +45,7 @@ def method(text,signature):
  return text[a:i]
 obj=(ROOT/'games/pikmin1/src/plugPikiKando/objectMgr.cpp').read_text(encoding='utf-8')
 creature=(ROOT/'games/pikmin1/src/plugPikiKando/creature.cpp').read_text(encoding='utf-8')
+visual=(ROOT/'games/pikmin1/pc_port/netplay/pc_coop_pikmin_visuals.cpp').read_text(encoding='utf-8')
 stage=(ROOT/'games/pikmin1/src/plugPikiKando/gameCoreSection.cpp').read_text(encoding='utf-8')
 init=method(creature,'void Creature::init()');exit=method(stage,'void GameCoreSection::exitStage()')
 assert init.index('pc_coop_world_forget(this)')<init.index('mSearchBuffer.invalidate')
@@ -48,6 +60,7 @@ test=r'''
 NaviMgr*naviMgr=nullptr;PikiMgr*pikiMgr=nullptr;
 int bad=0;void check(bool ok,const char*why){if(!ok){std::printf("FAIL %s\n",why);++bad;}}
 '''
+test+=method(visual,'bool PikiMgr::pcCoopVisualSlots(')+'\n'+method(visual,'bool PikiMgr::pcCoopVisualSlotsValid(')+'\n'
 test+=method(obj,'Creature* MonoObjectMgr::birth()')+'\n'+method(obj,'void MonoObjectMgr::kill(')+'\n'
 test+=r'''
 using namespace nectar::net;
@@ -59,6 +72,8 @@ int main(){
  check(!pc_coop_world_active()&&!pc_coop_world_begin_host(100,1)&&!pc_coop_world_capture(records),"normal/incomplete world stays inactive");
  pc_coop_world_forget(nullptr);pc_coop_world_end_scene();
  NaviMgr navis;PikiMgr pikis;Navi n0,n1;n1.mNaviID=1;Piki p0,p1;p0.mNavi=&n0;p1.mNavi=&n1;p1.mColor=2;p0.mSRT.t.x=40;
+ p0.mPikiAnimMgr.upper.mCurrentAnimID=23;p0.mPikiAnimMgr.upper.mAnimationCounter=12.5f;
+ p0.mPikiAnimMgr.lower.mCurrentAnimID=2;p0.mPikiAnimMgr.lower.mAnimationCounter=7.75f;
  naviMgr=&navis;pikiMgr=&pikis;navis.objects={&n0,&n1};pikis.objects={&p0,&p1};
  check(!pc_coop_world_begin_host(0,1)&&!pc_coop_world_begin_host(100,0),"invalid session/epoch refused");
  check(pc_coop_world_begin_host(100,1)&&!pc_coop_world_begin_host(100,1),"explicit host begin once");
@@ -81,6 +96,9 @@ int main(){
  const auto original=pc_coop_world_actor_id(&p0,EntityKind::Pikmin);
  check(original&&!pc_coop_world_actor_id(&p0,EntityKind::Enemy),"actual actors have typed IDs");
  auto s=read(records,original);check(s.position.x==40&&s.owner==0&&s.leader==0,"capture actual transform and association");
+ check(s.upperAnimation==23&&s.lowerAnimation==2&&s.upperFrame==12.5f&&s.lowerFrame==7.75f,"actual host capture preserves both independent animation IDs and counters");
+ p0.mPikiAnimMgr.upper.mCurrentAnimID=-1;check(!pc_coop_world_capture(records),"host cannot publish uninitialized animation ID");p0.mPikiAnimMgr.upper.mCurrentAnimID=23;
+ p0.mPikiAnimMgr.lower.mAnimationCounter=std::numeric_limits<float>::quiet_NaN();check(!pc_coop_world_capture(records),"host cannot publish invalid final pose counter");p0.mPikiAnimMgr.lower.mAnimationCounter=7.75f;
  p0.mNavi=nullptr;p0.mMode=9;
  check(pc_coop_world_capture(records),"worker capture");s=read(records,original);
  check(s.owner==0&&s.leader==255&&s.action==9,"worker retains ownership despite absent leader");
@@ -247,6 +265,44 @@ int main(){
   if(i>1)check(!pc_coop_world_apply_guest_actors(106,9,assembled.current())&&many[299].mSRT.t.x==0,"partial reordered fragments never move any engine actor");}
  check(assembled.current().pikmin.size()==300&&pc_coop_world_apply_guest_actors(106,9,assembled.current())&&many[299].mSRT.t.x==299&&many[299].mNavi==&n1,"complete reordered network frame reaches all 300 actual guest Pikmin bindings");
  pc_coop_world_end_scene();pikis.objects.clear();
+
+ // Dynamic visual population: real world adapter + actual dormant-pool admission.
+ PikiMgr displayPool;ViewPiki d0,d1,d2;displayPool.mMaxElements=3;
+ displayPool.mObjectList[0]=&d0;displayPool.mObjectList[1]=&d1;displayPool.mObjectList[2]=&d2;
+ pikiMgr=&displayPool;navis.objects={&n0,&n1};Graphics gfx;
+ check(pc_coop_world_begin_guest(107,10),"dynamic guest context admitted");
+ check(!pc_coop_world_prepare_guest_visuals(999,10),"foreign context cannot claim dormant visual pool");
+ displayPool.mNumObjects=1;check(!pc_coop_world_prepare_guest_visuals(107,10),"live jobs/Pikmin cannot be silently abandoned by display admission");displayPool.mNumObjects=0;
+ displayPool.mEntryStatus[0]=-2;check(!pc_coop_world_prepare_guest_visuals(107,10),"pending destruction is not a safe dormant slot");displayPool.mEntryStatus[0]=-1;
+ d2.ready=false;check(!pc_coop_world_prepare_guest_visuals(107,10),"missing display resources refuse admission");d2.ready=true;
+ check(pc_coop_world_prepare_guest_visuals(107,10)&&!pc_coop_world_prepare_guest_visuals(107,10),"dormant visual pool can be owned only once");
+ check(pc_coop_world_draw_guest_pikmin(gfx)&&d0.drawn==0&&d1.drawn==0,"empty admitted display suppresses stale normal population before baseline");
+ ActorFrame dynamic;dynamic.frame=1;dynamic.tick=100;
+ const auto dc0=NetEntityId{10,EntityKind::Captain,0,1}.pack(),dc1=NetEntityId{10,EntityKind::Captain,0,2}.pack();
+ const auto dp0=NetEntityId{10,EntityKind::Pikmin,0,10}.pack(),dp1=NetEntityId{10,EntityKind::Pikmin,0,11}.pack(),dp2=NetEntityId{10,EntityKind::Pikmin,0,12}.pack();
+ dynamic.captains[dc0]=ca;dynamic.captains[dc1]=cb;
+ PikminState visual0;visual0.color=0;visual0.owner=0;visual0.upperAnimation=23;visual0.upperFrame=8.5f;
+ PikminState visual1=visual0;visual1.color=2;visual1.owner=1;visual1.maturity=2;visual1.lowerAnimation=2;visual1.lowerFrame=4;
+ dynamic.pikmin[dp0]=visual0;dynamic.pikmin[dp1]=visual1;
+ check(pc_coop_world_apply_guest_visuals(107,10,dynamic)&&d0.applied==1&&d1.applied==1&&d0.last.upperFrame==8.5f&&d1.last.lowerFrame==4,"complete host population samples apply to actual guest model slots");
+ check(displayPool.mNumObjects==0&&displayPool.mEntryStatus[0]==-1&&displayPool.mEntryStatus[1]==-1,"display never registers live actors or consumes real Pikmin allowance");
+ check(!pc_coop_world_bind_guest_pikmin(107,10,{})&&!pc_coop_world_apply_guest_captains(107,10,dynamic),"fixed/partial adapter cannot take over visual population mode");
+ pc_coop_world_draw_guest_pikmin(gfx);check(d0.drawn==1&&d1.drawn==1&&d2.drawn==0,"exactly current authoritative population is displayed");
+ dynamic.frame=2;dynamic.tick=101;auto invalidDynamic=dynamic;invalidDynamic.pikmin[dp1].upperAnimation=99;invalidDynamic.captains[dc0].position.x=9999;
+ const auto beforeCapt=n0.mSRT.t.x;
+ check(!pc_coop_world_apply_guest_visuals(107,10,invalidDynamic)&&d0.applied==1&&d1.applied==1&&n0.mSRT.t.x==beforeCapt,"bad final asset pose never partially updates first model or either captain");
+ invalidDynamic=dynamic;invalidDynamic.pikmin[NetEntityId{10,EntityKind::Pikmin,0,13}.pack()]=visual0;invalidDynamic.pikmin[dp2]=visual0;
+ check(!pc_coop_world_apply_guest_visuals(107,10,invalidDynamic),"complete population above local capacity is refused without truncation");
+ invalidDynamic=dynamic;invalidDynamic.pikmin[NetEntityId{9,EntityKind::Pikmin,0,20}.pack()]=visual0;
+ check(!pc_coop_world_apply_guest_visuals(107,10,invalidDynamic),"old-scene population identity refused");
+ dynamic.pikmin.erase(dp0);dynamic.pikmin[dp2]=visual0;dynamic.pikmin[dp1].color=1;
+ check(pc_coop_world_apply_guest_visuals(107,10,dynamic)&&d0.applied==2&&d1.applied==2&&d1.last.color==1,"death/birth replacement and color conversion are one atomic visual transaction");
+ check(!pc_coop_world_guest_pikmin_state(dp0,diagnostic)&&pc_coop_world_guest_pikmin_state(dp2,diagnostic)&&diagnostic.upperFrame==8.5f,"removed identity disappears and new identity has only its host state");
+ dynamic.frame=3;dynamic.tick=102;dynamic.pikmin.clear();check(pc_coop_world_apply_guest_visuals(107,10,dynamic),"complete empty population removes every guest visual without gameplay kill");
+ pc_coop_world_draw_guest_pikmin(gfx);check(d0.drawn==1&&d1.drawn==1&&!pc_coop_world_guest_pikmin_state(dp1,diagnostic),"empty snapshot leaves no ghost model or metadata");
+ dynamic.frame=4;dynamic.tick=103;dynamic.pikmin[dp0]=visual0;pc_coop_world_forget(&d2);
+ check(!pc_coop_world_guest_active()&&!pc_coop_world_may_advance()&&!pc_coop_world_apply_guest_visuals(107,10,dynamic)&&pc_coop_world_draw_guest_pikmin(gfx),"even dormant slot reuse invalidates ownership, holds guest and suppresses normal fallback");
+ pc_coop_world_end_scene();check(!pc_coop_world_draw_guest_pikmin(gfx),"scene teardown restores ordinary manager draw ownership");
 
  if(!bad)std::puts("PASS actual P1 capture and pool hooks: default inert, ownership, recycled actors, finite/atomic snapshot, whole guest squad, 300-Pikmin packet apply and stage lifetime");
  return bad?1:0;

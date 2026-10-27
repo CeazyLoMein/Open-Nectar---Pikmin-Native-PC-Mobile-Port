@@ -6,6 +6,10 @@
 #include "ViewPiki.h"
 #include "types.h"
 
+#if defined(PIKI_PC_PORT)
+#include <vector>
+#endif
+
 class Navi;
 class CPlate;
 
@@ -234,6 +238,12 @@ public:
 
 	void init();
 	void dumpAll();
+#if defined(PIKI_PC_PORT)
+    // Requires an admitted guest and a completely dormant, initialized pool.
+    // Never calls normal birth/init/kill and never activates manager entries.
+    bool pcCoopVisualSlots(std::vector<ViewPiki*>& output);
+    bool pcCoopVisualSlotsValid(const std::vector<ViewPiki*>& slots) const;
+#endif
 
 	// unused/inlined:
 	CPlate* getFormationPikis();

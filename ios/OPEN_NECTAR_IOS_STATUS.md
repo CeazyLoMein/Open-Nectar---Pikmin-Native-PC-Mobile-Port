@@ -1,3 +1,12 @@
+## Current population/pose checkpoint — 2026-10-27 11:51 EDT
+
+Actual P1 guest population and sampled animation/render source implemented; local fixtures/Clang/24 rebuilt network tests/encrypted probe PASS. No Apple/full-engine or phone validation yet. No77 dispatched, keep installed68. Guest visual slots remain outside live AI; complete world/room/scene/input driver still pending. New mandatory native gate has17 checks. Pikmin wire schema2=50bytes. Checkpoint subject `Integrate guest Pikmin populations and host-sampled poses [skip ci]`, parent 6699108ac4ae81a0b23dcf7bb976ccbf509abc5a; resolved post-push revision in accessible Exact Resume State.json.
+
+
+---
+
+## Historical checkpoints — current entry above supersedes current-state claims below
+
 ## Current checkpoint — 2026-10-27 11:13 EDT: integrated authority source, local checks PASS, native deferred
 
 Build76 remains SUCCESS. Working phone baseline68 retained. New host/guest authority is wired through known engine update/draw/mode/message/camera paths, with guest maturity mesh and held attachment correction. Local source fixtures/Clang/negative controls pass. Apple/full-engine and phone validation for this batch have NOT run. No Build77 requested; no playable online Start exposed. P2 unchanged. Next: population/animation/full world baseline + room/area/input driver together, then meaningful native batch. Resolved post-push commit is in accessible Exact Resume State.json; checkpoint subject `Hold replicated co-op worlds across engine update and draw [skip ci]`.

@@ -84,7 +84,7 @@ int main(){
  invalid=squad(1,1);invalid[1].id=NetEntityId{1,EntityKind::Captain,0,100}.pack();invalid[1].data=invalid[0].data;
  check(!packActorFrame(100,1,8,80,invalid,1000,{},old),"duplicate captain player rejected");
  check(feed(receiver,unchecked(invalid,8),3400)==Result::Rejected&&receiver.current().frame==7,"guest validates semantics even with a matching hash");
- invalid=squad(1,1);invalid.back().schema=2;
+ invalid=squad(1,1);invalid.back().schema=3;
  check(feed(receiver,unchecked(invalid,9),3400)==Result::Rejected,"unknown actor schema never publishes");
  invalid=squad(1,1);PikminState ps;ps.position.x=std::numeric_limits<float>::quiet_NaN();
  invalid.back().data=encodePikminState(ps);

@@ -10,9 +10,12 @@ struct PikminState {
     float faceDirection = 0.0f, health = 0.0f;
     std::uint8_t owner = 255, leader = 255, color = 0, maturity = 0;
     std::uint16_t action = 0;
+    // Host-sampled visual pose. Local display never executes animation events.
+    std::uint16_t upperAnimation = 0, lowerAnimation = 0;
+    float upperFrame = 0.0f, lowerFrame = 0.0f;
 };
-constexpr std::uint8_t kPikminSchema = 1;
-constexpr std::size_t kPikminStateBytes = 38;
+constexpr std::uint8_t kPikminSchema = 2;
+constexpr std::size_t kPikminStateBytes = 50;
 bool validPikminState(const PikminState& state);
 std::vector<std::uint8_t> encodePikminState(const PikminState& state);
 bool decodePikminState(const std::uint8_t* data, std::size_t size, PikminState& state);

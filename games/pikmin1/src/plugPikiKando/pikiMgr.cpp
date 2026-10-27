@@ -1,4 +1,5 @@
 #include "PikiMgr.h"
+#include "netplay/pc_coop_world_hooks.h"
 #if defined(PIKI_PC_PORT)
 #include "settings/pc_settings.h"
 #include "pc_vs.h"
@@ -145,6 +146,7 @@ void PikiMgr::update()
  */
 void PikiMgr::refresh(Graphics& graphics)
 {
+    if (pc_coop_world_draw_guest_pikmin(graphics)) return;
 	MonoObjectMgr::refresh(graphics);
 }
 

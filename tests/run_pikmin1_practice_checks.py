@@ -1,10 +1,11 @@
-"""Collect admission/view/authority source fixtures; require all before packaging."""
+"""Collect admission/view/authority/population source fixtures; require all before packaging."""
 import argparse,json,subprocess,sys
 from pathlib import Path
 
 CHECKS={'ios-sdk','generate-admission','compile-admission','run-admission','ios-admission',
         'generate-view','compile-view','run-view','ios-view',
-        'generate-authority','compile-authority','run-authority','ios-authority'}
+        'generate-authority','compile-authority','run-authority','ios-authority',
+        'generate-population','compile-population','run-population','ios-population'}
 
 def run_checks(root,output,execute=subprocess.run):
  root=root.resolve();output=output.resolve();output.mkdir(parents=True,exist_ok=True)
@@ -24,13 +25,14 @@ def run_checks(root,output,execute=subprocess.run):
   if text:print(text,flush=True)
  check('ios-sdk',['xcrun','--sdk','iphoneos','--show-sdk-path'])
  pc=root/'games/pikmin1/pc_port'
- for name in ['admission','view','authority']:
+ for name in ['admission','view','authority','population']:
   fixture=output/(name+'-fixture');binary=fixture/('practice-'+name+'-test')
   check('generate-'+name,[sys.executable,root/('tests/pikmin1_practice_'+name+'_test.py'),fixture])
   sources=[fixture/('practice-'+name+'-test.cpp')]
   if name=='admission':sources+=[pc/p for p in ['dolphin_stubs/card_stubs.cpp','pc_day_history.cpp','netplay/pc_coop_switch.cpp','netplay/pc_coop_practice_start.cpp']]
+  elif name=='population':sources+=[pc/'netplay/pc_coop_pikmin_visuals.cpp',*[root/'libs/nectar_net/src'/p for p in ['pikmin_replication.cpp','world.cpp','byte_io.cpp']]]
   else:sources+=[pc/'netplay/pc_netplay_present.cpp',pc/'timing/pc_render_phase.cpp']
-  flags=['-std=c++17','-pthread','-Wall','-Wextra','-Werror','-DPIKI_PC_PORT=1','-DNECTAR_P1_SOLO_TEST=0','-I'+str(fixture),'-I'+str(pc)]
+  flags=['-std=c++17','-pthread','-Wall','-Wextra','-Werror','-DPIKI_PC_PORT=1','-DNECTAR_P1_SOLO_TEST=0','-I'+str(fixture),'-I'+str(pc),'-I'+str(root/'libs/nectar_net/include')]
   if name!='admission':flags+=['-DNECTAR_COOP_WORLD=1']
   if name=='authority':flags+=['-DPC_NETPLAY_PRESENT_HOST=1']
   check('compile-'+name,['xcrun','--sdk','macosx','clang++',*flags,*sources,'-o',binary],('generate-'+name,))
@@ -45,10 +47,10 @@ def run_checks(root,output,execute=subprocess.run):
 def verify_receipt(path,outcome):
  receipt=json.loads(path.read_text(encoding='utf-8'))
  if outcome!='success' or receipt.get('result')!='PASS' or set(receipt.get('checks',{}))!=CHECKS:
-  raise ValueError('Practice startup/view/authority checks incomplete or failed; refusing IPA packaging')
+  raise ValueError('Practice startup/view/authority/population checks incomplete or failed; refusing IPA packaging')
  if any(c.get('status')!='PASS' or c.get('returncode')!=0 for c in receipt['checks'].values()):
   raise ValueError('Failed/blocked practice check; refusing IPA packaging')
- print('PASS: actual practice startup/save/view/authority fixtures; packaging may continue')
+ print('PASS: actual practice startup/save/view/authority/population fixtures; packaging may continue')
 
 if __name__=='__main__':
  parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path);parser.add_argument('--verify',type=Path);parser.add_argument('--outcome')

@@ -12,6 +12,7 @@ class MapMgr;
  */
 #if defined(PIKI_PC_PORT)
 #include "mods/pc_hd_models.h"
+namespace nectar { namespace net { struct PikminState; } }
 #endif
 
 class ViewPiki : public Piki {
@@ -31,6 +32,12 @@ public:
 	void init(Shape*, MapMgr*, Navi*);
 
 #if defined(PIKI_PC_PORT)
+    // Internal guest display path. Slots remain outside the live Piki manager;
+    // no FSM, actions, birth/death counters or animation events are executed.
+    bool pcCoopVisualReady() const;
+    bool pcCoopVisualValidate(const nectar::net::PikminState&) const;
+    void pcCoopVisualApply(const nectar::net::PikminState&);
+    void pcCoopVisualDraw(Graphics&);
 	PcHdModelId hdPikiModel() const;
 	PcHdModelId hdHappaModel() const;
 #endif

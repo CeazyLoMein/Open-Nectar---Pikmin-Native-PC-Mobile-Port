@@ -25,6 +25,7 @@
 #include "pc_photo_mode.h"
 #include "timing/pc_render_phase.h"
 #include "netplay/pc_netplay_present.h"
+#include "netplay/pc_coop_world_hooks.h"
 #include "netplay/pc_netplay_det.h"
 #include "pc_speedrun.h"
 #include "timing/pc_anim_timing.h"
@@ -397,6 +398,9 @@ void Joint::render(Graphics& gfx)
  */
 void AnimContext::animate(f32 animSpeed)
 {
+#if defined(PIKI_PC_PORT)
+    if (!pc_coop_world_may_advance()) return;
+#endif
 #if defined(PIKI_PC_PORT)
 	mCurrentFrame += pc_anim_dt(gsys->getFrameTime()) * animSpeed;
 #else
@@ -3651,7 +3655,7 @@ void BaseShape::updateAnim(Graphics& gfx, immut Matrix4f& mtx, f32* p3, const vo
 	// Netplay presentation pass: rebuild matrices for the local camera in the
 	// present pool without advancing animation time. The sim pointer is
 	// restored by pc_netplay_present_restore_all_shapes.
-	const bool isPresentation = !pc_render_is_authoritative() && pc_netplay_present_two_pass_active();
+	const bool isPresentation = !pc_coop_world_may_advance() || (!pc_render_is_authoritative() && pc_netplay_present_two_pass_active());
 	if (isPresentation) {
 		pc_netplay_present_save_shape_ptr(this, mAnimMatrices);
 		mAnimMatrices = gfx.getPresentMatrices(mAnimMtxCount);

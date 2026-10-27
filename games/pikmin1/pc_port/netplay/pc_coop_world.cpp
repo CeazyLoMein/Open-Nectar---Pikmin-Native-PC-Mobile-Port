@@ -24,6 +24,7 @@ struct GuestPikmin {
     std::uint16_t color = 0;
     net::PikminState applied;
 };
+struct VisualPikmin { std::size_t slot = 0; net::PikminState applied; };
 struct GuestState {
     std::uint64_t session = 0, lastFrame = 0, lastTick = 0, ids[2] = {};
     std::uint16_t epoch = 0;
@@ -31,6 +32,9 @@ struct GuestState {
     bool invalidated = false, pikminBound = false, havePikminFrame = false;
     std::map<std::uint64_t, GuestPikmin> pikmin;
     std::vector<Piki*> orderedPikmin, liveScratch;
+    PikiMgr* visualManager = nullptr;
+    std::vector<ViewPiki*> visualSlots;
+    std::map<std::uint64_t, VisualPikmin> visuals;
 };
 std::unique_ptr<GuestState> guest;
 bool findCaptains(Navi* (&found)[2]) {
@@ -144,7 +148,7 @@ bool pc_coop_world_apply_guest_captains(std::uint64_t sessionId, std::uint32_t e
                                        const net::ActorFrame& frame)
 {
     CaptainApply pending;
-    if ((guest && guest->pikminBound) || !prepareCaptains(sessionId, epoch, frame, pending)) return false;
+    if ((guest && (guest->pikminBound || guest->visualManager)) || !prepareCaptains(sessionId, epoch, frame, pending)) return false;
     commitCaptains(pending, frame);
     return true;
 }
@@ -152,7 +156,7 @@ bool pc_coop_world_apply_guest_captains(std::uint64_t sessionId, std::uint32_t e
 bool pc_coop_world_bind_guest_pikmin(std::uint64_t sessionId, std::uint32_t epoch,
     const std::vector<PcCoopGuestPikminBinding>& bindings)
 {
-    if (!guest || guest->invalidated || guest->pikminBound || sessionId != guest->session ||
+    if (!guest || guest->invalidated || guest->pikminBound || guest->visualManager || sessionId != guest->session ||
         epoch != guest->epoch || bindings.size() > net::ActorFrameLimits{}.maxRecords - 2) return false;
     Navi* captains[2] = {};
     if (!findCaptains(captains) || captains[0] != guest->captains[0] || captains[1] != guest->captains[1]) return false;
@@ -210,9 +214,76 @@ bool pc_coop_world_apply_guest_actors(std::uint64_t sessionId, std::uint32_t epo
     return true;
 }
 
+bool pc_coop_world_prepare_guest_visuals(std::uint64_t sessionId, std::uint32_t epoch)
+{
+    if (!guest || guest->invalidated || guest->pikminBound || guest->visualManager
+        || sessionId != guest->session || epoch != guest->epoch || !pikiMgr) return false;
+    Navi* captains[2] = {};
+    if (!findCaptains(captains) || captains[0] != guest->captains[0] || captains[1] != guest->captains[1]) return false;
+    std::vector<ViewPiki*> slots;
+    if (!pikiMgr->pcCoopVisualSlots(slots)) return false;
+    guest->visualSlots.swap(slots);
+    guest->visualManager = pikiMgr;
+    return true;
+}
+
+bool pc_coop_world_apply_guest_visuals(std::uint64_t sessionId, std::uint32_t epoch, const net::ActorFrame& frame)
+{
+    CaptainApply captains;
+    if (!guest || !guest->visualManager || guest->visualManager != pikiMgr
+        || !prepareCaptains(sessionId, epoch, frame, captains)
+        || frame.pikmin.size() > guest->visualSlots.size()
+        || !pikiMgr->pcCoopVisualSlotsValid(guest->visualSlots)) return false;
+    // Allocate and validate the ENTIRE replacement before touching any model.
+    std::map<std::uint64_t, VisualPikmin> pending;
+    std::vector<bool> used(guest->visualSlots.size(), false);
+    for (const auto& entry : frame.pikmin) {
+        net::NetEntityId id;
+        if (!net::NetEntityId::unpack(entry.first, id) || id.sceneEpoch != epoch
+            || id.kind != net::EntityKind::Pikmin || !net::validPikminState(entry.second) || entry.second.color >= 3) return false;
+        const auto old = guest->visuals.find(entry.first);
+        if (old != guest->visuals.end()) {
+            if (old->second.slot >= used.size() || used[old->second.slot]) return false;
+            used[old->second.slot] = true;
+            pending.emplace(entry.first, VisualPikmin{old->second.slot, entry.second});
+        }
+    }
+    std::size_t free = 0;
+    for (const auto& entry : frame.pikmin) {
+        if (pending.count(entry.first)) continue;
+        while (free < used.size() && used[free]) ++free;
+        if (free == used.size()) return false;
+        used[free] = true;
+        pending.emplace(entry.first, VisualPikmin{free, entry.second});
+    }
+    for (const auto& entry : pending)
+        if (!guest->visualSlots[entry.second.slot]->pcCoopVisualValidate(entry.second.applied)) return false;
+    for (const auto& entry : pending)
+        guest->visualSlots[entry.second.slot]->pcCoopVisualApply(entry.second.applied);
+    guest->visuals.swap(pending); // absent actors disappear without gameplay death
+    commitCaptains(captains, frame);
+    guest->havePikminFrame = true;
+    return true;
+}
+
+bool pc_coop_world_draw_guest_pikmin(Graphics& gfx)
+{
+    if (!guest || !guest->visualManager) return false;
+    if (guest->invalidated || guest->visualManager != pikiMgr
+        || !pikiMgr->pcCoopVisualSlotsValid(guest->visualSlots)) return true;
+    for (const auto& entry : guest->visuals)
+        guest->visualSlots[entry.second.slot]->pcCoopVisualDraw(gfx);
+    return true;
+}
+
 bool pc_coop_world_guest_pikmin_state(std::uint64_t id, net::PikminState& output)
 {
     if (!guest || guest->invalidated || !guest->havePikminFrame) return false;
+    if (guest->visualManager) {
+        const auto visual = guest->visuals.find(id);
+        if (visual == guest->visuals.end()) return false;
+        output = visual->second.applied; return true;
+    }
     const auto found = guest->pikmin.find(id);
     if (found == guest->pikmin.end()) return false;
     output = found->second.applied;
@@ -234,6 +305,8 @@ void pc_coop_world_forget(const void* actor)
     if (state && actor) state->registry.retireLocal(key(actor));
     if (guest && actor && (actor == guest->captains[0] || actor == guest->captains[1]))
         guest->invalidated = true; // same address after pool reuse is NOT same lifetime
+    if (guest && actor) for (const auto* slot : guest->visualSlots)
+        if (slot == actor) { guest->invalidated = true; break; }
     if (guest && actor) for (const auto& binding : guest->pikmin) {
         if (binding.second.local == actor) { guest->invalidated = true; break; }
     }
@@ -283,6 +356,12 @@ bool pc_coop_world_capture(std::vector<net::EntityRecord>& output)
         s.leader = leader(p->mNavi, captains);
         s.color = static_cast<std::uint8_t>(p->mColor);
         s.maturity = static_cast<std::uint8_t>(p->mHappa); s.action = p->mMode;
+        const auto& upper = p->mPikiAnimMgr.getUpperAnimator();
+        const auto& lower = p->mPikiAnimMgr.getLowerAnimator();
+        if (upper.mCurrentAnimID < 0 || upper.mCurrentAnimID >= 1024 || lower.mCurrentAnimID < 0 || lower.mCurrentAnimID >= 1024) return false;
+        s.upperAnimation = static_cast<std::uint16_t>(upper.mCurrentAnimID);
+        s.lowerAnimation = static_cast<std::uint16_t>(lower.mCurrentAnimID);
+        s.upperFrame = upper.mAnimationCounter; s.lowerFrame = lower.mAnimationCounter;
         const auto id = state->registry.observe(net::EntityKind::Pikmin, key(p), s.leader);
         if (!id) return false;
         s.owner = state->registry.owner(id); // workers/idle keep allowance ownership
