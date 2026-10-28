@@ -2,6 +2,7 @@
 #include "netplay/pc_coop_practice_bridge.h"
 #endif
 #import <UIKit/UIKit.h>
+#import "ios_coop_style.h"
 #include "ios_coop_content_identity.h"
 #include "ios_coop_room.h"
 #include "ios_coop_handoff.h"
@@ -56,6 +57,7 @@ NSString* joinError(JoinFailure failure, CompatibilityField field) {
 @property(nonatomic, strong) UIButton* joinButton;
 @property(nonatomic, strong) UIButton* clipboardButton;
 @property(nonatomic, strong) UIButton* pasteButton;
+@property(nonatomic, strong) UIButton* shareButton;
 @property(nonatomic, strong) UIButton* leaveButton;
 @property(nonatomic, strong) UIButton* rejoinButton;
 @property(nonatomic, copy) NSString* pendingJoinCode;
@@ -72,29 +74,35 @@ static std::atomic<bool> sRoomCoversGame{false};
     UIButton* button = [UIButton buttonWithType:UIButtonTypeSystem];
     [button setTitle:title forState:UIControlStateNormal];
     button.titleLabel.font = [UIFont preferredFontForTextStyle:UIFontTextStyleHeadline];
+    nectarCoopStyleButton(button);
     [button addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
     [button.heightAnchor constraintGreaterThanOrEqualToConstant:44].active = YES;
     return button;
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.view.backgroundColor = UIColor.systemBackgroundColor;
+    self.view.backgroundColor = nectarCoopBackground();
     self.modalInPresentation = YES;
     UILabel* title = [UILabel new];
     title.text = @"Online Co-op — Connect";
     title.font = [UIFont preferredFontForTextStyle:UIFontTextStyleTitle2];
     title.numberOfLines = 0;
+    nectarCoopStyleLabel(title);
     UILabel* explanation = [UILabel new];
     explanation.text = @"Connect both phones to the same Wi-Fi. Host a private room, then copy its code to the other phone. After connecting, tap Start Co-op Practice on both phones from the title screen. The small practice area uses disposable state and does not change your campaign. Campaign co-op is still being developed.";
     explanation.font = [UIFont preferredFontForTextStyle:UIFontTextStyleBody];
     explanation.numberOfLines = 0;
+    nectarCoopStyleLabel(explanation);
     self.status = [UILabel new];
     self.status.text = @"Checking game data… This may take a moment.";
     self.status.numberOfLines = 0;
+    nectarCoopStyleLabel(self.status);
     self.status.accessibilityTraits = UIAccessibilityTraitUpdatesFrequently;
     self.code = [UITextView new];
     self.code.font = [UIFont monospacedSystemFontOfSize:15 weight:UIFontWeightRegular];
-    self.code.backgroundColor = UIColor.secondarySystemBackgroundColor;
+    self.code.backgroundColor = [UIColor colorWithRed:0.08 green:0.18 blue:0.36 alpha:1.0];
+    self.code.textColor = UIColor.whiteColor;
+    self.code.layer.cornerRadius = 10.0;
     self.code.autocorrectionType = UITextAutocorrectionTypeNo;
     self.code.spellCheckingType = UITextSpellCheckingTypeNo;
     self.code.autocapitalizationType = UITextAutocapitalizationTypeNone;
@@ -106,6 +114,7 @@ static std::atomic<bool> sRoomCoversGame{false};
     self.joinButton = [self button:@"Join Room" action:@selector(joinRoom)];
     self.clipboardButton = [self button:@"Copy Code" action:@selector(didTapCopy)];
     self.pasteButton = [self button:@"Paste Code" action:@selector(pasteCode)];
+    self.shareButton = [self button:@"Share Invite" action:@selector(shareInvite)];
     self.leaveButton = [self button:@"Leave Room" action:@selector(leaveRoom)];
     self.rejoinButton = [self button:@"Rejoin Last Room" action:@selector(rejoinRoom)];
     UIButton* done = [self button:@"Done" action:@selector(closeScreen)];
@@ -114,10 +123,13 @@ static std::atomic<bool> sRoomCoversGame{false};
 #endif
     UIStackView* actions = [[UIStackView alloc] initWithArrangedSubviews:@[self.hostButton, self.joinButton]];
     actions.distribution = UIStackViewDistributionFillEqually;
-    UIStackView* editing = [[UIStackView alloc] initWithArrangedSubviews:@[self.clipboardButton, self.pasteButton]];
+    actions.spacing = 8;
+    UIStackView* editing = [[UIStackView alloc] initWithArrangedSubviews:@[self.clipboardButton, self.shareButton, self.pasteButton]];
     editing.distribution = UIStackViewDistributionFillEqually;
+    editing.spacing = 8;
     UIStackView* ending = [[UIStackView alloc] initWithArrangedSubviews:@[self.leaveButton, done]];
     ending.distribution = UIStackViewDistributionFillEqually;
+    ending.spacing = 8;
     UIStackView* content = [[UIStackView alloc] initWithArrangedSubviews:@[title, explanation, self.status, actions, self.code, editing, self.rejoinButton, ending]];
     if(self.practiceButton) [content insertArrangedSubview:self.practiceButton atIndex:3];
     content.axis = UILayoutConstraintAxisVertical;
@@ -177,6 +189,7 @@ static std::atomic<bool> sRoomCoversGame{false};
     self.joinButton.enabled = _checked && !busy;
     self.rejoinButton.enabled = _checked && !busy && sLastJoinedRoomCode.length > 0;
     self.clipboardButton.enabled = static_cast<bool>(_host) && self.code.text.length > 0;
+    self.shareButton.enabled = self.clipboardButton.enabled;
     self.pasteButton.enabled = _checked && !busy;
     self.code.editable = _checked && !busy;
     self.leaveButton.enabled = busy;
@@ -315,6 +328,17 @@ static std::atomic<bool> sRoomCoversGame{false};
         options:@{UIPasteboardOptionLocalOnly:@YES,
                   UIPasteboardOptionExpirationDate:[NSDate dateWithTimeIntervalSinceNow:300]}];
 }
+- (void)shareInvite {
+    // A system share sheet opens only after the host explicitly taps Share.
+    // The invite is not persisted or sent by the game without user action.
+    if (!_host || !self.code.text.length || self.presentedViewController) return;
+    UIActivityViewController* share=[[UIActivityViewController alloc] initWithActivityItems:@[self.code.text] applicationActivities:nil];
+    if (share.popoverPresentationController) {
+        share.popoverPresentationController.sourceView=self.shareButton;
+        share.popoverPresentationController.sourceRect=self.shareButton.bounds;
+    }
+    [self presentViewController:share animated:YES completion:nil];
+}
 - (void)pasteCode {
     if (!_checked || _host || _guest) return;
     NSString* value = UIPasteboard.generalPasteboard.string;
@@ -328,22 +352,15 @@ static std::atomic<bool> sRoomCoversGame{false};
 - (void)backgrounded:(NSNotification*)notification {
     (void)notification;
     _away = YES;
-    if (_host) {
-        // Sharing the copied code through Messages must not invalidate the room.
-        // No gameplay is active: drop any partner, keep listening/code in memory,
-        // and require a fresh authenticated connection after returning.
-        _handoff.reset();
-        _host->transport()->disconnectPeer(false);
-        self.status.text = @"Room kept open. Return here after sharing the code, before your partner joins.";
-    } else if (_guest) {
-        [self stopConnection];
-        self.status.text = @"Connection paused while this app was away. Return the host to P1, then tap Rejoin Last Room.";
-    }
+    // Do not deliberately disconnect a partner just because the user opens
+    // Messages. iOS may suspend us or the link may expire; foreground polling
+    // verifies its actual state and reports failure rather than claiming success.
+    if (_host || _guest) self.status.text = @"Checking the room when you return to P1…";
 }
 - (void)foregrounded:(NSNotification*)notification {
     (void)notification;
     _away = NO;
-    if (_host) self.status.text = @"Same room open. Your partner can rejoin now. Keep P1 in front.";
+    if (_host || _guest) self.status.text = @"Checking the connection…";
 }
 - (BOOL)detachConnection:(std::unique_ptr<CoopConnection>*)output {
     // Exactly one main-thread handoff; failed validation leaves UI/owners intact.

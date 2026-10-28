@@ -5,6 +5,7 @@
 #include "netplay/pc_coop_practice_map.h"
 #include "netplay/pc_coop_practice_start.h"
 #include "netplay/pc_coop_practice_input.h"
+#include "netplay/pc_coop_practice_status.h"
 #include "netplay/pc_coop_world.h"
 #include "netplay/pc_netplay_present.h"
 #include "netplay/pc_input_log.h"
@@ -343,7 +344,7 @@ void pc_coop_practice_status(char* out,std::size_t cap) {
         if (!s || !confirmed) msg="Loading disposable practice area. Keep both phones in P1. Your campaign is untouched.";
         else if (s->phase()==net::CoopPhase::WaitingForPartner) msg="Partner disconnected. The practice world is frozen. This first test requires reopening P1 on both phones to reconnect; live rejoin is next.";
         else if (s->phase()==net::CoopPhase::Running) msg="Practice running. Each captain has 12 Pikmin. Move, throw, whistle and dismiss; Pause opens this panel. No campaign progress is saved.";
-        else msg="Practice paused. Both phones must tap Ready / Resume. You each keep your own camera, controls and graphics. No campaign save is used.";
+        else msg=pc_practice_wait_message(s->view(),role==net::CoopRole::Host ? 0 : 1);
     }
     if (out && cap) std::snprintf(out,cap,"%s",msg);
 }

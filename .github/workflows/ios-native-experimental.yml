@@ -308,6 +308,9 @@ jobs:
           xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/p1-speed-test.cpp"
           python3 tests/pikmin1_practice_squad_guard_test.py
           python3 tests/pikmin1_practice_tick_guard_test.py
+          c++ -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -Ilibs/nectar_net/include tests/pikmin1_practice_status_test.cpp -o "$RUNNER_TEMP/practice-status-test"
+          "$RUNNER_TEMP/practice-status-test"
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -Ilibs/nectar_net/include -fsyntax-only tests/pikmin1_practice_status_test.cpp
           python3 tests/pikmin1_practice_movie_test.py "$RUNNER_TEMP/practice-movie-test.cpp"
           c++ -std=c++17 -Wall -Wextra -Werror -DPIKI_PC_PORT=1 "$RUNNER_TEMP/practice-movie-test.cpp" -o "$RUNNER_TEMP/practice-movie-test"
           "$RUNNER_TEMP/practice-movie-test"
@@ -360,6 +363,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 tests/ios_room_checks_runner_test.py
+          python3 tests/ios_coop_presentation_contract_test.py
           python3 tests/run_ios_room_checks.py --output ios-room-check-results
       - name: Restore pinned Apple networking dependency cache
         if: matrix.game == 'pikmin1'

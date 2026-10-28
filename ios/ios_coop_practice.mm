@@ -1,4 +1,5 @@
 #import <UIKit/UIKit.h>
+#import "ios_coop_style.h"
 #include "netplay/pc_coop_practice_bridge.h"
 
 @interface NectarPracticeController : UIViewController
@@ -12,27 +13,36 @@ static NectarPracticeController* sPracticePanel;
     UIButton* b=[UIButton buttonWithType:UIButtonTypeSystem];
     [b setTitle:text forState:UIControlStateNormal];
     b.titleLabel.font=[UIFont preferredFontForTextStyle:UIFontTextStyleHeadline];
+    nectarCoopStyleButton(b);
     [b addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
     [b.heightAnchor constraintGreaterThanOrEqualToConstant:48].active=YES;return b;
 }
 - (void)viewDidLoad {
     [super viewDidLoad];self.modalInPresentation=YES;
-    self.view.backgroundColor=UIColor.systemBackgroundColor;
+    self.view.backgroundColor=nectarCoopBackground();
     UILabel* title=[UILabel new];title.text=@"Online Co-op â€” Practice";
     title.font=[UIFont preferredFontForTextStyle:UIFontTextStyleTitle2];
+    nectarCoopStyleLabel(title);
     self.status=[UILabel new];self.status.numberOfLines=0;
+    nectarCoopStyleLabel(self.status);
     self.status.font=[UIFont preferredFontForTextStyle:UIFontTextStyleBody];
     self.ready=[self button:@"Ready / Resume" action:@selector(resumePractice)];
     UIButton* view=[self button:@"View Practice Area" action:@selector(closePanel)];
     UIButton* leave=[self button:@"End Practice" action:@selector(endPractice)];
     UIStackView* stack=[[UIStackView alloc] initWithArrangedSubviews:@[title,self.status,self.ready,view,leave]];
     stack.axis=UILayoutConstraintAxisVertical;stack.spacing=18;stack.translatesAutoresizingMaskIntoConstraints=NO;
-    [self.view addSubview:stack];
+    UIScrollView* scroll=[UIScrollView new];scroll.translatesAutoresizingMaskIntoConstraints=NO;
+    [self.view addSubview:scroll];[scroll addSubview:stack];
     [NSLayoutConstraint activateConstraints:@[
-        [stack.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:24],
-        [stack.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-24],
-        [stack.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:24],
-        [stack.bottomAnchor constraintLessThanOrEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-16]
+        [scroll.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor],
+        [scroll.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor],
+        [scroll.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor],
+        [scroll.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor],
+        [stack.leadingAnchor constraintEqualToAnchor:scroll.contentLayoutGuide.leadingAnchor constant:24],
+        [stack.trailingAnchor constraintEqualToAnchor:scroll.contentLayoutGuide.trailingAnchor constant:-24],
+        [stack.topAnchor constraintEqualToAnchor:scroll.contentLayoutGuide.topAnchor constant:24],
+        [stack.bottomAnchor constraintEqualToAnchor:scroll.contentLayoutGuide.bottomAnchor constant:-16],
+        [stack.widthAnchor constraintEqualToAnchor:scroll.frameLayoutGuide.widthAnchor constant:-48]
     ]];
     self.timer=[NSTimer scheduledTimerWithTimeInterval:0.2 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES];
     [self updateStatus:nil];

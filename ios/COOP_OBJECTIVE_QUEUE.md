@@ -1,3 +1,9 @@
+## Current checkpoint — 2026-10-28: Build 80 verified, co-op UX in development
+
+Build 80 passed and is staged in Documents/Open Nectar/1 - Install on iPhone/P1 Build 80 - Co-op Practice Fix. One phone can check solo launch, but not prove two-player behavior; Raye is unavailable. Following requested in-depth co-op research (see COOP_MOD_RESEARCH.md), current source adds game-inspired accessible scrolling UI, explicit private-invite sharing, background room retention without claiming iOS guarantees it, and clear ready/partner interruption messages. Local checks passed; Apple build and runtime untested. Preserve independent player options and all prior objectives below, including reconnect, different-network play, shared campaign/Onions, host loss recovery, PC cross-progression and P2 later.
+
+---
+
 # Current checkpoint — 2026-10-27: Build 78 ready for first two-phone test
 
 Build 78/run 40582347682 succeeded and its verified P1 IPA is staged in Documents/Open Nectar/1 - Install on iPhone/P1 Build 78 - Co-op Practice. It is a disposable practice-area experiment, not campaign co-op; no phone installation or gameplay has been verified yet. User and Raye will test when available. Existing P1/P2 and settings must be preserved.
