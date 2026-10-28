@@ -7,6 +7,7 @@ style=(r/'ios/ios_coop_style.h').read_text(encoding='utf-8')
 for field in ('Game','Region','Build','Content','Capabilities'):
  assert f'case CompatibilityField::{field}:' in room
 assert 'case JoinFailure::NoTransport:' in room
+assert 'stats.rttMs >= 200' in room and 'Controls may feel slow' in room
 share=room.split('- (void)shareInvite {',1)[1].split('\n}',1)[0]
 assert 'if (!_host || !self.code.text.length || self.presentedViewController) return;' in share
 assert 'initWithActivityItems:@[self.code.text]' in share and 'presentViewController:share' in share

@@ -313,9 +313,12 @@ static std::atomic<bool> sRoomCoversGame{false};
     [self updateButtons];
     if (link && link->state() == TransportState::Connected) {
         TransportStats stats;
-        if (link->stats(stats) && stats.rttMs >= 0)
-            self.status.text = [NSString stringWithFormat:@"Connected — same build and game data. Delay: %d ms. Connection check passed. From the title screen, tap Start Co-op Practice on BOTH phones.", stats.rttMs];
-        else self.status.text = @"Connected — same build and game data. Connection check passed. From the title screen, tap Start Co-op Practice on BOTH phones.";
+        if (link->stats(stats) && stats.rttMs >= 0) {
+            if (stats.rttMs >= 200)
+                self.status.text = [NSString stringWithFormat:@"Connected, but delay is high (%d ms). Controls may feel slow. Start Co-op Practice on BOTH phones when ready.", stats.rttMs];
+            else
+                self.status.text = [NSString stringWithFormat:@"Connected — same build and game data. Delay: %d ms. Connection check passed. From the title screen, tap Start Co-op Practice on BOTH phones.", stats.rttMs];
+        } else self.status.text = @"Connected — same build and game data. Connection check passed. From the title screen, tap Start Co-op Practice on BOTH phones.";
     }
 }
 #if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
