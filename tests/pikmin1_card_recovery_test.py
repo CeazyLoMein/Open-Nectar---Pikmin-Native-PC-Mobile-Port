@@ -16,6 +16,7 @@ for prefix in ('#define CARD_READ_SIZE','#define CARD_STAT_SPEED_END','#define C
 h.write_text(s+'\n',encoding='utf-8')
 source=(root/'games/pikmin1/src/plugPikiColin/cardutil.cpp').read_text(encoding='utf-8')
 listing=block(source,'static s32 DoList(');saving=block(source,'static s32 DoSave(')
+listing=listing.replace('CARDRename(', 'FailCARDListRename(').replace('CARDOpen(', 'FailCARDListOpen(')
 for name in ('CARDCreate','CARDWrite','CARDSetStatus','CARDFastDelete','CARDRename'):
  saving=saving.replace(name+'(', 'Fail'+name+'(')
 prefix=(out/'practice-card-test.cpp').read_text(encoding='utf-8').split('int main(int argc,char** argv)')[0]
@@ -29,6 +30,8 @@ CardUtilControl CardControl{};
 s32* CardUtilByteNotUsed(){return &CardControl.mByteNotUsed;}
 s32* CardUtilFilesNotUsed(){return &CardControl.mFilesNotUsed;}
 static int fault=0;
+s32 FailCARDListRename(s32 c,const char* a,const char* b){return fault==12?CARD_RESULT_IOERROR:CARDRename(c,a,b);}
+s32 FailCARDListOpen(s32 c,const char* n,CARDFileInfo* i){return fault==13?CARD_RESULT_IOERROR:CARDOpen(c,n,i);}
 s32 FailCARDCreate(s32 c,const char* n,u32 z,CARDFileInfo* i){return fault==1?CARD_RESULT_IOERROR:CARDCreate(c,n,z,i);}
 s32 FailCARDWrite(CARDFileInfo* i,void* d,s32 n,s32 o){
  if(fault==2)return CARD_RESULT_IOERROR;
@@ -58,20 +61,24 @@ s32 FailCARDRename(s32 c,const char* a,const char* b){
 }
 '''+listing+'\n'+saving+'''\nint main(int argc,char** argv){
  if(argc!=2)return 2;const auto base=fs::absolute(argv[1]);fs::create_directories(base);env("NECTAR_SAVE_DIR",base.string());CARDInit();
- for(int stage=0;stage<=11;++stage){
+ for(int stage=0;stage<=13;++stage){
   const std::string name="Save"+std::to_string(stage);CARDFileInfo file{};std::vector<char> old(512,'A'),now(512,'B');
   check(CARDCreate(0,name.c_str(),512,&file)==0 && CARDWrite(&file,old.data(),512,0)==0,"seed original fixture");
   CARDStat stat{};check(CARDGetStatus(0,file.fileNo,&stat)==0,"read original metadata");stat.commentAddr=0;stat.length=512;
-  fault=stage;const auto saved=DoSave(0,&stat,now.data());fault=0;
+  fault=stage==12?5:stage==13?4:stage;const auto saved=DoSave(0,&stat,now.data());fault=0;
   check((stage==0 && saved>=0)||(stage!=0 && saved<0),"save reaches the selected injected failure");
-  std::vector<CardUtilDirent> entries(CARD_MAX_FILE);const auto listResult=DoList(0,entries.data());
+  std::vector<CardUtilDirent> entries(CARD_MAX_FILE);fault=stage>=12?stage:0;
+  const auto listResult=DoList(0,entries.data());fault=0;
   CARDFileInfo current{};
-  if(stage==10 || stage==11){
-   check(listResult==CARD_RESULT_IOERROR && CARDOpen(0,name.c_str(),&current)!=0,
-         "missing metadata or truncated temp with no final save reports an error");
+  if(stage==10 || stage==11 || stage==12 || stage==13){
+   check(listResult==CARD_RESULT_IOERROR,"uncertain temporary-save recovery reports an error");
+   const auto finalResult=CARDOpen(0,name.c_str(),&current);
+   check(stage==13 ? finalResult==0 : finalResult!=0,
+         "final save remains in the expected state during uncertain recovery");
+   if(finalResult==0) CARDClose(&current);
    const std::string temp="~Save"+std::to_string(stage);
    check(CARDOpen(0,temp.c_str(),&current)==0,"only remaining temporary save is preserved");
-   const int length=stage==10?512:10;std::vector<char> survivor(length);
+   const int length=stage==11?10:512;std::vector<char> survivor(length);
    check(CARDRead(&current,survivor.data(),length,0)==0 &&
          std::equal(survivor.begin(),survivor.end(),now.begin()),
          "preserved temporary save retains its remaining bytes");
