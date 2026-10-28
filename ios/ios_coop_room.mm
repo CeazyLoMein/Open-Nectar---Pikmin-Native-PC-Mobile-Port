@@ -50,6 +50,7 @@ NSString* joinError(JoinFailure failure, CompatibilityField field) {
 }
 - (BOOL)detachConnection:(std::unique_ptr<CoopConnection>*)output;
 - (BOOL)rememberEvent:(TransportEvent*)event;
+@property(nonatomic, weak) UIWindowScene* gameScene;
 @property(nonatomic, strong) UILabel* status;
 @property(nonatomic, strong) UITextView* code;
 @property(nonatomic, strong) UIButton* hostButton;
@@ -152,9 +153,9 @@ static std::atomic<bool> sRoomCoversGame{false};
     ]];
     [self updateButtons];
     [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(backgrounded:)
-        name:UIApplicationDidEnterBackgroundNotification object:nil];
+        name:UISceneWillDeactivateNotification object:self.gameScene];
     [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(foregrounded:)
-        name:UIApplicationDidBecomeActiveNotification object:nil];
+        name:UISceneDidActivateNotification object:self.gameScene];
     // Resolve once before the worker starts; the game's cwd never supplies user data.
     NSURL* data = [NSURL fileURLWithPath:[NSFileManager.defaultManager.currentDirectoryPath
         stringByAppendingPathComponent:@"assets/dataDir"] isDirectory:YES];
@@ -406,6 +407,7 @@ extern "C" void nectar_ios_open_coop_room(void) {
         UIViewController* presenter = window.rootViewController;
         if (!presenter || presenter.presentedViewController || presenter.isBeingPresented || presenter.isBeingDismissed) return;
         sRoomController = [NectarCoopRoomController new];
+        sRoomController.gameScene = window.windowScene;
         sRoomController.modalPresentationStyle = UIModalPresentationOverFullScreen;
         sRoomCoversGame.store(true);
         [presenter presentViewController:sRoomController animated:YES completion:nil];

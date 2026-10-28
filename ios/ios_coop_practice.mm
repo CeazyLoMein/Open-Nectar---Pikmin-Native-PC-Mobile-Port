@@ -63,19 +63,24 @@ static NectarPracticeController* sPracticePanel;
 // Installed once for the entire admitted session, not owned by a dismissed room
 // screen. Background pauses are sent while the link can still deliver them.
 @interface NectarPracticeLifecycle : NSObject
+@property(nonatomic, weak) UIWindowScene* scene;
+- (void)observeScene:(UIWindowScene*)scene;
 @end
 @implementation NectarPracticeLifecycle
+- (void)observeScene:(UIWindowScene*)scene {
+    if(!scene || self.scene == scene) return;
+    [NSNotificationCenter.defaultCenter removeObserver:self];
+    self.scene=scene;
+    [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(away:) name:UISceneWillDeactivateNotification object:scene];
+    [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(back:) name:UISceneDidActivateNotification object:scene];
+}
 - (void)away:(NSNotification*)notification { (void)notification;pc_coop_practice_background(true); }
 - (void)back:(NSNotification*)notification { (void)notification;pc_coop_practice_background(false); }
 @end
 extern "C" void nectar_ios_open_coop_practice(void) {
     dispatch_async(dispatch_get_main_queue(), ^{
         static NectarPracticeLifecycle* lifecycle;
-        if(!lifecycle) {
-            lifecycle=[NectarPracticeLifecycle new];
-            [NSNotificationCenter.defaultCenter addObserver:lifecycle selector:@selector(away:) name:UIApplicationWillResignActiveNotification object:nil];
-            [NSNotificationCenter.defaultCenter addObserver:lifecycle selector:@selector(back:) name:UIApplicationDidBecomeActiveNotification object:nil];
-        }
+        if(!lifecycle) lifecycle=[NectarPracticeLifecycle new];
         if(sPracticePanel) return;
         UIWindow* window=nil;
         for(UIScene* scene in UIApplication.sharedApplication.connectedScenes) {
@@ -83,6 +88,7 @@ extern "C" void nectar_ios_open_coop_practice(void) {
             for(UIWindow* candidate in ((UIWindowScene*)scene).windows) if(candidate.isKeyWindow) {window=candidate;break;}
             if(window)break;
         }
+        [lifecycle observeScene:window.windowScene];
         UIViewController* presenter=window.rootViewController;
         if(!presenter || presenter.presentedViewController || presenter.isBeingPresented || presenter.isBeingDismissed) return;
         sPracticePanel=[NectarPracticeController new];sPracticePanel.modalPresentationStyle=UIModalPresentationOverFullScreen;

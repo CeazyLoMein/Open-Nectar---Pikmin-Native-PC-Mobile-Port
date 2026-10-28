@@ -3172,3 +3172,10 @@ P1-only Build 81 dispatched: run40711881021, source e65708c71626b04fccdd8265afe2
 ## Display-only smoothing candidate — 2026-10-28
 
 Research found the guest currently snaps visual state to complete host snapshots at 20 Hz, which may visibly step; this is distinct from the input delay and is not yet proven as the phone symptom. Added isolated, inactive validated frame blender; it matches stable IDs, shortest-angle interpolation, snaps teleports/action changes, handles births/removals and never changes authoritative frames. Local26/26 network checks, encrypted loopback and Clang pass. Not integrated into runtime, not included in Build81, no device validation. Need jitter buffer/timing and pause/restore tests before integration; never substitute visual state for authoritative world or saves. See COOP_MOD_RESEARCH.md for sources and reliable-stream limitations.
+
+
+### Co-op interruption audit (2026-10-28)
+- P1 room and practice lifecycle observers now track the active game window's UIScene notifications, scoped to that scene. UIKit's scene lifecycle differs from application-level lifecycle callbacks. This is a preventive correction, not a proven explanation for Build 79's freeze.
+- Practice continues to pause on interruption and requires the existing readiness flow; room code does not intentionally close the link. iOS may suspend networking, so live reconnection remains unimplemented and unverified.
+- Local source contract checks cover observer scoping; iOS compilation and real-device interruption/reconnect behavior remain unverified. Build 81 predates this change.
+- Apple references: https://developer.apple.com/documentation/uikit/uiscene/willdeactivatenotification and https://developer.apple.com/documentation/uikit/uiscene/didactivatenotification

@@ -1442,3 +1442,10 @@ Build80 run40616355146 source ebcce25120dec369eb8b2c051d6b5b39e7fbaf0b passed; v
 P1-only Build81 run40711881021 source e65708c71626b04fccdd8265afe2dfcb1cdeb42c is in progress. UI and interruption changes require Apple compile and real-device tests. User will report completion; do not idle-poll. If passed verify/stage IPA; one phone can check UI and solo, real guest practice still needs compatible second device. Full co-op vision, research links and remaining queue are in COOP_MOD_RESEARCH.md and COOP_OBJECTIVE_QUEUE.md.
 
 After Build81 was submitted, added a standalone, currently unused visual-frame blend candidate; tested locally (26/26 network, encrypted loopback, strict Clang). It cannot yet smooth the actual game. Further work must design visual clock/buffering, unchanged host authority, snap/teleport/actor lifetime behavior, pause/background and local-camera responsiveness before integration. Build81 does not contain this candidate; review its actual result independently. Sources and limitations are in COOP_MOD_RESEARCH.md.
+
+
+### Co-op interruption audit (2026-10-28)
+- P1 room and practice lifecycle observers now track the active game window's UIScene notifications, scoped to that scene. UIKit's scene lifecycle differs from application-level lifecycle callbacks. This is a preventive correction, not a proven explanation for Build 79's freeze.
+- Practice continues to pause on interruption and requires the existing readiness flow; room code does not intentionally close the link. iOS may suspend networking, so live reconnection remains unimplemented and unverified.
+- Local source contract checks cover observer scoping; iOS compilation and real-device interruption/reconnect behavior remain unverified. Build 81 predates this change.
+- Apple references: https://developer.apple.com/documentation/uikit/uiscene/willdeactivatenotification and https://developer.apple.com/documentation/uikit/uiscene/didactivatenotification

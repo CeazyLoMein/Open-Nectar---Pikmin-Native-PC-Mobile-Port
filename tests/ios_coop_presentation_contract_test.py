@@ -15,6 +15,14 @@ assert 'disconnectPeer(' not in background and '[self stopConnection]' not in ba
 assert '_away = YES' in background
 foreground=room.split('- (void)foregrounded:',1)[1].split('- (BOOL)detachConnection:',1)[0]
 assert '_away = NO' in foreground and 'Checking the connection' in foreground
+# Both screens must monitor the game window's scene, not another window.
+for source in (room, practice):
+ assert 'UISceneWillDeactivateNotification' in source and 'UISceneDidActivateNotification' in source
+ assert 'UIApplicationWillResignActiveNotification' not in source and 'UIApplicationDidBecomeActiveNotification' not in source
+assert 'object:self.gameScene' in room and 'sRoomController.gameScene = window.windowScene' in room
+assert 'object:scene' in practice and '[lifecycle observeScene:window.windowScene]' in practice
+assert '[NSNotificationCenter.defaultCenter removeObserver:self]' in practice
+
 for source in (room,practice):
  assert 'nectarCoopBackground()' in source and 'nectarCoopStyleButton(' in source
  assert 'UIScrollView' in source and 'safeAreaLayoutGuide' in source and 'scroll.contentLayoutGuide' in source
