@@ -16,5 +16,15 @@ int main() {
     if(!guest->poll(event)||event.payload.size()!=1||event.payload[0]!=1) return 3;
     if(!guest->poll(event)||event.payload.size()!=1||event.payload[0]!=2) return 4;
     if(guest->poll(event)) return 5;
+    // A later reconnect must not inherit a packet deadline from the dead link.
+    impaired.reliableLossDelayMs=1000;net.setHostToGuest(impaired);
+    if(!host->send(Delivery::ReliableOrdered,&first,1)) return 6;
+    guest->disconnectPeer(false);while(host->poll(event)){} while(guest->poll(event)){}
+    net.setHostToGuest({});
+    if(!guest->connect({"",1})) return 7;
+    while(host->poll(event)){} while(guest->poll(event)){}
+    if(!host->send(Delivery::ReliableOrdered,&second,1)) return 8;
+    net.advance(201);
+    if(!guest->poll(event)||event.payload.size()!=1||event.payload[0]!=2) return 9;
     std::puts("PASS delayed reliable packet holds later reliable packets in order");
 }

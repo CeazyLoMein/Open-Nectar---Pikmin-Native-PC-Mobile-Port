@@ -92,6 +92,9 @@ struct SimulatedNetwork::State {
         if (!connected) return;
         connected = false;
         for (auto& queue : flight) queue.clear();
+        // A replacement connection has a new ordered stream, not the old
+        // connection's delivery deadline.
+        lastReliableAt[0] = lastReliableAt[1] = 0;
         TransportEvent event;
         event.type = TransportEventType::Disconnected;
         event.detail = "peer left";
