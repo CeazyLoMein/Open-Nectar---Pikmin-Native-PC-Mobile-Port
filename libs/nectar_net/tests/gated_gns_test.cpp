@@ -95,7 +95,7 @@ int main()
 
     // Quality stays -1 until GNS has measured it; RTT is known at once.
     TransportStats stats;
-    check(host->stats(stats) && stats.rttMs >= 0
+    check(host->stats(stats) && stats.rttMs >= 0 && stats.pendingReliableBytes >= 0 && stats.unackedReliableBytes >= 0
               && (stats.localQuality == -1.0f || (stats.localQuality >= 0.0f && stats.localQuality <= 1.0f)),
           "real link reports RTT and a valid quality");
 

@@ -188,6 +188,7 @@ public:
         output.localQuality = 1.0f - static_cast<float>(in.lossPerMille) / 1000.0f;
         output.remoteQuality = 1.0f - static_cast<float>(out.lossPerMille) / 1000.0f;
         output.pendingReliableBytes = 0;
+        output.unackedReliableBytes = 0;
         output.pendingUnreliableBytes = 0;
         return true;
     }

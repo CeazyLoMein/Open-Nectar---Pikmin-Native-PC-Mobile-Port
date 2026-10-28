@@ -390,6 +390,7 @@ bool GnsTransport::stats(TransportStats& output) const
     output.remoteQuality = status.m_flConnectionQualityRemote;
     output.sendRateBytesPerSecond = status.m_nSendRateBytesPerSecond;
     output.pendingReliableBytes = status.m_cbPendingReliable;
+    output.unackedReliableBytes = status.m_cbSentUnackedReliable;
     output.pendingUnreliableBytes = status.m_cbPendingUnreliable;
     output.outBytesPerSecond = status.m_flOutBytesPerSec;
     output.inBytesPerSecond = status.m_flInBytesPerSec;

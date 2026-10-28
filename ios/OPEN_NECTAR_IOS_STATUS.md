@@ -3238,3 +3238,7 @@ Pinned GameNetworkingSockets d534c19aa760df3fb75fd20db13ba1932b8a5463 has native
 
 ### Build 83 verified (2026-10-28)
 P1-only Build 83/run 40727018878 completed SUCCESS at 74eb8c0aba1662676d08267819f4c39182161212. Artifact 12834424027 ZIP SHA-256 bb67baf67090fd398562b0274a611a9d0fe6e8156813cb731ee7c98db33fe729; IPA SHA-256 aaac83a9bd3913cca811f462897ed6138a0c048695524c8dad1feed8cb2786c2. Verified 21 practice, 13 room, encrypted UIKit simulator, ARM64 and package; staged at Documents/Open Nectar/1 - Install on iPhone/P1 Build 83 - Co-op Safety and Usability. Not installed or tested on phones in this checkpoint. Later source high-delay warning and Onion aggregate-capacity foundation are not included. P2 unchanged.
+
+
+### Reliable-queue diagnostics (after Build 83)
+The transport now distinguishes reliable bytes still queued locally from bytes sent but not yet acknowledged. P1's existing bounded local-only practice report records both once per second alongside RTT; it does not include invite codes or device IDs and is not automatically sent anywhere. This is diagnostic only: no new throttling or gameplay policy is enabled. Full local network suite 27/27 passed including encrypted GNS metrics; real-header Clang check passed with the existing Windows fopen deprecation warning. Native iOS and device validation remain pending; not included in Build 83.

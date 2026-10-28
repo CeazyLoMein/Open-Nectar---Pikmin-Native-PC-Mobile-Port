@@ -53,7 +53,8 @@ struct TransportStats {
     float localQuality  = -1.0f;
     float remoteQuality = -1.0f;
     std::int32_t sendRateBytesPerSecond = -1;
-    std::int32_t pendingReliableBytes   = -1;
+    std::int32_t pendingReliableBytes   = -1; // queued but not yet sent
+    std::int32_t unackedReliableBytes   = -1; // sent, not yet acknowledged
     std::int32_t pendingUnreliableBytes = -1;
     float outBytesPerSecond = -1.0f;
     float inBytesPerSecond  = -1.0f;

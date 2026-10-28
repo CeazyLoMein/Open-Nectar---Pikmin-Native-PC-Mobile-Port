@@ -64,10 +64,12 @@ void practiceReport(std::uint64_t now, net::CoopSession* s) {
             Navi* n=naviMgr?naviMgr->getNavi(role==net::CoopRole::Host?0:1):nullptr;
             Camera* c=n?n->controlCamera():nullptr;
             const auto finite=[](float v) {return std::isfinite(v) ? v : 0.0f;};
-            net::TransportStats stats;const int rtt=owner && owner->stats(stats)?stats.rttMs:-1;
-            std::fprintf(f,"practice role=%s phase=%d away=%d tick=%llu frame=%llu applied=%llu rtt=%d input_live=%llu repeat=%llu neutral=%llu samples=%llu sent=%llu camera=%d eye=%.1f,%.1f,%.1f focus=%.1f,%.1f,%.1f captain=%.1f,%.1f,%.1f\n",
+            net::TransportStats stats;const bool measured=owner && owner->stats(stats);
+            const int rtt=measured?stats.rttMs:-1;
+            std::fprintf(f,"practice role=%s phase=%d away=%d tick=%llu frame=%llu applied=%llu rtt=%d queued=%d unacked=%d input_live=%llu repeat=%llu neutral=%llu samples=%llu sent=%llu camera=%d eye=%.1f,%.1f,%.1f focus=%.1f,%.1f,%.1f captain=%.1f,%.1f,%.1f\n",
                 role==net::CoopRole::Host?"host":"guest",static_cast<int>(s->phase()),away?1:0,
                 static_cast<unsigned long long>(tick),static_cast<unsigned long long>(frame),static_cast<unsigned long long>(applied),rtt,
+                measured?stats.pendingReliableBytes:-1,measured?stats.unackedReliableBytes:-1,
                 static_cast<unsigned long long>(diagnosticLive),static_cast<unsigned long long>(diagnosticRepeat),static_cast<unsigned long long>(diagnosticNeutral),
                 static_cast<unsigned long long>(diagnosticSamples),static_cast<unsigned long long>(diagnosticSent),c?1:0,
                 c?finite(c->mPosition.x):0.0f,c?finite(c->mPosition.y):0.0f,c?finite(c->mPosition.z):0.0f,
