@@ -426,6 +426,21 @@ int main() {
               "input generated before delayed pause cannot leak into resumed world");
     }
 
+    {
+        Pair delayed; delayed.begin(); delayed.load(); delayed.ready();
+        LinkConditions loss; loss.lossPerMille=1000; loss.reliableLossDelayMs=4000;
+        delayed.net.setHostToGuest(loss);
+        check(delayed.host.setBlocked(CoopBlock::Manual,true), "host pause enters severely delayed connection");
+        delayed.settle(8000);
+        check(delayed.host.phase()==CoopPhase::WaitingForPartner && !delayed.host.hostShouldAdvanceWorld(),
+              "host freezes when sustained one-way delay causes partner timeout");
+        check(delayed.guest.phase()==CoopPhase::WaitingForPartner && !delayed.guest.canIssueCommands(),
+              "late reliable messages cannot silently revive a timed-out guest");
+        delayed.net.setHostToGuest({});delayed.settle(1000);
+        check(delayed.host.phase()==CoopPhase::WaitingForPartner && delayed.guest.phase()==CoopPhase::WaitingForPartner,
+              "restored delivery alone cannot resume a lost session");
+    }
+
     if (!failures)
         std::puts("PASS co-op session over real join/compatibility gate:19-stage "
                   "ready/pause/background/rejoin lifecycle, whole squad transfer, safe authority, typed "

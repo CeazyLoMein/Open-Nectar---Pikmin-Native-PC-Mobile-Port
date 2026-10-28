@@ -1474,3 +1474,6 @@ The P1 room screen now hides the visible private invite text when its game scene
 
 ### Weak connection simulator audit (2026-10-28, after Build 82)
 Prior in-memory reliable messages were always idealized as lossless without retransmission delay, despite simulated loss configured for unreliable messages. Added an opt-in, deterministic approximation where a selected reliable message has extra delay and later ordered messages wait behind it. This is a test model, not an exact GNS retransmission or network performance claim. Tests pass for ordered blocking and for a delayed host pause: old guest movement cannot advance the host or leak into its resumed world. Local tests only; no iPhone or WAN evidence. New test and simulator are not in Build 82.
+
+
+Additional weak-connection test: under an artificial four-second one-way reliable delay, the local test session times out, freezes host authority, refuses guest commands, and does not silently revive merely because delivery resumes. This is a simulated result, not proof of device behavior or live rejoin. The simulator also resets old ordering deadlines when a new connection replaces a disconnected one. Tests added after Build 82.
