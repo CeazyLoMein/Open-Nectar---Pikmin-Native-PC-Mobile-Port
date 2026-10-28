@@ -68,6 +68,7 @@ void validation()
     check(a.apply(1, huge).status == A::Status::InvalidCommand, "oversized request bounded");
     auto insufficient = command(1, 4, A::Operation::Withdraw, 100, 1);
     check(a.apply(1, insufficient).status == A::Status::InsufficientStock, "empty Onion refused");
+    check(!A(0, 3, {10, 0, 0, 0, 0}, {30, 30}).valid(), "zero scene epoch cannot create campaign authority");
     check(!A(1, 3, {0, 0, 0, 1, 0}, {30, 30}).valid(), "P1 cannot initialize inaccessible color stock");
     check(!A(1, 3, {}, {0, 30}).valid(), "invalid allowance refused");
     A overflow(1, 3, {std::numeric_limits<std::uint32_t>::max(), 0, 0, 0, 0}, {30, 30});

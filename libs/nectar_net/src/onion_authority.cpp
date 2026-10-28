@@ -9,7 +9,7 @@ OnionAuthority::OnionAuthority(std::uint16_t epoch, std::uint8_t colors,
                              const std::array<std::uint32_t, 2>& perPlayerLimit)
     : mEpoch(epoch), mColors(colors), mStored(stored), mLimits(perPlayerLimit)
 {
-    mValid = colors > 0 && colors <= kColors;
+    mValid = epoch != 0 && colors > 0 && colors <= kColors;
     for (const auto limit : mLimits) mValid = mValid && limit > 0 && limit <= kMaxPerPlayer;
     for (std::size_t c = colors; c < kColors; ++c) mValid = mValid && stored[c] == 0;
 }
