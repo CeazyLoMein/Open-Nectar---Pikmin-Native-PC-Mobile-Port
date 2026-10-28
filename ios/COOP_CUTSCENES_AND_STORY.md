@@ -41,3 +41,7 @@ Skyrim Together's own feature notes describe broadcasting the leader's dialogue 
 ### Camera and sound restoration to verify
 
 The P1 online single-view branch in `GameCoreSection::draw` selects the local captain as the audio listener during ordinary gameplay, but uses the movie look-at position while a movie is active. `endMovie` adjusts the active camera and resets the movie captain pointer. This is existing source behavior, not evidence that guest cinematics synchronize correctly. Test that both players hear spatial sound near their own normal viewpoint after a shared event and that the scene's listener/camera don't persist afterward; local volumes remain individual. A silent/disconnected/slow participant must not change the host's authoritative outcome.
+
+### Transition and event failure cases from released games
+
+No Man's Sky's developer documented fixes for interactions blocked by a lost player and for joining during travel placing a player in the wrong location: https://www.nomanssky.com/expeditions-update/ and https://www.nomanssky.com/next-generation-update/ . For our implementation, explicitly test disconnect during an interaction or scene and late joining across an area transition; an unfinished remote interaction must not permanently lock the surviving player or commit the outcome twice. This is an engineering lesson, not evidence those exact bugs exist in P1.
