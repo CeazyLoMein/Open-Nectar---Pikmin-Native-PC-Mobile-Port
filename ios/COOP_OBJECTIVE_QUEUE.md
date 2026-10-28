@@ -131,3 +131,11 @@ P1-only run 40773579467 at 4a886468d3c3a263d477fe1702cae290fed2cf83 is queued: h
 
 ### Stale continuous-input guard (after Build 84 submission)
 P1 practice input will not publish a cached held control or stick value if local sampling has stopped or its timestamp is stale for more than 300 ms. When fresh samples resume, normal held controls publish again; host-side input expiry remains responsible for releasing missing movement. Focused input/session tests and real-header local analysis passed. This is a source-level safeguard, not proof that any observed device freeze was caused by stale sampling. Not in Build 84; iOS and phone testing pending.
+
+
+### Upstream comparison (2026-10-28)
+Fetched upstream/main 77a5aaa4, with releases through 1.1. Upstream changes include P1 seed landing, P1/P2 card atomic-write work, P2 local co-op cinematic fixes, P2 missing-audio fix, and desktop/Android menu and launcher changes. Do not wholesale merge: our iOS renderer, touch, save isolation and networking differ. P2 audio was already user-reported working on our build; upstream P2 changes require separate comparison and testing.
+
+P1 source has the steep-wall seed push already, but snapped seed landing at 30 FPS as well as 60/120. Adapted upstream commits 33b5abc7 and aa18d8a4: retain the existing steep-wall push, preserve original 30 FPS bounce, and keep higher-FPS ground snap. Upstream's small decision tests passed locally and the actual itemAI translation unit passed local real-header Clang analysis with existing Windows deprecation warnings. Workflow now runs the test in future P1 iOS builds. The change is not in Build 84 and has no iOS build or device validation yet.
+
+Upstream atomic card writes are not yet imported: our current P1 card layer includes separate practice-save isolation and concurrent I/O guards. A safe adaptation must test old-save preservation, metadata consistency, short/full disk writes, rename failures, delayed worker jobs and interrupted save stages on isolated fixtures before any integration. No claim that a simple file flush guarantees power-loss durability.

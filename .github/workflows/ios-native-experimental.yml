@@ -354,6 +354,8 @@ jobs:
           ./zip-test
           c++ -std=c++17 -I"$ROOT/games/pikmin1/pc_port" "$ROOT/tests/pikmin1_ios_performance_test.cpp" "$ROOT/games/pikmin1/pc_port/timing/pc_ios_performance.cpp" -o performance-test
           ./performance-test
+          c++ -std=c++17 -I"$ROOT/games/pikmin1/pc_port" "$ROOT/games/pikmin1/pc_port/pc_seed_landing_test.cpp" -o seed-landing-test
+          ./seed-landing-test
       - name: Collect native Host Join checks and generated build identity
         id: coop_room_checks
         if: ${{ !cancelled() && matrix.game == 'pikmin1' }}

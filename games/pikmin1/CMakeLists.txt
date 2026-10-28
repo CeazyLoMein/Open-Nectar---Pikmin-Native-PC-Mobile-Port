@@ -144,6 +144,9 @@ option(NECTAR_COOP_WORLD "Compile internal co-op world bridge (no playable sessi
 
 if(PIKMIN_BUILD_TESTS)
     enable_testing()
+    add_executable(pc_seed_landing_test pc_port/pc_seed_landing_test.cpp)
+    target_include_directories(pc_seed_landing_test PRIVATE pc_port)
+    add_test(NAME pc_seed_landing_test COMMAND pc_seed_landing_test)
 endif()
 
 # ─── Which release of the game this binary is built for ───

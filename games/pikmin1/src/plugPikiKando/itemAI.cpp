@@ -1,6 +1,7 @@
 #include "ItemAI.h"
 #if defined(PIKI_PC_PORT)
 #include "pc_coop.h"
+#include "pc_seed_landing.h"
 #include "pc_speedrun.h"
 #include "netplay/pc_input_log.h"
 #include "netplay/pc_netplay_det.h"
@@ -266,14 +267,13 @@ void PikiHeadAI::BuryInit::act(AICreature* item)
 {
 	PikiHeadItem* obj = (PikiHeadItem*)item;
 #if defined(PIKI_PC_PORT)
-	// startFix congela la semilla donde esté. Tras el rebote del aterrizaje
-	// puede seguir en el aire, y a más de 30 FPS el rebote cambia lo bastante
-	// como para que se plantara flotando: se baja al suelo antes de fijarla.
-	f32 groundY = mapMgr->getMinY(obj->mSRT.t.x, obj->mSRT.t.z, true);
-	if (obj->mSRT.t.y > groundY) {
-		obj->mSRT.t.y = groundY;
+	// Preserve the original 30 Hz bounce; at higher frame rates the smaller
+	// physics step can leave a sprout in the air before it becomes fixed.
+	if (pc_seed_landing_snaps_to_ground(gsys->pcTicksPer30Hz())) {
+		f32 groundY = mapMgr->getMinY(obj->mSRT.t.x, obj->mSRT.t.z, true);
+		if (obj->mSRT.t.y > groundY) obj->mSRT.t.y = groundY;
+		obj->mVelocity.set(0.0f, 0.0f, 0.0f);
 	}
-	obj->mVelocity.set(0.0f, 0.0f, 0.0f);
 #endif
 	obj->startFix();
 	obj->mFlowerStage               = Leaf;
@@ -292,7 +292,7 @@ void PikiHeadAI::BuryExec::act(AICreature* item)
 	// Blue Onion in the Forest Navel) used to plant right there, in mid air.
 	// Push it off the wall and let it fall again until it reaches a floor.
 	CollTriInfo* tri = item->mGroundTriangle;
-	if (tri && tri->mTriangle.mNormal.y < 0.5f) {
+	if (tri && pc_seed_landing_pushes_off_steep_face(tri->mTriangle.mNormal.y)) {
 		item->mVelocity.set(tri->mTriangle.mNormal.x * 80.0f, 0.0f, tri->mTriangle.mNormal.z * 80.0f);
 		item->mSAICtx.mStateMachine->transit(item, PIKIHEAD_Flying);
 		return;
