@@ -115,3 +115,7 @@ The room screen now gives a plain-language warning when measured round-trip dela
 
 ### Shared-Onion aggregate capacity guard (after Build 83)
 `OnionAuthority` now requires an explicit aggregate field limit in addition to separate player allowances. Host-side accounting rejects a withdrawal atomically when the combined field count would exceed that limit, retains shared stock, and caches the rejected result safely for retries. Tests cover independent allowances, a smaller combined limit, retry safety, explicit invalid limit and existing 10,000-cycle conservation; local suite passes. Choosing an actual P1 limit must account for engine and snapshot bounds and device performance. This isolated foundation is not connected to campaign gameplay, is not in Build 83, and has no iOS or hardware validation.
+
+
+### Build 83 verified (2026-10-28)
+P1-only Build 83/run 40727018878 completed SUCCESS at 74eb8c0aba1662676d08267819f4c39182161212. Artifact 12834424027 ZIP SHA-256 bb67baf67090fd398562b0274a611a9d0fe6e8156813cb731ee7c98db33fe729; IPA SHA-256 aaac83a9bd3913cca811f462897ed6138a0c048695524c8dad1feed8cb2786c2. Verified 21 practice, 13 room, encrypted UIKit simulator, ARM64 and package; staged at Documents/Open Nectar/1 - Install on iPhone/P1 Build 83 - Co-op Safety and Usability. Not installed or tested on phones in this checkpoint. Later source high-delay warning and Onion aggregate-capacity foundation are not included. P2 unchanged.
