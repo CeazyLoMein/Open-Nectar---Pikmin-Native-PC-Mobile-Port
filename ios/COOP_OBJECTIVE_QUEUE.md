@@ -101,3 +101,9 @@ Room join messages now distinguish known game, region, build, game-content and c
 
 
 2026-10-28: User added co-op cutscene/story requirements without changing the active task. P1 source audit and non-spoiler design/test checklist are in `ios/COOP_CUTSCENES_AND_STORY.md`. Scene synchronization is not implemented or phone-tested; practice deliberately skips campaign scenes.
+
+
+### Build 82 verified and Build 83 submitted (2026-10-28)
+Build 82/run 40720211222 succeeded at 176615ea791ba6bd5bd182672448466c953176ff. P1 artifact 12831464151 verified: ZIP SHA-256 d727bdbb119070e8985f2a06d3258383195b71ffbf26a60c361f9036c15fc04c, IPA SHA-256 69a52b4f7b2983d3b0c78c0d2591d6d82f5a6b901186b010a73c140d1556fb4b. 21 practice, 13 room, encrypted UIKit simulator and ARM64 packaging checks passed. Staged in Documents/Open Nectar/1 - Install on iPhone/P1 Build 82 - Co-op Interruption Fix. Not phone-tested.
+
+P1-only Build 83/run 40727018878 at 74eb8c0aba1662676d08267819f4c39182161212 was submitted and in progress: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40727018878 . It groups post-82 stale-action expiry, invite concealment, clearer join errors, shared-Onion zero-epoch validation, and network test changes. Local 27/27 suite passed; iOS and hardware results pending. Story/cutscene plan is documentation only; the visual smoothing helper remains unintegrated. P2 unchanged.
