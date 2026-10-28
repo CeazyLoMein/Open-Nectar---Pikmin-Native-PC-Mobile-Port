@@ -3226,3 +3226,7 @@ P1-only Build 83/run 40727018878 at 74eb8c0aba1662676d08267819f4c39182161212 was
 
 ### High-delay room feedback (after Build 83 submission)
 The room screen now gives a plain-language warning when measured round-trip delay is at least 200 ms and notes that controls may feel slow. This is an advisory threshold, not a guarantee about responsiveness, loss, or other networks. It does not alter player FPS or quality. Source presentation contract passes; native iOS and phone testing pending. Not in Build 83.
+
+
+### Isolated ICE compile experiment (2026-10-28)
+Pinned GameNetworkingSockets d534c19aa760df3fb75fd20db13ba1932b8a5463 has native ICE source and iOS platform configuration. An isolated Windows static-library build with `ENABLE_ICE=ON`, `USE_STEAMWEBRTC=OFF` and existing pinned protobuf succeeded (44 build steps; `work/local-net-win/ice-probe-build`). The first restricted Windows compiler probe failed C1902 before compiling source; a retry with normal toolchain access passed. This is Windows compile-only: no P2P session, iOS build, signaling, STUN/TURN service, relay, or internet/device test. The production iOS dependencies remain ICE=OFF, and the current transport uses `CreateListenSocketIP` / `ConnectByIPAddress`; enabling the flag alone would not switch it to the P2P signaling API. No existing app, dependencies or saves were modified. Valve guidance: https://github.com/ValveSoftware/GameNetworkingSockets/blob/master/README_P2P.md
