@@ -43,6 +43,12 @@ s32 FailCARDSetStatus(s32 c,s32 n,CARDStat* s){
 s32 FailCARDFastDelete(s32 c,s32 n){
  if(fault==4)return CARD_RESULT_IOERROR;
  if(fault==8){if(CARDFastDelete(c,n)<0)return CARD_RESULT_FATAL_ERROR;return CARD_RESULT_IOERROR;}
+ if(fault==10){if(CARDFastDelete(c,n)<0)return CARD_RESULT_FATAL_ERROR;
+   std::error_code ec;fs::remove(fs::path(pc_card_channel_dir(c))/".meta_~Save10",ec);
+   if(ec)return CARD_RESULT_FATAL_ERROR;return CARD_RESULT_IOERROR;}
+ if(fault==11){if(CARDFastDelete(c,n)<0)return CARD_RESULT_FATAL_ERROR;
+   std::error_code ec;fs::resize_file(fs::path(pc_card_channel_dir(c))/"~Save11",10,ec);
+   if(ec)return CARD_RESULT_FATAL_ERROR;return CARD_RESULT_IOERROR;}
  return CARDFastDelete(c,n);
 }
 s32 FailCARDRename(s32 c,const char* a,const char* b){
@@ -52,14 +58,30 @@ s32 FailCARDRename(s32 c,const char* a,const char* b){
 }
 '''+listing+'\n'+saving+'''\nint main(int argc,char** argv){
  if(argc!=2)return 2;const auto base=fs::absolute(argv[1]);fs::create_directories(base);env("NECTAR_SAVE_DIR",base.string());CARDInit();
- for(int stage=0;stage<=9;++stage){
+ for(int stage=0;stage<=11;++stage){
   const std::string name="Save"+std::to_string(stage);CARDFileInfo file{};std::vector<char> old(512,'A'),now(512,'B');
   check(CARDCreate(0,name.c_str(),512,&file)==0 && CARDWrite(&file,old.data(),512,0)==0,"seed original fixture");
   CARDStat stat{};check(CARDGetStatus(0,file.fileNo,&stat)==0,"read original metadata");stat.commentAddr=0;stat.length=512;
   fault=stage;const auto saved=DoSave(0,&stat,now.data());fault=0;
   check((stage==0 && saved>=0)||(stage!=0 && saved<0),"save reaches the selected injected failure");
-  std::vector<CardUtilDirent> entries(CARD_MAX_FILE);check(DoList(0,entries.data())>=0,"actual startup listing recovers interrupted temp");
-  CARDFileInfo current{};check(CARDOpen(0,name.c_str(),&current)==0,"original or completed save remains accessible");
+  std::vector<CardUtilDirent> entries(CARD_MAX_FILE);const auto listResult=DoList(0,entries.data());
+  CARDFileInfo current{};
+  if(stage==10 || stage==11){
+   check(listResult==CARD_RESULT_IOERROR && CARDOpen(0,name.c_str(),&current)!=0,
+         "missing metadata or truncated temp with no final save reports an error");
+   const std::string temp="~Save"+std::to_string(stage);
+   check(CARDOpen(0,temp.c_str(),&current)==0,"only remaining temporary save is preserved");
+   const int length=stage==10?512:10;std::vector<char> survivor(length);
+   check(CARDRead(&current,survivor.data(),length,0)==0 &&
+         std::equal(survivor.begin(),survivor.end(),now.begin()),
+         "preserved temporary save retains its remaining bytes");
+   // Only remove this synthetic fixture after verification so the next case
+   // can exercise its own recovery path independently.
+   check(CARDFastDelete(0,current.fileNo)==0,"remove completed synthetic fixture");
+   CardControl.mDirentList=nullptr;CardControl.mDirentCount=0;continue;
+  }
+  check(listResult>=0,"actual startup listing recovers interrupted temp");
+  check(CARDOpen(0,name.c_str(),&current)==0,"original or completed save remains accessible");
   std::vector<char> observed(512);check(CARDRead(&current,observed.data(),512,0)==0,"recovered save can be read");
   check(observed==((stage==0||stage==5||stage==8||stage==9)?now:old),"recovered bytes match a complete old or new file");
   CardControl.mDirentList=nullptr;CardControl.mDirentCount=0;

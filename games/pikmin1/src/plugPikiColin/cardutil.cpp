@@ -380,7 +380,8 @@ static s32 DoList(s32 chan, CardUtilDirent* dirent)
 			newFileName[CARD_FILENAME_MAX] = 0; // 0-terminated string
 
 			// if we have a comment, assume it's a valid temp file and try and rename it
-			if (entry.mState.commentAddr <= entry.mState.length - CARD_COMMENT_SIZE) {
+			if (entry.mState.length >= CARD_COMMENT_SIZE &&
+			    entry.mState.commentAddr <= entry.mState.length - CARD_COMMENT_SIZE) {
 				if (CARDRename(chan, tempFileName, newFileName) == 0) {
 					// renamed! redo this entry with the new name
 					i--;
@@ -388,7 +389,16 @@ static s32 DoList(s32 chan, CardUtilDirent* dirent)
 				}
 			}
 
-			// no comment present OR rename failed, delete the temp file
+#if defined(PIKI_PC_PORT)
+			// The temp may be the only surviving copy after an interrupted
+			// save. If we cannot confirm the final file exists, leave the temp
+			// untouched and report an error rather than destroying its bytes.
+			CARDFileInfo existing;
+			const s32 existingResult = CARDOpen(chan, newFileName, &existing);
+			if (existingResult != CARD_RESULT_READY) return CARD_RESULT_IOERROR;
+			CARDClose(&existing);
+#endif
+			// With a final file present, retain the original cleanup behavior.
 			res = CARDFastDelete(chan, i);
 			if (res >= 0) {
 				res = CARDFreeBlocks(chan, CardUtilByteNotUsed(), CardUtilFilesNotUsed());
@@ -934,6 +944,11 @@ static void* CardUtilMain(void*)
 		length = CardControl.mLength;  // r17
 		OSUnlockMutex(&CardControl.mMutex);
 
+		// An unexpected PC-side command must not reuse an earlier result or
+		// read an uninitialized value when reporting card status.
+#if defined(PIKI_PC_PORT)
+		res = CARD_RESULT_FATAL_ERROR;
+#endif
 		// execute command
 		switch (cmd) {
 		case CARDCMD_Mount:
