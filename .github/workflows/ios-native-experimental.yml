@@ -356,6 +356,13 @@ jobs:
           ./performance-test
           c++ -std=c++17 -I"$ROOT/games/pikmin1/pc_port" "$ROOT/games/pikmin1/pc_port/pc_seed_landing_test.cpp" -o seed-landing-test
           ./seed-landing-test
+          python3 "$ROOT/tests/pikmin1_card_recovery_test.py" "$PWD/save-recovery-fixture"
+          c++ -std=c++17 -pthread -DPIKI_PC_PORT=1 -DNECTAR_P1_SOLO_TEST=0 \
+            -I"$PWD/save-recovery-fixture" -I"$ROOT/games/pikmin1/pc_port" \
+            "$PWD/save-recovery-fixture/save-recovery-test.cpp" \
+            "$ROOT/games/pikmin1/pc_port/dolphin_stubs/card_stubs.cpp" \
+            "$ROOT/games/pikmin1/pc_port/pc_day_history.cpp" -o save-recovery-test
+          ./save-recovery-test "$PWD/save-recovery-run"
       - name: Collect native Host Join checks and generated build identity
         id: coop_room_checks
         if: ${{ !cancelled() && matrix.game == 'pikmin1' }}
