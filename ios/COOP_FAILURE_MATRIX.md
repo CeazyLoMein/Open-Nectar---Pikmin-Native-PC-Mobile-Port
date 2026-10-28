@@ -36,3 +36,5 @@ Updated 2026-10-28. This is an engineering checklist, not a claim that campaign 
 - Host election and migrating the simulation state are distinct problems: https://docs.unity.com/en-us/mps-sdk/session-host-migration
 - Snapshot smoothing trades a little display delay for jitter tolerance; this does not fix missing state or change authority: https://gafferongames.com/post/snapshot_interpolation/
 - Steam networking supports separate lanes and reliable/unreliable messages, but changing the existing single reliable protocol requires a complete sequencing/fragmentation redesign and tests: https://partner.steamgames.com/doc/api/ISteamnetworkingSockets
+
+Story/cutscene synchronization, player-specific initiators, shared skip agreement, interruption/rejoin and spoiler-safe test coverage are expanded in `COOP_CUTSCENES_AND_STORY.md`.

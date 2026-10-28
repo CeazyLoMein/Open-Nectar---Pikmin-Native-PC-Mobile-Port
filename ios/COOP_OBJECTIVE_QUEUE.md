@@ -98,3 +98,6 @@ Prior in-memory reliable messages were always idealized as lossless without retr
 
 ### Clearer co-op join errors (after Build 82)
 Room join messages now distinguish known game, region, build, game-content and capability mismatches, and report failure to initialize the network separately. Unknown mismatches remain generic. The existing compatibility gate and independent personal settings are unchanged. Source contract check passed; native iOS and device UI validation still required. Not included in Build 82.
+
+
+2026-10-28: User added co-op cutscene/story requirements without changing the active task. P1 source audit and non-spoiler design/test checklist are in `ios/COOP_CUTSCENES_AND_STORY.md`. Scene synchronization is not implemented or phone-tested; practice deliberately skips campaign scenes.
