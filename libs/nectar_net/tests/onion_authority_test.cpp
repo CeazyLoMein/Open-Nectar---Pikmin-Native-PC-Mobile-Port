@@ -18,7 +18,7 @@ A::Command command(std::uint8_t player, std::uint64_t sequence, A::Operation ope
 }
 void sharedStock()
 {
-    A a(1, 3, {200, 50, 10, 0, 0}, {30, 30});
+    A a(1, 3, {200, 50, 10, 0, 0}, {30, 30}, 60);
     auto raye = command(1, 1, A::Operation::Withdraw, 1, 20);
     check(a.apply(1, raye).status == A::Status::Applied && a.stored(0) == 180, "Raye withdraws 20 from shared 200");
     auto host = command(0, 1, A::Operation::Withdraw, 21, 30);
@@ -35,9 +35,24 @@ void sharedStock()
           && a.apply(1, command(1, 3, A::Operation::Store, 1, 20)).replayed
           && !reply.replayed && a.revision() == revision + 1 && a.stored(0) == 160, "lost acknowledgement/retry never stores twice");
 }
+void aggregateLimit()
+{
+    A a(1, 3, {200, 0, 0, 0, 0}, {30, 30}, 40);
+    auto host = command(0, 1, A::Operation::Withdraw, 1, 30);
+    auto guest = command(1, 1, A::Operation::Withdraw, 31, 20);
+    check(a.apply(0, host).status == A::Status::Applied, "host can use its own allowance");
+    check(a.apply(1, guest).status == A::Status::FieldLimit && a.stored(0) == 170 && a.fieldCount(1) == 0,
+          "combined limit refuses withdrawal atomically without consuming stock");
+    check(a.apply(1, guest).replayed && a.stored(0) == 170,
+          "retry cannot silently turn a rejected request into a successful one");
+    guest.sequence=2;guest.entities.resize(10);
+    check(a.apply(1, guest).status == A::Status::Applied && a.stored(0) == 160,
+          "partner can withdraw available combined capacity");
+    check(!A(1, 3, {}, {30,30}, 0).valid(), "aggregate limit must be explicitly valid");
+}
 void validation()
 {
-    A a(1, 3, {2, 0, 0, 0, 0}, {30, 30});
+    A a(1, 3, {2, 0, 0, 0, 0}, {30, 30}, 60);
     auto c = command(0, 1, A::Operation::Withdraw, 1, 2);
     auto forged = c; forged.player = 1;
     check(a.apply(0, forged).status == A::Status::WrongPlayer, "packet cannot impersonate partner");
@@ -68,10 +83,10 @@ void validation()
     check(a.apply(1, huge).status == A::Status::InvalidCommand, "oversized request bounded");
     auto insufficient = command(1, 4, A::Operation::Withdraw, 100, 1);
     check(a.apply(1, insufficient).status == A::Status::InsufficientStock, "empty Onion refused");
-    check(!A(0, 3, {10, 0, 0, 0, 0}, {30, 30}).valid(), "zero scene epoch cannot create campaign authority");
-    check(!A(1, 3, {0, 0, 0, 1, 0}, {30, 30}).valid(), "P1 cannot initialize inaccessible color stock");
-    check(!A(1, 3, {}, {0, 30}).valid(), "invalid allowance refused");
-    A overflow(1, 3, {std::numeric_limits<std::uint32_t>::max(), 0, 0, 0, 0}, {30, 30});
+    check(!A(0, 3, {10, 0, 0, 0, 0}, {30, 30}, 60).valid(), "zero scene epoch cannot create campaign authority");
+    check(!A(1, 3, {0, 0, 0, 1, 0}, {30, 30}, 60).valid(), "P1 cannot initialize inaccessible color stock");
+    check(!A(1, 3, {}, {0, 30}, 60).valid(), "invalid allowance refused");
+    A overflow(1, 3, {std::numeric_limits<std::uint32_t>::max(), 0, 0, 0, 0}, {30, 30}, 60);
     check(overflow.apply(0, command(0, 1, A::Operation::Withdraw, 1, 1)).status == A::Status::Applied,
           "large valid stock withdraws without overflow");
     check(overflow.apply(0, command(0, 2, A::Operation::Store, 1, 1)).status == A::Status::Applied
@@ -79,7 +94,7 @@ void validation()
 }
 void soak()
 {
-    A a(1, 5, {200, 200, 200, 200, 200}, {30, 30});
+    A a(1, 5, {200, 200, 200, 200, 200}, {30, 30}, 60);
     std::uint32_t counter = 1;
     std::uint64_t seq[2] = {0, 0};
     for (int round = 0; round < 10000; ++round) {
@@ -100,7 +115,7 @@ void soak()
 }
 int main()
 {
-    sharedStock(); validation(); soak();
+    sharedStock(); aggregateLimit(); validation(); soak();
     if (!failures) std::puts("PASS host Onion authority: shared stock, independent quotas, atomic commands, retry safety, 10000 cycles");
     return failures ? 1 : 0;
 }

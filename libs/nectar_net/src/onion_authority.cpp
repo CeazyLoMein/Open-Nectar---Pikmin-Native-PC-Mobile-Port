@@ -6,10 +6,12 @@ namespace nectar::net {
 
 OnionAuthority::OnionAuthority(std::uint16_t epoch, std::uint8_t colors,
                              const std::array<std::uint32_t, kColors>& stored,
-                             const std::array<std::uint32_t, 2>& perPlayerLimit)
-    : mEpoch(epoch), mColors(colors), mStored(stored), mLimits(perPlayerLimit)
+                             const std::array<std::uint32_t, 2>& perPlayerLimit,
+                             std::uint32_t aggregateLimit)
+    : mEpoch(epoch), mColors(colors), mStored(stored), mLimits(perPlayerLimit), mAggregateLimit(aggregateLimit)
 {
-    mValid = epoch != 0 && colors > 0 && colors <= kColors;
+    mValid = epoch != 0 && colors > 0 && colors <= kColors && aggregateLimit > 0
+        && aggregateLimit <= 2 * kMaxPerPlayer;
     for (const auto limit : mLimits) mValid = mValid && limit > 0 && limit <= kMaxPerPlayer;
     for (std::size_t c = colors; c < kColors; ++c) mValid = mValid && stored[c] == 0;
 }
@@ -59,6 +61,7 @@ OnionAuthority::Reply OnionAuthority::apply(std::uint8_t authenticatedPlayer, co
     if (status == Status::Applied && c.operation == Operation::Withdraw) {
         if (count > mStored[c.color]) status = Status::InsufficientStock;
         else if (count > mLimits[c.player] - mCounts[c.player]) status = Status::PlayerLimit;
+        else if (count > mAggregateLimit - mCounts[0] - mCounts[1]) status = Status::FieldLimit;
     } else if (status == Status::Applied
                && count > std::numeric_limits<std::uint32_t>::max() - mStored[c.color]) {
         status = Status::InvalidCommand;

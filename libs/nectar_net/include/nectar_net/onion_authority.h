@@ -19,7 +19,7 @@ public:
     enum class Operation : std::uint8_t { Withdraw = 1, Store = 2 };
     enum class Status : std::uint8_t {
         Applied, InvalidSession, WrongPlayer, OutOfOrder, ReusedSequence,
-        InvalidCommand, InsufficientStock, PlayerLimit, InvalidEntity
+        InvalidCommand, InsufficientStock, PlayerLimit, InvalidEntity, FieldLimit
     };
     struct Command {
         std::uint16_t sceneEpoch = 0;
@@ -41,7 +41,8 @@ public:
 
     OnionAuthority(std::uint16_t epoch, std::uint8_t colors,
                    const std::array<std::uint32_t, kColors>& stored,
-                   const std::array<std::uint32_t, 2>& perPlayerLimit);
+                   const std::array<std::uint32_t, 2>& perPlayerLimit,
+                   std::uint32_t aggregateLimit);
     bool valid() const { return mValid; }
     // Session/peer authentication happens in the transport; never take the
     // authenticatedPlayer argument from the packet's untrusted player field.
@@ -61,6 +62,7 @@ private:
     std::uint8_t mColors;
     std::array<std::uint32_t, kColors> mStored;
     std::array<std::uint32_t, 2> mLimits, mCounts{};
+    std::uint32_t mAggregateLimit;
     std::array<LastRequest, 2> mLast{};
     std::map<std::uint64_t, FieldPikmin> mField;
     std::uint64_t mRevision = 0;

@@ -111,3 +111,7 @@ P1-only Build 83/run 40727018878 at 74eb8c0aba1662676d08267819f4c39182161212 was
 
 ### High-delay room feedback (after Build 83 submission)
 The room screen now gives a plain-language warning when measured round-trip delay is at least 200 ms and notes that controls may feel slow. This is an advisory threshold, not a guarantee about responsiveness, loss, or other networks. It does not alter player FPS or quality. Source presentation contract passes; native iOS and phone testing pending. Not in Build 83.
+
+
+### Shared-Onion aggregate capacity guard (after Build 83)
+`OnionAuthority` now requires an explicit aggregate field limit in addition to separate player allowances. Host-side accounting rejects a withdrawal atomically when the combined field count would exceed that limit, retains shared stock, and caches the rejected result safely for retries. Tests cover independent allowances, a smaller combined limit, retry safety, explicit invalid limit and existing 10,000-cycle conservation; local suite passes. Choosing an actual P1 limit must account for engine and snapshot bounds and device performance. This isolated foundation is not connected to campaign gameplay, is not in Build 83, and has no iOS or hardware validation.
