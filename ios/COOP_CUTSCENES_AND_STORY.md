@@ -37,3 +37,7 @@ Updated 2026-10-28. This records the user's requested goal. It does not enable, 
 ### Dialogue and story-event lessons from other co-op mods
 
 Skyrim Together's own feature notes describe broadcasting the leader's dialogue and displaying their choices to other players, and its changelog records fixes to quest stages and item synchronization: https://github.com/tiltedphoques/gitbook-wiki/blob/main/general-information/features.md and https://github.com/tiltedphoques/TiltedEvolution/blob/dev/CHANGELOG.md . For this project, treat those as evidence that dialogue presentation and story state both require coordination. Do not copy its leader-only trigger policy: either Pikmin player should be able to initiate eligible events, with host authority resolving the shared result. A dialogue's subtitles should be individually configurable even when the shared event is the same.
+
+### Camera and sound restoration to verify
+
+The P1 online single-view branch in `GameCoreSection::draw` selects the local captain as the audio listener during ordinary gameplay, but uses the movie look-at position while a movie is active. `endMovie` adjusts the active camera and resets the movie captain pointer. This is existing source behavior, not evidence that guest cinematics synchronize correctly. Test that both players hear spatial sound near their own normal viewpoint after a shared event and that the scene's listener/camera don't persist afterward; local volumes remain individual. A silent/disconnected/slow participant must not change the host's authoritative outcome.
