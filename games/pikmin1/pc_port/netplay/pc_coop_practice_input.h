@@ -28,7 +28,7 @@ public:
     // Continuous movement/held state always comes from the latest sample.
     static constexpr std::uint64_t TransientLifetimeMs = 300;
     void sample(const nectar::net::NetInputFrame& value, std::uint64_t now) {
-        latest = value;
+        latest = value; sampleAt = now; haveSample = true;
         for (unsigned bit = 0; bit < 16; ++bit) {
             const auto mask = static_cast<std::uint16_t>(1u << bit);
             if ((taps & mask) && (now < tapAt[bit] || now - tapAt[bit] > TransientLifetimeMs)) taps &= ~mask;
@@ -48,7 +48,8 @@ public:
         }
     }
     std::vector<nectar::net::NetInputFrame> bundle(std::uint64_t now, int rtt) const {
-        if (!haveFrame || now < frameAt || now - frameAt > 1000 ||
+        if (!haveFrame || !haveSample || now < sampleAt || now - sampleAt > TransientLifetimeMs ||
+            now < frameAt || now - frameAt > 1000 ||
             (haveSent && (now < sentAt || now - sentAt < 33)) ||
             frameTick > std::numeric_limits<std::uint64_t>::max() - 64) return {};
         // A snapshot was already in flight before it reached this phone; an
@@ -94,9 +95,9 @@ public:
     }
 private:
     nectar::net::NetInputFrame latest;
-    std::uint64_t frameTick = 0, frameAt = 0, sentAt = 0, sentTick = 0, rotationAt = 0;
+    std::uint64_t frameTick = 0, frameAt = 0, sentAt = 0, sentTick = 0, rotationAt = 0, sampleAt = 0;
     double rate = 120;
-    bool haveFrame = false, haveRate = false, haveSent = false, haveRotation = false;
+    bool haveFrame = false, haveRate = false, haveSent = false, haveRotation = false, haveSample = false;
     std::array<std::uint64_t, 16> tapAt{};
     std::array<std::uint64_t, 8> edgeAt{};
     std::uint16_t taps = 0;

@@ -3246,3 +3246,7 @@ The transport now distinguishes reliable bytes still queued locally from bytes s
 
 ### Build 84 submitted (2026-10-28)
 P1-only run 40773579467 at 4a886468d3c3a263d477fe1702cae290fed2cf83 is queued: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40773579467 . It includes the post-83 high-delay room message, explicit combined Onion capacity foundation, and additional local-only reliable-queue diagnostics. Local 27/27 networking tests and P1 real-header analysis passed; no iOS result or phone validation yet. Shared Onion remains unintegrated into campaign and the scene sync plan is documentation only. Build 83 remains verified and staged; P2 is untouched.
+
+
+### Stale continuous-input guard (after Build 84 submission)
+P1 practice input will not publish a cached held control or stick value if local sampling has stopped or its timestamp is stale for more than 300 ms. When fresh samples resume, normal held controls publish again; host-side input expiry remains responsible for releasing missing movement. Focused input/session tests and real-header local analysis passed. This is a source-level safeguard, not proof that any observed device freeze was caused by stale sampling. Not in Build 84; iOS and phone testing pending.

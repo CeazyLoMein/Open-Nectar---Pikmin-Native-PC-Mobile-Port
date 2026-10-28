@@ -59,6 +59,7 @@ int main(){
     PcCoopPracticeInput delayed;NetInputFrame tap;tap.held=1;tap.flags=4;tap.cursorDx=50;
     delayed.observe(100,1000);delayed.sample(tap,1000);
     NetInputFrame released;delayed.sample(released,1010);delayed.observe(150,1500);
+    delayed.sample(released,1500);
     auto recovered=delayed.bundle(1500,0);
     check(!recovered.empty() && recovered[0].held==0 && recovered[0].flags==0 && recovered[0].cursorDx==0,
           "old tap and camera drag expire before a stalled link recovers");
@@ -70,6 +71,11 @@ int main(){
     const auto stillHeld=held.bundle(1500,0);
     check(!stillHeld.empty() && stillHeld[0].held==1 && stillHeld[0].stickX==65,
           "current held input and movement survive beyond expiry when still pressed");
+    PcCoopPracticeInput stopped;stopped.observe(100,1000);stopped.sample(running,1000);
+    stopped.observe(150,1500);
+    check(stopped.bundle(1500,0).empty(), "old continuous controls cannot be published when sampling stops");
+    stopped.sample(running,1500);
+    check(!stopped.bundle(1500,0).empty(), "fresh controls can publish again after sampling resumes");
     PcCoopPracticeInput stagger;stagger.observe(100,1000);
     NetInputFrame a;a.flags=1;stagger.sample(a,1000);
     NetInputFrame b;b.flags=2;stagger.sample(b,1290);
