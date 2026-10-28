@@ -353,6 +353,9 @@ static std::atomic<bool> sRoomCoversGame{false};
 - (void)backgrounded:(NSNotification*)notification {
     (void)notification;
     _away = YES;
+    // iOS may snapshot this screen for the app switcher. Keep the private
+    // invite in memory but conceal it until this game scene becomes active.
+    self.code.hidden = YES;
     // Do not deliberately disconnect a partner just because the user opens
     // Messages. iOS may suspend us or the link may expire; foreground polling
     // verifies its actual state and reports failure rather than claiming success.
@@ -361,6 +364,7 @@ static std::atomic<bool> sRoomCoversGame{false};
 - (void)foregrounded:(NSNotification*)notification {
     (void)notification;
     _away = NO;
+    self.code.hidden = NO;
     if (_host || _guest) self.status.text = @"Checking the connection…";
 }
 - (BOOL)detachConnection:(std::unique_ptr<CoopConnection>*)output {

@@ -12,9 +12,9 @@ assert room.count('initWithActivityItems:')==1 and 'action:@selector(shareInvite
 assert 'self.shareButton.enabled = self.clipboardButton.enabled;' in room
 background=room.split('- (void)backgrounded:',1)[1].split('- (void)foregrounded:',1)[0]
 assert 'disconnectPeer(' not in background and '[self stopConnection]' not in background
-assert '_away = YES' in background
+assert '_away = YES' in background and 'self.code.hidden = YES' in background
 foreground=room.split('- (void)foregrounded:',1)[1].split('- (BOOL)detachConnection:',1)[0]
-assert '_away = NO' in foreground and 'Checking the connection' in foreground
+assert '_away = NO' in foreground and 'self.code.hidden = NO' in foreground and 'Checking the connection' in foreground
 # Both screens must monitor the game window's scene, not another window.
 for source in (room, practice):
  assert 'UISceneWillDeactivateNotification' in source and 'UISceneDidActivateNotification' in source
