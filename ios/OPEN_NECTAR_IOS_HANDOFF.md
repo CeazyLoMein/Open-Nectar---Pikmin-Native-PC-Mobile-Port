@@ -1520,3 +1520,5 @@ P1-only run 40773579467 at 4a886468d3c3a263d477fe1702cae290fed2cf83 is queued: h
 
 ### Stale continuous-input guard (after Build 84 submission)
 P1 practice input will not publish a cached held control or stick value if local sampling has stopped or its timestamp is stale for more than 300 ms. When fresh samples resume, normal held controls publish again; host-side input expiry remains responsible for releasing missing movement. Focused input/session tests and real-header local analysis passed. This is a source-level safeguard, not proof that any observed device freeze was caused by stale sampling. Not in Build 84; iOS and phone testing pending.
+
+Shared-Onion foundation follow-up: locally tested competing same-tick requests in both host-processing orders; only available stock is granted and no duplicate is created. Campaign engine integration and real-phone behavior remain untested. Test added after Build 84 submission.

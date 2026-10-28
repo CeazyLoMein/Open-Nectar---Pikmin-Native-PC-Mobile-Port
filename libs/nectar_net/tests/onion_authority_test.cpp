@@ -48,6 +48,18 @@ void aggregateLimit()
     guest.sequence=2;guest.entities.resize(10);
     check(a.apply(1, guest).status == A::Status::Applied && a.stored(0) == 160,
           "partner can withdraw available combined capacity");
+    // Both requested withdrawals arrive in the same host tick: test either
+    // processing order. Only the first may take the last shared stock.
+    for (std::uint8_t first=0; first<2; ++first) {
+        A simultaneous(1, 3, {20,0,0,0,0}, {30,30}, 60);
+        auto one=command(first,1,A::Operation::Withdraw,100,20);
+        auto two=command(static_cast<std::uint8_t>(1-first),1,A::Operation::Withdraw,120,20);
+        check(simultaneous.apply(first,one).status==A::Status::Applied,
+              "first same-tick request consumes shared stock once");
+        check(simultaneous.apply(static_cast<std::uint8_t>(1-first),two).status==A::Status::InsufficientStock &&
+              simultaneous.stored(0)==0 && simultaneous.field().size()==20,
+              "second same-tick request cannot duplicate shared stock in either order");
+    }
     check(!A(1, 3, {}, {30,30}, 0).valid(), "aggregate limit must be explicitly valid");
 }
 void validation()
