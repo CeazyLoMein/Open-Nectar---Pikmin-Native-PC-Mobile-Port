@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <deque>
+#include <limits>
 #include <vector>
 
 namespace nectar::net {
@@ -49,7 +50,12 @@ struct SimulatedNetwork::State {
         };
         if (reliable) {
             // In order and lossless: never earlier than the previous one.
-            const std::uint64_t at = std::max(delay(), lastReliableAt[direction]);
+            std::uint64_t delayed = delay();
+            if (c.reliableLossDelayMs && c.lossPerMille && random() % 1000 < c.lossPerMille) {
+                const auto max = std::numeric_limits<std::uint64_t>::max();
+                delayed = delayed > max - c.reliableLossDelayMs ? max : delayed + c.reliableLossDelayMs;
+            }
+            const std::uint64_t at = std::max(delayed, lastReliableAt[direction]);
             lastReliableAt[direction] = at;
             flight[direction].push_back({at, serial++, std::move(event)});
             return;

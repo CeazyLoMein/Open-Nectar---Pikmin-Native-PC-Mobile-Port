@@ -18,6 +18,10 @@ struct LinkConditions {
     std::uint32_t jitterMs = 0;          // uniform extra delay 0..jitter
     std::uint16_t lossPerMille = 0;      // unreliable only
     std::uint16_t duplicatePerMille = 0; // unreliable only
+    // Optional test approximation: a selected reliable message incurs one
+    // delay, and later ordered messages cannot overtake it. Zero preserves
+    // the old ideal lossless model; this is not a GNS retransmission model.
+    std::uint32_t reliableLossDelayMs = 0;
 };
 
 class SimulatedNetwork {

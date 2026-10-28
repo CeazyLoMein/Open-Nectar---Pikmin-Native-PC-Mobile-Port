@@ -405,6 +405,27 @@ int main() {
               !q.guest.publishInput({input},q.now),"disconnect stops all movement commands");
     }
 
+    {
+        Pair delayed; delayed.begin(); delayed.load(); delayed.ready();
+        LinkConditions loss; loss.lossPerMille=1000; loss.reliableLossDelayMs=200;
+        delayed.net.setHostToGuest(loss);
+        check(delayed.host.setBlocked(CoopBlock::Manual,true), "host pause queued under simulated reliable delay");
+        delayed.net.setHostToGuest({});
+        NetInputFrame command; command.tick=3; command.stickX=75; command.held=1;
+        check(delayed.guest.publishInput({command},delayed.now), "guest can briefly send before delayed pause arrives");
+        delayed.settle(100);
+        InputHealth health;NetInputFrame applied;
+        check(!delayed.host.hostShouldAdvanceWorld() &&
+              !delayed.host.consumeGuestInput(3,applied,health) && applied.stickX==0,
+              "host stays frozen despite guest input before delayed pause arrives");
+        delayed.settle(200);
+        check(!delayed.guest.canIssueCommands(), "guest learns pause after ordered delay clears");
+        check(delayed.host.setBlocked(CoopBlock::Manual,false), "host can resume after delayed pause");
+        delayed.settle();
+        check(delayed.host.consumeGuestInput(3,applied,health) && applied.stickX==0,
+              "input generated before delayed pause cannot leak into resumed world");
+    }
+
     if (!failures)
         std::puts("PASS co-op session over real join/compatibility gate:19-stage "
                   "ready/pause/background/rejoin lifecycle, whole squad transfer, safe authority, typed "
