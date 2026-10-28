@@ -31,8 +31,15 @@ NSString* joinError(JoinFailure failure, CompatibilityField field) {
     case JoinFailure::Refused: return @"That room is no longer available. Copy a new code from the host.";
     case JoinFailure::RoomFull: return @"Someone already joined that room.";
     case JoinFailure::Incompatible:
-        if (field == CompatibilityField::Content) return @"The phones have different game data. No game was started.";
-        return @"Both phones need the same P1 update and game version. No game was started.";
+        switch (field) {
+        case CompatibilityField::Game: return @"This invite is for a different game. Open the same Pikmin game on both phones.";
+        case CompatibilityField::Region: return @"The game data is from different regions. Both phones need the same region.";
+        case CompatibilityField::Build: return @"Both phones need the same P1 update. Update both, then try again.";
+        case CompatibilityField::Content: return @"The phones have different game data. No game was started.";
+        case CompatibilityField::Capabilities: return @"These P1 updates support different co-op features. Update both phones to the same build.";
+        default: return @"These game versions are not compatible. Check both updates and game data.";
+        }
+    case JoinFailure::NoTransport: return @"P1 couldn't start its network connection. Close and reopen P1, then try again.";
     case JoinFailure::Lost: return @"Connection lost. Host or join again when both phones are ready.";
     default: return @"Couldn't reach the host. Use the same Wi-Fi, allow Local Network access, and leave the host's connection screen open. Then try again.";
     }

@@ -3207,3 +3207,7 @@ Prior in-memory reliable messages were always idealized as lossless without retr
 
 
 Additional weak-connection test: under an artificial four-second one-way reliable delay, the local test session times out, freezes host authority, refuses guest commands, and does not silently revive merely because delivery resumes. This is a simulated result, not proof of device behavior or live rejoin. The simulator also resets old ordering deadlines when a new connection replaces a disconnected one. Tests added after Build 82.
+
+
+### Clearer co-op join errors (after Build 82)
+Room join messages now distinguish known game, region, build, game-content and capability mismatches, and report failure to initialize the network separately. Unknown mismatches remain generic. The existing compatibility gate and independent personal settings are unchanged. Source contract check passed; native iOS and device UI validation still required. Not included in Build 82.
