@@ -30,13 +30,29 @@ s32* CardUtilByteNotUsed(){return &CardControl.mByteNotUsed;}
 s32* CardUtilFilesNotUsed(){return &CardControl.mFilesNotUsed;}
 static int fault=0;
 s32 FailCARDCreate(s32 c,const char* n,u32 z,CARDFileInfo* i){return fault==1?CARD_RESULT_IOERROR:CARDCreate(c,n,z,i);}
-s32 FailCARDWrite(CARDFileInfo* i,void* d,s32 n,s32 o){return fault==2?CARD_RESULT_IOERROR:CARDWrite(i,d,n,o);}
-s32 FailCARDSetStatus(s32 c,s32 n,CARDStat* s){return fault==3?CARD_RESULT_IOERROR:CARDSetStatus(c,n,s);}
-s32 FailCARDFastDelete(s32 c,s32 n){return fault==4?CARD_RESULT_IOERROR:CARDFastDelete(c,n);}
-s32 FailCARDRename(s32 c,const char* a,const char* b){return fault==5?CARD_RESULT_IOERROR:CARDRename(c,a,b);}
+s32 FailCARDWrite(CARDFileInfo* i,void* d,s32 n,s32 o){
+ if(fault==2)return CARD_RESULT_IOERROR;
+ if(fault==6){if(CARDWrite(i,d,n/2,o)<0)return CARD_RESULT_FATAL_ERROR;return CARD_RESULT_IOERROR;}
+ return CARDWrite(i,d,n,o);
+}
+s32 FailCARDSetStatus(s32 c,s32 n,CARDStat* s){
+ if(fault==3)return CARD_RESULT_IOERROR;
+ if(fault==7){if(CARDSetStatus(c,n,s)<0)return CARD_RESULT_FATAL_ERROR;return CARD_RESULT_IOERROR;}
+ return CARDSetStatus(c,n,s);
+}
+s32 FailCARDFastDelete(s32 c,s32 n){
+ if(fault==4)return CARD_RESULT_IOERROR;
+ if(fault==8){if(CARDFastDelete(c,n)<0)return CARD_RESULT_FATAL_ERROR;return CARD_RESULT_IOERROR;}
+ return CARDFastDelete(c,n);
+}
+s32 FailCARDRename(s32 c,const char* a,const char* b){
+ if(fault==5)return CARD_RESULT_IOERROR;
+ if(fault==9){if(CARDRename(c,a,b)<0)return CARD_RESULT_FATAL_ERROR;return CARD_RESULT_IOERROR;}
+ return CARDRename(c,a,b);
+}
 '''+listing+'\n'+saving+'''\nint main(int argc,char** argv){
  if(argc!=2)return 2;const auto base=fs::absolute(argv[1]);fs::create_directories(base);env("NECTAR_SAVE_DIR",base.string());CARDInit();
- for(int stage=0;stage<=5;++stage){
+ for(int stage=0;stage<=9;++stage){
   const std::string name="Save"+std::to_string(stage);CARDFileInfo file{};std::vector<char> old(512,'A'),now(512,'B');
   check(CARDCreate(0,name.c_str(),512,&file)==0 && CARDWrite(&file,old.data(),512,0)==0,"seed original fixture");
   CARDStat stat{};check(CARDGetStatus(0,file.fileNo,&stat)==0,"read original metadata");stat.commentAddr=0;stat.length=512;
@@ -45,7 +61,7 @@ s32 FailCARDRename(s32 c,const char* a,const char* b){return fault==5?CARD_RESUL
   std::vector<CardUtilDirent> entries(CARD_MAX_FILE);check(DoList(0,entries.data())>=0,"actual startup listing recovers interrupted temp");
   CARDFileInfo current{};check(CARDOpen(0,name.c_str(),&current)==0,"original or completed save remains accessible");
   std::vector<char> observed(512);check(CARDRead(&current,observed.data(),512,0)==0,"recovered save can be read");
-  check(observed==((stage==0||stage==5)?now:old),"recovered bytes match a complete old or new file");
+  check(observed==((stage==0||stage==5||stage==8||stage==9)?now:old),"recovered bytes match a complete old or new file");
   CardControl.mDirentList=nullptr;CardControl.mDirentCount=0;
  }
  std::puts(failures?"SAVE RECOVERY FIXTURE FAIL":"SAVE RECOVERY FIXTURE PASS");return failures?1:0;
