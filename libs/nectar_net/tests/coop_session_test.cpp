@@ -47,16 +47,22 @@ struct Pair {
     SimulatedNetwork net{20261024};
     std::uint64_t now = 0;
     MeteredTransport *meter = nullptr;
+    MeteredTransport *guestMeter = nullptr;
     std::unique_ptr<ITransport> hostEnd() {
         auto p = std::make_unique<MeteredTransport>(net.createHost());
         meter = p.get();
+        return p;
+    }
+    std::unique_ptr<ITransport> guestEnd() {
+        auto p = std::make_unique<MeteredTransport>(net.createGuest());
+        guestMeter = p.get();
         return p;
     }
     GatedTransport h, g;
     CoopSession host, guest;
     Pair(bool capability = true, bool identities = true, bool mismatch = false)
         : h(hostEnd(), GatedTransport::Role::Host, credentials(), [this] { return now; }),
-          g(net.createGuest(), GatedTransport::Role::Guest, credentials(), [this] { return now; }),
+          g(guestEnd(), GatedTransport::Role::Guest, credentials(), [this] { return now; }),
           host(h, CoopRole::Host), guest(g, CoopRole::Guest) {
         LinkConditions c;
         c.latencyMs = 20;
@@ -348,8 +354,12 @@ int main() {
         check(!q.guest.publishInput({invalid},q.now),"future timestamp cannot fill host input buffer");
         auto older=input;older.tick=1;
         check(!q.guest.publishInput({input,older},q.now),"noncontiguous redundant bundle refused");
-        q.meter->pending=0;
-        check(q.guest.publishInput({input},q.now),"guest publishes one target HOST tick");
+        q.guestMeter->pending=CoopSession::kReliableBacklogLimit;
+        const auto guestSends=q.guestMeter->sends;
+        check(!q.guest.publishInput({input},q.now) && q.guestMeter->sends==guestSends,
+              "congested guest queues no movement and does not advance send state");
+        q.guestMeter->pending=0;
+        check(q.guest.publishInput({input},q.now),"guest publishes one target HOST tick after congestion clears");
         auto next=input;next.tick=4;
         check(!q.guest.publishInput({next},q.now),"120FPS renderer cannot flood input sends");
         q.settle();
