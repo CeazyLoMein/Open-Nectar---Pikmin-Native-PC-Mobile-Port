@@ -65,6 +65,11 @@ int main(){
     delayed.sample(tap,1510);auto fresh=delayed.bundle(1510,0);
     check(!fresh.empty() && fresh[0].held==1 && fresh[0].flags==4 && fresh[0].cursorDx==50,
           "fresh tap remains usable after stale actions expire");
+    PcCoopPracticeInput held;held.observe(100,1000);NetInputFrame running;running.held=1;running.stickX=65;
+    held.sample(running,1000);held.sample(running,1500);held.observe(150,1500);
+    const auto stillHeld=held.bundle(1500,0);
+    check(!stillHeld.empty() && stillHeld[0].held==1 && stillHeld[0].stickX==65,
+          "current held input and movement survive beyond expiry when still pressed");
     PcCoopPracticeInput stagger;stagger.observe(100,1000);
     NetInputFrame a;a.flags=1;stagger.sample(a,1000);
     NetInputFrame b;b.flags=2;stagger.sample(b,1290);
