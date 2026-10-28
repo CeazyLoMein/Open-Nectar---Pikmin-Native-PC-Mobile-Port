@@ -46,6 +46,36 @@ std::uint64_t tick=0,frame=0,applied=0,lastPublish=0,revision=0;
 bool title=false,requested=false,loaded=false,confirmed=false,entered=false,stopped=false;
 bool away=false,panel=false,padFiltered=false,advancing=false,sessionConfigured=false;
 std::uint16_t previousButtons=0;
+std::uint64_t diagnosticAt=0,diagnosticLive=0,diagnosticRepeat=0,diagnosticNeutral=0,diagnosticSamples=0,diagnosticSent=0;
+// A small local-only report helps diagnose the experimental practice session.
+// It contains no room code, device ID, campaign or game-data content.
+void practiceReport(std::uint64_t now, net::CoopSession* s) {
+    if (!s || (diagnosticAt && (now<diagnosticAt || now-diagnosticAt<1000))) return;
+    diagnosticAt=now;
+    // Keep separate bounded reports per app launch, preserving earlier tests.
+    static char path[96]={};
+    if (!path[0]) std::snprintf(path,sizeof(path),"p1-coop-practice-%llu.txt",
+        static_cast<unsigned long long>(std::time(nullptr)));
+    FILE* f=std::fopen(path,"ab");if(!f)return;
+    if (std::fseek(f,0,SEEK_END)==0) {
+        const long size=std::ftell(f);
+        if (size>=0 && size<65000) {
+            Navi* n=naviMgr?naviMgr->getNavi(role==net::CoopRole::Host?0:1):nullptr;
+            Camera* c=n?n->controlCamera():nullptr;
+            const auto finite=[](float v) {return std::isfinite(v) ? v : 0.0f;};
+            net::TransportStats stats;const int rtt=owner && owner->stats(stats)?stats.rttMs:-1;
+            std::fprintf(f,"practice role=%s phase=%d away=%d tick=%llu frame=%llu applied=%llu rtt=%d input_live=%llu repeat=%llu neutral=%llu samples=%llu sent=%llu camera=%d eye=%.1f,%.1f,%.1f focus=%.1f,%.1f,%.1f captain=%.1f,%.1f,%.1f\n",
+                role==net::CoopRole::Host?"host":"guest",static_cast<int>(s->phase()),away?1:0,
+                static_cast<unsigned long long>(tick),static_cast<unsigned long long>(frame),static_cast<unsigned long long>(applied),rtt,
+                static_cast<unsigned long long>(diagnosticLive),static_cast<unsigned long long>(diagnosticRepeat),static_cast<unsigned long long>(diagnosticNeutral),
+                static_cast<unsigned long long>(diagnosticSamples),static_cast<unsigned long long>(diagnosticSent),c?1:0,
+                c?finite(c->mPosition.x):0.0f,c?finite(c->mPosition.y):0.0f,c?finite(c->mPosition.z):0.0f,
+                c?finite(c->mFocus.x):0.0f,c?finite(c->mFocus.y):0.0f,c?finite(c->mFocus.z):0.0f,
+                n?finite(n->mSRT.t.x):0.0f,n?finite(n->mSRT.t.y):0.0f,n?finite(n->mSRT.t.z):0.0f);
+        }
+    }
+    std::fclose(f);
+}
 char failure[240]={};
 std::uint64_t nowMs() {
     return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -143,12 +173,18 @@ void pc_coop_practice_tick_begin() {
         applied=actors.frame;inputs.observe(actors.tick,now);
         if (!confirmed) confirmed=s->confirmWorldLoaded();
     }
-    if (confirmed && !panel && s->phase()!=net::CoopPhase::Running) { panel=true;showPanel(); }
+    // A running session dismisses the one-shot panel latch so that a later
+    // interruption, including either phone backgrounding, can request ready again.
+    if (s->phase()==net::CoopPhase::Running) panel=false;
+    if (confirmed && !away && !panel && s->phase()!=net::CoopPhase::Running) { panel=true;showPanel(); }
     hold(s->hostShouldAdvanceWorld());
     if (advancing && role==net::CoopRole::Host) {
         ++tick;
         net::InputHealth health;
         s->consumeGuestInput(tick,remote,health);
+        if (health==net::InputHealth::Live) ++diagnosticLive;
+        else if (health==net::InputHealth::Repeated) ++diagnosticRepeat;
+        else ++diagnosticNeutral;
     }
 }
 void pc_coop_practice_tick_end() {
@@ -157,6 +193,7 @@ void pc_coop_practice_tick_end() {
     // next tick_begin configures the host input policy.
     if (!owner || !ownThread() || stopped || !entered || !session() || !sessionConfigured) return;
     auto* s=session();const auto now=nowMs();
+    practiceReport(now,s);
     if (role==net::CoopRole::Host && advancing) {
         // This disposable flat arena has no campaign jobs or hazards. A throw
         // beyond its wall returns that Pikmin to its owning captain only.
@@ -177,7 +214,7 @@ void pc_coop_practice_tick_end() {
     if (role==net::CoopRole::Guest && s->canIssueCommands()) {
         net::TransportStats stats; const int rtt=owner->stats(stats) ? stats.rttMs : 0;
         const auto frames=inputs.bundle(now,rtt);
-        if (!frames.empty() && s->publishInput(frames,now)) inputs.published(frames,now);
+        if (!frames.empty() && s->publishInput(frames,now)) { ++diagnosticSent;inputs.published(frames,now); }
     }
 }
 void pc_coop_practice_loaded(GameCoreSection& core) {
@@ -248,7 +285,7 @@ void pc_coop_practice_filter_pad(PADStatus* pads) {
         const float drag=pc_window_take_camera_drag_player(0);
         pc_window_add_camera_drag_player(1,drag);
         f.cursorDx=static_cast<std::int16_t>(std::clamp(drag*3.2f/pc_input_log::kYawTurnsToRad,-32767.0f,32767.0f));
-        if (session() && session()->canIssueCommands()) inputs.sample(f);
+        if (session() && session()->canIssueCommands()) { ++diagnosticSamples;inputs.sample(f); }
         pads[1]=physical;pads[1].button&=~(PAD_BUTTON_START|PAD_BUTTON_Y);
         pads[0]={};pads[0].err=PAD_ERR_NONE;
     } else {
@@ -297,7 +334,7 @@ bool pc_coop_practice_leave() {
     tick=frame=applied=lastPublish=revision=0;previousButtons=0;failure[0]=0;inputs.reset();remote={};
     return true;
 }
-void pc_coop_practice_background(bool value) { if (!owner || !ownThread()) return;away=value;if (session()) session()->setBlocked(net::CoopBlock::Background,value);if(value)hold(false); }
+void pc_coop_practice_background(bool value) { if (!owner || !ownThread()) return;away=value;if (session()) session()->setBlocked(net::CoopBlock::Background,value);if(value){panel=false;hold(false);} }
 void pc_coop_practice_status(char* out,std::size_t cap) {
     const char* msg="Open Online Co-op from the title screen to start practice.";
     if (failure[0]) msg=failure;

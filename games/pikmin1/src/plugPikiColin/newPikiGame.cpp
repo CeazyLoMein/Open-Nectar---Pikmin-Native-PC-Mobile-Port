@@ -2332,7 +2332,7 @@ public:
 		PRINT("tekiHeap has %d bytes free\n", gsys->getHeap(SYSHEAP_Teki)->getFree());
 		gsys->mTogglePrint = old;
 
-		if (playerState->isTutorial()) {
+		if (playerState->isTutorial() && !pc_coop_practice_active()) {
 			// start our wake-up post-crash-landing cutscene for Day 1
 		#if defined(PIKI_PC_PORT)
 			// A requested tutorial skip must not create a movie only to tear it
@@ -2348,7 +2348,7 @@ public:
 #if defined(PIKI_PC_PORT)
 		           && !pc_vs_active() // VS: directo al mapa, todo ya colocado
 #endif
-		) {
+		    && !pc_coop_practice_active()) {
 			// landing cutscene if we have a valid stage!
 			gameflow.mMoviePlayer->startMovie(DEMOID_Landing, 0, nullptr, nullptr, nullptr, CAF_AllVisibleMask, true);
 		}

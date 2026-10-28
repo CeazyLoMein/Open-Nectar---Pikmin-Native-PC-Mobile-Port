@@ -33,7 +33,9 @@ public:
         if (!haveFrame || now < frameAt || now - frameAt > 1000 ||
             (haveSent && (now < sentAt || now - sentAt < 33)) ||
             frameTick > std::numeric_limits<std::uint64_t>::max() - 64) return {};
-        const double delay = double(now - frameAt) + std::clamp(rtt, 0, 1000) * 0.5 + 16.0;
+        // A snapshot was already in flight before it reached this phone; an
+        // input must also travel back. Estimate both halves of the RTT.
+        const double delay = double(now - frameAt) + std::clamp(rtt, 0, 1000) + 16.0;
         std::uint64_t target = frameTick + std::min<std::uint64_t>(30, std::max<std::uint64_t>(2, static_cast<std::uint64_t>(std::ceil(delay * rate / 1000.0))));
         if (haveSent) target = std::max(target, sentTick + 1);
         if (target > frameTick + 30) return {};
