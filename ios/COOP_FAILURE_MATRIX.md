@@ -42,3 +42,9 @@ Story/cutscene synchronization, player-specific initiators, shared skip agreemen
 ### Additional input limitation to investigate
 
 `PcCoopPracticeInput` currently combines repeated occurrences of the same one-shot action into a bit until the next send. Two rapid identical taps in that interval can coalesce into one event; this is a source-level limitation, not yet observed on phones. Before changing the wire format, build a bounded, revision-scoped event queue with unique event/tick identities and tests for rapid taps, duplicate delivery, retransmit, pause, stale expiration and disconnect. Do not let retransmissions double an action or revive stale commands. This is separate from the 300 ms stale-action guard.
+
+### Separate squads and overall capacity
+
+The existing P1 port defines `PIKI_FIELD_LIMIT_MAX` as 999 and exposes adjustable field limits, while the experimental `ActorFrameLimits` defaults to 512 total records (including captain records). `OnionAuthority` currently allows up to 1000 per player as a generic accounting bound; it does not enforce the engine's aggregate capacity, network snapshot capacity or a phone's performance. The experimental blend helper separately caps Pikmin at 510. These are source limits, not proven playable phone counts.
+
+Before shared-Onion gameplay is enabled, reconcile per-player allowances with a host-enforced aggregate limit, every live actor's engine allocation, snapshot record/byte limits and both phones' measured performance. Do not silently share the 30-per-player allowance the user requested as an example, and do not advertise arbitrary high counts as supported. Reject or explain an unsupported configuration before changing stock, preserve transaction atomicity, and test near all boundaries with each player withdrawing simultaneously. Future full-world snapshots may need capacity for objects beyond two captains and Pikmin.
