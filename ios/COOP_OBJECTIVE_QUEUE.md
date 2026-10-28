@@ -1,3 +1,11 @@
+## Current checkpoint — 2026-10-28: Build 81 and subsequent source work
+
+Build 81 (run 40711881021) was submitted from e65708c7; GitHub Actions completed successfully; two-phone behavior remains untested. The P1 artifact is 12829465661 and has not been downloaded or staged in this checkpoint. Build 80 remains available for a solo launch test only. After Build 81, source commit 8f5544f0 added an isolated, tested visual blending candidate that is NOT connected to gameplay; be4d3da8 changed iOS co-op interruption observers to the actual game scene. Neither change is in Build 81. Scene change has not passed an iOS build or phone test. P1 practice is not shared campaign co-op.
+
+Next: verify Build 81 when convenient; batch later work into a meaningful iOS build; test interruption and both phones when available. Account for stale/expired invites, iOS suspension, disconnect/rejoin and preserved frozen authority without claiming a live recovery exists. Preserve player preferences, saves, user features, cross-progression and P2 objectives listed below.
+
+---
+
 ## Current checkpoint — 2026-10-28: Build 80 verified, co-op UX in development
 
 Build 80 passed and is staged in Documents/Open Nectar/1 - Install on iPhone/P1 Build 80 - Co-op Practice Fix. One phone can check solo launch, but not prove two-player behavior; Raye is unavailable. Following requested in-depth co-op research (see COOP_MOD_RESEARCH.md), current source adds game-inspired accessible scrolling UI, explicit private-invite sharing, background room retention without claiming iOS guarantees it, and clear ready/partner interruption messages. Local checks passed; Apple build and runtime untested. Preserve independent player options and all prior objectives below, including reconnect, different-network play, shared campaign/Onions, host loss recovery, PC cross-progression and P2 later.

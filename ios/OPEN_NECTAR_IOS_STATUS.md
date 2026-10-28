@@ -3179,3 +3179,6 @@ Research found the guest currently snaps visual state to complete host snapshots
 - Practice continues to pause on interruption and requires the existing readiness flow; room code does not intentionally close the link. iOS may suspend networking, so live reconnection remains unimplemented and unverified.
 - Local source contract checks cover observer scoping; iOS compilation and real-device interruption/reconnect behavior remain unverified. Build 81 predates this change.
 - Apple references: https://developer.apple.com/documentation/uikit/uiscene/willdeactivatenotification and https://developer.apple.com/documentation/uikit/uiscene/didactivatenotification
+
+
+Build 81 run 40711881021 completed SUCCESS at source e65708c71626b04fccdd8265afe2dfcb1cdeb42c. P1 artifact 12829465661 exists; not downloaded/staged or tested on phones in this checkpoint. Post-build scene lifecycle work (be4d3da8) and isolated visual blender (8f5544f0) are not included.

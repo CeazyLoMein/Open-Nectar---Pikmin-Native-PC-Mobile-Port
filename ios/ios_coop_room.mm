@@ -292,7 +292,7 @@ static std::atomic<bool> sRoomCoversGame{false};
                 failure == JoinFailure::Incompatible || failure == JoinFailure::WrongVersion)
                 && [sLastJoinedRoomCode isEqualToString:self.pendingJoinCode]) sLastJoinedRoomCode = nil;
             if (failure == JoinFailure::Lost && sLastJoinedRoomCode.length)
-                reason = @"Connection lost. When the host returns to P1, tap Rejoin Last Room. You do not need the code again.";
+                reason = @"Connection lost. Try Rejoin Last Room after the host returns. If the room expired or was closed, ask the host for a new invite.";
             [self stopConnection]; self.status.text = reason; return;
         }
         if (progress == JoinProgress::Connected && self.pendingJoinCode.length) {
