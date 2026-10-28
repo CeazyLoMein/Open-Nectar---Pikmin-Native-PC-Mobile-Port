@@ -123,3 +123,7 @@ P1-only Build 83/run 40727018878 completed SUCCESS at 74eb8c0aba1662676d08267819
 
 ### Reliable-queue diagnostics (after Build 83)
 The transport now distinguishes reliable bytes still queued locally from bytes sent but not yet acknowledged. P1's existing bounded local-only practice report records both once per second alongside RTT; it does not include invite codes or device IDs and is not automatically sent anywhere. This is diagnostic only: no new throttling or gameplay policy is enabled. Full local network suite 27/27 passed including encrypted GNS metrics; real-header Clang check passed with the existing Windows fopen deprecation warning. Native iOS and device validation remain pending; not included in Build 83.
+
+
+### Build 84 submitted (2026-10-28)
+P1-only run 40773579467 at 4a886468d3c3a263d477fe1702cae290fed2cf83 is queued: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40773579467 . It includes the post-83 high-delay room message, explicit combined Onion capacity foundation, and additional local-only reliable-queue diagnostics. Local 27/27 networking tests and P1 real-header analysis passed; no iOS result or phone validation yet. Shared Onion remains unintegrated into campaign and the scene sync plan is documentation only. Build 83 remains verified and staged; P2 is untouched.
