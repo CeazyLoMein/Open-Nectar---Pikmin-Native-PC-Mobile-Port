@@ -11,7 +11,7 @@ bool pc_coop_practice_active();
 bool pc_coop_practice_can_ready();
 bool pc_coop_practice_ready();
 void pc_coop_practice_pause();
-void pc_coop_practice_leave();
+bool pc_coop_practice_leave();
 void pc_coop_practice_background(bool away);
 void pc_coop_practice_status(char* output, std::size_t capacity);
 

@@ -222,6 +222,17 @@ int main() {
         for(int i=0;i<20;++i)step();
         check(!p.h.session()&&!p.g.session(),"guest load alone does not start either world");
         check(hs.worldLoaded(0,p.now),"host also attests area load");
+        // The final host load can create a session in the middle of an engine
+        // frame. Configure controls before that frame is allowed to publish.
+        check(p.h.session() && p.h.session()->configureInputContinuousMask(8),
+              "mid-frame host session accepts control policy before first snapshot");
+        CaptainState firstCaptain,secondCaptain;secondCaptain.player=1;
+        std::vector<std::vector<std::uint8_t>> firstFrame;
+        check(packActorFrame(400,1,1,1,{captainRecord(1,firstCaptain),captainRecord(1,secondCaptain)},1000,{},firstFrame) &&
+              p.h.session()->publishActors(firstFrame,p.now) && p.h.session()->confirmWorldLoaded(),
+              "configured session accepts its first complete practice snapshot");
+        check(!p.h.session()->configureInputContinuousMask(8),
+              "late policy initialization would fail after confirming the snapshot");
         for(int i=0;i<20&&gs.phase()!=PracticeLoadPhase::SessionLoading;++i)step();
         check(hs.phase()==PracticeLoadPhase::SessionLoading&&gs.phase()==PracticeLoadPhase::SessionLoading&&
               p.h.session()&&p.g.session(),"both loaded hands one poll owner to same accepted CoopSession");
@@ -235,7 +246,16 @@ int main() {
         check(hs.worldLoaded(0,p.now),"host loaded but partner still loading");
         p.now+=60000;hs.pump(p.now);gs.pump(p.now);
         check(hs.phase()==PracticeLoadPhase::Failed&&gs.phase()==PracticeLoadPhase::Failed&&
+              hs.failure()==PracticeLoadFailure::Deadline && gs.failure()==PracticeLoadFailure::Deadline &&
               !p.h.session()&&!p.g.session(),"load timeout fails closed, never silently continues campaign alone");
+    }
+    {
+        Pair p;check(p.h.adoptHost(p.host)&&p.g.adoptGuest(p.guest),"disconnection fixture adopts rooms");
+        PracticeBootstrap hs(p.h),gs(p.g);check(hs.beginHost(550,0,p.now)&&gs.beginGuest(p.now),"disconnection fixture begins");
+        p.g.close();
+        for(int i=0;i<40&&hs.phase()!=PracticeLoadPhase::Failed;++i) {p.now+=5;p.net.advance(p.now);hs.pump(p.now);}
+        check(hs.phase()==PracticeLoadPhase::Failed && hs.failure()==PracticeLoadFailure::ConnectionLost,
+              "actual partner disconnect is not reported as a load timeout");
     }
     {
         Pair p;check(p.h.adoptHost(p.host)&&p.g.adoptGuest(p.guest),"failed start-send fixture adopts rooms");
@@ -244,7 +264,7 @@ int main() {
         check(hs.worldLoaded(0,p.now),"host ready while waiting for guest engine load");
         p.failHostSend=true;check(gs.worldLoaded(0,p.now),"guest sends ready before host send failure");
         for(int i=0;i<20;++i){p.now+=5;p.net.advance(p.now);hs.pump(p.now);gs.pump(p.now);}
-        check(hs.phase()==PracticeLoadPhase::Failed&&!p.h.session()&&!p.g.session(),"failed start announcement cannot leave partially running session");
+        check(hs.phase()==PracticeLoadPhase::Failed && hs.failure()==PracticeLoadFailure::SendFailed && !p.h.session()&&!p.g.session(),"failed start announcement cannot leave partially running session");
     }
 
 
@@ -279,6 +299,25 @@ int main() {
               "CoopSession replays pending baseline/status before reading later socket messages");
         TransportEvent invalid;invalid.type=TransportEventType::Message;
         check(!p.g.bufferBeforeHandoff(std::move(invalid)),"retired UI cannot append to gameplay queue");
+    }
+
+    {
+        Pair p;check(p.h.adoptHost(p.host),"host leaves room UI before guest");
+        PracticeBootstrap hs(p.h);check(hs.beginHost(930,42,p.now),"host starts practice before guest presses button");
+        check(hs.worldLoaded(0,p.now),"host can finish loading while guest is still in room UI");
+        int saved=0;
+        for(int i=0;i<2000;++i) {
+            p.now+=5;p.net.advance(p.now);hs.pump(p.now);
+            TransportEvent e;bool has=false;p.guest->poll(p.now,e,has);
+            if(has && e.type==TransportEventType::Message) {check(p.g.bufferBeforeHandoff(std::move(e)),"early proposal buffered while guest waits");++saved;}
+        }
+        check(saved>0 && hs.phase()==PracticeLoadPhase::Loading && !p.h.session(),"host waits safely for guest for ten seconds");
+        check(p.g.adoptGuest(p.guest),"guest enters practice later using same room");
+        PracticeBootstrap gs(p.g);check(gs.beginGuest(p.now),"delayed guest starts bootstrap");
+        for(int i=0;i<50&&gs.phase()!=PracticeLoadPhase::Loading;++i) {p.now+=5;p.net.advance(p.now);hs.pump(p.now);gs.pump(p.now);}
+        check(gs.phase()==PracticeLoadPhase::Loading && gs.worldLoaded(0,p.now),"guest receives retained proposal and loads after delay");
+        for(int i=0;i<50&&gs.phase()!=PracticeLoadPhase::SessionLoading;++i) {p.now+=5;p.net.advance(p.now);hs.pump(p.now);gs.pump(p.now);}
+        check(hs.phase()==PracticeLoadPhase::SessionLoading&&gs.phase()==PracticeLoadPhase::SessionLoading,"both session owners start without simultaneous presses");
     }
 
     if(!failures)std::puts("PASS exclusive room handoff: gates, queued bytes, single poll owner, actual session input, retired epoch and shutdown order");

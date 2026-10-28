@@ -23,6 +23,7 @@
 #include "pc_window.h"
 #include "settings/pc_settings.h"
 #include "Dolphin/pad.h"
+#include "dolphin_stubs/pc_card_paths.h"
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -106,7 +107,16 @@ void pc_coop_practice_tick_begin() {
     const auto now=nowMs();
     net::RoomStatus status; owner->maintain(now,static_cast<std::uint64_t>(std::time(nullptr)),status);
     loading->pump(now);
-    if (loading->phase()==net::PracticeLoadPhase::Failed) { fail("Practice connection or loading timed out. Close P1 and reopen on both phones.");return; }
+    if (loading->phase()==net::PracticeLoadPhase::Failed) {
+        switch (loading->failure()) {
+        case net::PracticeLoadFailure::ConnectionLost: fail("The practice connection was lost. Both players must reopen P1 for this test.");break;
+        case net::PracticeLoadFailure::Deadline: fail("Practice setup timed out while waiting for both phones. Reopen P1 and try again.");break;
+        case net::PracticeLoadFailure::SendFailed: fail("A practice setup message could not be sent. Reopen P1 and try again.");break;
+        case net::PracticeLoadFailure::SessionStartFailed: fail("The practice session could not start safely. Reopen P1 and try again.");break;
+        default: fail("Practice setup stopped unexpectedly. Reopen P1 and try again.");break;
+        }
+        return;
+    }
     if (loading->phase()==net::PracticeLoadPhase::Loading && !requested) {
         if (const char* error=pc_coop_practice_map_prepare()) { fail(error);return; }
         if (!pc_coop_practice_request_start()) { fail("Could not isolate a disposable practice save. No campaign was opened.");return; }
@@ -142,7 +152,10 @@ void pc_coop_practice_tick_begin() {
     }
 }
 void pc_coop_practice_tick_end() {
-    if (!owner || !ownThread() || stopped || !entered || !session()) return;
+    // Session creation can occur inside the world-loaded callback, after this
+    // frame's tick_begin. Never publish/confirm the first world before the
+    // next tick_begin configures the host input policy.
+    if (!owner || !ownThread() || stopped || !entered || !session() || !sessionConfigured) return;
     auto* s=session();const auto now=nowMs();
     if (role==net::CoopRole::Host && advancing) {
         // This disposable flat arena has no campaign jobs or hazards. A throw
@@ -264,7 +277,26 @@ bool pc_coop_practice_ready() {
     return session()->setBlocked(net::CoopBlock::Manual,false) && session()->setReady(true);
 }
 void pc_coop_practice_pause() { if (owner && ownThread() && session()) { session()->setBlocked(net::CoopBlock::Manual,true);hold(false); } }
-void pc_coop_practice_leave() { if (owner && ownThread()) { pc_coop_practice_pause();owner->close();fail("Practice ended. Close P1 and reopen to return to solo. Your campaign saves and settings are unchanged."); } }
+bool pc_coop_practice_leave() {
+    if (!owner || !ownThread()) return false;
+    pc_coop_practice_pause();
+    // Only return to title while the original save routing is still active.
+    // Once the temporary card has been admitted, scene/card caches cannot yet
+    // be safely restored in-process, so require a full restart instead.
+    pc_coop_practice_cancel_start();
+    const auto start=pc_coop_practice_start_state();
+    const bool safe=title && !entered && !loaded && !pc_card_coop_practice_active() &&
+        (start==PcCoopPracticeStart::Idle || start==PcCoopPracticeStart::Failed);
+    if (!safe) {
+        owner->close();fail("Practice ended. Close P1 and reopen to return to solo. Your campaign saves and settings are unchanged.");
+        std::snprintf(failure,sizeof(failure),"Practice ended. Close P1 and reopen to return to solo. Your campaign saves and settings are unchanged.");
+        return false;
+    }
+    loading.reset();owner->close();owner.reset();pc_coop_world_end_scene();
+    requested=loaded=confirmed=entered=stopped=away=panel=padFiltered=advancing=sessionConfigured=false;
+    tick=frame=applied=lastPublish=revision=0;previousButtons=0;failure[0]=0;inputs.reset();remote={};
+    return true;
+}
 void pc_coop_practice_background(bool value) { if (!owner || !ownThread()) return;away=value;if (session()) session()->setBlocked(net::CoopBlock::Background,value);if(value)hold(false); }
 void pc_coop_practice_status(char* out,std::size_t cap) {
     const char* msg="Open Online Co-op from the title screen to start practice.";

@@ -22,30 +22,29 @@ bool PracticeBootstrap::beginGuest(std::uint64_t now) {
 }
 bool PracticeBootstrap::send(MessageType type, const std::vector<std::uint8_t>& payload) {
     if (!mId || mSent == std::numeric_limits<std::uint32_t>::max()) {
-        mPhase = PracticeLoadPhase::Failed;return false;
+        fail(PracticeLoadFailure::SendFailed);return false;
     }
     Message m;m.header.type=type;m.header.sessionId=mId;m.header.sceneEpoch=mScene.epoch;
     m.header.sequence=mSent+1;m.payload=payload;
     std::vector<std::uint8_t> bytes;
     if (payload.empty() || !encodeMessage(m,bytes) || !mOwner.sendBeforeSession(bytes)) {
-        mPhase = PracticeLoadPhase::Failed;return false;
+        fail(PracticeLoadFailure::SendFailed);return false;
     }
     ++mSent;return true;
 }
 bool PracticeBootstrap::startHostSession() {
     if (!mLocalLoaded || mHost.state()!=BarrierState::Ready) return true; // wait, never continue alone
     const auto start=mHost.start(1);
-    if (!send(MessageType::SceneStart,encodeSceneStart(start)) ||
-        !mOwner.beginSession(mId,static_cast<std::uint16_t>(mScene.epoch),1,mNow)) {
-        mPhase=PracticeLoadPhase::Failed;return false;
+    if (!send(MessageType::SceneStart,encodeSceneStart(start))) return false;
+    if (!mOwner.beginSession(mId,static_cast<std::uint16_t>(mScene.epoch),1,mNow)) {
+        fail(PracticeLoadFailure::SessionStartFailed);return false;
     }
     mPhase=PracticeLoadPhase::SessionLoading;return true;
 }
 bool PracticeBootstrap::worldLoaded(std::uint32_t actual, std::uint64_t now) {
     if (mPhase!=PracticeLoadPhase::Loading || actual!=mAllowedScene || actual!=mScene.sceneId) return false;
-    if (!mOwner.connected() || now<mNow || now<mStarted || now-mStarted>=60000) {
-        mPhase=PracticeLoadPhase::Failed;return false;
-    }
+    if (!mOwner.connected()) { fail(PracticeLoadFailure::ConnectionLost);return false; }
+    if (now<mNow || now<mStarted || now-mStarted>=60000) { fail(PracticeLoadFailure::Deadline);return false; }
     mNow=now;
     if (mLocalLoaded) return true;
     if (mRole==CoopRole::Guest) {
@@ -57,7 +56,7 @@ bool PracticeBootstrap::worldLoaded(std::uint32_t actual, std::uint64_t now) {
 }
 void PracticeBootstrap::receive(const TransportEvent& event,std::uint64_t now) {
     if(event.type==TransportEventType::Disconnected || event.type==TransportEventType::Error) {
-        mPhase=PracticeLoadPhase::Failed;return;
+        fail(PracticeLoadFailure::ConnectionLost);return;
     }
     if(event.type!=TransportEventType::Message || event.delivery!=Delivery::ReliableOrdered) return;
     Message m;
@@ -85,7 +84,7 @@ void PracticeBootstrap::receive(const TransportEvent& event,std::uint64_t now) {
                mGuest.onStart(start)) {
                 if(mOwner.beginSession(mId,static_cast<std::uint16_t>(mScene.epoch),1,now)) {
                     mPhase=PracticeLoadPhase::SessionLoading;accepted=true;
-                } else mPhase=PracticeLoadPhase::Failed;
+                } else fail(PracticeLoadFailure::SessionStartFailed);
             }
         }
     }
@@ -94,9 +93,8 @@ void PracticeBootstrap::receive(const TransportEvent& event,std::uint64_t now) {
 void PracticeBootstrap::pump(std::uint64_t now) {
     if(mPhase==PracticeLoadPhase::Closed || mPhase==PracticeLoadPhase::Failed ||
        mPhase==PracticeLoadPhase::SessionLoading) return;
-    if(!mOwner.connected() || now<mNow || now<mStarted || now-mStarted>=60000) {
-        mPhase=PracticeLoadPhase::Failed;return;
-    }
+    if(!mOwner.connected()) { fail(PracticeLoadFailure::ConnectionLost);return; }
+    if(now<mNow || now<mStarted || now-mStarted>=60000) { fail(PracticeLoadFailure::Deadline);return; }
     mNow=now;
     TransportEvent event;
     for(int count=0;count<64 && mOwner.pollBeforeSession(event);++count) {

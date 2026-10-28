@@ -4,6 +4,7 @@
 
 namespace nectar::net {
 enum class PracticeLoadPhase { Closed, WaitingForHost, Loading, SessionLoading, Failed };
+enum class PracticeLoadFailure { None, ConnectionLost, Deadline, SendFailed, SessionStartFailed };
 // Single-use, explicit practice-area agreement on an authenticated retained room.
 // It does NOT load the engine or save a campaign. Accepted scene ID comes from
 // local build policy, not network filenames. Main owning thread; caller MUST
@@ -19,9 +20,11 @@ class PracticeBootstrap {
     // a UI button alone. Both captains/presentation level must already exist.
     bool worldLoaded(std::uint32_t actualSceneId, std::uint64_t nowMs);
     PracticeLoadPhase phase() const { return mPhase; }
+    PracticeLoadFailure failure() const { return mFailure; }
     std::uint64_t sessionId() const { return mId; }
     const ScenePrepare& scene() const { return mScene; }
   private:
+    void fail(PracticeLoadFailure reason) { mFailure = reason; mPhase = PracticeLoadPhase::Failed; }
     bool begin(CoopRole expected, std::uint64_t nowMs);
     bool send(MessageType type, const std::vector<std::uint8_t>& payload);
     bool startHostSession();
@@ -29,6 +32,7 @@ class PracticeBootstrap {
     CoopConnection& mOwner;
     const std::uint32_t mAllowedScene;
     PracticeLoadPhase mPhase = PracticeLoadPhase::Closed;
+    PracticeLoadFailure mFailure = PracticeLoadFailure::None;
     CoopRole mRole = CoopRole::Guest;
     HostSceneBarrier mHost;
     GuestSceneBarrier mGuest;

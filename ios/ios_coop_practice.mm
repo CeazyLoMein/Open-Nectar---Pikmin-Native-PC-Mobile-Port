@@ -18,7 +18,7 @@ static NectarPracticeController* sPracticePanel;
 - (void)viewDidLoad {
     [super viewDidLoad];self.modalInPresentation=YES;
     self.view.backgroundColor=UIColor.systemBackgroundColor;
-    UILabel* title=[UILabel new];title.text=@"Online Co-op — Practice";
+    UILabel* title=[UILabel new];title.text=@"Online Co-op â€” Practice";
     title.font=[UIFont preferredFontForTextStyle:UIFontTextStyleTitle2];
     self.status=[UILabel new];self.status.numberOfLines=0;
     self.status.font=[UIFont preferredFontForTextStyle:UIFontTextStyleBody];
@@ -42,7 +42,7 @@ static NectarPracticeController* sPracticePanel;
     self.status.text=[NSString stringWithUTF8String:status];self.ready.enabled=pc_coop_practice_can_ready();
 }
 - (void)resumePractice { if(pc_coop_practice_ready()) [self closePanel]; }
-- (void)endPractice { pc_coop_practice_leave();[self updateStatus:nil]; }
+- (void)endPractice { if(pc_coop_practice_leave()) [self closePanel]; else [self updateStatus:nil]; }
 - (void)closePanel {
     [self.timer invalidate];self.timer=nil;
     [self dismissViewControllerAnimated:YES completion:^{sPracticePanel=nil;}];
