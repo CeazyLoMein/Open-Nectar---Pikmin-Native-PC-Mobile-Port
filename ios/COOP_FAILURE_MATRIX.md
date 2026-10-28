@@ -27,7 +27,7 @@ Updated 2026-10-28. This is an engineering checklist, not a claim that campaign 
 - Reconnection demands reauthentication, a new epoch, full consistent world baseline and ready handshake. Host-loss takeover requires a complete validated snapshot: electing a replacement alone is insufficient. Make the user-facing choices truthful until persistence exists.
 - Keep full-screen independent cameras; verify cross-map play and visibility/culling separately on each device. Different phone performance does not change authoritative simulation speed.
 - Test gradual difficulty changes (primarily health) with clear settings. Extra enemies require measured performance. Preserve 120 FPS option.
-- Cover PC/iPhone save transfer only after save schema, compatible gameplay settings, backup and conflict rules are proven; both players play together and no independent-save merge is promised. P2 follows its own stronger campaign test.
+- Cover PC/iPhone save transfer only after save schema, compatible gameplay settings, backup and conflict rules are proven. Transfer campaign progress without cloning player/device identity, invite secrets, or personal settings; both players play together and no independent-save merge is promised. P2 follows its own stronger campaign test.
 
 ## Evidence and references
 
