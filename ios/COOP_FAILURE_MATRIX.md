@@ -38,3 +38,7 @@ Updated 2026-10-28. This is an engineering checklist, not a claim that campaign 
 - Steam networking supports separate lanes and reliable/unreliable messages, but changing the existing single reliable protocol requires a complete sequencing/fragmentation redesign and tests: https://partner.steamgames.com/doc/api/ISteamnetworkingSockets
 
 Story/cutscene synchronization, player-specific initiators, shared skip agreement, interruption/rejoin and spoiler-safe test coverage are expanded in `COOP_CUTSCENES_AND_STORY.md`.
+
+### Additional input limitation to investigate
+
+`PcCoopPracticeInput` currently combines repeated occurrences of the same one-shot action into a bit until the next send. Two rapid identical taps in that interval can coalesce into one event; this is a source-level limitation, not yet observed on phones. Before changing the wire format, build a bounded, revision-scoped event queue with unique event/tick identities and tests for rapid taps, duplicate delivery, retransmit, pause, stale expiration and disconnect. Do not let retransmissions double an action or revive stale commands. This is separate from the 300 ms stale-action guard.
