@@ -139,3 +139,16 @@ October25 —70 attempt1 full game/preflight PASS; runtime simulator spawn timed
 October25:70 attempt2 native/simulator/IPA PASS, identical binary to failed attempt1. New explicit PROCESS-LATCHED disk-backed temporary practice card actual-source test and Clang3 PASS, Apple next. No UI caller/area enabled. Future driver must drain CardUtil before teardown, abort on failed isolation and require restart before normal solo. Keep68; T10 remains FUTURE; no phone task.
 
 October26:71 Apple actual-card/host fixture/full app/12 preflight PASS, simulator health timed out before native probe; no IPA. Owned simulator lifecycle + one setup-only recovery + early runtime + mandatory final evidence gate repair local26 tests PASS; next Apple pending. Keep68; T10 future; no phone/USB task.
+
+
+### Future shared-story and cutscene tests (not ready to perform)
+
+These are queued for when actual shared campaign scenes are implemented; do not spend time on them during the disposable practice test. Avoid finale spoilers and preserve solo saves.
+
+- [ ] Trigger a non-spoiler story event first as each player, with the other nearby and far away. Both should see the intended scene, then regain their own controls and camera.
+- [ ] Verify the scene result is applied once, shared progress agrees, and a verified day-end save/reload preserves it.
+- [ ] Test a slower-loading phone, different display/FPS/audio/subtitle settings, background/return and an interrupted connection before, during and after the scene. Record each phone's message and whether both can resume safely.
+- [ ] Check the eventual skip-request flow with both agreeing, one declining, and a disconnect. No player should accidentally skip the other person's story.
+- [ ] Test dialogue, area changes and day end, plus a carrying/working situation around a scene; confirm Pikmin and jobs are safe.
+
+Implementation and source notes: `ios/COOP_CUTSCENES_AND_STORY.md`. These are planned expectations, not features claimed to exist.
