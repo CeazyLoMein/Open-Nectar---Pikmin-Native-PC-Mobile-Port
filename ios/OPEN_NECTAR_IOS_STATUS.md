@@ -3181,4 +3181,6 @@ Research found the guest currently snaps visual state to complete host snapshots
 - Apple references: https://developer.apple.com/documentation/uikit/uiscene/willdeactivatenotification and https://developer.apple.com/documentation/uikit/uiscene/didactivatenotification
 
 
-Build 81 run 40711881021 completed SUCCESS at source e65708c71626b04fccdd8265afe2dfcb1cdeb42c. P1 artifact 12829465661 exists; not downloaded/staged or tested on phones in this checkpoint. Post-build scene lifecycle work (be4d3da8) and isolated visual blender (8f5544f0) are not included.
+Build 81 run 40711881021 completed SUCCESS at source e65708c71626b04fccdd8265afe2dfcb1cdeb42c. P1 artifact 12829465661 exists; downloaded and validated; staged at Documents/Open Nectar/1 - Install on iPhone/P1 Build 81 - Co-op Practice. Not yet tested on phones. Post-build scene lifecycle work (be4d3da8) and isolated visual blender (8f5544f0) are not included.
+
+Build 81 artifact ZIP SHA-256 1057deff67d79bb5e9e336f4bb67c7a44a4794ac8ad99ea2209886a1a44c153d; IPA SHA-256 e0191ce3c53ce883ed6eba4f968e963f9c9604901c9354a973fb56b6180d6135. Package verified, 21 practice and 13 room checks passed, encrypted simulator probe passed. Hardware behavior remains unverified.
