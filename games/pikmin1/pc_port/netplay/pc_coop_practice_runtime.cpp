@@ -286,7 +286,7 @@ void pc_coop_practice_filter_pad(PADStatus* pads) {
         const float drag=pc_window_take_camera_drag_player(0);
         pc_window_add_camera_drag_player(1,drag);
         f.cursorDx=static_cast<std::int16_t>(std::clamp(drag*3.2f/pc_input_log::kYawTurnsToRad,-32767.0f,32767.0f));
-        if (session() && session()->canIssueCommands()) { ++diagnosticSamples;inputs.sample(f); }
+        if (session() && session()->canIssueCommands()) { ++diagnosticSamples;inputs.sample(f,nowMs()); }
         pads[1]=physical;pads[1].button&=~(PAD_BUTTON_START|PAD_BUTTON_Y);
         pads[0]={};pads[0].err=PAD_ERR_NONE;
     } else {
