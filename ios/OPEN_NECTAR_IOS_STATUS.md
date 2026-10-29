@@ -3379,3 +3379,10 @@ Stopped only the exact experimental process identified by its full executable pa
 - Exact next actions: verify paired build results/receipts, stage matching executables/IPA without overwriting saves/settings/Load content, then user-controlled mixed-device test. Keep private assets outside public Git.
 
 **END PROGRESS REPORT**
+
+
+### Paired build submission (2026-10-29)
+Committed and pushed source 2b9844da663314a2eb2f9b41bc6f2dca1af58b6b, source identity92e732019066b603cae94bdcb1d75a18394f6a74c5f586dd65375baf4a1855e3. Working tree clean after source push. Final local checks:20 non-touch recall/input plus110 command scenarios,12 scene runner,10 room runner,4 packaging and2 identity tests PASS.
+- Experimental Windows P1 co-op game Build4: run40932444780, in_progress at dispatch check, https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40932444780 . No outcome/artifact verified yet.
+- Experimental native iOS game build (unsigned) Build88: run40932444692, in_progress at dispatch check, https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40932444692 . No outcome/artifact verified yet.
+RTSS Windows approval completed; P1-only profile installed, API readback OSD1/detection1, global profile unchanged. Actual overlay still needs user confirmation. All PC content files installed/enabled with verified hashes; next user test is reopening PC P1 to check texture replacement counters/HD models and visible RTSS. Current working Windows2 executable remains installed; F6 is only in pending source. Do not repeatedly poll builds. When user reports completion, read both results/receipts, verify matching source identity, back up current working executable/settings/saves, and stage in-place replacements preserving Load packs and configuration. Installed iPhone84 remains unchanged and does not match current full PC game.
