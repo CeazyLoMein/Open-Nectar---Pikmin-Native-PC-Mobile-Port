@@ -27,6 +27,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+      - name: Check packaging before the heavy build
+        run: python3 tests/windows_coop_package_test.py
       - name: Install cross compiler
         run: sudo apt-get update && sudo apt-get install -y ninja-build cmake g++-mingw-w64-x86-64-posix
       - name: Build full Windows game and pinned transport
