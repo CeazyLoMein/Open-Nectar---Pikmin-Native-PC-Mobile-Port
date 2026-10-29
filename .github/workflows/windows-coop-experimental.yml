@@ -1,0 +1,47 @@
+name: Experimental Windows P1 co-op game
+on:
+  push:
+    branches: [ios-experimental]
+  workflow_dispatch:
+jobs:
+  windows-content-check:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[pc-coop-build]') }}
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Verify actual Windows identity against native iOS golden
+        shell: cmd
+        run: |
+          cl /nologo /std:c++17 /EHsc /W4 /WX /I"%WindowsSdkDir%Include\%WindowsSDKVersion%um" /Igames/pikmin1/pc_port tests/pikmin1_desktop_content_test.cpp normaliz.lib /Fe:content-test.exe
+          if errorlevel 1 exit /b 1
+          content-test.exe "%RUNNER_TEMP%/nectar-content-%GITHUB_RUN_ID%-%GITHUB_RUN_ATTEMPT%"
+  build:
+    needs: windows-content-check
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[pc-coop-build]') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install cross compiler
+        run: sudo apt-get update && sudo apt-get install -y ninja-build cmake g++-mingw-w64-x86-64-posix
+      - name: Build full Windows game and pinned transport
+        run: |
+          set -euo pipefail
+          bash scripts/build-windows-coop-experimental.sh "$RUNNER_TEMP/p1-windows-coop" 2>&1 | tee windows-coop-build.log
+      - name: Preserve compile logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-coop-build-logs
+          path: windows-coop-build.log
+      - name: Upload experimental full Windows game
+        uses: actions/upload-artifact@v4
+        with:
+          name: pikmin1-windows-coop-experimental
+          path: ${{ runner.temp }}/p1-windows-coop/package/
+          if-no-files-found: error

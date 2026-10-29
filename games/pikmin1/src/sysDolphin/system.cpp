@@ -1,3 +1,6 @@
+#ifdef NECTAR_DESKTOP_COOP_ROOM
+#include "netplay/pc_desktop_coop.h"
+#endif
 #if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
 #include "netplay/pc_coop_practice_map.h"
 #endif
@@ -6,7 +9,7 @@
 #include <cstdint>
 #if PIKI_PC_PORT
 #include "pc_window.h"
-#ifdef NECTAR_IOS_COOP_ROOM
+#if defined(NECTAR_IOS_COOP_ROOM) || defined(NECTAR_DESKTOP_COOP_ROOM)
 #include "ios_coop_room.h"
 #endif
 #include <chrono>
@@ -384,7 +387,10 @@ void System::run(BaseApp* app)
     // switch modes at runtime.
 
 	while (true) {
-#ifdef NECTAR_IOS_COOP_ROOM
+#ifdef NECTAR_DESKTOP_COOP_ROOM
+        nectar_desktop_coop_pump();
+#endif
+#if defined(NECTAR_IOS_COOP_ROOM) || defined(NECTAR_DESKTOP_COOP_ROOM)
         if (nectar_ios_coop_room_is_open()) {
             // The native view is opaque: no world/menu pixels are visible here.
             // Keep SDL/UIKit and audio responsive without hidden game ticks/draws.

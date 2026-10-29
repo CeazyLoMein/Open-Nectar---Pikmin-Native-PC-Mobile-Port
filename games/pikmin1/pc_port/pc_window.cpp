@@ -1,3 +1,6 @@
+#ifdef NECTAR_DESKTOP_COOP_ROOM
+#include "netplay/pc_coop_practice_bridge.h"
+#endif
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 #endif
@@ -1228,6 +1231,9 @@ void pc_window_poll_events(PADStatus* pad) {
                     event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
                     sMouseCursorDeltaX = 0.0f;
                     sMouseCursorDeltaY = 0.0f;
+#ifdef NECTAR_DESKTOP_COOP_ROOM
+                    pc_coop_practice_background(event.window.event == SDL_WINDOWEVENT_FOCUS_LOST);
+#endif
                 }
                 // Some platforms release the relative-mode grab while the
                 // window is unfocused; put it back on return (issue #52).

@@ -21,7 +21,7 @@
 #include "settings/pc_glass_menu.h"
 #include "settings/pc_settings_rows.h"
 #include "netplay/pc_online_menu.h"
-#ifdef NECTAR_IOS_COOP_ROOM
+#if defined(NECTAR_IOS_COOP_ROOM) || defined(NECTAR_DESKTOP_COOP_ROOM)
 #include "ios_coop_room.h"
 #endif
 
@@ -86,7 +86,7 @@ zen::ogScrTitleMgr::ogScrTitleMgr()
 	// compacta el paso a 30 px; con 7 (Challenge Mode) a 27 px, subiendo el
 	// panel para no pisar el logo ni el copyright. Advanced Options vive dentro
 	// de Options.
-#ifdef NECTAR_IOS_COOP_ROOM
+#if defined(NECTAR_IOS_COOP_ROOM) || defined(NECTAR_DESKTOP_COOP_ROOM)
     const PcMenuExtend extNoChallenge   = { 5, 27, -64, 'yoko', 40 };
     const PcMenuExtend extWithChallenge = { 5, 24, -75, 'yoko', 40 };
 #else
@@ -190,7 +190,7 @@ void zen::ogScrTitleMgr::pcInsertCoopItem(DrawMenu* menu)
 	static char sRandomizerLabel[] = "Randomizer";
 	static char sSpeedrunLabel[] = "Speedrun";
 	static char sCoopLabel[]     = "Co-op";
-#ifdef NECTAR_IOS_COOP_ROOM
+#if defined(NECTAR_IOS_COOP_ROOM) || defined(NECTAR_DESKTOP_COOP_ROOM)
     static char sOnlineLabel[] = "Online Co-op";
 #endif
 	static char sVsLabel[]       = "VS";
@@ -213,7 +213,7 @@ void zen::ogScrTitleMgr::pcInsertCoopItem(DrawMenu* menu)
 		// Originales: 0 Start, 1 Options[, 2 Challenge]. Las cajas quedan
 		// (todas centradas en la misma X); solo viaja el texto. Orden PC:
 		// Start / Co-op / VS / Options / Speedrun / Randomizer / Challenge Mode.
-#ifdef NECTAR_IOS_COOP_ROOM
+#if defined(NECTAR_IOS_COOP_ROOM) || defined(NECTAR_DESKTOP_COOP_ROOM)
         if (n < 7) continue;
         char* optionsText = box[1]->getString();
         char* challengeText = n >= 8 ? box[2]->getString() : nullptr;
@@ -390,7 +390,7 @@ zen::ogScrTitleMgr::TitleStatus zen::ogScrTitleMgr::update(Controller* input)
 		if (pc_online_choice_open()) {
 			const int r = pc_online_menu_update(input);
 			if (r == PC_ONLINE_MENU_CANCEL) {
-#ifdef NECTAR_IOS_COOP_ROOM
+#if defined(NECTAR_IOS_COOP_ROOM) || defined(NECTAR_DESKTOP_COOP_ROOM)
                 mMainMenu->start(sPcOnlineAction == 3 ? 3 : 1);
 #else
 				mMainMenu->start(sPcOnlineAction == 3 ? 2 : 1); // back on the row
@@ -421,7 +421,7 @@ zen::ogScrTitleMgr::TitleStatus zen::ogScrTitleMgr::update(Controller* input)
 		// Randomizer / Challenge Mode. Abajo se trabaja con el orden interno
 		// de siempre (0 Start, 1 Speedrun, 2 Co-op, 3 VS, 4 Options, 5
 		// Challenge Mode) más 6 Randomizer.
-#ifdef NECTAR_IOS_COOP_ROOM
+#if defined(NECTAR_IOS_COOP_ROOM) || defined(NECTAR_DESKTOP_COOP_ROOM)
         static const int kPcRowToAction[8] = { 0, 2, 7, 3, 4, 1, 6, 5 };
 #else
 		static const int kPcRowToAction[7] = { 0, 2, 3, 4, 1, 6, 5 };
@@ -429,7 +429,7 @@ zen::ogScrTitleMgr::TitleStatus zen::ogScrTitleMgr::update(Controller* input)
 		if (mCurrentSelection >= 0 && mCurrentSelection < static_cast<int>(sizeof(kPcRowToAction)/sizeof(kPcRowToAction[0]))) {
 			mCurrentSelection = kPcRowToAction[mCurrentSelection];
 		}
-#ifdef NECTAR_IOS_COOP_ROOM
+#if defined(NECTAR_IOS_COOP_ROOM) || defined(NECTAR_DESKTOP_COOP_ROOM)
         if (mCurrentSelection == 7 && forced < 0) {
             mMainMenu->start(2); // Stay on Online Co-op after the native sheet closes.
             mCurrentSelection = -1;

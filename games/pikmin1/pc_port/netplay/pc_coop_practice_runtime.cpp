@@ -1,3 +1,6 @@
+#ifdef NECTAR_DESKTOP_COOP_ROOM
+#include "netplay/pc_desktop_coop.h"
+#endif
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 #endif
@@ -89,6 +92,8 @@ net::CoopSession* session() { return owner ? owner->session() : nullptr; }
 void showPanel() {
 #if defined(__APPLE__) && TARGET_OS_IPHONE
     nectar_ios_open_coop_practice();
+#elif defined(NECTAR_DESKTOP_COOP_ROOM)
+    nectar_desktop_open_coop_practice();
 #endif
 }
 void fail(const char* reason) {

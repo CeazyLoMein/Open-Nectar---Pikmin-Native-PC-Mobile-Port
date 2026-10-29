@@ -11,7 +11,7 @@ def block(text,needle):
 def generate(output):
  title=(ROOT/'games/pikmin1/src/plugPikiOgawa/ogTitle.cpp').read_text(encoding='utf-8')
  labels=block(title,'void zen::ogScrTitleMgr::pcInsertCoopItem')
- a=title.index('#ifdef NECTAR_IOS_COOP_ROOM\n        static const int kPcRowToAction')
+ a=title.index('#if defined(NECTAR_IOS_COOP_ROOM) || defined(NECTAR_DESKTOP_COOP_ROOM)\n        static const int kPcRowToAction')
  b=title.index('\n\t\tif (mCurrentSelection >= 0',a)
  mapping=title[a:b]
  system=(ROOT/'games/pikmin1/src/sysDolphin/system.cpp').read_text(encoding='utf-8')
@@ -50,7 +50,7 @@ int main(){
  zen::ogScrTitleMgr manager;
  for(bool unlocked:{false,true}) {
   DrawMenu menu;
-#ifdef NECTAR_IOS_COOP_ROOM
+#if defined(NECTAR_IOS_COOP_ROOM) || defined(NECTAR_DESKTOP_COOP_ROOM)
   const int count=unlocked?8:7;
   const char* expected[]={"Start","Co-op","Online Co-op","VS","Options","Speedrun","Randomizer","Challenge Mode"};
 #else
@@ -69,7 +69,7 @@ int main(){
  }
  MAPPING
  check(kPcRowToAction[0]==0 && kPcRowToAction[1]==2,"solo/local coop actions preserved");
-#ifdef NECTAR_IOS_COOP_ROOM
+#if defined(NECTAR_IOS_COOP_ROOM) || defined(NECTAR_DESKTOP_COOP_ROOM)
  check(kPcRowToAction[2]==7 && kPcRowToAction[3]==3 && kPcRowToAction[4]==4,"online vs options action mapping");
 #else
  check(kPcRowToAction[2]==3 && kPcRowToAction[3]==4,"desktop VS/options unchanged");
@@ -79,12 +79,12 @@ int main(){
   PcFrameScheduler frameScheduler;frameScheduler.reset(0,clamp);
   remaining=covered;polls=audio=0;closeRequested=quit;
   for(int i=0;i<4;++i){
-#ifdef NECTAR_IOS_COOP_ROOM
+#if defined(NECTAR_IOS_COOP_ROOM) || defined(NECTAR_DESKTOP_COOP_ROOM)
    if(nectar_ios_coop_room_is_open()) PAUSE
 #endif
    ++gameTicks;
   }
-#ifdef NECTAR_IOS_COOP_ROOM
+#if defined(NECTAR_IOS_COOP_ROOM) || defined(NECTAR_DESKTOP_COOP_ROOM)
   if(covered){
    check(gameTicks==(quit?0:1) && polls==(quit?1:3) && audio==polls,"opaque UI pumps events/audio, skips hidden game ticks/draws, honors quit");
    if(!quit){
@@ -110,18 +110,20 @@ def compile_and_run(output, compiler, sdk_root=None):
  include=source.parent
  msvc=Path(compiler).name.lower() in ('cl','cl.exe')
  failures=[]
- for mode in ('desktop','native'):
+ for mode in ('desktop','native','desktop-coop'):
   build=output.parent/('room-ux-'+mode);build.mkdir(parents=True,exist_ok=True)
   binary=build/('test.exe' if msvc else 'test')
   if msvc:
    command=[compiler,'/nologo','/std:c++17','/EHsc','/W4','/WX','/D_CRT_SECURE_NO_WARNINGS',
             '/I'+str(include)]
    if mode=='native':command+=['/DNECTAR_IOS_COOP_ROOM=1']
+   if mode=='desktop-coop':command+=['/DNECTAR_DESKTOP_COOP_ROOM=1']
    command += [str(output),str(source),'/Fe:'+str(binary)]
   else:
    command=[compiler,'-std=c++17','-Wall','-Wextra','-Werror','-I'+str(include)]
    if sdk_root:command += ['-isysroot',str(sdk_root)]
    if mode=='native':command += ['-DNECTAR_IOS_COOP_ROOM=1']
+   if mode=='desktop-coop':command += ['-DNECTAR_DESKTOP_COOP_ROOM=1']
    command += [str(output),str(source),'-o',str(binary)]
   print('Compiling actual room UX fixture: '+mode,flush=True)
   try:
