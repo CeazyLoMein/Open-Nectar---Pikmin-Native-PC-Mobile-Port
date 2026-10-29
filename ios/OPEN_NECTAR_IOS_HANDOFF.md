@@ -1549,3 +1549,7 @@ The independent local fixture covers 12 normal/interrupted/simulated partial or 
 
 
 Save-recovery follow-up: the isolated fixture now also forces recovery rename failure with no final file and a failure checking a final file that does exist. In both cases the preservation guard reports an error and retains the temporary file; the existing final file remains when present. Fourteen modeled scenarios pass locally. These tests simulate errors in controlled wrappers; they do not establish actual power-loss durability, automatic repair, or iPhone behavior.
+
+
+### Independent recent-development audit (2026-10-29)
+Reviewed recent practice/save/iOS/network changes through 37a0e779 against fetched origin. No confirmed new critical regression found within this bounded audit. Independently reran 27/27 local networking tests, regenerated/compiled/passed 14 isolated save recovery cases, seed test and menu source contract. Build84/run40773579467 is SUCCESS at 4a886468; its IPA was not inspected in this audit. Post84 source still needs iOS compilation; recent phones have not verified guest view/stutter/interruption fixes. Foundation tests do not establish delivered campaign co-op or internet traversal. Full findings and exact next priorities: ios/RECENT_DEVELOPMENT_AUDIT_2026-10-29.md. No gameplay changes or phone/save operations during audit.
