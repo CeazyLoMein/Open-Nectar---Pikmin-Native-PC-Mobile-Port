@@ -1,3 +1,9 @@
+## Paired fix build submitted — 2026-10-29 19:56 EDT
+
+Source `deaaee1ee0b884c5c939f456b6a5ccfff4d23d40` pushed. Windows **5**: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40976294203 ; iPhone **89**: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40976294072 . Both last observed IN_PROGRESS, no final result/new artifacts yet.231 smoothing +14 actual focus +8 carry assertions and actual adapter/view/authority/strict frontend/Clang checks passed locally. Preserve installed PC4/phone88; wait for the user to report build completion, then verify full logs/receipts before staging BOTH clients. No idle CI polling. Original Louie restore approved but pending USB/P1 closed. Upstream1.1.1 reviewed, not merged; see UPSTREAM_AUDIT_2026_10_29.md. P2 unchanged. The latest full report is at the end of this journal and in Documents/Open Nectar/2 - Progress and ChatGPT Handoff.
+
+---
+
 ## Current checkpoint — 2026-10-29 19:53 EDT: PC4/iPhone88 hardware feedback and coordinated fix batch
 
 This entry supersedes older current-state claims below. Matching PC4/iPhone88 were installed and tested. PC host runs smoothly locally; phone guest actor movement stutters, reverse-role Windows Ready sticks, and PC log records missing-Onion `zannnen` panic. Guest arrival-time visual smoothing, Windows focus/Ready ordering and safe missing carry destinations are implemented and locally verified; new native builds are pending. Original low-detail Louie restore is approved but NOT done (no USB device detected; no phone writes). P2 unchanged. Read the newest full progress report at the end of this file, UPSTREAM_AUDIT_2026_10_29.md and Documents/Open Nectar/2 - Progress and ChatGPT Handoff/Exact Resume State.json for resolved commits/run IDs. Do not install unverified packages or merge all upstream files. Preserve PC4/phone88 as rollback and all save/graphics/control preferences.
@@ -1712,9 +1718,9 @@ RTSS Windows approval completed; P1-only profile installed, API readback OSD1/de
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
-**Date/time:** 2026-10-29 19:53 EDT
+**Date/time:** 2026-10-29 19:56 EDT
 
-**Overall project status:** Full PC4 and iPhone88 practice ran on the user's devices. PC-host play was smooth locally but iPhone guest actor movement stuttered; phone-host/PC-guest Ready was stuck. The PC later exited itself with an engine panic. A coordinated fix batch is implemented and locally verified; new full native builds are about to be requested. No new executable/IPA has been installed, and no running-game input or process termination was performed by Codex.
+**Overall project status:** Full PC4 and iPhone88 practice ran on the user's devices. PC-host play was smooth locally but iPhone guest actor movement stuttered; phone-host/PC-guest Ready was stuck. The PC later exited itself with an engine panic. A coordinated fix batch is implemented and locally verified; Windows5 and iPhone89 native builds have been submitted and were last observed IN_PROGRESS. No new executable/IPA has been installed, and no running-game input or process termination was performed by Codex.
 
 ### Pikmin 1
 
@@ -1747,15 +1753,15 @@ RTSS Windows approval completed; P1-only profile installed, API readback OSD1/de
 
 - Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
 - Branch: ios-experimental. Starting local/remote987d254d5fb5129edaca097ec277471f5c47590e; last accepted gameplay source2b9844da663314a2eb2f9b41bc6f2dca1af58b6b. Fetch showed no divergence or third-party fork pushes.
-- Latest commit/commits created/changes pushed: fix batch currently uncommitted at this checkpoint; final resolved source SHA, local/remote and run IDs go in Exact Resume State.json after push. No upstream merge or branch/history rewrite.
-- Uncommitted changes: the scoped P1 batch, new tests and documentation listed above; preserve these if interrupted before commit.
+- Latest gameplay commit: deaaee1ee0b884c5c939f456b6a5ccfff4d23d40, committed and pushed safely to ios-experimental. Local and remote matched after push. Documentation-only checkpoint follows; resolved final journal SHA is in Exact Resume State.json. No upstream merge or branch/history rewrite.
+- Uncommitted changes: no source edits after the pushed batch. Only this final documentation/run-ID checkpoint is being saved; final clean status is recorded in Exact Resume State.json.
 - Last successful runs: Windows4/run40932444780; iPhone88/run40932444692. Both source2b9844da, shared identity92e732019066b603cae94bdcb1d75a18394f6a74c5f586dd65375baf4a1855e3. User installed/tested matching pair; old `iphone88_installed=false` resume field is corrected now.
-- Artifacts: Windows4 artifact12923288453, iPhone88 artifact12924694374 previously fully verified. No new batch artifacts yet. Keep installed PC4/phone88 and backups until replacements pass.
-- Next build: single coordinated push with [ios-build] [ios-p1-update] [pc-coop-build], preserving the current same-app unlocked solo-update test variant. Do not silently change normal/test save behavior. Both clients must update to the same new source identity. P2 excluded. Do not idle-poll; user will report completion.
+- Current builds: Windows5/run40976294203 and iPhone89/run40976294072, both sourcedeaaee1ee0b884c5c939f456b6a5ccfff4d23d40, last checked IN_PROGRESS. Computed source identity26204c2b52dcf03c59c52798930a69a9e11a4a6c9272600e9c7a8eb29e650f9e (2908 tracked files); verify against actual produced packages after success. No new artifacts or runtime claims yet. Windows4 artifact12923288453 and iPhone88 artifact12924694374 remain verified rollback.
+- Submitted build: one coordinated push with [ios-build] [ios-p1-update] [pc-coop-build], preserving the current same-app unlocked solo-update test variant. Do not silently change normal/test save behavior. Both clients must update to the same new source identity. P2 excluded. Do not idle-poll; user will report completion.
 
 ### Next steps
 
-- Next P1 task: commit/push the verified batch, record both actual run IDs; verify native results and stage matching packages only after success. Then test PC host/phone guest movement, reverse roles Ready, pause/Alt-Tab/background, and longer stability. Raye's phone is unnecessary for this mixed test.
+- Next P1 task: await user build-completion report; retrieve full results/logs and verify/stage matching packages only after success. Then test PC host/phone guest movement, reverse roles Ready, pause/Alt-Tab/background, and longer stability. Raye's phone is unnecessary for this mixed test.
 - Next P2 task: preserve current install; later broader campaign coverage and separate upstream review.
 - GitHub/build task: one paired validation batch, no redundant builds for documentation; preserve all existing receipts and native UIKit scene/socket tests.
 - User involvement: none while building. No need to keep a live session open. Original Louie needs USB/unlocked/P1 closed when convenient; no repeated launch/install or asset replacement needed now.

@@ -1,3 +1,9 @@
+## Paired fix build submitted — 2026-10-29 19:56 EDT
+
+Source `deaaee1ee0b884c5c939f456b6a5ccfff4d23d40` pushed. Windows **5**: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40976294203 ; iPhone **89**: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40976294072 . Both last observed IN_PROGRESS, no final result/new artifacts yet.231 smoothing +14 actual focus +8 carry assertions and actual adapter/view/authority/strict frontend/Clang checks passed locally. Preserve installed PC4/phone88; wait for the user to report build completion, then verify full logs/receipts before staging BOTH clients. No idle CI polling. Original Louie restore approved but pending USB/P1 closed. Upstream1.1.1 reviewed, not merged; see UPSTREAM_AUDIT_2026_10_29.md. P2 unchanged. The latest full report is at the end of this journal and in Documents/Open Nectar/2 - Progress and ChatGPT Handoff.
+
+---
+
 ## Current checkpoint — 2026-10-29 19:53 EDT: PC4/iPhone88 hardware feedback and coordinated fix batch
 
 This entry supersedes older current-state claims below. Matching PC4/iPhone88 were installed and tested. PC host runs smoothly locally; phone guest actor movement stutters, reverse-role Windows Ready sticks, and PC log records missing-Onion `zannnen` panic. Guest arrival-time visual smoothing, Windows focus/Ready ordering and safe missing carry destinations are implemented and locally verified; new native builds are pending. Original low-detail Louie restore is approved but NOT done (no USB device detected; no phone writes). P2 unchanged. Read the newest full progress report at the end of this file, UPSTREAM_AUDIT_2026_10_29.md and Documents/Open Nectar/2 - Progress and ChatGPT Handoff/Exact Resume State.json for resolved commits/run IDs. Do not install unverified packages or merge all upstream files. Preserve PC4/phone88 as rollback and all save/graphics/control preferences.
