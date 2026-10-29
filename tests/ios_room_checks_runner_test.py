@@ -73,21 +73,39 @@ class FixtureAggregationTests(unittest.TestCase):
   fixture=self.load_fixture();calls=[]
   def execute(args,**kwargs):
    calls.append(args)
-   if args[0]=='clang++' and '-DNECTAR_IOS_COOP_ROOM=1' not in args:
+   if args[0]=='clang++' and '-DNECTAR_IOS_COOP_ROOM=1' not in args and '-DNECTAR_DESKTOP_COOP_ROOM=1' not in args:
     raise subprocess.CalledProcessError(1,args)
    return SimpleNamespace(returncode=0)
   with tempfile.TemporaryDirectory() as tmp,patch.object(fixture.subprocess,'run',side_effect=execute):
    with self.assertRaises(RuntimeError):fixture.compile_and_run(Path(tmp)/'fixture.cpp','clang++')
-  self.assertEqual(sum(c[0]=='clang++' for c in calls),2)
-  self.assertEqual(len(calls),3) # failed compile, next compile, only successful binary
-  self.assertIn('room-ux-native',calls[-1][0])
- def test_both_failed_modes_are_reported(self):
+  self.assertEqual(sum(c[0]=='clang++' for c in calls),3)
+  runs=[c for c in calls if c[0]!='clang++']
+  self.assertEqual(len(runs),2) # Only the two successfully compiled binaries may run.
+  self.assertIn('room-ux-native',runs[0][0])
+  self.assertIn('room-ux-desktop-coop',runs[1][0])
+ def test_all_three_failed_modes_are_reported(self):
   fixture=self.load_fixture();calls=[]
   def execute(args,**kwargs):
    calls.append(args);raise subprocess.CalledProcessError(1,args)
   with tempfile.TemporaryDirectory() as tmp,patch.object(fixture.subprocess,'run',side_effect=execute):
-   with self.assertRaisesRegex(RuntimeError,'desktop, native'):
+   with self.assertRaisesRegex(RuntimeError,'desktop, native, desktop-coop'):
     fixture.compile_and_run(Path(tmp)/'fixture.cpp','clang++')
-  self.assertEqual(len(calls),2)
+  self.assertEqual(len(calls),3)
+  self.assertTrue(all(c[0]=='clang++' for c in calls))
+
+
+ def test_desktop_coop_failure_does_not_execute_a_stale_binary(self):
+  fixture=self.load_fixture();calls=[]
+  def execute(args,**kwargs):
+   calls.append(args)
+   if args[0]=='clang++' and '-DNECTAR_DESKTOP_COOP_ROOM=1' in args:
+    raise subprocess.CalledProcessError(1,args)
+   return SimpleNamespace(returncode=0)
+  with tempfile.TemporaryDirectory() as tmp,patch.object(fixture.subprocess,'run',side_effect=execute):
+   with self.assertRaisesRegex(RuntimeError,'desktop-coop'):
+    fixture.compile_and_run(Path(tmp)/'fixture.cpp','clang++')
+  runs=[c for c in calls if c[0]!='clang++']
+  self.assertEqual(len(runs),2)
+  self.assertFalse(any('room-ux-desktop-coop' in c[0] for c in runs))
 
 if __name__=='__main__':unittest.main()
