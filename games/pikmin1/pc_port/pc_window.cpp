@@ -1236,9 +1236,9 @@ void pc_window_poll_events(PADStatus* pad) {
                     sMouseCursorDeltaX = 0.0f;
                     sMouseCursorDeltaY = 0.0f;
                     sRecallInput.cancel();
-#ifdef NECTAR_DESKTOP_COOP_ROOM
-                    pc_coop_practice_background(event.window.event == SDL_WINDOWEVENT_FOCUS_LOST);
-#endif
+                    // Windows co-op observes the final foreground game/window family
+                    // in its pump; individual queued SDL focus events are stale
+                    // while the native Ready panel transfers focus.
                 }
                 // Some platforms release the relative-mode grab while the
                 // window is unfocused; put it back on return (issue #52).

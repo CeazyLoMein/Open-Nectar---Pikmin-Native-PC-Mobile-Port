@@ -30,6 +30,7 @@ struct GuestState {
     std::uint64_t session = 0, lastFrame = 0, lastTick = 0, ids[2] = {};
     std::uint16_t epoch = 0;
     Navi* captains[2] = {};
+    net::CaptainState captainStates[2];
     bool invalidated = false, pikminBound = false, havePikminFrame = false;
     std::map<std::uint64_t, GuestPikmin> pikmin;
     std::vector<Piki*> orderedPikmin, liveScratch;
@@ -125,6 +126,7 @@ void commitCaptains(const CaptainApply& pending, const net::ActorFrame& frame)
         n->mSRT.r.y = value.faceDirection;
         n->pcCoopVisualApply(value);
         guest->ids[player] = pending.ids[player];
+        guest->captainStates[player] = value;
     }
     guest->lastFrame = frame.frame; guest->lastTick = frame.tick;
 }
@@ -267,6 +269,48 @@ bool pc_coop_world_apply_guest_visuals(std::uint64_t sessionId, std::uint32_t ep
     guest->visuals.swap(pending); // absent actors disappear without gameplay death
     commitCaptains(captains, frame);
     guest->havePikminFrame = true;
+    return true;
+}
+
+bool pc_coop_world_present_guest(const net::ActorFrame& frame)
+{
+    if (!guest || guest->invalidated || !guest->visualManager || !guest->havePikminFrame
+        || frame.frame!=guest->lastFrame || frame.tick!=guest->lastTick
+        || frame.captains.size()!=2 || frame.pikmin.size()!=guest->visuals.size()
+        || guest->visualManager!=pikiMgr || !pikiMgr->pcCoopVisualSlotsValid(guest->visualSlots)) return false;
+    Navi* captains[2]={};
+    if (!findCaptains(captains) || captains[0]!=guest->captains[0] || captains[1]!=guest->captains[1]) return false;
+    for (int player=0;player<2;++player) {
+        auto it=frame.captains.find(guest->ids[player]);
+        if (it==frame.captains.end() || it->second.player!=player
+            || it->second.upperAnimation!=guest->captainStates[player].upperAnimation
+            || it->second.lowerAnimation!=guest->captainStates[player].lowerAnimation
+            || !captains[player]->pcCoopVisualValidate(it->second)) return false;
+    }
+    for (const auto& entry:guest->visuals) {
+        auto it=frame.pikmin.find(entry.first);
+        if (it==frame.pikmin.end()
+            || it->second.upperAnimation!=entry.second.applied.upperAnimation
+            || it->second.lowerAnimation!=entry.second.applied.lowerAnimation
+            || !guest->visualSlots[entry.second.slot]->pcCoopVisualValidate(it->second)) return false;
+    }
+    for (int player=0;player<2;++player) {
+        auto* n=captains[player];auto value=guest->captainStates[player];
+        const auto& pose=frame.captains.at(guest->ids[player]);
+        value.position=pose.position;value.velocity=pose.velocity;value.faceDirection=pose.faceDirection;
+        value.upperFrame=pose.upperFrame;value.lowerFrame=pose.lowerFrame;
+        n->mSRT.t.x=value.position.x;n->mSRT.t.y=value.position.y;n->mSRT.t.z=value.position.z;
+        n->mLastPosition=n->mSRT.t;
+        n->mVelocity.x=value.velocity.x;n->mVelocity.y=value.velocity.y;n->mVelocity.z=value.velocity.z;
+        n->mFaceDirection=value.faceDirection;n->mSRT.r.y=value.faceDirection;n->pcCoopVisualApply(value);
+    }
+    for (const auto& entry:guest->visuals) {
+        auto value=entry.second.applied;
+        const auto& pose=frame.pikmin.at(entry.first);
+        value.position=pose.position;value.velocity=pose.velocity;value.faceDirection=pose.faceDirection;
+        value.upperFrame=pose.upperFrame;value.lowerFrame=pose.lowerFrame;
+        guest->visualSlots[entry.second.slot]->pcCoopVisualApply(value);
+    }
     return true;
 }
 

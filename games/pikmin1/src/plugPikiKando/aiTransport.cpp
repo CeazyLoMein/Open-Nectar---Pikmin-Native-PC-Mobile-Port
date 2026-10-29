@@ -609,6 +609,11 @@ void ActTransport::doLift()
 
 		if (isStickLeader()) {
 			decideGoal(pel);
+#if defined(PIKI_PC_PORT)
+            // Custom/practice scenes can intentionally have no Onion/ship.
+            // Abandon this job normally rather than dereferencing a missing goal.
+            if (!mGoal) { mPellet.clear();return; }
+#endif
 			// this isn't in the DLL, but the asm is so dumb it has to be something like this
 			// it also fixes the stack, so.
 			bool landOnly       = doLandOnly();
@@ -639,6 +644,9 @@ void ActTransport::doLift()
 				nearestWP = routeMgr->findNearestWayPoint('test', mPiki->mSRT.t, landOnly);
 			}
 
+#if defined(PIKI_PC_PORT)
+            if (!nearestWP) { mPellet.clear();return; }
+#endif
 			int idx       = nearestWP->mIndex;
 			int goalWPIdx = mGoal->getRouteIndex();
 			int maxNumWP  = routeMgr->getNumWayPoints('test') - 1;
@@ -1038,6 +1046,10 @@ int ActTransport::moveGuruGuru()
 void ActTransport::decideGoal(Creature* cargo)
 {
 	Pellet* pel = mPellet.getPtr();
+#if defined(PIKI_PC_PORT)
+    mGoal = nullptr;
+    if (!pel || !cargo) return;
+#endif
 	PRINT("pellet type is %d\n", pel->mConfig->mPelletType());
 	if (pel->mConfig->mPelletType() == PELTYPE_UfoPart) {
 #if defined(PIKI_PC_PORT)
@@ -1047,7 +1059,11 @@ void ActTransport::decideGoal(Creature* cargo)
 		mGoal = itemMgr->getUfo();
 #endif
 		if (!mGoal) {
+#if defined(PIKI_PC_PORT)
+            pel->mTargetGoal=nullptr;return;
+#else
 			ERROR("no ufo!");
+#endif
 		}
 		mPellet.getPtr()->mTargetGoal = mGoal;
 		return;
@@ -1103,7 +1119,10 @@ void ActTransport::decideGoal(Creature* cargo)
 		}
 	}
 
-	int randColor = (f32(numOptions) * gsys->getRand(1.0f));
+#if defined(PIKI_PC_PORT)
+    if (numOptions <= 0) { pel->mTargetGoal = nullptr;return; }
+#endif
+	int randColor = static_cast<int>(f32(numOptions) * gsys->getRand(1.0f));
 	if (randColor >= numOptions) {
 		PRINT_KANDO("random select color=%d : maxcols=%d\n", randColor, numOptions);
 		randColor = Blue;
@@ -1121,7 +1140,9 @@ void ActTransport::decideGoal(Creature* cargo)
 
 	if (!mGoal) {
 		PRINT("SORRY *** goal(color%d) is required !!\n", onyonColor);
+#if !defined(PIKI_PC_PORT)
 		ERROR("zannnen\n"); // 'too bad'
+#endif
 	}
 	STACK_PAD_VAR(1);
 }
@@ -1159,6 +1180,11 @@ Vector3f ActTransport::crGetPoint(int idx)
 		Pellet* pel = mPellet.getPtr();
 		decideGoal(pel);
 	}
+#if defined(PIKI_PC_PORT)
+    // Callers can still query the current cargo/radius in this tick. Keep its
+    // reference alive here; doLift/exec handle failed-job cleanup normally.
+    if (!mGoal) return mPiki->mSRT.t;
+#endif
 
 	if (idx < 0) {
 		return mRouteStartPos;

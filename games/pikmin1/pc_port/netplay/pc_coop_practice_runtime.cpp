@@ -10,6 +10,7 @@
 #include "netplay/pc_coop_practice_input.h"
 #include "netplay/pc_coop_practice_status.h"
 #include "netplay/pc_coop_world.h"
+#include "netplay/pc_coop_visual_smoothing.h"
 #include "netplay/pc_netplay_present.h"
 #include "netplay/pc_input_log.h"
 #include "nectar_net/practice_bootstrap.h"
@@ -45,6 +46,8 @@ std::unique_ptr<net::PracticeBootstrap> loading;
 std::thread::id thread;
 net::CoopRole role=net::CoopRole::Guest;
 PcCoopPracticeInput inputs;
+PcCoopVisualSmoothing smoothing;
+net::ActorFrame presented;
 net::NetInputFrame remote;
 std::uint64_t tick=0,frame=0,applied=0,lastPublish=0,revision=0;
 bool title=false,requested=false,loaded=false,confirmed=false,entered=false,stopped=false;
@@ -172,14 +175,20 @@ void pc_coop_practice_tick_begin() {
     s->setBlocked(net::CoopBlock::Settings,pc_settings_menu_is_open()!=0);
     s->setBlocked(net::CoopBlock::Background,away);
     if (s->phase()==net::CoopPhase::WaitingForPartner) { hold(false);showPanel();return; }
-    if (s->view().revision!=revision) { inputs.reset();revision=s->view().revision; }
+    if (s->view().revision!=revision) { inputs.reset();smoothing.reset();revision=s->view().revision; }
     if (role==net::CoopRole::Guest && s->actors().frame>applied) {
         const auto& actors=s->actors();
         if (!pc_coop_world_apply_guest_visuals(loading->sessionId(),loading->scene().epoch,actors)) {
             fail("A complete practice picture could not be applied. Close P1 and reopen.");return;
         }
-        applied=actors.frame;inputs.observe(actors.tick,now);
+        applied=actors.frame;inputs.observe(actors.tick,now);smoothing.push(actors,now);
         if (!confirmed) confirmed=s->confirmWorldLoaded();
+    }
+    if (role==net::CoopRole::Guest && applied) {
+        if (s->phase()!=net::CoopPhase::Running) { smoothing.reset();smoothing.push(s->actors(),now); }
+        if (smoothing.sample(now,presented) && !pc_coop_world_present_guest(presented)) {
+            fail("The practice view changed unexpectedly. Close P1 and reopen.");return;
+        }
     }
     // A running session dismisses the one-shot panel latch so that a later
     // interruption, including either phone backgrounding, can request ready again.
@@ -339,7 +348,7 @@ bool pc_coop_practice_leave() {
     }
     loading.reset();owner->close();owner.reset();pc_coop_world_end_scene();
     requested=loaded=confirmed=entered=stopped=away=panel=padFiltered=advancing=sessionConfigured=false;
-    tick=frame=applied=lastPublish=revision=0;previousButtons=0;failure[0]=0;inputs.reset();remote={};
+    tick=frame=applied=lastPublish=revision=0;previousButtons=0;failure[0]=0;inputs.reset();smoothing.reset();presented={};remote={};
     return true;
 }
 void pc_coop_practice_background(bool value) { if (!owner || !ownThread()) return;away=value;if (session()) session()->setBlocked(net::CoopBlock::Background,value);if(value){panel=false;hold(false);} }

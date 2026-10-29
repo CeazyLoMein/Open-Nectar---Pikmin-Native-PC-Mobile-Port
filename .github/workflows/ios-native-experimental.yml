@@ -240,6 +240,20 @@ jobs:
             libs/nectar_net/src/coop_session.cpp libs/nectar_net/tests/coop_session_test.cpp \
             libs/nectar_net/src/coop_connection.cpp libs/nectar_net/tests/coop_connection_test.cpp \
             libs/nectar_net/src/practice_bootstrap.cpp
+      - name: Check guest smoothing, desktop Ready focus and missing carry goals
+        if: matrix.game == 'pikmin1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          c++ -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -Ilibs/nectar_net/include tests/pikmin1_coop_smoothing_test.cpp -o "$RUNNER_TEMP/p1-smoothing"
+          "$RUNNER_TEMP/p1-smoothing"
+          for name in desktop_focus missing_carry_goal; do
+            python3 "tests/pikmin1_${name}_test.py" "$RUNNER_TEMP/p1-${name}.cpp"
+            c++ -std=c++17 -Wall -Wextra -Werror "$RUNNER_TEMP/p1-${name}.cpp" -o "$RUNNER_TEMP/p1-${name}"
+            "$RUNNER_TEMP/p1-${name}"
+            xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/p1-${name}.cpp"
+          done
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -Ilibs/nectar_net/include -fsyntax-only tests/pikmin1_coop_smoothing_test.cpp
       - name: Check actual P1 co-op capture and pooled actor lifecycle
         if: matrix.game == 'pikmin1'
         shell: bash

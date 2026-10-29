@@ -307,6 +307,35 @@ int main(){
  check(!pc_coop_world_guest_active()&&!pc_coop_world_may_advance()&&!pc_coop_world_apply_guest_visuals(107,10,dynamic)&&pc_coop_world_draw_guest_pikmin(gfx),"even dormant slot reuse invalidates ownership, holds guest and suppresses normal fallback");
  pc_coop_world_end_scene();check(!pc_coop_world_draw_guest_pikmin(gfx),"scene teardown restores ordinary manager draw ownership");
 
+
+ // Presentation redraws cannot consume a host sequence or change game metadata.
+ pikiMgr=&displayPool;navis.objects={&n0,&n1};d0.applied=d1.applied=d2.applied=0;
+ check(pc_coop_world_begin_guest(109,20)&&pc_coop_world_prepare_guest_visuals(109,20),"smoothing display context");
+ ActorFrame smooth;smooth.frame=1;smooth.tick=100;
+ auto sc0=NetEntityId{20,EntityKind::Captain,0,1}.pack(),sc1=NetEntityId{20,EntityKind::Captain,0,2}.pack();
+ auto sp0=NetEntityId{20,EntityKind::Pikmin,0,3}.pack(),sp1=NetEntityId{20,EntityKind::Pikmin,0,4}.pack();
+ smooth.captains[sc0]=ca;smooth.captains[sc1]=cb;smooth.pikmin[sp0]=visual0;smooth.pikmin[sp1]=visual1;
+ check(!pc_coop_world_present_guest(smooth),"cannot present before accepted baseline");
+ check(pc_coop_world_apply_guest_visuals(109,20,smooth),"baseline before smoothing");
+ auto shown=smooth;shown.captains[sc0].position.x=12;shown.pikmin[sp0].position.x=24;
+ shown.pikmin[sp0].owner=1;shown.pikmin[sp0].health=0;shown.pikmin[sp0].color=2;shown.captains[sc0].health=0;
+ check(pc_coop_world_present_guest(shown)&&n0.mSRT.t.x==12&&d0.last.position.x==24,"actual display applies intermediate transforms");
+ check(n0.mHealth==ca.health&&d0.last.owner==visual0.owner&&d0.last.health==visual0.health&&d0.last.color==visual0.color,"smoothing cannot overwrite accepted captain health or Pikmin metadata");
+ check(pc_coop_world_guest_pikmin_state(sp0,diagnostic)&&diagnostic.position.x==visual0.position.x,"smoothing does not overwrite host diagnostic state");
+ auto expectPresentationRejected=[&](const ActorFrame& badFrame,const char*why){
+  int count=d0.applied;float x=n0.mSRT.t.x;check(!pc_coop_world_present_guest(badFrame)&&d0.applied==count&&n0.mSRT.t.x==x,why);
+ };
+ auto badShown=shown;badShown.frame=2;expectPresentationRejected(badShown,"unadmitted future frame refused");
+ badShown=shown;badShown.tick=99;expectPresentationRejected(badShown,"presentation tick rewind refused");
+ badShown=shown;badShown.pikmin.erase(sp1);expectPresentationRejected(badShown,"missing population refused atomically");
+ badShown=shown;badShown.pikmin[sp1].upperAnimation=89;expectPresentationRejected(badShown,"presentation cannot switch accepted animation clip");
+ badShown=shown;badShown.pikmin[sp1].upperFrame=1000;expectPresentationRejected(badShown,"bad final pose does not partially update any actor");
+ smooth.frame=2;smooth.tick=101;
+ check(pc_coop_world_apply_guest_visuals(109,20,smooth),"presentation redraws did not consume the next authoritative frame");
+ expectPresentationRejected(shown,"old population sequence refused after new frame");
+ pc_coop_world_forget(&d2);expectPresentationRejected(smooth,"recycled dormant pool refuses redraw");
+ pc_coop_world_end_scene();check(!pc_coop_world_present_guest(smooth),"scene teardown clears display redraw access");
+
  // New session after rejoin: both idle actors keep their original owner.
  pikiMgr=&pikis;navis.objects={&n0,&n1};pikis.objects={&p0,&p1};
  p0.mNavi=nullptr;p1.mNavi=nullptr;p0.mPlayerId=0;p1.mPlayerId=1;

@@ -21,12 +21,29 @@ std::unique_ptr<CoopConnection> handoff;
 CompatibilityInfo identity;bool checked=false,hashing=false;
 std::future<bool> hashJob;std::array<std::uint8_t,32> content{};
 std::uint64_t lastStatus=0;
+bool readyRequested=false;
 std::uint64_t nowMs(){return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());}
 void status(const char* text){if(roomStatus)SetWindowTextA(roomStatus,text);}
-void stop(){if(handoff)handoff->close();if(guest)guest->cancel();if(host)host->close();guest.reset();host.reset();if(codeBox)SetWindowTextA(codeBox,"");}
+void stop(){readyRequested=false;if(handoff)handoff->close();if(guest)guest->cancel();if(host)host->close();guest.reset();host.reset();if(codeBox)SetWindowTextA(codeBox,"");}
 void resume(){
+    if(!pc_coop_practice_can_ready())return;
+    readyRequested=true;
+    if(panel)ShowWindow(panel,SW_HIDE);
     if(game){SetForegroundWindow(game);SetFocus(game);}
-    if(GetForegroundWindow()==game){pc_coop_practice_background(false);if(pc_coop_practice_ready())ShowWindow(panel,SW_HIDE);}
+    // Actual readiness is applied after queued window messages are drained.
+}
+void updateFocus(){
+    // A native P1 room/practice panel is part of this game, not an external
+    // backgrounding event. SDL focus notifications can be queued behind a
+    // Ready click, so use the final foreground window once, here.
+    const HWND foreground=GetForegroundWindow();
+    const bool ownWindow=foreground && (foreground==game || foreground==room || foreground==panel
+        || GetAncestor(foreground,GA_ROOTOWNER)==game);
+    pc_coop_practice_background(!ownWindow || (game && IsIconic(game)));
+    if(readyRequested){
+        if(!ownWindow)readyRequested=false;
+        else if(foreground==game && pc_coop_practice_ready())readyRequested=false;
+    }
 }
 void action(int id){
     if(id==7){ShowWindow(room,SW_HIDE);if(game)SetForegroundWindow(game);return;}
@@ -95,6 +112,7 @@ extern "C" void nectar_desktop_open_coop_practice(){
 }
 extern "C" void nectar_desktop_coop_pump(){
     MSG msg;while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)){TranslateMessage(&msg);DispatchMessageW(&msg);}
+    updateFocus();
     if(hashing&&hashJob.wait_for(std::chrono::seconds(0))==std::future_status::ready){
         checked=hashJob.get();hashing=false;
         if(checked){identity.game=1;identity.region=1;identity.build=nectar_ios::coop_build_identity;identity.content=content;identity.capabilities=identity.requiredCapabilities=0x30000;status("Ready. Host a private room or paste a code from the matching game update.");}

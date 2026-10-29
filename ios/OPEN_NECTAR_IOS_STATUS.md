@@ -1,3 +1,9 @@
+## Current checkpoint — 2026-10-29 19:53 EDT: PC4/iPhone88 hardware feedback and coordinated fix batch
+
+This entry supersedes older current-state claims below. Matching PC4/iPhone88 were installed and tested. PC host runs smoothly locally; phone guest actor movement stutters, reverse-role Windows Ready sticks, and PC log records missing-Onion `zannnen` panic. Guest arrival-time visual smoothing, Windows focus/Ready ordering and safe missing carry destinations are implemented and locally verified; new native builds are pending. Original low-detail Louie restore is approved but NOT done (no USB device detected; no phone writes). P2 unchanged. Read the newest full progress report at the end of this file, UPSTREAM_AUDIT_2026_10_29.md and Documents/Open Nectar/2 - Progress and ChatGPT Handoff/Exact Resume State.json for resolved commits/run IDs. Do not install unverified packages or merge all upstream files. Preserve PC4/phone88 as rollback and all save/graphics/control preferences.
+
+---
+
 ## Current population/pose checkpoint — 2026-10-27 11:51 EDT
 
 Actual P1 guest population and sampled animation/render source implemented; local fixtures/Clang/24 rebuilt network tests/encrypted probe PASS. No Apple/full-engine or phone validation yet. No77 dispatched, keep installed68. Guest visual slots remain outside live AI; complete world/room/scene/input driver still pending. New mandatory native gate has17 checks. Pikmin wire schema2=50bytes. Checkpoint subject `Integrate guest Pikmin populations and host-sampled poses [skip ci]`, parent 6699108ac4ae81a0b23dcf7bb976ccbf509abc5a; resolved post-push revision in accessible Exact Resume State.json.
@@ -3427,5 +3433,69 @@ RTSS Windows approval completed; P1-only profile installed, API readback OSD1/de
 - Phone character packs are now intentionally REMOVED per user. Do not reinstall them automatically or synchronize PC visuals onto the phone. GPI textures retained; phone HD model mask63. PC models are retained unless user says otherwise.
 - Do not mistake the unlocked solo-test campaign for a corrupted normal save. Existing normal save cards are preserved and separately backed up. Standard variant may be preferable when user wants ordinary new-game progression, but88 remains an unlocked test update.
 - Exact resumption: inspect status/origin and Exact Resume State; read latest report; verify whether user installed88, then guide the short actual PC/phone test. Keep outstanding normal-campaign choice and all larger co-op objectives visible. No more idle polling of completed builds.
+
+**END PROGRESS REPORT**
+
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-29 19:53 EDT
+
+**Overall project status:** Full PC4 and iPhone88 practice ran on the user's devices. PC-host play was smooth locally but iPhone guest actor movement stuttered; phone-host/PC-guest Ready was stuck. The PC later exited itself with an engine panic. A coordinated fix batch is implemented and locally verified; new full native builds are about to be requested. No new executable/IPA has been installed, and no running-game input or process termination was performed by Codex.
+
+### Pikmin 1
+
+- Current objective: fix mixed PC/iPhone guest presentation, Windows readiness and the observed host crash before extending campaign co-op.
+- Investigated: four per-session PC reports, current phone reports/settings copied read-only, PC launcher log, both supplied PC recordings via sampled frames, runtime/world/focus/carry source and original upstream 1.1.1. The phone MOV files opened for initial metadata but later were absent at their supplied paths; no claim of visually reviewing those phone recordings. The screenshot and user's observations remain evidence.
+- Root cause/evidence: guest receives complete actor snapshots at about 19–20 Hz while its camera renders near120 Hz. Guest transforms previously jumped directly to each snapshot with no between-snapshot presentation. LAN RTT was about3 ms in captured reports, so this is not evidence of generally slow Wi-Fi. PC guest reports remained `away=1`; queued SDL focus events and native panel focus could clear readiness immediately. PC last-run log ended in the unique `zannnen` carry-goal panic, whose source requires an absent Onion. Exact cargo leading to the panic was not identified.
+- Implemented: bounded eight-frame,75 ms arrival-time presentation buffer for guest captains and Pikmin, sampling at each device's render rate. No extrapolation. Latest population/ownership/health/action remain authoritative, births/deaths retain exact IDs, large teleports snap, angles wrap by shortest path, animation loops/clip changes do not interpolate backward. Pause/revision/teardown reset history.
+- Implemented: actual engine redraw adapter validates the current admitted sequence/population/pool before any writes; redraw cannot consume host sequence, change stored ownership/health/job metadata or start guest simulation. It reuses latest accepted metadata and only blends compatible poses/transforms.
+- Implemented: Windows game/owned room/practice windows share one foreground-family check after queued messages drain. Ready is deferred until focus reaches the game. External apps/minimizing still pause, and coming back still requires readiness. Removed duplicate stale SDL co-op focus notifications; iOS interruption logic unchanged.
+- Implemented: missing Onion/ship or nearest route safely fails a carry attempt instead of panic/null dereference. Vanished cargo and empty destination choice are guarded. Original valid color/owner destination selection remains unchanged; console-only fatal assertions remain conditional outside the PC port. Cargo references are retained while route-point callers finish the same tick.
+- Files changed: pc_port/netplay/pc_coop_visual_smoothing.h (new), pc_coop_practice_runtime.cpp, pc_coop_world.h/.cpp, pc_desktop_coop.cpp, pc_window.cpp; src/plugPikiKando/aiTransport.cpp; relevant tests; two experimental workflows; project journals and upstream audit.
+- Local verification PASS:231 standalone presentation assertions,14 actual extracted Windows Ready/focus checks,8 actual extracted carry-goal/route checks; strict MSVC /W4 /WX. Actual world adapter plus existing pool/300-Pikmin packet/lifetime/compile-out fixture passes with new redraw cases. Actual Windows frontend compiles with strict warnings. Existing actual independent-view/camera/HUD/audio and gameplay-authority guards pass. Clang diagnostic/core analysis with warnings treated as errors passes for new fixtures/smoothing and actual world adapter.13 full actual engine/header translation-unit checks pass with existing decompilation warnings. Four Windows packaging tests pass after using the workspace test-temp directory. Python AST parses. New checks are required before packaging in both workflows.
+- Additional bounded experiment: actual practice input helper plus InputReceiver, continuous movement at host30/60/120/180/240 Hz with2 ms one-way delay and20 Hz snapshots had zero post-warmup neutral movement gaps. This does not exclude jitter/packet-loss issues; no speculative input-policy rewrite was made.
+- Verification repairs: initial carry fixture exposed a legacy float-to-int warning, fixed with an explicit semantically equivalent cast. Explicit UTF-8 fixes Windows source decoding. A core analyzer found an unguarded empty destination-choice path; guarded and rechecked. None of the checks or existing native runtime/package gates were weakened. Local workflow YAML parser unavailable; no YAML-parser pass claimed. Git diff whitespace check passed.
+- Confirmed working: user's PC4 local gameplay smooth; phone88 renders world/camera, original solo/touch/native pixels previously confirmed. Phone HD Pikmin Off gave user-reported steady120; HD character removal and preserved GPI textures previously verified. Current mixed practice is still experimental and not shared campaign co-op.
+- Remaining: actual new PC/iPhone native compilation/artifacts and runtime test in both host roles; device pause/background behavior after update; internet/full shared world/campaign/reconnect/durable mid-day recovery/cross-progression. New visual fix is NOT yet hardware-confirmed.
+- Original Louie: user approved restoring only the340588-byte original low-detail Louie. Prepared restore script validates backup SHA c61f484c955e3944dded7535efe8bedd91214454a86620a343ec79842c16bf8d, keeps all HD characters absent, changes only model-mask63 to61 and backs up config. Latest attempt failed with NoDeviceConnectedError before writes. Restoration still pending; do not say completed. Reconnect/unlock with P1 CLOSED when convenient, preferably at the next build update.
+
+### Pikmin 2
+
+- Current objective: preserve the last user-confirmed working P2 while P1 co-op is validated.
+- Investigated: upstream release notes/source candidates only; no new P2 runtime fault.
+- Root cause/hypothesis: none new.
+- Files changed: no P2 source, app or assets.
+- Tests/results: no P2 build requested.
+- Confirmed working: earlier user hardware report; full campaign remains unproven.
+- Remaining: broader campaign test and eventual P2 online adaptation; selected upstream P2 fixes queued separately.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: ios-experimental. Starting local/remote987d254d5fb5129edaca097ec277471f5c47590e; last accepted gameplay source2b9844da663314a2eb2f9b41bc6f2dca1af58b6b. Fetch showed no divergence or third-party fork pushes.
+- Latest commit/commits created/changes pushed: fix batch currently uncommitted at this checkpoint; final resolved source SHA, local/remote and run IDs go in Exact Resume State.json after push. No upstream merge or branch/history rewrite.
+- Uncommitted changes: the scoped P1 batch, new tests and documentation listed above; preserve these if interrupted before commit.
+- Last successful runs: Windows4/run40932444780; iPhone88/run40932444692. Both source2b9844da, shared identity92e732019066b603cae94bdcb1d75a18394f6a74c5f586dd65375baf4a1855e3. User installed/tested matching pair; old `iphone88_installed=false` resume field is corrected now.
+- Artifacts: Windows4 artifact12923288453, iPhone88 artifact12924694374 previously fully verified. No new batch artifacts yet. Keep installed PC4/phone88 and backups until replacements pass.
+- Next build: single coordinated push with [ios-build] [ios-p1-update] [pc-coop-build], preserving the current same-app unlocked solo-update test variant. Do not silently change normal/test save behavior. Both clients must update to the same new source identity. P2 excluded. Do not idle-poll; user will report completion.
+
+### Next steps
+
+- Next P1 task: commit/push the verified batch, record both actual run IDs; verify native results and stage matching packages only after success. Then test PC host/phone guest movement, reverse roles Ready, pause/Alt-Tab/background, and longer stability. Raye's phone is unnecessary for this mixed test.
+- Next P2 task: preserve current install; later broader campaign coverage and separate upstream review.
+- GitHub/build task: one paired validation batch, no redundant builds for documentation; preserve all existing receipts and native UIKit scene/socket tests.
+- User involvement: none while building. No need to keep a live session open. Original Louie needs USB/unlocked/P1 closed when convenient; no repeated launch/install or asset replacement needed now.
+
+### ChatGPT continuation notes
+
+- New upstream release1.1.1 today, current fetched upstream/main14a922a9. Read ios/UPSTREAM_AUDIT_2026_10_29.md. Strong next candidate is per-program shader cache, but do not import480p default. New control action IDs conflict with our Recall All index26; reconcile before adoption. No release feature has been silently merged.
+- Important source functions: PcCoopVisualSmoothing::push/sample; pc_coop_practice_tick_begin/leave; pc_coop_world_present_guest/commitCaptains; Windows resume/updateFocus; ActTransport::doLift/decideGoal/crGetPoint.
+- Logs: work/practice-pair-pc4-iphone88/pc-last-run.log and per-session reports; work/p1-current-graphics-20261029-155548/pikmin1 reports; work/pair-real-headers.log, pair-strict-clang.log, pair-clock-repro.cpp; upstream-releases-oct29.json. No room tokens or private game assets committed.
+- Existing PC folder: C:/Users/chazz/Documents/Open Nectar/4 - Windows Version/Pikmin 1 - Full PC Co-op - Experimental. Launch PLAY PIKMIN 1.cmd; preserve Game/Load, Saves, config and assets junctions. Do not mistake launcher `The game stopped` terminal for proof of normal exit; inspect last-run.log.
+- Existing phone backup: Documents/Open Nectar/5 - Backups and Older Files/P1 Before Character Removal and Build 88 - 20261029-153051. Keep GPI active, HD packs intentionally removed, restore only original Louie after permission already given.
+- Unverified: new hardware behavior, actual native compilation/package for new source; original Louie not restored. New P1 remains unlocked solo-update test variant with separate save-solo-test; normal `save` preserved. This is not a completed campaign/co-op product.
+- Preserve all queued vision: independent personal graphics/camera/controls, own screens/squads, shared Onion stock with independent allowances, host-owned campaign, cutscenes/travel, same/different Wi-Fi, PC/iPhone mixed play and migration, automatic exact mid-day recovery for calls/suspension/closing/crashes, reconnect and clear exit UI. None is canceled by this batch.
+- Exact next actions after a reset: read this report and Exact Resume State; verify Git status/fetch; use recorded source/run IDs for full logs and receipts; stage only verified matching artifacts; restore original Louie when the user reconnects; guide both-role practice test and collect reports for any remaining faults.
 
 **END PROGRESS REPORT**

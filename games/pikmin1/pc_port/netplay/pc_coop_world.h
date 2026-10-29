@@ -55,6 +55,9 @@ bool pc_coop_world_apply_guest_actors(std::uint64_t sessionId, std::uint32_t sce
 bool pc_coop_world_prepare_guest_visuals(std::uint64_t sessionId, std::uint32_t sceneEpoch);
 bool pc_coop_world_apply_guest_visuals(std::uint64_t sessionId, std::uint32_t sceneEpoch,
     const nectar::net::ActorFrame& frame);
+// Locally smoothed presentation of the latest admitted population only.
+// Never changes the accepted frame/tick, membership, ownership or host authority.
+bool pc_coop_world_present_guest(const nectar::net::ActorFrame& frame);
 // Last applied host ownership/action metadata; does NOT change guest AI/FSM.
 bool pc_coop_world_guest_pikmin_state(std::uint64_t id, nectar::net::PikminState& output);
 
