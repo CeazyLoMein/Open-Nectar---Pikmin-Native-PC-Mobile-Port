@@ -1441,10 +1441,15 @@ bool Navi::pcTakeFollowerRescueBudget(){
 
 void Navi::pcUpdateRecallAll()
 {
+#if defined(PIKI_PC_PORT)
+    if (mNaviID != 0) return;
+    // Consume both inputs even when unavailable; neither may fire later.
+    bool requested = pc_window_take_recall_press();
 #if PIKI_PC_TOUCH
-    // Consume even when unavailable: a menu/cutscene press must not fire later.
-    if (mNaviID != 0 || !pc_touch_take_recall_request()) return;
-    if (!pc_settings_get_recall_all() || !playerState || playerState->inDayEnd()
+    const bool touchRequested = pc_touch_take_recall_request();
+    requested = requested || touchRequested;
+#endif
+    if (!requested || !pc_settings_get_recall_all() || !playerState || playerState->inDayEnd()
         || (gameflow.mMoviePlayer && gameflow.mMoviePlayer->mIsActive)) return;
     callPikis(1.0f, true);
 #endif

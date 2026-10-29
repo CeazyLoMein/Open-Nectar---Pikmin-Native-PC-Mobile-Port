@@ -64,6 +64,8 @@ enum {
     PC_KEY_ACT_BOMB          = 24,
     // Modo Speedrun: mantener 1 s reinicia la run (pc_speedrun.cpp).
     PC_KEY_ACT_SPEEDRUN_RESET = 25,
+    // Append only: existing saved key_N bindings keep their indices.
+    PC_KEY_ACT_RECALL_ALL = 26,
     PC_KEY_ACT_COUNT
 };
 void pc_window_set_key_binding(int action, SDL_Scancode scancode);
@@ -96,6 +98,8 @@ bool pc_window_take_lockon_press(int player);
 bool pc_window_take_bomb_press(int player);
 /// Flanco del botón de swarm de ese jugador: con el Charge activo lanza la carga.
 bool pc_window_take_swarm_press(int player);
+// Dedicated solo Recall All command; does not synthesize the whistle button.
+bool pc_window_take_recall_press(void);
 /// Inyecta la pulsación desde la capa táctil, que no pasa por los bindings.
 void pc_window_request_lockon_press(int player);
 void pc_window_request_firstperson_press(void);

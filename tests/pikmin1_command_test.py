@@ -123,6 +123,7 @@ uint8_t pc_netplay_ext_bits(int){return 0;}unsigned pc_netplay_tick(){return 0;}
 namespace pc_input_log {enum {kExtLockOn=1,kExtCharge=2};}
 bool pc_window_take_lockon_press(int){bool b=lockPress;lockPress=false;return b;}
 bool pc_window_take_swarm_press(int){bool b=chargePress;chargePress=false;return b;}
+bool keyboardRecall=false;bool pc_window_take_recall_press(){bool b=keyboardRecall;keyboardRecall=false;return b;}
 int pc_settings_get_lock_on(){return lockMode;}int pc_settings_get_charge(){return chargeOn;}
 int pc_settings_get_better_pathfinding(){return better;}void pc_settings_note_lock_on(int){}
 bool touchAim=false;bool pcTouchAim(const Navi*n){return touchAim&&!det&&n->mNaviID==0;}
@@ -242,6 +243,11 @@ int main(){
  int calls=n.recalls;pcTouchRequestRecall(BTN_RECALL_ALL);n.pcUpdateRecallAll();
  check(n.recalls==calls+1&&n.recalledAll,"separate button invokes explicit global recall");
  n.pcUpdateRecallAll();check(n.recalls==calls+1,"holding/rechecking does not repeat global recall");
+ keyboardRecall=true;n.pcUpdateRecallAll();check(n.recalls==calls+2&&n.recalledAll,"PC dedicated key calls the same solo command");
+ n.pcUpdateRecallAll();check(n.recalls==calls+2,"PC key request is consumed once");
+ calls=n.recalls;movie.mIsActive=true;keyboardRecall=true;n.pcUpdateRecallAll();movie.mIsActive=false;n.pcUpdateRecallAll();check(n.recalls==calls,"cutscene drops keyboard recall");
+ keyboardRecall=true;pcTouchRequestRecall(BTN_RECALL_ALL);n.pcUpdateRecallAll();check(n.recalls==calls+1,"simultaneous touch and PC command recalls once");
+ n.pcUpdateRecallAll();check(n.recalls==calls+1,"simultaneous inputs are both consumed");
  sGameMenuClaimFrames=3;pcTouchRequestRecall(BTN_RECALL_ALL);check(!pc_touch_take_recall_request(),"game menu cannot queue recall");sGameMenuClaimFrames=0;
  sPortMenuClaimFrames=3;pcTouchRequestRecall(BTN_RECALL_ALL);check(!pc_touch_take_recall_request(),"advanced menu cannot queue recall");sPortMenuClaimFrames=0;
  sEditMode=true;pcTouchRequestRecall(BTN_RECALL_ALL);check(!pc_touch_take_recall_request(),"layout editor cannot queue recall");sEditMode=false;

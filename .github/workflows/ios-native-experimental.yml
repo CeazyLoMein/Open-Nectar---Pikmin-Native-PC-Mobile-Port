@@ -326,6 +326,9 @@ jobs:
           c++ -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port tests/pikmin1_practice_squad_policy_test.cpp -o "$RUNNER_TEMP/p1-practice-squad-test"
           "$RUNNER_TEMP/p1-practice-squad-test"
           xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -fsyntax-only tests/pikmin1_practice_squad_policy_test.cpp
+          python3 tests/pikmin1_pc_recall_test.py "$RUNNER_TEMP/p1-pc-recall.cpp"
+          c++ -std=c++17 -Wall -Wextra -Werror "$RUNNER_TEMP/p1-pc-recall.cpp" -o "$RUNNER_TEMP/p1-pc-recall"
+          "$RUNNER_TEMP/p1-pc-recall"
           python3 tests/pikmin1_command_test.py "$RUNNER_TEMP/p1-command-test.cpp"
           c++ -std=c++17 -Wall -Wextra -Werror "$RUNNER_TEMP/p1-command-test.cpp" -o "$RUNNER_TEMP/p1-command-test"
           "$RUNNER_TEMP/p1-command-test"

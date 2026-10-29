@@ -1611,3 +1611,44 @@ iPhone-only retry Build87/run40902351675 is in progress at source312a5920: https
 User reported a grey nonresponding window. Read actual Logs/last-run.log: SDL/OpenGL context, NVIDIA GPU and shaders all initialized; JAudio repeatedly failed DVDOpen for assets/dataDir/SndData/Seqs/pikiseq.arc and assets/dataDir/SndData/Banks/pikibank.bx. Staging had copied dataDir at Game/dataDir, but actual DVD backend prefixes ALL original paths with assets/. This was a local staging mistake, not a compiler or confirmed GPU failure.
 
 Stopped only the exact experimental process identified by its full executable path, before title/gameplay. Archived first startup log locally. Added scoped non-cyclic Game/assets/{dataDir,art,banner&icons,Debug,plugins} junctions pointing to the existing copied sibling folders; originals were neither moved nor duplicated. Verified missing startup files through mapped paths against their original SHA256. Kept the real Game/dataDir for the desktop content scanner (which correctly refuses reparse roots). Updated PLAY launcher to refuse launch before the two mandatory audio files exist. No new build or source/gameplay change required. Runtime RELAUNCH STILL PENDING: user must open PLAY PIKMIN 1.cmd and confirm title/music/controls. Do not claim this is fully fixed until logs/user confirm successful startup.
+
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-29 14:35 EDT
+
+**Overall project status:** Full Windows P1 Build2 is now USER-CONFIRMED running well after the local asset-path correction. PC graphics packs installed and enabled; their actual rendering and RTSS overlay need a new user check. iPhone87 failed in simulator installation before the device game build. Source now adds a separate PC Recall All key, locally verified; paired builds will be submitted together.
+
+### Pikmin 1
+- Current objective: working full PC/iPhone practice pair, optional PC visual content and missing PC Recall All input.
+- Investigated: actual saved keyboard bindings, desktop non-touch recall guard, model/texture paths, actual RTSS SDK/profile state and iPhone87 failure diagnostics.
+- Root cause: Recall All's consumer was compiled only with touch support. Current PC2 has no Recall All key. Charge is C; R lock-on; T/F/G/H are the original directional squad-steering controls. RTSS global OSD was off and no P1-specific profile existed; borderless itself does not enable the overlay.
+- Files changed: pc_window.cpp/.h, new pc_recall_input.h, navi.cpp, settings/pc_settings.cpp; tests/pikmin1_command_test.py plus new pikmin1_pc_recall_test.py; the two experimental build workflows only add required PC recall checks. Original saved binding indices0-25 retained; new index26 defaults F6 and can be remapped. Recall remains a separate solo cheat, default off; existing touch control and normal whistle preserved. Menu/focus cancellation, release-before-rearm and250ms expiry prevent stale commands.
+- Tests/results:20 real non-touch consumer/input scenarios and110 actual command/recall/cursor/edge scenarios passed under strict MSVC. Scene runner12, room runner10, package4 and source identity2 tests passed locally. One identity test attempt hit Windows test-temp permissions; rerun using writable work/test-temp passed. No full native compile or hardware validation of this source yet.
+- Installed locally: original verified texture ZIP downloaded from exact existing Open Nectar launcher URL, SHA256 5d9254b4f1ca46fee93b57ce17e888521884634bc1fae4bc7a4cf22af7e2551b;3046 PNGs extracted only,15 NHM models and3 portraits from existing verified character bundle. Enabled GPI textures and HD model mask0. Backed up settings in C:\Users\chazz\Documents\Open Nectar\4 - Windows Version\Pikmin 1 - Full PC Co-op - Experimental\Backups\Before HD Content - 20261029-142650. PC saves hash-unchanged; original game assets/apps unchanged. Full manifest: HD CONTENT INSTALL RECORD.json in this PC folder.
+- RTSS: prepared one executable-specific profile, installed after Windows administrator approval; SDK readback EnableOSD1/AppDetectionLevel1, global profile hash unchanged. Actual visible overlay not yet verified. No game input sent by Codex.
+- Confirmed working: user says full PC game works very well; observed saved log ended normally. Prior accepted phone solo baseline retained. Remaining: pack/overlay visuals, new F6 key in compiled build, cross-platform runtime and larger co-op scope.
+
+### Pikmin 2
+- Objective/status: preserve user's last confirmed working phone version. No P2 edits/build/install/test this batch; earlier audio fixes retained. No new runtime claim.
+
+### GitHub
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; branch ios-experimental.
+- Starting commit:4042b7b8, synchronized with origin after fetch. No pre-existing uncommitted changes.
+- Latest/created/pushed commit: consult companion Exact Resume State after submission; this report is included with the scoped F6 batch.
+- iPhone87/run40902351675/source312a592020963c565a066ea297acab8e323886ec FAILED. Actual startup probe compiled, but simctl install timed out after180s on iOS27.1/iPhone Duo. Even simulator log collection then timed out45s. No game-code error identified; startup gate correctly blocked the main game job, so no IPA. Exact underlying simulator stall is unproven; retry on a fresh CI worker without weakening the gate.
+- Logs: workspace work/ios-build87-scene.log and work/build87-scene-artifact.zip, artifact12910064968. Preserved failure.json identifies install stage. Windows2/run40899127561 remains the successfully compiled/user-tested PC baseline. Installed phone84 retained; no matched new iPhone IPA ready.
+
+### Next steps
+- P1/user: restart PC P1; check GPI Active and replacement counters, HD models and RTSS after15 seconds. C is charge; installed PC2 still has no F6 recall until new build.
+- Build task: submit one paired Windows/iPhone batch; capture exact commit and run IDs, verify receipts/artifacts/source identity before staging. Retain current working PC2 and phone84 until replacements are validated. Do not idle-poll.
+- Hardware: after matched pair prepared, test full PC+phone practice first, host roles both directions, move both captains/squads, check guest view/camera, pause/ready/background/exit. Phone not needed during CI.
+- P2: stay paused while P1 cross-platform mode is developed.
+
+### ChatGPT continuation notes
+- User-confirmed PC success is short gameplay validation, not a completed campaign test. New F6 source has only local verification. Optional graphics installed; rendering counters and RTSS need user evidence.
+- Keep player graphics/controls/cosmetics independent; shared simulation rules still need agreement. Never use the old headless PC helper as the full PC game.
+- Mid-day autosave/recovery and seamless PC/iPhone shared progression remain REQUIRED final objectives, not implemented. Practice arena is not campaign co-op; do not promise process-death recovery or live host migration.
+- Exact next actions: verify paired build results/receipts, stage matching executables/IPA without overwriting saves/settings/Load content, then user-controlled mixed-device test. Keep private assets outside public Git.
+
+**END PROGRESS REPORT**

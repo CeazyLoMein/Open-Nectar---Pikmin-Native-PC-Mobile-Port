@@ -7729,7 +7729,7 @@ const GroupRow kCheatsRows[] = {
     { SRC_MODS, 21, "Throw Speed", "How fast Olimar grabs and throws Pikmin. 100% is the original." },
 #if !PIKI_P2_HOST
     { SRC_MODS, 44, "Rescue Stuck Followers", "Optional automatic rescue after about 8 seconds without progress and a failed walking return. Only existing followers: workers and idle Pikmin stay untouched. Needs clear dry ground beside a grounded captain, away from enemies. Safe spot/cooldown may delay rescue. Off in Hard, Speedrun and multiplayer." },
-    { SRC_MODS, 42, "Recall All Pikmin", "Shows a separate group-icon Recall All button. Tap it to call eligible Pikmin across the current area, including workers. Normal whistle keeps its usual range. Pikmin walk back; no teleport, revival or plucking. Off in Hard, Speedrun and multiplayer." },
+    { SRC_MODS, 42, "Recall All Pikmin", "Shows a separate group-icon Recall All button. On PC, press F6 (remap Recall All Pikmin in Controls). Calls eligible Pikmin across the current area, including workers. Normal whistle keeps its usual range. Pikmin walk back; no teleport, revival or plucking. Off in Hard, Speedrun and multiplayer." },
 #endif
     { SRC_MODS, 20, "Whistle Radius", "Size of the whistle circle at full charge. 100% is the original." },
     { SRC_MODS, 26, "Invincible Pikmin", "Pikmin never die: no attacks, fire, water, gas or crushing." },

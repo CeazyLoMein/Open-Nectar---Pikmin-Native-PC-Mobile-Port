@@ -8,6 +8,7 @@
 #include "port/jaudio_host.h"
 #endif
 #include "pc_window.h"
+#include "pc_recall_input.h"
 #ifdef NECTAR_IOS_PERFORMANCE_HUD
 #include "timing/pc_ios_performance.h"
 #endif
@@ -268,6 +269,7 @@ static SDL_Scancode sKeyBindings[PC_KEY_ACT_COUNT];
 // Issue #68: segunda tecla por acción. Los clics que antes estaban fijos en
 // el código (izquierdo = A, derecho = B, central = Z) son sus valores por defecto.
 static SDL_Scancode sKeyBindings2[PC_KEY_ACT_COUNT];
+static PcRecallInput sRecallInput;
 static bool sSwarmHeld = false; // PC_KEY_ACT_SWARM sampled by the last poll
 // D-pad Down of each player's pad, which is also the swarm button.
 static bool sPadDpadDownHeld[2] = { false, false };
@@ -354,6 +356,7 @@ const SDL_Scancode kDefaultKeyBindings[PC_KEY_ACT_COUNT] = {
     /* PC_KEY_ACT_GYRO_RECENTER */ SDL_SCANCODE_UNKNOWN, // el giroscopio va en el mando
     /* PC_KEY_ACT_BOMB        */ SDL_SCANCODE_B, // B solo es "atrás" dentro de los menús
     /* PC_KEY_ACT_SPEEDRUN_RESET */ SDL_SCANCODE_F5,
+    /* PC_KEY_ACT_RECALL_ALL */ SDL_SCANCODE_F6,
 };
 
 SDL_Scancode pc_window_default_key_binding2(int action) {
@@ -393,6 +396,7 @@ const int kDefaultGamepadBindings[PC_KEY_ACT_COUNT] = {
     /* PC_KEY_ACT_GYRO_RECENTER */ -1, // sin botón libre por defecto; se asigna en Controls
     /* PC_KEY_ACT_BOMB        */ -1, // ídem
     /* PC_KEY_ACT_SPEEDRUN_RESET */ -1, // Back abre los ajustes; se asigna en Controls o en el menú Speedrun
+    /* PC_KEY_ACT_RECALL_ALL */ -1, // optional controller binding
 };
 
 // Action names for UI display.
@@ -403,7 +407,7 @@ static const char* kKeyActionNames[PC_KEY_ACT_COUNT] = {
     "C-Stick Up", "C-Stick Down", "C-Stick Left", "C-Stick Right",
     "Swarm to cursor",
     "Lock-On", "First Person", "Gyro Recenter", "Bomb",
-    "Speedrun Reset",
+    "Speedrun Reset", "Recall All Pikmin",
 };
 
 static void initKeyBindings() {
@@ -1231,6 +1235,7 @@ void pc_window_poll_events(PADStatus* pad) {
                     event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
                     sMouseCursorDeltaX = 0.0f;
                     sMouseCursorDeltaY = 0.0f;
+                    sRecallInput.cancel();
 #ifdef NECTAR_DESKTOP_COOP_ROOM
                     pc_coop_practice_background(event.window.event == SDL_WINDOWEVENT_FOCUS_LOST);
 #endif
@@ -1431,6 +1436,13 @@ void pc_window_poll_events(PADStatus* pad) {
         usedGamepad = pc_window_read_gamepad(sController, button, stickX, stickY, substickX, substickY,
                                              triggerL, triggerR, sSwarmHeld);
     }
+    const bool recallHeld = (!PC_NETPLAY_IGNORE_KEYBOARD && sKeyboardOwner == 0
+        && held(PC_KEY_ACT_RECALL_ALL)) || (sController && !PC_NETPLAY_IGNORE_GAMEPADS
+        && pc_window_gamepad_bind_held(sController,
+            pc_window_get_gamepad_binding(PC_KEY_ACT_RECALL_ALL)));
+    sRecallInput.sample(recallHeld, !sSettingsMenuOpen && sWindow
+        && (SDL_GetWindowFlags(sWindow) & SDL_WINDOW_INPUT_FOCUS)
+        && pc_settings_get_recall_all(), SDL_GetTicks64());
     // Flanco del swarm de P1 una vez juntos teclado y mando (Charge).
     if (sSwarmHeld && !sSwarmWasDown[0]) sSwarmPending[0] = true;
     sSwarmWasDown[0] = sSwarmHeld;
@@ -1980,6 +1992,11 @@ bool pc_window_take_swarm_press(int player)
     return v;
 }
 
+bool pc_window_take_recall_press(void)
+{
+    return sRecallInput.take(SDL_GetTicks64());
+}
+
 void pc_window_request_lockon_press(int player) { sLockOnPending[player == 1 ? 1 : 0] = true; }
 bool pc_window_take_bomb_press(int player)
 {
@@ -2029,6 +2046,7 @@ float pc_window_get_mouse_sensitivity(void) {
 
 void pc_window_set_settings_menu_open(bool open) {
     sSettingsMenuOpen = open;
+    sRecallInput.cancel();
     
     // Clear mouse deltas on menu state transition
     sMouseCursorDeltaX = 0.0f;
