@@ -1,3 +1,13 @@
+## Original Louie restored — 2026-10-29 20:01 EDT
+
+Completed the user's approved content-only restoration on their connected phone, with P1 confirmed closed. Restored ONLY the340588-byte original low-detail `Load/Models/Louie/louie.nhm`; phone read-back SHA256 `c61f484c955e3944dded7535efe8bedd91214454a86620a343ec79842c16bf8d` matches the verified private backup. `Load/Models` contains only Louie. All HD character models remain removed. The existing GPI texture selection/content was retained; full textures were not rehashed this time. Current config was backed up locally and on the phone before replacement; the final config was read back and matches the original with only `hdModelsDisabled=63` changed to61. No app update, save write, PC/P2 change or automatic game input.
+
+Backup: Documents/Open Nectar/5 - Backups and Older Files/P1 Before Character Removal and Build88 -20261029-153051 (actual existing folder is `P1 Before Character Removal and Build 88 - 20261029-153051`), config `Before Original Louie-195955.conf`; machine-readable result in work/original-louie-restored.json. Phone may be disconnected and P1 reopened. Louie's in-game appearance is still NOT runtime-tested. Previous statements that restoration is pending are historical and superseded by this entry.
+
+Gameplay source remains deaaee1ee0b884c5c939f456b6a5ccfff4d23d40. PC5/run40976294203 and iPhone89/run40976294072 were last observed IN_PROGRESS; this phone-only action did not check their final result. Await completion feedback, then verify full logs/receipts and matching artifacts before updating clients. No new build needed for restoring this optional model.
+
+---
+
 ## Paired fix build submitted — 2026-10-29 19:56 EDT
 
 Source `deaaee1ee0b884c5c939f456b6a5ccfff4d23d40` pushed. Windows **5**: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40976294203 ; iPhone **89**: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40976294072 . Both last observed IN_PROGRESS, no final result/new artifacts yet.231 smoothing +14 actual focus +8 carry assertions and actual adapter/view/authority/strict frontend/Clang checks passed locally. Preserve installed PC4/phone88; wait for the user to report build completion, then verify full logs/receipts before staging BOTH clients. No idle CI polling. Original Louie restore approved but pending USB/P1 closed. Upstream1.1.1 reviewed, not merged; see UPSTREAM_AUDIT_2026_10_29.md. P2 unchanged. The latest full report is at the end of this journal and in Documents/Open Nectar/2 - Progress and ChatGPT Handoff.
