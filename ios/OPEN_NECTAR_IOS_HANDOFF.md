@@ -1,3 +1,68 @@
+## PC7/iPhone91 successful, verified and ready to test — 2026-10-29 23:03 EDT
+
+Windows7/run40988434328 and iPhone91/run40988434305 both SUCCESS at source0296f6a26e0600f3c66f0c8b6038a68c6ae3f3a5. PC7 INSTALLED after verified PC5 backup;3199 protected config/save/content files unchanged. Phone91 IPA STAGED, not installed by Codex. Identity31cb99e8cc7d34514117939becbc9465ce24ad08d441bc56bf643af2ec750141 matches both packages and tracked source. Full25 native tests/21 practice/13 room receipts/real UIKit socket+scene resume passed. Hardware guest stutter/audio fix NOT YET tested. No more builds or polling; user next updates phone to91 then tests with usual PC launcher. P2 unchanged. Full current report follows; older status entries are historical.
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-29 23:03 EDT
+
+**Overall project status:** PC7 and iPhone91 both PASSED, full packages/identity verified. PC7 installed over the CLOSED PC5 after verified backup,3199 settings/save/content files hash-unchanged. Phone91 IPA staged in Documents; NOT installed by Codex. New guest movement/audio behavior is still awaiting hardware testing. P2 unchanged.
+
+### Pikmin 1
+
+- Current objective: verify smoother guest movement and audible guest gameplay sounds in online practice.
+- What was investigated: live GitHub run/jobs/artifact metadata, full successful PC and native iOS build logs, unsigned IPA, Windows executable/dependencies, current tracked source identity, actual native receipts and real encrypted UIKit simulator results.
+- Root cause / implemented fix: previous PC5/phone90 tests failed in the GUEST role on PC/phone and phone/phone: stutter plus music-only audio. Prior source investigation found host-clock aliasing / inadequate input lead/hold and no gameplay sound relay for the dormant guest AI. Source0296f6a2 implements250ms clock measurement,50ms scheduling padding, trusted-host bounded time-sized hold, ReliableNoNagle, and bounded host-owned positional/player/system/formation/footstep sound cues. Whistle coalescing, nested-command deduplication, local captain ownership, guest listener position, pause/resume/stop/loop cleanup, stale one-shot expiry and private diagnostics are included. No guest AI, framebuffer/graphics/FPS/pathing/settings/content changes.
+- Files changed this verification/staging turn: journals and accessible guides/receipts; verified PC package files only. No new source fix or workflow change.
+- Tests and results: both runs SUCCESS at EXACT source`0296f6a26e0600f3c66f0c8b6038a68c6ae3f3a5`. iOS full game BUILD SUCCEEDED;25 native CMake network/audio tests PASS;21 practice and13 room native receipt checks PASS; actual encrypted UIKit simulator probe PASS with health/main observation and no setup retry/cleanup errors; scene initial/resume each enter once with the same launch ID. Existing231 smoothing/14 focus/8 carry/10 exit regression outputs PASS. Local previous30-test suite includes real encrypted GNS tests and120 host/guest-rate/latency/jitter combinations; OLD-clock negative control failed10 cases. Package SHA256 matches authenticated GitHub artifact digests, IPA ARM64/device/unsigned identity/icons/licenses verified; PC14 receipt files/x64 PE/import closure verified. Both packages AND independently recomputed tracked source share `31cb99e8cc7d34514117939becbc9465ce24ad08d441bc56bf643af2ec750141` (2921 tracked code/config files).
+- Confirmed working: user previously confirmed solo gameplay, sharper graphics, readable settings, camera/touch/keyboard fixes and improved pathing;120FPS after HD Pikmin removal. GPI texture retained, only original low-detail Louie restored on user's phone earlier. Old host practice ran smoothly and compatible peers connected. No new hardware/runtime claim for91/7, full campaign completion or completed campaign co-op.
+- Remaining issues: hardware validation of guest stutter and SFX, reverse-role Windows Ready and interruption behavior. Full campaign world/Onions, travel/cutscenes, durable mid-day saves, exact live recovery, different-network testing and cross-progression remain queued.
+
+### Pikmin 2
+
+- Current objective: preserve user-confirmed working build while P1 is prioritized.
+- What was investigated / root cause: no new investigation.
+- Files changed: none.
+- Tests and results: no new P2 tests/builds.
+- Confirmed working: user-reported gameplay and repaired audio; no full-story completion verified.
+- Remaining issues: broader gameplay regression and eventual online co-op after P1.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: `ios-experimental`.
+- Starting local/remote: `0d259751fefdfbf11134e597cbb04e3d86e24b23`; fetched and synchronized, clean before journal edit.
+- Latest GAME commit in both builds: `0296f6a26e0600f3c66f0c8b6038a68c6ae3f3a5`. Documentation-only verification checkpoint is being committed with `[skip ci]`; final latest local/remote and clean status are in Exact Resume State.json.
+- Commits created this turn: documentation only, subject `Record verified PC7 and iPhone91 staging and test readiness [skip ci]`.
+- Changes pushed: prior timing/audio source already pushed; this turn only verification journal, no extra build.
+- Uncommitted changes: only this scoped journal checkpoint until commit; final clean state recorded after commit.
+- Windows7: run40988434328 SUCCESS, artifact12947874604, ZIP SHA256`1f75f3661c9b1cb2535a85dede176b8fb421fd0c0fd721dabd25d71e95f956a4`, EXE SHA256`16e9821031cdb625050dfe05a04f553c94c55bc7581195b8f2044a705aac08e8`.
+- iPhone91: run40988434305 SUCCESS, P1 artifact12948319637, ZIP SHA256`c20c6b89fa502439d1fcc49e257607a530828f13788d1069baf6b63d5b1be721`, IPA 5366580bytes SHA256`67151b43afc883294af15d785641b3b179d5ce6bd15dbac98c56ef43a5d748f2`, executable UUID`5e077209-7b07-3a4f-a268-585d7435b1c4`. Scene artifact12948820852 SHA256`f449984bf3adfe67b17816d36690ce74794e7a5367c3ef8e86edc73fb852b703`.
+- Artifacts produced/staged: phone`C:\Users\chazz\Documents\Open Nectar\1 - Install on iPhone\P1 Build 91 - Guest Movement and Audio\Pikmin 1 - Build 91.ipa` with START HERE/TEST CHECKLIST/Package Verification. PC installed at Documents/Open Nectar/4 - Windows Version/Pikmin1 - Full PC Co-op - Experimental (actual folder name is `Pikmin 1 - Full PC Co-op - Experimental`), same PLAY PIKMIN1.cmd launcher (actual filename `PLAY PIKMIN 1.cmd`).
+- Backup: `C:\Users\chazz\Documents\Open Nectar\4 - Windows Version\Pikmin 1 - Full PC Co-op - Experimental\Backups\Before PC Build 7 - 20261029-230037`. All14 old package receipt files verified/copied before replacing;3199 current configs/saves/optional-content hashes unchanged after update. Existing asset junctions and launcher preserved. No game launched, closed or controlled.
+
+### Next steps
+
+- Next Pikmin1 task: user updates existing phone P1 with91 through Sideloadly, uses installed PC7 and tests same-Wi-Fi practice. No second phone needed initially.
+- Next Pikmin2 task: retain working version.
+- GitHub/build task: no new build or CI polling needed. Retrieve actual new runtime reports only after feedback; do not invent another fix before seeing results.
+- Anything requiring user involvement: close P1 on phone, install the staged IPA over the same app/signing identity, then PC-host/phone-guest movement and whistle/throw/Pikmin/footstep audio, pause/Ready both, and reverse roles if convenient. Do not uninstall or recopy game assets. Phone USB is not needed for the Wi-Fi test. Both peers MUST be updated;91 is incompatible with PC5. Raye remains optional; if testing her phone too it also needs91. Her missing optional Louie means two Olimars, not a network fault.
+
+### ChatGPT continuation notes
+
+- Exact current state: verified installed PC7 + staged NOT automatically installed phone91, both native builds passed, hardware still pending. Most recent reported hardware problems came from PC5/phone90; do not confuse those with91/7 results. Preserve P2 and all user options.
+- Important source files: games/pikmin1/pc_port/netplay/pc_coop_practice_input.h, pc_coop_practice_runtime.cpp, pc_coop_audio.h/.cpp; src/plugPikiKando/soundMgr.cpp, seMgr.cpp; pc_port/dolphin_stubs/audio_stubs.cpp and audio/pc_audio_source.h; libs/nectar_net/coop_session/protocol/input/gns_transport and coop_audio.h. Full file paths are relative to C:/Dev/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
+- Relevant logs: workspace work/build91-p1-full.log, windows7-full.log, pair7-91-verification.log, windows-coop-build7-verification.json, build91-package-verification.json, pc7-iphone91-stage-result.json. Old hardware reports/recordings preserved under work/practice-pc5-phone90/. No recordings/proprietary game data committed.
+- Unverified fixes: ALL new visual/audio behavior needs hardware evidence; simulator and fake-backend adapter tests do not prove device audibility or smoothness.
+- Risks/limits: disposable practice only,16 positional sound voices, no fully shared campaign, automatic live rejoin or durable mid-day recovery. End Practice/admitted scene/lost link still requires app restart. Phone91 still carries the earlier unlocked solo test preset using separate save-solo-test; ordinary save is preserved. Do not relock/delete saves or claim normal new-campaign final release. Original iOS framebuffer fix stays intact. User wants120FPS available and independent visual/control/camera settings.
+- Upstream1.1.1 was already reviewed Oct29; no bulk merge. See ios/UPSTREAM_AUDIT_2026_10_29.md. GL uniform cache remains a separate possible optimization. Avoid overwriting native resolution defaults/control indices with upstream PC/Android choices.
+- Full co-op vision retained in ios/COOP_OBJECTIVE_QUEUE.md and COOP_MIDDAY_RECOVERY_REQUIREMENTS.md: own-screen cameras/independent squads, shared Onion inventory and separate field allowance, host shared campaign/solo save separation, health-led difficulty, travel/cutscene agreement, private invites/internet, reconnect/host-loss protection, durable exact mid-day autosaves, mixed PC/iPhone play and continuation, P2 later. Do not inflate percentage from passing builds; user requests full-vision percentage-first only when asked.
+- Exact resumption: wait for91/7 test feedback. If not installed yet, point to staged IPA and ordinary PC launcher. If a symptom remains, establish host/guest/builds/actions and inspect saved reports with new host_hz/actor_age/target/hold/audio_sent/audio_played/audio_dropped counters. Never send game input, close a game, alter a phone or change graphics merely to test a hypothesis.
+
+**END PROGRESS REPORT**
+
+---
+
 ## Matching guest timing/audio builds submitted — 2026-10-29 21:54 EDT
 
 Committed and pushed `0296f6a26e0600f3c66f0c8b6038a68c6ae3f3a5` to `ios-experimental`, based on synchronized local/remote`21480b5bfcba7e8f0ebc18e58c38de2f65d34070`. Tree clean after source commit. This is the source included in BOTH replacements:
