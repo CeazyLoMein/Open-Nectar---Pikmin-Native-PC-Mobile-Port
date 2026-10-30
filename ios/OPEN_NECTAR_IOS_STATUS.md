@@ -1,3 +1,57 @@
+## PC8 and iPhone92 verified and staged
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-30 11:04 EDT
+
+**Overall project status:** PC8 and iPhone92 both passed, downloaded and independently verified against authenticated GitHub artifact digests and shared source identity. PC8 installed with verified rollback; phone92 staged, NOT installed. No new device/runtime audio or movement validation yet. P2 unchanged. Next action is user same-app phone92 update followed by PC8/phone92 practice test.
+
+### Pikmin 1
+
+- Current objective: restore guest gameplay audio and reduce remaining cursor/camera judder; obtain actual paired runtime evidence.
+- Investigation/root cause: user-tested PC7/phone91 made movement substantially smoother (subjective80% ->15% stutter), but guest heard music without gameplay SFX on PC/phone and phone/phone. Retrieved private reports read-only after user connected phone. Input neutral ticks were below1% on PC host; guest cue apply attempts were NOT proof of audibility. Confirmed production PIKI_USE_JAUDIO=1 uses original src/jaudio, whereas previous raw captain/system hooks were in fallback audio_stubs.cpp and compiled out. Previous fallback-only adapter test missed this integration gap.
+- Changes implemented in7720d26c: ORIGINAL src/jaudio/piki_player.c and verysimple.c capture captain voice/whistle/footstep/formation/system commands with nested-call deduplication and local ownership filtering. pc_coop_audio.cpp/.h uses original native pause/unpause gates, coalesces ready calls, reports audio_backend_state (128=native plus numeric1=pause,2=demo). Runtime report includes this field. pc_coop_visual_smoothing.h and pc_coop_world.cpp interpolate/apply captain cursors with poses because camera reads that cursor; large changes snap. No new smoothing latency or input-clock rewrite. Preserve successful0296f6 clock/lead/hold correction.
+- Tests:31/31 local CTest,234 smoothing,14 focus,8 carry,10 actual exit checks PASS; actual capture/pool/300-Pikmin lifecycle and cursor application PASS. Actual native entrypoint body extraction and explicit native adapter variant PASS; removing hooks caused six expected regression failures. Actual original engine translation units compile with production flag and real headers in Clang. CI confirmed original native backend, native entry test PASS on Windows and macOS/iOS syntax,26 native network/audio tests, full iPhone BUILD SUCCEEDED,21 practice/13 room checks all PASS, real encrypted UIKit simulator socket check and scene resume PASS with no health retry or cleanup errors.
+- Confirmed working: previous user-tested movement improvement; host audio. This turn validates compilation, packaging, simulator and code checks only. PC8 installed without launching/input/closing game; all3199 current configs/save/content hashes unchanged. Existing PC assets junctions preserved. No phone settings/save/asset/install writes or new USB task.
+- Remaining issues: verify guest sounds and residual stutter on new pair. Host force-close loses RAM authority/room; live rejoin and durable exact mid-day recovery are NOT implemented and remain mandatory. Practice is not a shared campaign and still needs restart after admitted End/loss. Solo unlocked test preset/save-solo-test remains separate from ordinary save; no full-story validation claimed.
+
+### Pikmin 2
+
+- Current objective: preserve user-confirmed working game/audio while P1 co-op is prioritized.
+- Investigation/root cause/files changed: none this batch.
+- Tests/results: no new P2 build or device test; previous user confirmation does not establish full-story coverage.
+- Remaining issues: later campaign regression and co-op after P1.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port ; branch ios-experimental.
+- Starting local a9cceb80cbf07619cbe4ece27e25083c897c740e, remote7720d26cb7c31c7bb8843c7d96e34bbc726eae59 (documentation push previously hit GitHub Internal Server Error). Game code was already pushed. New documentation-only checkpoint will push both safe normal commits; fetch/reconcile before push, no rewrite/force/main merge.
+- Game/source commit: 7720d26cb7c31c7bb8843c7d96e34bbc726eae59. Shared PC8/iPhone92 identity d6d042250ff4364f8910f8418a856e03ddc5cb6f360659fe731be38602c23e96, independently matches generated local source identity (VERSION_GPIE01_01).
+- PC8: run41070915761 SUCCESS, artifact12984489349; ZIP SHA256 ea15f7eadd25d00123f3ec9acd2cab9261e290946da4cc9642e29a7f747ab105; EXE SHA256 91955c6cd55b7d88ffc4e75b433e127eb06b1387d65014377c800c60507ad769. Verified14 receipt files, Windows x64 PE and full imported runtime dependency closure.
+- iPhone92: run41070915736 SUCCESS, artifact12986162794; outer ZIP SHA256 569878a1aa33a30497a2aab9c8c336dc82c8b1a328260ce7d523ba0e80a6db0e; IPA 5366883bytes, SHA256 b39285aadc7344cb496b6a3189dae80ee568df04a8bfe8aa008bc90c636284c1, executable UUID 0b3fe965-5974-3eb0-acd6-7e2f5f013722. Unsigned ARM64 device platform, existing bundle ID org.opennectar.experimental.pikmin1/display Pikmin1, landscape, notices/approved icons verified. Real scene artifact12985201795 SHA256ca42a13c90170648c7604a16720af82b19ea1ea7e39e787817c0271b5c7d2b89, same process/single entry resume PASS.
+- PC8 installed at Documents/Open Nectar/4 - Windows Version/Pikmin 1 - Full PC Co-op - Experimental; use SAME PLAY PIKMIN 1.cmd/shortcut. PC7 rollback: C:\Users\chazz\Documents\Open Nectar\4 - Windows Version\Pikmin 1 - Full PC Co-op - Experimental\Backups\Before PC Build 8 - 20261030-110203. All3199 protected files verified unchanged, no game launched. Receipt source/identity match packaged files.
+- iPhone92 staged: C:\Users\chazz\Documents\Open Nectar\1 - Install on iPhone\P1 Build 92 - Guest Movement and Audio\Pikmin 1 - Build 92.ipa. Package Verification.json, START HERE.txt and TEST CHECKLIST.txt alongside it. Same-app Sideloadly update required; do NOT uninstall or recopy assets. Raye's phone optional but also needs92 if used. Current phone remains user-tested91 until updated. No new installation claimed.
+- Uncommitted: none after documentation checkpoint. Latest exact docs commit can be resolved from git log; build head remains7720d26c. No extra CI for docs.
+
+### Next steps
+
+- Pikmin1/user task: update own phone to92, use installed PC8, PC hosts NEW practice room, phone joins, enter and Ready each. No simultaneous tap required. Listen on GUEST for whistle/throw/Pikmin/footstep/enemy sounds; music alone fails. Compare body/cursor/camera judder. Pause on either side, then Ready both; verify sound/movement resume. Reverse roles if convenient. Report host and precisely which guest sounds remain absent. No USB needed unless new saved reports are requested. No host force-close recovery expected yet.
+- Pikmin2: leave working app alone.
+- GitHub/build: builds complete/verified; wait for meaningful runtime feedback, no redundant build or idle polling.
+- Anything requiring user involvement: phone92 same-app installation and practice test. Full checklist: NEXT TEST - PC8 and iPhone92.txt in Documents/Open Nectar/2 - Progress and ChatGPT Handoff.
+
+### ChatGPT continuation notes
+
+- Native hooks are original src/jaudio/piki_player.c and verysimple.c, CMake compiles .c as C++ for this native build. Tests/pikmin1_native_audio_entry_test.py extracts real bodies; libs/nectar_net/tests/coop_audio_engine_test.cpp now also explicitly compiles PIKI_USE_JAUDIO=1. Fake track tests do not establish actual audible PCM. Preserve production audio/backend/receipt gates.
+- Evidence: work/run-41070915761-current.json/artifacts.json/logs.zip and run-41070915736 equivalents, extracted logs folders, work/pair8_92-verification.log, windows-coop-build8-verification.json, build92-package-verification.json, pc8-iphone92-stage-result.json. work/verify_pair8_92.py and stage_pc8_iphone92.py reproducible scoped helpers. Original reports/recordings in work/practice-pc7-phone91 and private Downloads/Videos; sampled overview frames viewed, no full recording/audio listening claim. Do not commit proprietary assets/recordings.
+- Preserve GPI textures, removed phone HD character packs, only original low-detail Louie restored on own phone (Raye may show two Olimars cosmetically); user-selected120FPS option/native pixel scaling/touch placement/keyboard fix/framebuffer fix. Do not change graphics/settings to diagnose role-dependent audio. P1 model performance previously A/B proven by user120FPS after HD Pikmin off.
+- Full vision stays queued: independent screens/cameras/squads; shared Onion stock with separate allowances; solo/shared campaign save separation; mostly health-led difficulty; both-ready cutscenes/travel; private invitations over different networks; live reconnect; exact durable mid-day autosaves and host-loss recovery for calls/lock/accidental close; seamless PC/iPhone campaign continuation; P2 later. See COOP_OBJECTIVE_QUEUE.md and COOP_MIDDAY_RECOVERY_REQUIREMENTS.md. Current connection/practice is not finished campaign co-op. Percentage-first only when asked; do not inflate from CI passes.
+- Exact next actions: user tests matching PC8/phone92; collect role-specific audio/movement result. If still silent, retrieve NEW guest report and inspect audio_backend_state, counts plus actual native event lifecycle/pause/listener before guessing. Host-close recovery remains a separately queued durable-save objective. Do not silently forget it.
+
+**END PROGRESS REPORT**
+
+---
+
 ## Submitted PC8/iPhone92 native audio and cursor batch — 2026-10-30 10:22 EDT
 
 Game source/local/remote: `7720d26cb7c31c7bb8843c7d96e34bbc726eae59`. PC8 run **41070915761**, iPhone92 run **41070915736**, both IN_PROGRESS when submitted; no new artifacts, installation or hardware validation yet. Expected shared source identity `d6d042250ff4364f8910f8418a856e03ddc5cb6f360659fe731be38602c23e96` (VERSION_GPIE01_01).31 local CTest tests,234 smoothing assertions, actual original-engine entrypoint tests and negative control, native production-flag syntax checks, actual capture/lifecycle, focus/carry/exit checks PASS. Current installed PC7/phone91 has greatly improved movement but guest SFX still FAIL; native audio hooks correct a confirmed backend integration error. Host force-close recovery remains NOT implemented, queued with durable mid-day saves. Phone logs collected read-only, may unplug. Wait for user build-completion feedback; then retrieve exact-head logs/receipts, verify packages, back up/stage matching peers. No idle polling or extra documentation build. Full current report is in Documents/Open Nectar/2 - Progress and ChatGPT Handoff/LATEST - CODEX TO CHATGPT MASTER HANDOFF.md.
