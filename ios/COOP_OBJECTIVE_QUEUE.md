@@ -1,3 +1,15 @@
+## Progress reporting preference — 2026-10-29
+
+When the user asks how close P1 co-op is to completion, lead with a percentage of the FULL agreed vision. Label it an engineering estimate, not a measured task count. Current estimate communicated: approximately40% IF the PC5/iPhone90 real-device practice test passes; that test has not happened yet. Include shared campaign world/Onions, game flow/cutscenes, mid-day persistence/recovery, internet play and PC/iPhone continuation in the denominator. Do not inflate the full-mode percentage by reporting only network-foundation completion.
+
+---
+
+## Verified PC5/iPhone90 ready for device test — 2026-10-29 20:42 EDT
+
+Windows5/run40976294203 SUCCESS, verified and INSTALLED over closed PC4 after backed-up receipt/config/save protection;3199 protected files hash-unchanged. iPhone90/run40978326061 SUCCESS, strict native/simulator/package/identity checks PASS, IPA staged NOT installed. Both identity26204c2b52dcf03c59c52798930a69a9e11a4a6c9272600e9c7a8eb29e650f9e. User next: same-app Sideloadly update phone to90, then mixed both-host-role practice movement/readiness/interruption test. No USB task/new build. P2 unchanged. Full current report at end below and in Documents/Open Nectar/2 - Progress and ChatGPT Handoff. Prior current-state entries are historical.
+
+---
+
 ## iPhone90 submitted; pair with successful PC5 — 2026-10-29 20:14 EDT
 
 Correction source `dcfba41f178d0e8905c215b4d668da67e1f43939` pushed. iPhone90/run40978326061 last checked IN_PROGRESS: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40978326061 . Windows6 is intentionally SKIPPED because this only changes tests/workflows/docs. Keep verified PC5/run40976294203/artifact12943316091 for the pair; identical game identity26204c2b52dcf03c59c52798930a69a9e11a4a6c9272600e9c7a8eb29e650f9e. No new IPA yet. iPhone89 produced diagnostics only; its stale exit fixture is corrected with10 passing real-smoothing cleanup checks and two sensitive negative controls. Preserve installed PC4/phone88 until verified replacements; original Louie restored, no USB task. Await user build result; no idle polling. Full current handoff is at the end below and in Documents/Open Nectar/2 - Progress and ChatGPT Handoff.

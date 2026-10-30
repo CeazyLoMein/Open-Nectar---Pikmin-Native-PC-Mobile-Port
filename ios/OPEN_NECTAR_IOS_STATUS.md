@@ -1,3 +1,9 @@
+## Verified PC5/iPhone90 ready for device test — 2026-10-29 20:42 EDT
+
+Windows5/run40976294203 SUCCESS, verified and INSTALLED over closed PC4 after backed-up receipt/config/save protection;3199 protected files hash-unchanged. iPhone90/run40978326061 SUCCESS, strict native/simulator/package/identity checks PASS, IPA staged NOT installed. Both identity26204c2b52dcf03c59c52798930a69a9e11a4a6c9272600e9c7a8eb29e650f9e. User next: same-app Sideloadly update phone to90, then mixed both-host-role practice movement/readiness/interruption test. No USB task/new build. P2 unchanged. Full current report at end below and in Documents/Open Nectar/2 - Progress and ChatGPT Handoff. Prior current-state entries are historical.
+
+---
+
 ## iPhone90 submitted; pair with successful PC5 — 2026-10-29 20:14 EDT
 
 Correction source `dcfba41f178d0e8905c215b4d668da67e1f43939` pushed. iPhone90/run40978326061 last checked IN_PROGRESS: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40978326061 . Windows6 is intentionally SKIPPED because this only changes tests/workflows/docs. Keep verified PC5/run40976294203/artifact12943316091 for the pair; identical game identity26204c2b52dcf03c59c52798930a69a9e11a4a6c9272600e9c7a8eb29e650f9e. No new IPA yet. iPhone89 produced diagnostics only; its stale exit fixture is corrected with10 passing real-smoothing cleanup checks and two sensitive negative controls. Preserve installed PC4/phone88 until verified replacements; original Louie restored, no USB task. Await user build result; no idle polling. Full current handoff is at the end below and in Documents/Open Nectar/2 - Progress and ChatGPT Handoff.
@@ -3574,5 +3580,57 @@ RTSS Windows approval completed; P1-only profile installed, API readback OSD1/de
 - Upstream1.1.1 review remains in ios/UPSTREAM_AUDIT_2026_10_29.md; no wholesale merge, performance/control candidates queued. Avoid480p default and action-index26 conflict.
 - Preserved requirements: independent device graphics/camera/controls; own views/squads; shared stock/independent allowances; host campaign; cutscenes/travel; live rejoin, calls/background/crash handling, durable mid-day recovery, PC/iPhone migration and eventual P2. Current disposable practice is not finished campaign co-op.
 - Exact resumption: read Exact Resume State for replacement run ID and final commit; user reports its result, fetch full logs and verify real runtime and IPA, compare identity to PC5, stage both without deleting assets/settings/saves. Use NEXT TEST - PC5 and iPhone90.txt after verification. Phone may be unplugged. No automated running-game input.
+
+**END PROGRESS REPORT**
+
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-29 20:42 EDT
+
+**Overall project status:** iPhone90 SUCCESS independently verified and matched to PC5. PC5 installed after a verified PC4 rollback backup;3199 current settings/save/optional-content files hash unchanged. iPhone90 IPA staged in Documents, NOT installed by Codex. Ready for user's mixed PC/iPhone practice test. No new game source changes or further builds this turn.
+
+### Pikmin 1
+- Current objective: validate real paired behavior after guest smoothing, Windows Ready/focus and missing-Onion carry panic fixes.
+- Investigated:90 full P1 job log, scene-startup artifact, device IPA/resources/CPU/platform,21 practice/13 room receipts and actual encrypted UIKit socket-runtime evidence; PC5 package and existing PC4 install.
+- Root cause/history:89 failed because its extracted exit fixture omitted smoothing/presented declarations. That fixture and include paths were corrected in dcfba41f; no game-code change versus PC5/deaaee1e, so they have an identical compatibility identity.90 now passes that exit test and proceeds through the actual full game/runtime/package. No weakened or skipped required gate.
+- Changes installed/staged: PC5's package files replaced the closed PC4 install; game assets, current settings, saves and optional textures/HD models protected and verified unchanged. No game process was launched/closed or controlled by Codex. Phone IPA copied to the accessible folder only; no phone app update or file changes this turn. P2 untouched.
+- Native tests/results: full iPhone ARM64 game **BUILD SUCCEEDED**;231 smoothing,14 Windows focus,8 carry-goal and10 exit/real-smoothing checks passed on Apple runner, including iPhoneOS syntax checks. Existing21 practice and13 room checks PASS. Real encrypted UIKit socket probe PASS in an owned disposable simulator, observed entry into main/health PASS, no setup retry and no cleanup errors. Scene startup/resume uses one launch/process/window and PASS. Runtime-on-simulator is not a real-device gameplay test.
+- Package verification: iPhone90 unsigned ARM64 iPhoneOS bundle org.opennectar.experimental.pikmin1/display Pikmin1, existing approved icons/notices, landscape metadata and required network/scene markers verified. No bundled proprietary game assets, profiles or signatures. IPA5354907bytes SHA25663b75ed059cf288da64fd99c7992a19c36f7dfe24f8411237a025e60735683d8; UUID9cd03b77-653b-3b37-bf14-0b5e223dc1e1. Source identity26204c2b52dcf03c59c52798930a69a9e11a4a6c9272600e9c7a8eb29e650f9e found in actual device executable and exactly matches PC5's header.
+- Installed PC path: C:/Users/chazz/Documents/Open Nectar/4 - Windows Version/Pikmin 1 - Full PC Co-op - Experimental. Launch PLAY PIKMIN 1.cmd. Before replacement, all14 prior receipt files matched PC4. PC4 rollback: C:\Users\chazz\Documents\Open Nectar\4 - Windows Version\Pikmin 1 - Full PC Co-op - Experimental\Backups\Before PC Build 5 - 20261029-204019. All3199 CURRENT protected config/save/optional-content files hash-unchanged after update; importer-regenerated optional bytes are protected as currently installed rather than overwritten to old downloaded hashes. assets junctions/dataDir/Load/Saves retained. New PC5 runtime remains untested.
+- Staged phone IPA: C:\Users\chazz\Documents\Open Nectar\1 - Install on iPhone\P1 Build 90 - Full PC Co-op Pair\Pikmin 1 - Build 90.ipa. START HERE.txt and Package Verification.json beside it. Use Sideloadly with SAME signing account/app identity to update the existing P1; do not uninstall/reimport assets. Existing phone/settings/save backups retained. Phone90 installation and gameplay remain NOT VERIFIED.
+- Current phone content: original low-detail Louie restored/hash-verified in previous action; all HD characters intentionally removed, model mask61, GPI texture pack retained. In-game Louie appearance untested. No USB task required now.
+- Confirmed working: earlier user's PC4 smooth local play and phone88 solo/touch/render baseline; PC5/iPhone90 native/package/simulator results as above. No new hardware co-op result yet.
+- Remaining: phone90 installation, actual phone guest movement smoothness, reverse phone-host/PC-guest Ready, pause/Alt-Tab/iOS background recovery, longer practice stability, original Louie appearance. Continue broader world/campaign/rejoin/exact mid-day persistence/internet/PC-phone progression once core practice feedback is good. This remains a disposable practice test, not finished campaign co-op.
+
+### Pikmin 2
+- Current objective: preserve user's working application.
+- Investigated/root cause: no new P2 fault.
+- Files changed/tests: no P2 changes or new build/install.
+- Confirmed working: prior user report; full campaign unproven.
+- Remaining: broader testing and later online adaptation, with original vision/queue retained.
+
+### GitHub
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port ; branch ios-experimental.
+- Starting local/remote journal commit:c3ff55b2611708c6edfc66cde12a6f33f7c78c6d. Status clean, fetched origin with no divergence before documentation.
+- Latest gameplay source:deaaee1ee0b884c5c939f456b6a5ccfff4d23d40 in PC5. iPhone90 build source:dcfba41f178d0e8905c215b4d668da67e1f43939, test/workflow correction only; identical compiled game identity. Current turn creates only a [skip ci] verification/handoff journal commit; final resolved local/remote SHA in Exact Resume State.json.
+- Uncommitted changes: only this documentation checkpoint; no game/CI/test edits after90.
+- Windows5/run40976294203 SUCCESS; artifact12943316091, ZIP SHA25693b822b5cc7ae9c5b08cb16437d43240b00cfa42c166ce9e4db9e3904711969a; EXE d93bd8dcc7f80b46dc31e7767595940b9c352773f1da80fd401a48dcae831d9a;14 files/x64/dependency closure verified and now installed, no runtime claim.
+- iPhone90/run40978326061 SUCCESS; artifact12945005446, ZIP SHA256b460cf52e0f8b34842ce4766c583fce7069f42aae883f07d2abb5f299976f039; scene artifact12943343205 SHA2568fdec5b552551ff7be69da243b463c1ac3734969d7ce3935c1abbe9d94ca3798. IPA staged, phone not updated by Codex.
+- Windows6/run40978326030 intentionally SKIPPED, not failed; do not rebuild PC5 unnecessarily. iPhone89 diagnostics-only failure is superseded by successful90. No additional build needed for staging/documentation.
+
+### Next steps
+- User installation: close phone P1; drag the staged Build90 IPA into Sideloadly, select the correct phone and same signing identity, Start update. PC5 is already installed. No game-data import or P2 update. Raye's phone is unnecessary for this PC+phone test.
+- First test: same LAN, PC hosts/phone joins, start practice independently, Ready on both after loading. Slowly walk both captains and squads; watch the PHONE view for actor stutter (camera was already smooth).
+- Second test: pause/Alt-Tab on PC, return/Ready on both; briefly background/return on phone/Ready; neither side should remain stuck solely from focus changes. Do not expect full crash recovery/live campaign reconnection yet.
+- Third test: PHONE hosts/PC joins; PC Ready should dismiss its native panel and allow control. Check phone Louie appearance. Report host role, device, exact message/action for any failure. A short clip helps if movement still stutters.
+- GitHub/build task: await actual installation/runtime feedback, no polling or new builds now. Keep installed/staged rollback packages and all settings/data. P2 unchanged.
+
+### ChatGPT continuation notes
+- Current patch functions: PcCoopVisualSmoothing::push/sample; pc_coop_world_present_guest; runtime tick/leave; Windows resume/updateFocus; ActTransport::doLift/decideGoal/crGetPoint. The90 correction changes only the extracted exit fixture and CI include paths, not gameplay.
+- Relevant logs/receipts: work/build90-run.json, build90-jobs.json, build90-p1-full.log, build90-p1-artifact.zip, build90-scene-artifact.zip, build90-package-verification.json; windows-coop-build5-verification.json; pc5-iphone90-stage-result.json. Native artifacts retained privately under outputs/Build90-Pikmin1 and outputs/P1-Full-PC-Coop-Build5.
+- Unverified fixes: actual new-device appearance/smoothness/readiness/crash stability; phone90 install. Do not label these fixed on hardware before feedback. Do not confuse the solo-update unlocked new-save test preset (save-solo-test) with a normal new campaign; normal save directory remains separate and protected.
+- Upstream1.1.1 audit remains ios/UPSTREAM_AUDIT_2026_10_29.md: shader-cache and controller candidates queued, no wholesale merge or480p default change, preserve custom input action26/F6. All broader co-op requirements remain in COOP_OBJECTIVE_QUEUE.md/COOP_MIDDAY_RECOVERY_REQUIREMENTS.md, including independent views/options/squads, shared Onion stock/independent allowances, cutscenes/travel, host campaign, calls/background/disconnect/crash handling, durable mid-day saves and mixed-PC/iPhone migration, P2 later.
+- Exact resumption: read current Exact Resume State and this report; confirm user installed90 (PC5 already installed), obtain both-role test results; collect fresh reports if a fault remains. Never automate input into a running game. Do not replace working apps/assets/saves unnecessarily.
 
 **END PROGRESS REPORT**
