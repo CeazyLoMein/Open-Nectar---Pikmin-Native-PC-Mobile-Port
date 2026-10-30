@@ -297,6 +297,9 @@ public:
 
 	void init(u8* data, Texture* tex, Texture* childTex, immut Vector3f& pos, particleMdlManager* mdlMgr,
 	          CallBack1<particleGenerator*>* cbGen, CallBack2<particleGenerator*, particleMdl*>* cbPtcl);
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+    bool mPcCoopWhistleVisual=false; // reset on every pool allocation, only four native whistle types
+#endif
 	bool update(f32 timeStep);
 	void draw(Graphics& gfx);
 	void RotAxisX(Mtx&, f32&, f32&);
@@ -670,6 +673,9 @@ public:
 	particleGenerator* createGenerator(u8*, Texture*, Texture*, immut Vector3f&, CallBack1<particleGenerator*>*,
 	                                   CallBack2<particleGenerator*, particleMdl*>*);
 	void update();
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+    void updateCoopWhistles();
+#endif
 	void draw(Graphics& gfx);
 	void cullingDraw(Graphics& gfx);
 	void killAllGenarator(bool doForceFinish); // dev typo

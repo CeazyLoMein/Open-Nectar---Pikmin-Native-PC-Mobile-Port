@@ -1373,8 +1373,9 @@ static f32 pcLockDistXZ(Creature* c, immut Vector3f& pos)
  */
 static bool pcTouchAim(const Navi* navi)
 {
+    if (pc_coop_practice_remote_input(navi->mNaviID)) return (pc_coop_practice_ext(navi->mNaviID)&16)!=0;
 #if PIKI_PC_TOUCH
-    return !pc_netplay_deterministic() && navi->mNaviID == 0 && pc_touch_aim_active();
+    return !pc_netplay_deterministic() && navi->mNaviID == pc_coop_practice_local_player() && pc_touch_aim_active();
 #else
     (void)navi;
     return false;
@@ -1442,14 +1443,15 @@ bool Navi::pcTakeFollowerRescueBudget(){
 void Navi::pcUpdateRecallAll()
 {
 #if defined(PIKI_PC_PORT)
-    if (mNaviID != 0) return;
-    // Consume both inputs even when unavailable; neither may fire later.
-    bool requested = pc_window_take_recall_press();
+    const bool remoteRecall=pc_coop_practice_remote_input(mNaviID);
+    if (!remoteRecall && mNaviID!=pc_coop_practice_local_player()) return;
+    // Remote requests are one-shot input; never consume the host's own button.
+    bool requested = remoteRecall ? (pc_coop_practice_ext(mNaviID)&64)!=0 : pc_window_take_recall_press();
 #if PIKI_PC_TOUCH
-    const bool touchRequested = pc_touch_take_recall_request();
+    const bool touchRequested = !remoteRecall && pc_touch_take_recall_request();
     requested = requested || touchRequested;
 #endif
-    if (!requested || !pc_settings_get_recall_all() || !playerState || playerState->inDayEnd()
+    if (!requested || (!remoteRecall && !pc_settings_get_recall_all()) || !playerState || playerState->inDayEnd()
         || (gameflow.mMoviePlayer && gameflow.mMoviePlayer->mIsActive)) return;
     callPikis(1.0f, true);
 #endif
@@ -2560,7 +2562,7 @@ void Navi::callPikis(f32 radius, bool recallAll)
 #if defined(PIKI_PC_PORT)
     mPcChargeTime = 0.0f; // recalled Pikmin must not be sent back on the next tick
     // Only the dedicated command may expand the range, even when enabled.
-    recallAll = recallAll && pc_settings_get_recall_all() != 0;
+    recallAll = recallAll && (pc_coop_practice_remote_input(mNaviID) || pc_settings_get_recall_all() != 0);
     if(recallAll)pc_follow_note("recall_requested",mSRT.t.x,mSRT.t.y,mSRT.t.z,mCursorWorldPos.x,mCursorWorldPos.y,mCursorWorldPos.z);
 #else
     recallAll = false;
@@ -3504,7 +3506,8 @@ void Navi::makeVelocity(bool isSunset)
 				mTargetVelocity = (stickVec * NAVI_PARM(mMoveSpeed)) * drag;
 			}
 #if defined(PIKI_PC_PORT)
-			mTargetVelocity = mTargetVelocity * pc_settings_get_navi_speed_scale(); // cheat "Olimar Speed"
+			mTargetVelocity = mTargetVelocity * (pc_coop_practice_remote_input(mNaviID)
+                ? pc_coop_practice_remote_speed(mNaviID) : pc_settings_get_navi_speed_scale()); // cheat "Olimar Speed"
 #endif
 
 			if (mGroundTriangle) {
@@ -3532,7 +3535,11 @@ void Navi::makeVelocity(bool isSunset)
 	// local state outside PADStatus, so in deterministic mode every captain
 	// takes the classic stick path; the edges are drained.
 	const bool detMode     = pc_netplay_deterministic();
-	const bool mouseIsMine = !detMode && mNaviID == pc_window_get_keyboard_owner();
+    float remoteX=0,remoteY=0;
+    const bool remoteCursor=pc_coop_practice_cursor_delta(mNaviID,&remoteX,&remoteY);
+    const bool mouseIsMine = remoteCursor || (!detMode && mNaviID == pc_window_get_keyboard_owner());
+    const float cursorDeltaX=remoteCursor?remoteX:pc_window_get_mouse_cursor_delta_x();
+    const float cursorDeltaY=remoteCursor?remoteY:pc_window_get_mouse_cursor_delta_y();
 	// "Gyro Recenter": el cursor vuelve delante del capitán, en la dirección
 	// de la cámara, para corregir la deriva acumulada del giroscopio.
 	if (detMode) {
@@ -3550,16 +3557,15 @@ void Navi::makeVelocity(bool isSunset)
 		pc_window_clear_mouse_cursor_delta();
 	}
 	if (mouseIsMine
-	    && (pcTouchAim(this) || pc_window_get_control_mode() == PC_CONTROL_MOUSE_CURSOR
-	        || pc_window_get_mouse_cursor_delta_x() != 0.0f
-	        || pc_window_get_mouse_cursor_delta_y() != 0.0f)) {
+	    && (pcTouchAim(this) || (!remoteCursor && pc_window_get_control_mode() == PC_CONTROL_MOUSE_CURSOR)
+	        || cursorDeltaX != 0.0f || cursorDeltaY != 0.0f)) {
 		// Direct mouse delta mode: use raw deltas, no normalization or frame time scaling
 		// SDL already provides distance since last poll
 		static const float kMouseCursorWorldScale = 0.5f; // Convert SDL counts to world units
 
-		const float mouseX = pc_window_get_mouse_cursor_delta_x();
-		const float mouseY = pc_window_get_mouse_cursor_delta_y();
-		pc_window_clear_mouse_cursor_delta();
+		const float mouseX = cursorDeltaX;
+		const float mouseY = cursorDeltaY;
+		if (!remoteCursor) pc_window_clear_mouse_cursor_delta();
 
 		// mCursorPosition is a world-space offset from Olimar.  SDL deltas are
 		// screen-space, so fixed world X/Z axes make the cursor rotate or invert
@@ -3568,6 +3574,10 @@ void Navi::makeVelocity(bool isSunset)
 		// SDL Y grows downwards, whereas the gameplay cursor's positive screen
 		// vertical direction is camera-forward on the ground plane.
 		Vector3f screenDown(-ctrlCam->mViewZAxis.x, 0.0f, -ctrlCam->mViewZAxis.z);
+        float aimSin=0,aimCos=1;
+        if (remoteCursor && pc_coop_practice_control_yaw(mNaviID,&aimSin,&aimCos)) {
+            screenRight.set(aimCos,0,aimSin); screenDown.set(aimSin,0,-aimCos);
+        }
 		if (screenRight.length() > 0.0001f) {
 			screenRight.normalise();
 		}
@@ -4424,6 +4434,9 @@ void Navi::renderCircle(Graphics& gfx)
 {
 	f32 tmp;
 	f32 rad;
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+	if (!pcCoopWhistleRadius(rad))
+#endif
 	switch (mWhistleCircleMode) {
 	case 0:
 	{
@@ -4460,6 +4473,9 @@ void Navi::renderCircle(Graphics& gfx)
 		pos.y               = mapMgr->getMinY(pos.x, pos.z, true);
 		mWhistleFxPosArr[i] = pos;
 	}
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+	pcCoopWhistleEffects(); // particle presentation only, after ring positions are ready
+#endif
 }
 
 /**

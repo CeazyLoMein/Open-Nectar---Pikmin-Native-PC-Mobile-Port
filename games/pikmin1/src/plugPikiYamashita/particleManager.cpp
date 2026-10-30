@@ -1,6 +1,12 @@
 #include "DebugLog.h"
 #include "Graphics.h"
 #include "zen/particle.h"
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+#include "netplay/pc_coop_practice_runtime.h"
+#endif
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+#include <algorithm>
+#endif
 #if defined(PIKI_PC_PORT)
 #include "timing/pc_render_phase.h"
 #endif
@@ -69,6 +75,9 @@ zen::particleGenerator* zen::particleManager::createGenerator(u8* data, Texture*
 {
 	particleGenerator* ptclGen = pmGetPtclGen();
 	if (ptclGen) {
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+        ptclGen->mPcCoopWhistleVisual=false;
+#endif
 		ptclGen->init(data, tex, childTex, pos, &mMdlMgr, cbGen, cbPtcl);
 	}
 	return ptclGen;
@@ -318,3 +327,19 @@ zen::particleGenerator* zen::particleManager::pmGetPtclGen()
 
 	return ptclGen;
 }
+
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+void zen::particleManager::updateCoopWhistles() {
+    if (!pc_coop_practice_guest_effects_running()) return;
+    zenList* end=mActiveGenList.getOrigin();
+    zenList* list=mActiveGenList.getTopList();
+    const f32 timeStep=_98*std::clamp(gsys->getFrameTime(),0.0f,1.0f/30.0f);
+    while (list!=end) {
+        zenList* next=list->mNext;
+        auto* gen=static_cast<particleGenerator*>(list);
+        if (gen->mPcCoopWhistleVisual && gen->update(timeStep)) pmPutPtclGen(list);
+        list=next;
+    }
+    mInactiveGenList.merge(&_20);
+}
+#endif

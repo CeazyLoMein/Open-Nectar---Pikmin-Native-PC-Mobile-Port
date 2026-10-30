@@ -2,6 +2,9 @@
 #include "Graphics.h"
 #include "Matrix3f.h"
 #include "zen/particle.h"
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+#include "netplay/pc_coop_practice_runtime.h"
+#endif
 #if defined(PIKI_PC_PORT)
 #include "timing/pc_render_phase.h"
 #include <cmath>
@@ -248,7 +251,11 @@ bool zen::particleGenerator::update(f32 timeStep)
 {
 #if defined(PIKI_PC_PORT)
 	if (!pc_render_is_authoritative()) {
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+        if (!(mPcCoopWhistleVisual && pc_coop_practice_guest_effects_running())) return false;
+#else
 		return false;
+#endif
 	}
 	sPcStep = timeStep;
 #endif

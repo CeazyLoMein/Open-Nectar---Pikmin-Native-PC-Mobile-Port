@@ -52,6 +52,7 @@
 #include "pc_gyro.h"
 #include "pc_permadeath.h"
 #include "pc_coop.h"
+#include "netplay/pc_coop_practice_runtime.h"
 #include "pc_vs.h"
 #include "mods/pc_vs_map.h"
 #include "netplay/pc_netplay_det.h"
@@ -7117,7 +7118,8 @@ float pc_settings_get_piki_speed_scale(void) {
 #if PIKI_P2_HOST
     return 1.0f;
 #else
-    return !pc_speedrun_active() && !pc_hardmode_active() && !pc_coop_active()
+    return !pc_speedrun_active() && !pc_hardmode_active()
+        && (!pc_coop_active() || (pc_coop_practice_active() && pc_coop_practice_local_player()==0))
         && !pc_vs_active() && !pc_netplay_deterministic() ? sConfig.pikiSpeedPct / 100.0f : 1.0f;
 #endif
 }
@@ -7132,7 +7134,7 @@ int pc_settings_get_stuck_follower_rescue(void) {
 }
 
 int pc_settings_get_recall_all(void) {
-    return !pc_speedrun_active() && !pc_hardmode_active() && !pc_coop_active()
+    return !pc_speedrun_active() && !pc_hardmode_active() && (!pc_coop_active() || pc_coop_practice_active())
         && !pc_vs_active() && !pc_netplay_deterministic() ? sConfig.recallAll : 0;
 }
 
@@ -7729,15 +7731,15 @@ const GroupRow kCheatsRows[] = {
     { SRC_MODS, 21, "Throw Speed", "How fast Olimar grabs and throws Pikmin. 100% is the original." },
 #if !PIKI_P2_HOST
     { SRC_MODS, 44, "Rescue Stuck Followers", "Optional automatic rescue after about 8 seconds without progress and a failed walking return. Only existing followers: workers and idle Pikmin stay untouched. Needs clear dry ground beside a grounded captain, away from enemies. Safe spot/cooldown may delay rescue. Off in Hard, Speedrun and multiplayer." },
-    { SRC_MODS, 42, "Recall All Pikmin", "Shows a separate group-icon Recall All button. On PC, press F6 (remap Recall All Pikmin in Controls). Calls eligible Pikmin across the current area, including workers. Normal whistle keeps its usual range. Pikmin walk back; no teleport, revival or plucking. Off in Hard, Speedrun and multiplayer." },
+    { SRC_MODS, 42, "Recall All Pikmin", "Shows a separate group-icon Recall All button. On PC, press F6 (remap Recall All Pikmin in Controls). Calls eligible Pikmin across the current area, including workers. Online practice recalls only your own squad. Normal whistle keeps its usual range. Pikmin walk back; no teleport, revival or plucking. Off in Hard, Speedrun and other multiplayer modes." },
 #endif
     { SRC_MODS, 20, "Whistle Radius", "Size of the whistle circle at full charge. 100% is the original." },
     { SRC_MODS, 26, "Invincible Pikmin", "Pikmin never die: no attacks, fire, water, gas or crushing." },
     { SRC_MODS, 27, "All Flowers", "Every Pikmin grows a flower as soon as it is plucked or born." },
     { SRC_MODS, 28, "Carry Speed", "How fast Pikmin carry pellets, parts and bodies." },
-    { SRC_MODS, 29, "Olimar Speed", "How fast Olimar walks and runs." },
+    { SRC_MODS, 29, "Olimar Speed", "How fast your captain walks and runs. Online practice: each player chooses independently; 100% restores normal speed." },
 #if !PIKI_P2_HOST
-    { SRC_MODS, 43, "Pikmin Speed", "Walking and running speed, as a percentage of the original. Leaves, buds and flowers keep their relative speeds. Does not speed up attacks, work or carried loads (use Carry Speed). 100% is original. Solo only; off in Hard, Speedrun and multiplayer." },
+    { SRC_MODS, 43, "Pikmin Speed", "Walking and running speed, as a percentage of the original. Leaves, buds and flowers keep their relative speeds. Does not speed up attacks, work or carried loads (use Carry Speed). 100% is original. Online practice: the host sets walking speed for both squads. Off in Hard, Speedrun and other multiplayer modes." },
 #endif
     { SRC_MODS, 30, "Unlock All Zones", "Opens every area on the map. Saved into your game." },
     { SRC_MODS, 31, "No Day Limit", "The day counter never advances, so the 30-day limit never comes." },
@@ -7944,7 +7946,9 @@ const char* disabledReason(const GroupRow& r) {
         break;
     case SRC_MODS:
         if ((r.idx == 42 || r.idx == 43) && (pc_speedrun_active() || pc_hardmode_active()
-            || pc_coop_active() || pc_vs_active() || pc_netplay_deterministic())) return "Solo cheat: unavailable in this mode.";
+            || (pc_coop_active() && !pc_coop_practice_active()) || pc_vs_active() || pc_netplay_deterministic())) return "Unavailable in this mode.";
+        if (r.idx==43 && pc_coop_practice_active() && pc_coop_practice_local_player()!=0)
+            return "The host controls Pikmin walking speed for both squads. Your captain speed is independent.";
         if (r.idx == 16 && !sPending.lockOn) return "Turn on Lock-On first.";
         break;
     case SRC_DATA:

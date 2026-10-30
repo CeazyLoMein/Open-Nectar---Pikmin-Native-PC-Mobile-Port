@@ -118,6 +118,11 @@ public:
 #if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
 	bool pcCoopVisualValidate(const nectar::net::CaptainState&) const;
 	void pcCoopVisualApply(const nectar::net::CaptainState&);
+	void pcCoopWhistleCapture(nectar::net::CaptainState&);
+	bool pcCoopWhistleRadius(float&) const;
+	void pcCoopWhistleEffects();
+	bool mPcCoopWhistleActive=false, mPcCoopWhistleShown=false;
+	float mPcCoopWhistleRadius=0;
 #endif
 	void callPikis(f32, bool recallAll = false);
 	void callDebugs(f32);

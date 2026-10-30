@@ -51,11 +51,11 @@ void testCodec()
         f.cursorDx = -1234;
         f.cursorDy = 77;
         f.controlYaw=static_cast<std::uint16_t>(43000+i);
-        f.flags = kSwarm;
+        f.flags = kSwarm; f.naviSpeedPct=i==0?500:100;
         frames.push_back(f);
     }
     const std::vector<std::uint8_t> bytes = encodeInputBundle(frames);
-    check(bytes.size() == kInputBundleHeaderBytes + 6 * kInputFrameBytes, "bundle size: 9 + 19 per frame");
+    check(bytes.size() == kInputBundleHeaderBytes + 6 * kInputFrameBytes, "bundle size: 9 + 21 per frame");
     std::vector<NetInputFrame> decoded;
     check(decodeInputBundle(bytes.data(), bytes.size(), InputLimits{}, decoded) && decoded == frames,
           "bundle round-trips");
@@ -68,6 +68,11 @@ void testCodec()
     seven.push_back(frame(994, 0));
     check(encodeInputBundle(seven).empty(), "more than 6 frames cannot be encoded");
 
+    auto speedFrames=frames;speedFrames[0].naviSpeedPct=100;
+    auto speedBytes=encodeInputBundle(speedFrames);
+    check(decodeInputBundle(speedBytes.data(),speedBytes.size(),InputLimits{},decoded) && decoded[0].naviSpeedPct==100,"return to100 speed is current input, not an ignored zero/edge");
+    speedFrames[0].naviSpeedPct=65535;speedBytes=encodeInputBundle(speedFrames);
+    check(!decodeInputBundle(speedBytes.data(),speedBytes.size(),InputLimits{},decoded),"unbounded remote speed refused");
     InputLimits strict;
     strict.buttonMask = kA | 0x00ff;
     strict.flagMask = kSwarm;

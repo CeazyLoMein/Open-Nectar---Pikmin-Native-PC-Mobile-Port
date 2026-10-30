@@ -24,6 +24,10 @@ assert s.count('pikiSpeedPct = 100;')==2,'default and Reset must both retain ori
 assert 'X(pikiSpeedPct)' not in s,'solo-only getter must not alter locked netplay schema'
 assert '#if !PIKI_P2_HOST\n    { SRC_MODS, 43, "Pikmin Speed"' in s
 cpp=r"""
+bool pc_coop_practice_active(){return false;}
+int pc_coop_practice_local_player(){return 0;}
+bool pc_coop_practice_remote_input(int){return false;}
+unsigned char pc_coop_practice_ext(int){return 0;}
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>

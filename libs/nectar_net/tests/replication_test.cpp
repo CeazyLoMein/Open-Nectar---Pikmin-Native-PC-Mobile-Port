@@ -28,14 +28,14 @@ void testCodec()
     s.velocity = {10.0f, 0.0f, -300.0f};
     s.faceDirection = 1.5f;
     s.player = 1;
-    s.cursor={40,2,-30};s.health=80;s.upperAnimation=14;s.lowerAnimation=7;s.upperFrame=23.5f;s.lowerFrame=9;s.cursorVisible=0;
+    s.cursor={40,2,-30};s.health=80;s.upperAnimation=14;s.lowerAnimation=7;s.upperFrame=23.5f;s.lowerFrame=9;s.cursorVisible=0;s.whistleActive=1;s.whistleRadius=175.5f;
     const auto bytes = encodeCaptainState(s);
     CaptainState back;
     check(bytes.size() == kCaptainStateBytes && decodeCaptainState(bytes.data(), bytes.size(), back)
               && back.position.z == 9876.0f && back.velocity.z == -300.0f && back.faceDirection == 1.5f
               && back.player == 1 && back.cursor.x==40 && back.health==80
               && back.upperAnimation==14 && back.lowerAnimation==7 && back.upperFrame==23.5f
-              && back.lowerFrame==9 && back.cursorVisible==0,
+              && back.lowerFrame==9 && back.cursorVisible==0 && back.whistleActive==1 && back.whistleRadius==175.5f,
           "captain state round-trips exactly");
     auto poison = [&](std::size_t offset, float value) {
         std::vector<std::uint8_t> bad = bytes;
@@ -53,6 +53,11 @@ void testCodec()
     check(!poison(41,-1),"negative health is refused");
     check(!poison(45,std::numeric_limits<float>::infinity()),"infinite animation sample is refused");
     check(!decodeCaptainState(bytes.data(),29,back),"legacy captain schema is refused");
+    check(!poison(58,std::numeric_limits<float>::quiet_NaN()),"NaN whistle radius refused");
+    check(!poison(58,-1) && !poison(58,10001),"negative or excessive whistle radius refused");
+    auto badWhistle=bytes;badWhistle[62]=2;
+    check(!decodeCaptainState(badWhistle.data(),badWhistle.size(),back),"unknown whistle flag refused");
+    check(!decodeCaptainState(bytes.data(),58,back),"old captain layout cannot masquerade as whistle schema");
     std::vector<std::uint8_t> badPlayer = bytes;
     badPlayer[28] = 2;
     CaptainState out;

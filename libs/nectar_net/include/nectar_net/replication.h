@@ -17,7 +17,7 @@ struct Vec3 {
     float x = 0.0f, y = 0.0f, z = 0.0f;
 };
 
-// Schema 2 of EntityKind::Captain records (58 bytes, big-endian IEEE-754).
+// Schema 3 of EntityKind::Captain records (63 bytes, big-endian IEEE-754).
 struct CaptainState {
     Vec3 position;
     Vec3 velocity;
@@ -28,10 +28,12 @@ struct CaptainState {
     std::uint16_t upperAnimation = 0, lowerAnimation = 0;
     float upperFrame = 0, lowerFrame = 0;
     std::uint8_t cursorVisible = 1;
+    float whistleRadius = 0; // host radius, independent of guest graphics/mod settings
+    std::uint8_t whistleActive = 0; // presentation only, never guest recall gameplay
 };
 
-constexpr std::uint8_t kCaptainSchema = 2;
-constexpr std::size_t kCaptainStateBytes = 58;
+constexpr std::uint8_t kCaptainSchema = 3;
+constexpr std::size_t kCaptainStateBytes = 63;
 // Anything beyond this is not a position in either game's maps.
 constexpr float kMaxWorldCoordinate = 100000.0f;
 constexpr float kMaxSpeed = 10000.0f;

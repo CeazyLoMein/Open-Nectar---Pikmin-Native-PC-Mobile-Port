@@ -1,3 +1,58 @@
+## Guest feedback batch: whistle, free aim and speed/recall
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-30 15:21 EDT
+
+**Overall project status:** User confirms installed PC8/iPhone92 is smooth and own whistle/Pikmin/footstep audio works. Enemy audio remains UNTESTED: current practice has no enemies. User prefers each captain's whistle/voices local; preserved. New guest visual/control/QOL batch implemented and locally verified, native paired build pending submission. No game closed, automated input, install/settings/assets/save writes or new phone request this turn.
+
+### Pikmin 1
+
+- Current objective: guest whistle rings, working iPhone free-aim drag, independent captain speed reset, and bounded existing Recall All/Pikmin-speed support.
+- Investigation: read live PC practice1793374355 report (copied read-only to work/practice-pc8-phone92/pc-session.txt): approximately5ms RTT,8 neutral inputs in21904 host ticks, audio_sent283/dropped0, native audio_backend_state128. User may close games/disconnect. No guest USB read needed.
+- Root causes: guest snapshots omitted whistle state/radius and replica never entered native whistle effects. Particle manager AND particle generator updates intentionally refuse guest presentation; forwarding state alone would still be invisible. Free aim assumed captain0 and local mouse deltas, never sent guest drag to host. Remote captain speed had no independent current preference in input; new path sends all selected percentages including100. Exact cause of user's prior apparent individual speed behavior not independently established; don't dismiss the observation. Recall/Pikmin speed deliberately had blanket multiplayer restrictions.
+- Changes implemented: captain schema3/63bytes carries host whistle active/radius, validated finite/range. Original NaviWhistle/NaviFue effects are started/stopped per captain during guest rendering; radius/cursor interpolate, host modifiers determine displayed actual radius. Only four native whistle generator types are tagged, reset on pool reuse; guest-only particle loop advances these, recycles finished effects, bounds frame step and freezes during pause/background. General AI, geometry/simple particles and unrelated particle callbacks remain frozen. Factory/member declarations/native renderer path are included, not just a mock adapter.
+- Controls: existing input format now21bytes including validated naviSpeedPct100/150/200/250/300/400/500. Aim-held bit16, cursor-delta bit32 multiplexes existing dx/dy at quarter-pixel precision; both axes accumulate between sends, expire after300ms, occur once and survive redundant delivery without repeating. Host projects guest screen drag through guest camera yaw, releases lock while free aim held and doesn't clear host mouse deltas. Existing successful clock/lead/hold and75ms smoothing delay retained. Speed preference is per captain, normal100 sent every sample too.
+- Recall/Pikmin speed: one-shot Recall All bit64, existing host squad-ownership filter prevents taking partner's owned workers; each player enables their own dedicated button. Host need not enable local Recall All to honor guest's enabled request. Ordinary whistle range unchanged. Pikmin walking speed enabled as one HOST setting for both squads; guest row explains host control. Captain speed remains individual. Other local/competitive multiplayer, Hard and Speedrun restrictions retained. No new recall teleport/rescue/AI system.
+- Tests/results:31/31 real network CTest PASS (after network-restricted invocation couldn't connect, rerun with authorized network passed all). Codec radius/flags/speed rejection,100% reset, both axes/held/release/expiry/no-repeat,120 existing timing/jitter combinations PASS.34 extracted ACTUAL guest whistle/captain/input/settings/particle-manager checks PASS with MSVC/W4/WX and strict Clang. Original native engine headers/translation units for captain visuals/runtime/Navi and effect manager/particle manager/generator/newPikiGame/settings syntax checks PASS; legacy warnings remain.236 smoothing,14 Ready/focus,8 carry,283 walking-speed/config,110 command/recall/cursor/edge,20 non-touch Recall All checks PASS. Actual capture/pool/300-Pikmin fixture including whistle field transport PASS, compile-out PASS. Both experimental workflows now require practice_feedback preflight. Native iPhone/PC package builds and hardware behavior for this batch NOT yet tested.
+- Confirmed working: user PC8/phone92 smooth movement and own sounds; accepted graphics/touch/keyboards/120FPS/native pixels/low-detail Louie/GPI baseline preserved. Enemy audio untested. New effects/input fixes need real devices before marked fixed.
+- Remaining issues: actual new pair visual/aim/speed/recall validation; host force-close/durable exact mid-day recovery/live rejoin still not implemented. Practice disposable, not full campaign, End/loss still restart. Main-story solo completion not proven. Save-solo-test separate from ordinary save retained.
+
+### Pikmin 2
+
+- Current objective: preserve user-confirmed working game/audio, later campaign testing/co-op.
+- Investigation/root cause: none this turn. Shared net codec evolved for P1; no P2-specific source/app/device modification, no new P2 build requested.
+- Tests/results: no new P2 runtime evidence. Existing accepted app untouched.
+- Remaining issues: full campaign test and eventual P2 co-op after P1.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port ; branch ios-experimental.
+- Starting local/remote6ac6bc8d3f7b09fdee419c3ad57968f46c65a69e, clean/fetched/synchronized before edits. Installed game source7720d26cb7c31c7bb8843c7d96e34bbc726eae59.
+- Latest game commit / commits created / pushed: new batch pending commit; final source/run IDs will be recorded in Exact Resume State.json after submission. No unrelated edits.
+- Uncommitted: scoped whistle/aim/speed/recall implementation, tests/workflow/journals. Preserve if interrupted; do not describe as hardware verified.
+- Previous builds: PC8 run41070915761 SUCCESS/artifact12984489349; phone92 run41070915736 SUCCESS/artifact12986162794, scene12985201795, full packages independently verified/staged in prior checkpoint.
+- Existing PC8 installed at Documents/Open Nectar/4 - Windows Version/Pikmin 1 - Full PC Co-op - Experimental, same PLAY PIKMIN1.cmd (actual filename PLAY PIKMIN 1.cmd). PC7 rollback Before PC Build8 -20261030-110203 (actual folder Before PC Build 8 - 20261030-110203).3199 protected settings/save/content hashes unchanged at that update.
+- Existing phone92 staged at Documents/Open Nectar/1 - Install on iPhone/P1 Build 92 - Guest Movement and Audio/Pikmin 1 - Build 92.ipa, user now confirms installed/tested. SHA256b39285aadc7344cb496b6a3189dae80ee568df04a8bfe8aa008bc90c636284c1,5366883bytes, UUID0b3fe965-5974-3eb0-acd6-7e2f5f013722. PC8/phone92 shared identityd6d042250ff4364f8910f8418a856e03ddc5cb6f360659fe731be38602c23e96.
+
+### Next steps
+
+- P1: submit one matching PC/iPhone batch, stop idle polling, wait user completion feedback. Then strict exact-head artifact/native receipts/identity checks, PC backup/stage and same-app phone update. BOTH peers must update because input/captain layouts changed; mixed pairs should be rejected by build identity.
+- P2: preserve accepted app.
+- User involvement: none now; can close games/disconnect. Later test both normal whistle rings, free aim drag while stationary/walking, speed increase then100 on each player, own-squad Recall All with partner's Pikmin working, host Pikmin speed and pause/resume. Enemy sounds remain outside this empty practice's coverage. Do not ask for enemy sound test here.
+
+### ChatGPT continuation notes
+
+- Files: games/pikmin1/pc_port/netplay/pc_coop_captain_visuals.cpp, pc_coop_world.cpp, pc_coop_visual_smoothing.h, pc_coop_practice_input.h, pc_coop_practice_runtime.cpp/.h; original navi.cpp/Navi.h; original EffectMgr.h, zen/particle.h, effectMgr.cpp, particleManager.cpp, particleGenerator.cpp, newPikiGame.cpp; settings/pc_settings.cpp; libs/nectar_net input/replication codecs and tests. Guard new particle behavior with NECTAR_COOP_WORLD; do not globally reopen replica authority.
+- New test tests/pikmin1_practice_feedback_test.py extracts actual methods, settings policy and particle update loop; workflow includes MSVC/macOS/iOS syntax. Existing solo command/recall/speed fixtures updated for practice seams, original expectations preserved. Tests do not prove rendered ring visibility or hardware input. Audio unchanged intentionally, own-only captain sound accepted by user.
+- Evidence: work/feedback-net-ctest-authorized.log, feedback-checks.log, feedback-strict.log, feedback-capture.log, feedback-smoothing.log, feedback-actual-engine.log, feedback-actual-particles.log. Native .c test extraction/backend gates from7720d26c retained. No private recordings/game assets committed. Phone logs not needed for this diagnosis.
+- Full mode vision remains COOP_OBJECTIVE_QUEUE.md / COOP_MIDDAY_RECOVERY_REQUIREMENTS.md: own screens/squads, shared Onion stock/separate allowances, solo/shared saves, health-led difficulty, synchronized cutscenes/travel, private internet invites/live reconnect, durable exact mid-day recovery for calls/lock/host force-close, seamless PC/iPhone continuation, P2 later. User wants finite progress: address confirmed issues, don't expand indefinitely. Percentage-first only when asked, not inflated by CI.
+- Exact next action: after final source/run checkpoint, wait meaningful build result, verify/stage paired update, collect hardware evidence. Do not launch/close/control a user's running game or install a phone automatically. No new mod downloads, graphics/FPS or asset changes.
+
+**END PROGRESS REPORT**
+
+---
+
 ## PC8 and iPhone92 verified and staged
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT

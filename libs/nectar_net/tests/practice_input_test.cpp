@@ -82,6 +82,21 @@ int main(){
     stagger.observe(140,1310);auto staggered=stagger.bundle(1310,0);
     check(!staggered.empty() && (staggered[0].flags&1)==0 && (staggered[0].flags&2)!=0,
           "expiring an older action does not discard a newer different action");
+    PcCoopPracticeInput aim;aim.observe(100,1000);
+    NetInputFrame drag;drag.flags=PcCoopPracticeInput::AimHeld|PcCoopPracticeInput::CursorDelta;drag.cursorDx=8;drag.cursorDy=-12;drag.naviSpeedPct=250;
+    aim.sample(drag,1000);aim.sample(drag,1005);auto ab=aim.bundle(1010,0);
+    check(!ab.empty() && ab[0].cursorDx==16 && ab[0].cursorDy==-24 && (ab[0].flags&32),"both free aim axes accumulate between network sends");
+    for(std::size_t i=1;i<ab.size();++i)check(ab[i].cursorDx==0 && ab[i].cursorDy==0 && !(ab[i].flags&32),"new cursor displacement only issued once");
+    InputPolicy aimPolicy;aimPolicy.continuousFlags=PcCoopPracticeInput::Continuous;InputReceiver aimReceiver(aimPolicy);aimReceiver.receive(ab,100);
+    InputHealth ah;auto av=aimReceiver.consume(ab[0].tick,ah);auto repeatedAim=aimReceiver.consume(ab[0].tick+1,ah);
+    check(av.cursorDx==16 && repeatedAim.cursorDx==0 && repeatedAim.cursorDy==0 && (repeatedAim.flags&16),"loss holds aim mode without repeating displacement");
+    aim.published(ab,1010);drag={};drag.naviSpeedPct=100;aim.sample(drag,1050);aim.observe(106,1050);ab=aim.bundle(1050,0);
+    check(!ab.empty() && !ab[0].flags && !ab[0].cursorDx && !ab[0].cursorDy && ab[0].naviSpeedPct==100,"release clears aim and publishes restored normal speed");
+    aim.reset();aim.observe(100,1000);drag.flags=32;drag.cursorDy=500;aim.sample(drag,1000);aim.sample(NetInputFrame{},1400);aim.observe(150,1400);ab=aim.bundle(1400,0);
+    check(!ab.empty() && !(ab[0].flags&32) && !ab[0].cursorDy,"stale cursor drag expires rather than jumping after interruption");
+    aim.reset();aim.observe(100,1000);drag={};drag.flags=64;aim.sample(drag,1000);ab=aim.bundle(1000,0);aimReceiver=InputReceiver(aimPolicy);aimReceiver.receive(ab,100);
+    av=aimReceiver.consume(ab[0].tick,ah);repeatedAim=aimReceiver.consume(ab[0].tick+1,ah);
+    check((av.flags&64) && !(repeatedAim.flags&64),"Recall All is a one-shot, never repeated across missing input");
     clock.reset();clock.observe(std::numeric_limits<std::uint64_t>::max()-10,1);
     check(clock.bundle(1,0).empty(),"tick overflow fails closed");
     std::puts(failures?"PRACTICE INPUT FAIL":"PRACTICE INPUT PASS");return failures?1:0;

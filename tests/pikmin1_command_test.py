@@ -63,6 +63,8 @@ pieces.append('bool Navi::eligible(Piki* piki,float dist,float radius) {\n'
  'const int state=piki->getState();\nbool callable=piki->mNavi==this || !piki->mNavi || piki->mMode!=PikiMode::FormationMode;\nreturn '+eligibility+';\n}')
 pieces.append('bool Navi::inRange(Piki* piki,float radius,bool recallAll) {(void)recallAll;\n'+call_prefix+distance+'\nreturn true;}')
 code=r'''
+bool pc_coop_practice_active(){return false;}
+int pc_coop_practice_local_player(){return 0;}
 #include <cmath>
 #include <cstdint>
 #include <cstdio>

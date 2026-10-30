@@ -298,7 +298,7 @@ bool pc_coop_world_present_guest(const net::ActorFrame& frame)
         auto* n=captains[player];auto value=guest->captainStates[player];
         const auto& pose=frame.captains.at(guest->ids[player]);
         value.position=pose.position;value.velocity=pose.velocity;value.faceDirection=pose.faceDirection;
-        value.upperFrame=pose.upperFrame;value.lowerFrame=pose.lowerFrame;value.cursor=pose.cursor;
+        value.upperFrame=pose.upperFrame;value.lowerFrame=pose.lowerFrame;value.cursor=pose.cursor;value.whistleRadius=pose.whistleRadius;
         n->mSRT.t.x=value.position.x;n->mSRT.t.y=value.position.y;n->mSRT.t.z=value.position.z;
         n->mLastPosition=n->mSRT.t;
         n->mVelocity.x=value.velocity.x;n->mVelocity.y=value.velocity.y;n->mVelocity.z=value.velocity.z;
@@ -385,6 +385,7 @@ bool pc_coop_world_capture(std::vector<net::EntityRecord>& output)
         s.faceDirection = n->mFaceDirection; s.player = player;
         s.cursor = {n->mCursorWorldPos.x,n->mCursorWorldPos.y,n->mCursorWorldPos.z};
         s.health=n->mHealth;s.cursorVisible=n->mIsCursorVisible ? 1 : 0;
+        n->pcCoopWhistleCapture(s);
         const auto& upper=n->mNaviAnimMgr.getUpperAnimator();
         const auto& lower=n->mNaviAnimMgr.getLowerAnimator();
         if (upper.mCurrentAnimID<0 || upper.mCurrentAnimID>=1024 || lower.mCurrentAnimID<0 || lower.mCurrentAnimID>=1024) return false;

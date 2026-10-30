@@ -27,6 +27,9 @@
 #include "FlowController.h"
 #include "gameflow.h"
 #include "pc_window.h"
+#if PIKI_PC_TOUCH
+#include "touch/pc_touch.h"
+#endif
 #include "settings/pc_settings.h"
 #include "Dolphin/pad.h"
 #include "dolphin_stubs/pc_card_paths.h"
@@ -134,6 +137,9 @@ void enterWorld() {
 bool pc_coop_practice_can_enter() { return title && !owner && !pc_coop_practice_restart_required(); }
 void pc_coop_practice_note_title(bool available) { title=available; }
 bool pc_coop_practice_active() { return owner!=nullptr; }
+bool pc_coop_practice_guest_effects_running() {
+    return owner && loaded && !stopped && !away && role==net::CoopRole::Guest && session() && session()->canIssueCommands();
+}
 bool pc_coop_practice_block_title() { return owner && (stopped || !requested); }
 bool pc_coop_practice_adopt(std::unique_ptr<net::CoopConnection>& incoming) {
     if (!pc_coop_practice_can_enter() || !incoming || !incoming->connected() || !incoming->role(role)) return false;
@@ -297,6 +303,7 @@ void pc_coop_practice_filter_pad(PADStatus* pads) {
     if (start) { pc_coop_practice_pause();showPanel(); }
     if (role==net::CoopRole::Guest) {
         net::NetInputFrame f;
+        f.naviSpeedPct=static_cast<std::uint16_t>(std::lround(pc_settings_get_navi_speed_scale()*100.0f));
         f.held=physical.button & ~(PAD_BUTTON_START|PAD_BUTTON_Y);
         f.stickX=physical.stickX;f.stickY=physical.stickY;
         f.cstickX=physical.substickX;f.cstickY=physical.substickY;
@@ -309,6 +316,21 @@ void pc_coop_practice_filter_pad(PADStatus* pads) {
         const float drag=pc_window_take_camera_drag_player(0);
         pc_window_add_camera_drag_player(1,drag);
         f.cursorDx=static_cast<std::int16_t>(std::clamp(drag*3.2f/pc_input_log::kYawTurnsToRad,-32767.0f,32767.0f));
+#if PIKI_PC_TOUCH
+        if (pc_touch_aim_active()) f.flags|=PcCoopPracticeInput::AimHeld;
+#endif
+        const float dx=pc_window_get_mouse_cursor_delta_x(),dy=pc_window_get_mouse_cursor_delta_y();
+        if (dx!=0 || dy!=0) {
+            f.flags|=PcCoopPracticeInput::CursorDelta;
+            f.cursorDx=static_cast<std::int16_t>(std::clamp(dx*4.0f,-32767.0f,32767.0f));
+            f.cursorDy=static_cast<std::int16_t>(std::clamp(dy*4.0f,-32767.0f,32767.0f));
+        }
+        pc_window_clear_mouse_cursor_delta();
+        bool recall=pc_window_take_recall_press();
+#if PIKI_PC_TOUCH
+        recall=pc_touch_take_recall_request() || recall;
+#endif
+        if (recall && pc_settings_get_recall_all()) f.flags|=64;
         if (session() && session()->canIssueCommands()) { ++diagnosticSamples;inputs.sample(f,nowMs()); }
         pads[1]=physical;pads[1].button&=~(PAD_BUTTON_START|PAD_BUTTON_Y);
         pads[0]={};pads[0].err=PAD_ERR_NONE;
@@ -330,7 +352,16 @@ bool pc_coop_practice_control_yaw(int p,float* sine,float* cosine) {
     *sine=std::sin(yaw);*cosine=std::cos(yaw);return true;
 }
 std::uint8_t pc_coop_practice_ext(int p) { return pc_coop_practice_remote_input(p)?remote.flags:0; }
-std::int16_t pc_coop_practice_cursor_rotate(int p) { return pc_coop_practice_remote_input(p)?remote.cursorDx:0; }
+std::int16_t pc_coop_practice_cursor_rotate(int p) { return pc_coop_practice_remote_input(p) && !(remote.flags&PcCoopPracticeInput::CursorDelta)?remote.cursorDx:0; }
+bool pc_coop_practice_cursor_delta(int p,float* x,float* y) {
+    if (!pc_coop_practice_remote_input(p)) return false;
+    *x=(remote.flags&PcCoopPracticeInput::CursorDelta)?remote.cursorDx*.25f:0;
+    *y=(remote.flags&PcCoopPracticeInput::CursorDelta)?remote.cursorDy*.25f:0;
+    return true;
+}
+float pc_coop_practice_remote_speed(int p) {
+    return pc_coop_practice_remote_input(p)?remote.naviSpeedPct*.01f:1.0f;
+}
 int pc_coop_practice_local_player() { return owner && role==net::CoopRole::Guest ? 1 : 0; }
 bool pc_coop_practice_can_ready() { return owner && !stopped && confirmed && session() && session()->phase()!=net::CoopPhase::WaitingForPartner; }
 bool pc_coop_practice_ready() {

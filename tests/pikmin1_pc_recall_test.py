@@ -12,6 +12,10 @@ while depth:
     end+=1
 function=source[start:end]
 code=r"""
+bool pc_coop_practice_active(){return false;}
+int pc_coop_practice_local_player(){return 0;}
+bool pc_coop_practice_remote_input(int){return false;}
+unsigned char pc_coop_practice_ext(int){return 0;}
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>

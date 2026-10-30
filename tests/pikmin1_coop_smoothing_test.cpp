@@ -52,6 +52,10 @@ int main(){
     a.captains[2].cursor={0,0,50};b.captains[2].cursor={0,0,150};s.push(a,1000);s.push(b,1050);s.sample(1100,out);
     check(near(out.captains[1].cursor.x,50)&&near(out.captains[2].cursor.z,100),"each captain cursor blends with its pose, not at packet frequency");
     check(out.captains[1].cursorVisible==b.captains[1].cursorVisible,"cursor visibility remains latest authoritative value");
+    s.reset();a.captains[1].whistleActive=b.captains[1].whistleActive=1;a.captains[1].whistleRadius=20;b.captains[1].whistleRadius=100;
+    s.push(a,1000);s.push(b,1050);s.sample(1100,out);check(near(out.captains[1].whistleRadius,60),"active host whistle radius blends with the guest cursor");
+    b.captains[1].whistleActive=0;s.reset();s.push(a,1000);s.push(b,1050);s.sample(1100,out);
+    check(out.captains[1].whistleActive==0,"release stops effect immediately instead of replaying stale whistle");
     b.captains[1].cursor.x=1000;s.reset();s.push(a,1000);s.push(b,1050);s.sample(1100,out);
     check(near(out.captains[1].cursor.x,1000),"distant cursor target change snaps instead of sweeping across map");
     std::printf("%d guest presentation checks passed\n",checks);

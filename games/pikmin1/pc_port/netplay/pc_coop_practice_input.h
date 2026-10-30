@@ -10,7 +10,8 @@
 // display FPS. Bounded six-tick bundles preserve taps between network sends.
 class PcCoopPracticeInput {
 public:
-    static constexpr std::uint8_t Continuous = 8; // P1 Swarm, other ext bits are edges
+    static constexpr std::uint8_t AimHeld=16, CursorDelta=32;
+    static constexpr std::uint8_t Continuous = 8|AimHeld; // Swarm and free-aim held; command bits are edges
     void reset() { *this = PcCoopPracticeInput{}; }
     void observe(std::uint64_t tick, std::uint64_t now) {
         if (haveFrame && (tick < frameTick || now < frameAt)) return;
@@ -43,12 +44,17 @@ public:
         for (unsigned bit = 0; bit < 8; ++bit) {
             const auto mask = static_cast<std::uint8_t>(1u << bit);
             if ((edges & mask) && (now < edgeAt[bit] || now - edgeAt[bit] > TransientLifetimeMs)) edges &= ~mask;
-            if ((value.flags & ~Continuous) & mask) { edges |= mask; edgeAt[bit] = now; }
+            if ((value.flags & ~(Continuous|CursorDelta)) & mask) { edges |= mask; edgeAt[bit] = now; }
         }
         if (haveRotation && (now < rotationAt || now - rotationAt > TransientLifetimeMs)) {
             rotation = 0; haveRotation = false;
         }
-        if (value.cursorDx) {
+        if (haveDelta && (now<deltaAt || now-deltaAt>TransientLifetimeMs)) { deltaX=deltaY=0; haveDelta=false; }
+        if (value.flags&CursorDelta) {
+            if (!haveDelta) { deltaAt=now;haveDelta=true; }
+            deltaX=std::clamp(deltaX+int(value.cursorDx),-32767,32767);
+            deltaY=std::clamp(deltaY+int(value.cursorDy),-32767,32767);
+        } else if (value.cursorDx) {
             if (!haveRotation) { rotationAt = now; haveRotation = true; }
             rotation = std::clamp(rotation + int(value.cursorDx), -32767, 32767);
         }
@@ -83,10 +89,12 @@ public:
             value.held |= freshTaps;
             value.pressed = value.released = 0;
             value.flags &= Continuous;
-            value.cursorDx = 0;
+            value.cursorDx = value.cursorDy = 0;
             if (n == 0) {
                 value.flags |= freshEdges;
-                if (freshRotation) value.cursorDx = static_cast<std::int16_t>(rotation);
+                if (haveDelta && now>=deltaAt && now-deltaAt<=TransientLifetimeMs) {
+                    value.flags|=CursorDelta; value.cursorDx=static_cast<std::int16_t>(deltaX); value.cursorDy=static_cast<std::int16_t>(deltaY);
+                } else if (freshRotation) value.cursorDx = static_cast<std::int16_t>(rotation);
             }
             frames.push_back(value);
         }
@@ -98,6 +106,7 @@ public:
         for (const auto& value : frames) history[value.tick] = value;
         while (history.size() > 12) history.erase(history.begin());
         taps = 0; edges = 0; rotation = 0; haveRotation = false;
+        deltaX=deltaY=0;haveDelta=false;
     }
 private:
     nectar::net::NetInputFrame latest;
@@ -108,6 +117,7 @@ private:
     std::array<std::uint64_t, 8> edgeAt{};
     std::uint16_t taps = 0;
     std::uint8_t edges = 0;
-    int rotation = 0;
+    int rotation = 0, deltaX=0, deltaY=0;
+    bool haveDelta=false; std::uint64_t deltaAt=0;
     std::map<std::uint64_t, nectar::net::NetInputFrame> history;
 };

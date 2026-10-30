@@ -19,6 +19,7 @@ class Graphics{};
 struct Animator{int mCurrentAnimID=0;float mAnimationCounter=0;};
 struct Animations{Animator upper,lower;Animator&getUpperAnimator(){return upper;}Animator&getLowerAnimator(){return lower;}};
 struct Navi:Creature{int mNaviID=0;Vec mCursorWorldPos;bool mIsCursorVisible=true;Animations mNaviAnimMgr;
+ void pcCoopWhistleCapture(nectar::net::CaptainState&s){s.whistleActive=1;s.whistleRadius=80.0f+static_cast<float>(mNaviID);}
  bool pcCoopVisualValidate(const nectar::net::CaptainState&s)const{return s.upperAnimation<90&&s.lowerAnimation<90&&s.upperFrame<=64&&s.lowerFrame<=64;}
  void pcCoopVisualApply(const nectar::net::CaptainState&s){mHealth=s.health;mCursorWorldPos={s.cursor.x,s.cursor.y,s.cursor.z};}};
 class Piki:public Creature{public:Navi*mNavi=nullptr;std::uint16_t mColor=0,mMode=0;int mHappa=0,mPlayerId=0;Animations mPikiAnimMgr;};
@@ -89,6 +90,7 @@ int main(){
   const auto result=guest.receive(it->data(),it->size(),0);
   if(it+1!=packets.rend())check(result==ActorFrameReceiver::Result::Buffered&&!guest.hasFrame(),"actual engine squad invisible until all packets arrive");
  }
+ check(guest.current().captains.begin()->second.whistleActive==1 && guest.current().captains.begin()->second.whistleRadius==80,"host whistle radius travels through actual capture and packet decoding");
  check(guest.current().captains.size()==2&&guest.current().pikmin.size()==2,"actual engine capture reaches guest replica intact");
  const auto beforePackets=packets;
  check(!pc_coop_world_capture_packets(1,51,100,packets)&&packets==beforePackets,"capture packet sequence cannot repeat");

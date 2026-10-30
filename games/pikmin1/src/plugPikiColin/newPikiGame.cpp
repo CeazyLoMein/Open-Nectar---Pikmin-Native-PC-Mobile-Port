@@ -2596,6 +2596,11 @@ public:
 #endif
 					effectMgr->update();
 				}
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+                else if (isDVDNormal && gamecore->mRenderPass==0 && pc_coop_practice_guest_effects_running()) {
+                    effectMgr->updateCoopWhistles(); // no geometry, simple particles or guest gameplay callbacks
+                }
+#endif
 				MATCHING_STOP_TIMER("effect");
 			}
 

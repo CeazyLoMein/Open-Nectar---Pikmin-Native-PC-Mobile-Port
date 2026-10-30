@@ -512,6 +512,9 @@ public:
 	EffectMgr();
 
 	void update();
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+    void updateCoopWhistles() { mPtclMgr.updateCoopWhistles(); }
+#endif
 	void draw(Graphics&);
 	void drawshapes(Graphics&);
 	void exit();

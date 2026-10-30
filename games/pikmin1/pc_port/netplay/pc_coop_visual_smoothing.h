@@ -42,6 +42,8 @@ public:
             const auto& x=a->second.cursor;const auto& y=b->second.cursor;
             const float dx=x.x-y.x,dy=x.y-y.y,dz=x.z-y.z;
             if(dx*dx+dy*dy+dz*dz<=400.0f*400.0f)entry.second.cursor=mix(x,y,alpha);
+            if(entry.second.whistleActive && a->second.whistleActive && b->second.whistleActive)
+                entry.second.whistleRadius=mix(a->second.whistleRadius,b->second.whistleRadius,alpha);
         }
         return true;
     }

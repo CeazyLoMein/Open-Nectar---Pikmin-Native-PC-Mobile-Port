@@ -817,7 +817,12 @@ zen::particleGenerator* EffectMgr::create(EffectMgr::effTypeTable effID, immut V
                                           zen::CallBack1<zen::particleGenerator*>* cbGen,
                                           zen::CallBack2<zen::particleGenerator*, zen::particleMdl*>* cbPtcl)
 {
-	return mParticles[effID]->create(pos, cbGen, cbPtcl);
+    zen::particleGenerator* gen=mParticles[effID]->create(pos,cbGen,cbPtcl);
+#if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
+    if (gen) gen->mPcCoopWhistleVisual=effID==EFF_Navi_Whistle1 || effID==EFF_Navi_Whistle2
+        || effID==EFF_Navi_Whistle3 || effID==EFF_Navi_WhistleCursor;
+#endif
+    return gen;
 }
 
 /**

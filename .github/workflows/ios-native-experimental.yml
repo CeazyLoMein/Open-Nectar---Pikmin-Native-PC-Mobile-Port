@@ -247,11 +247,11 @@ jobs:
           set -euo pipefail
           c++ -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -Ilibs/nectar_net/include tests/pikmin1_coop_smoothing_test.cpp -o "$RUNNER_TEMP/p1-smoothing"
           "$RUNNER_TEMP/p1-smoothing"
-          for name in desktop_focus missing_carry_goal native_audio_entry; do
+          for name in desktop_focus missing_carry_goal native_audio_entry practice_feedback; do
             python3 "tests/pikmin1_${name}_test.py" "$RUNNER_TEMP/p1-${name}.cpp"
-            c++ -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port "$RUNNER_TEMP/p1-${name}.cpp" -o "$RUNNER_TEMP/p1-${name}"
+            c++ -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -Ilibs/nectar_net/include "$RUNNER_TEMP/p1-${name}.cpp" -o "$RUNNER_TEMP/p1-${name}"
             "$RUNNER_TEMP/p1-${name}"
-            xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -fsyntax-only "$RUNNER_TEMP/p1-${name}.cpp"
+            xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -Ilibs/nectar_net/include -fsyntax-only "$RUNNER_TEMP/p1-${name}.cpp"
           done
           xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -Ilibs/nectar_net/include -fsyntax-only tests/pikmin1_coop_smoothing_test.cpp
       - name: Check actual P1 co-op capture and pooled actor lifecycle
