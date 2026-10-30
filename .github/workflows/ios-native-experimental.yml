@@ -334,9 +334,9 @@ jobs:
           "$RUNNER_TEMP/practice-resume-test"
           xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/practice-resume-test.cpp"
           python3 tests/pikmin1_practice_exit_test.py "$RUNNER_TEMP/practice-exit-test.cpp"
-          c++ -std=c++17 -Wall -Wextra -Werror "$RUNNER_TEMP/practice-exit-test.cpp" -o "$RUNNER_TEMP/practice-exit-test"
+          c++ -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -Ilibs/nectar_net/include "$RUNNER_TEMP/practice-exit-test.cpp" -o "$RUNNER_TEMP/practice-exit-test"
           "$RUNNER_TEMP/practice-exit-test"
-          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -fsyntax-only "$RUNNER_TEMP/practice-exit-test.cpp"
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -Ilibs/nectar_net/include -fsyntax-only "$RUNNER_TEMP/practice-exit-test.cpp"
           c++ -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port tests/pikmin1_practice_squad_policy_test.cpp -o "$RUNNER_TEMP/p1-practice-squad-test"
           "$RUNNER_TEMP/p1-practice-squad-test"
           xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -fsyntax-only tests/pikmin1_practice_squad_policy_test.cpp

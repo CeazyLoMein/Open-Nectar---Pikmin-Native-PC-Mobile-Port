@@ -1,3 +1,9 @@
+## iPhone89 failure diagnosed; PC5 verified — 2026-10-29 20:12 EDT
+
+PC5/run40976294203 PASSED and its package is verified, not installed. iPhone89/run40976294072 stopped in an OUTDATED extracted exit fixture: missing smoothing/presented declarations. Full game/socket probe were not reached; the later mandatory socket error is a correctly rejected skipped step. Actual21 practice/13 room receipts passed. Fixed fixture now uses real smoothing and tests10 exit/lifetime/cleanup cases; strict MSVC/Clang and two negative controls pass. Only tests/workflows/docs change; identity stays26204c2b52dcf03c59c52798930a69a9e11a4a6c9272600e9c7a8eb29e650f9e, compatible with PC5. Submit only new iPhone build, retain PC5; no [pc-coop-build] marker. Original Louie is restored, USB task complete. Latest full report is at the END below and in Documents/Open Nectar/2 - Progress and ChatGPT Handoff. Prior current-state claims below are historical.
+
+---
+
 ## Original Louie restored — 2026-10-29 20:01 EDT
 
 Completed the user's approved content-only restoration on their connected phone, with P1 confirmed closed. Restored ONLY the340588-byte original low-detail `Load/Models/Louie/louie.nhm`; phone read-back SHA256 `c61f484c955e3944dded7535efe8bedd91214454a86620a343ec79842c16bf8d` matches the verified private backup. `Load/Models` contains only Louie. All HD character models remain removed. The existing GPI texture selection/content was retained; full textures were not rehashed this time. Current config was backed up locally and on the phone before replacement; the final config was read back and matches the original with only `hdModelsDisabled=63` changed to61. No app update, save write, PC/P2 change or automatic game input.
@@ -3513,5 +3519,54 @@ RTSS Windows approval completed; P1-only profile installed, API readback OSD1/de
 - Unverified: new hardware behavior, actual native compilation/package for new source; original Louie not restored. New P1 remains unlocked solo-update test variant with separate save-solo-test; normal `save` preserved. This is not a completed campaign/co-op product.
 - Preserve all queued vision: independent personal graphics/camera/controls, own screens/squads, shared Onion stock with independent allowances, host-owned campaign, cutscenes/travel, same/different Wi-Fi, PC/iPhone mixed play and migration, automatic exact mid-day recovery for calls/suspension/closing/crashes, reconnect and clear exit UI. None is canceled by this batch.
 - Exact next actions after a reset: read this report and Exact Resume State; verify Git status/fetch; use recorded source/run IDs for full logs and receipts; stage only verified matching artifacts; restore original Louie when the user reconnects; guide both-role practice test and collect reports for any remaining faults.
+
+**END PROGRESS REPORT**
+
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-29 20:12 EDT
+
+**Overall project status:** Windows5 PASSED and its full package is verified. iPhone89 FAILED before the full game compile because an extracted exit test lacked the newly added smoothing objects. Test correction is implemented and locally verified. One iPhone-only replacement is about to be submitted; keep installed PC4/phone88 until the matching replacement packages are verified. Original low-detail Louie is now restored/hash-verified on the user's phone; HD packs remain removed and GPI textures retained.
+
+### Pikmin 1
+- Current objective: get the existing coordinated guest-stutter/PC-Ready/missing-Onion fixes through iPhone validation, preserving the passing PC5 game.
+- Investigated: COMPLETE iPhone89 run log ZIP and full P1 job log; failed steps and diagnostics-only artifact; Windows5 run/package; actual exit fixture and both workflow invocation sites.
+- Root cause: tests/pikmin1_practice_exit_test.py extracts the real pc_coop_practice_leave body. That body now resets smoothing and presented, but its controlled test environment did not declare either object. Apple reported two undeclared identifiers in practice-exit-test.cpp line35. This is a stale fixture, not an observed game compiler error. I missed running this existing exit fixture in the previous local batch.
+- Related failure grouping: the later socket-runtime gate correctly rejected `outcome=skipped`, since the first failure prevented building/running that probe. NOT an independent socket execution failure or simulator timeout. Simulated compile failures/timeouts printed by the runner's unit tests were EXPECTED negative cases; the actual21 practice checks and13 room checks PASSED. No successful runtime gate is being invented or bypassed.
+- Files changed: tests/pikmin1_practice_exit_test.py; .github/workflows/ios-native-experimental.yml and windows-coop-experimental.yml; journals. NO game/renderer/controls/network/save source changes.
+- Implemented: fixture now includes the actual PcCoopVisualSmoothing header and a real ActorFrame, initializes stale buffered state, and checks both objects clear on safe early exit/cancel. Late admitted-card exits retain the frozen scene for required restart; wrong-thread leave cannot alter it. Both Apple host/iPhoneOS test commands include the real header paths. Added the same exit test to future Windows content checks, so Windows can catch this class of stale fixture too.
+- Tests/results:10 actual extracted exit/real-smoothing cleanup checks PASS with strict MSVC /W4 /WX; strict Clang diagnostics/core analysis PASS. Two isolated negative controls removing either smoothing.reset or presented reset both FAIL as intended. Python source generator executes; final source whitespace check PASS. Actual full Apple compile and owned UIKit socket execution for the replacement remain PENDING.
+- Compatibility: computed identity remains26204c2b52dcf03c59c52798930a69a9e11a4a6c9272600e9c7a8eb29e650f9e across2908 tracked code/config files. This matches the verified PC5 header. Test/workflow/documentation-only changes do not change compiled game identity. Reuse PC5; do not rebuild it merely to get the same game code.
+- Confirmed working: user's PC4 local play and phone88 solo/render controls as previously reported; Windows5 compilation/package checks and iPhone89's new231 smoothing/14 Ready/8 carry and existing scene-startup/capture checks passed. These are NOT new co-op hardware results.
+- Remaining: replacement iPhone full compile/runtime/package, install verified PC5 plus new iPhone pair, repeat both-host-role movement/readiness/interruption tests. Broader campaign/rejoin/durable mid-day saves/cross-progression/internet remain open. New iPhone uses same unlocked solo-update test variant; normal save storage remains protected.
+
+### Pikmin 2
+- Current objective: preserve the working install.
+- Investigated/root cause: no new P2 fault; no new P2 investigation in this fix.
+- Files changed/tests: none; no P2 build/install requested.
+- Confirmed working: prior user report; full campaign not attested.
+- Remaining: broader campaign coverage and later online adaptation.
+
+### GitHub
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port ; branch ios-experimental.
+- Starting local/remote:cd6e39ef5e2c65efd1d0a69e8a1cbbaf15dbcc31, fetched and no divergence. Last game code commit:deaaee1ee0b884c5c939f456b6a5ccfff4d23d40.
+- Latest commit/commits created/push: correction and this journal are being committed with [ios-build] [ios-p1-update], WITHOUT [pc-coop-build]. Resolved commit/new run IDs saved in Exact Resume State.json after push.
+- Uncommitted changes: only the listed test/workflow/journal batch at this checkpoint; final clean state will be recorded.
+- Build results: PC5/run40976294203 SUCCESS, artifact12943316091. iPhone89/run40976294072 FAILURE; P1 job123808448668 primary failure at enhancement check, later mandatory socket gate refuses skipped runtime. Scene-startup job123805033631 PASSED. No IPA or full compiled-app artifact from89.
+- Artifacts: PC5 ZIP SHA25693b822b5cc7ae9c5b08cb16437d43240b00cfa42c166ce9e4db9e3904711969a; EXE SHA256d93bd8dcc7f80b46dc31e7767595940b9c352773f1da80fd401a48dcae831d9a.14 receipt file hashes, safe archive paths/no game assets, x64 PE, runtime-DLL closure and shared identity verified. Retained in outputs/P1-Full-PC-Coop-Build5; NOT installed over PC4 yet. iPhone89 artifact12943032855 is diagnostics ONLY, ZIP SHA2567a37b2e6c4d0dd85a93dadff54be60f910e44ef08c546a6275378fcd65a38dd4, checked21/13 PASS receipts/no IPA.
+
+### Next steps
+- Next P1 task: verify replacement iPhone result/full logs/runtime receipts/artifact against PC5 identity; stage/install the matching pair after success, then repeat both host roles and interruptions.
+- Next P2 task: preserve current app and queue; no new test needed now.
+- GitHub/build task: one iPhone-only replacement; Windows workflow may show SKIPPED on that push by design. Keep existing mandatory native socket/scene/practice/room gates. No idle polling.
+- User involvement: no phone/USB task now; original Louie restoration already complete. Tell Codex when the replacement iPhone build finishes. Do not install PC5 alone with phone88 because their game identities differ.
+
+### ChatGPT continuation notes
+- Logs: work/build89-logs.zip, build89-p1-full.log, build89-run.json, build89-jobs.json, build89-artifact.zip; windows-coop-build5-verification.json and windows-coop-build5.zip. Generated fixed fixture work/practice-exit-test.cpp; local verification work/check_build89_exit_fix.cmd; two sensitive negative-control results work/exit-cleanup-negative-results.json.
+- Important source: pc_coop_practice_leave cleanup now referenced by the updated fixture; no game code needs changing for this failure. New movement/Ready/carry game fixes remain deaaee1e as documented in the previous full report.
+- Upstream1.1.1 review remains in ios/UPSTREAM_AUDIT_2026_10_29.md; no wholesale merge, performance/control candidates queued. Avoid480p default and action-index26 conflict.
+- Preserved requirements: independent device graphics/camera/controls; own views/squads; shared stock/independent allowances; host campaign; cutscenes/travel; live rejoin, calls/background/crash handling, durable mid-day recovery, PC/iPhone migration and eventual P2. Current disposable practice is not finished campaign co-op.
+- Exact resumption: read Exact Resume State for replacement run ID and final commit; user reports its result, fetch full logs and verify real runtime and IPA, compare identity to PC5, stage both without deleting assets/settings/saves. Use NEXT TEST - PC5 and iPhone90.txt after verification. Phone may be unplugged. No automated running-game input.
 
 **END PROGRESS REPORT**
