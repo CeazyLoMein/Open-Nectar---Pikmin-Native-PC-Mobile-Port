@@ -1,3 +1,9 @@
+## Submitted PC8/iPhone92 native audio and cursor batch — 2026-10-30 10:22 EDT
+
+Game source/local/remote: `7720d26cb7c31c7bb8843c7d96e34bbc726eae59`. PC8 run **41070915761**, iPhone92 run **41070915736**, both IN_PROGRESS when submitted; no new artifacts, installation or hardware validation yet. Expected shared source identity `d6d042250ff4364f8910f8418a856e03ddc5cb6f360659fe731be38602c23e96` (VERSION_GPIE01_01).31 local CTest tests,234 smoothing assertions, actual original-engine entrypoint tests and negative control, native production-flag syntax checks, actual capture/lifecycle, focus/carry/exit checks PASS. Current installed PC7/phone91 has greatly improved movement but guest SFX still FAIL; native audio hooks correct a confirmed backend integration error. Host force-close recovery remains NOT implemented, queued with durable mid-day saves. Phone logs collected read-only, may unplug. Wait for user build-completion feedback; then retrieve exact-head logs/receipts, verify packages, back up/stage matching peers. No idle polling or extra documentation build. Full current report is in Documents/Open Nectar/2 - Progress and ChatGPT Handoff/LATEST - CODEX TO CHATGPT MASTER HANDOFF.md.
+
+---
+
 ## Current hardware result and next batch — 2026-10-30 10:16 EDT
 
 User confirms PC7/phone91 movement much better (subjective80% ->15% stutter), guest SFX still absent on mixed and phone pairs. Correct native PIKI_USE_JAUDIO=1 hooks/pause tests and cursor smoothing implemented; native builds pending. HOST FORCE-CLOSE RECOVERY is confirmed absent and remains mandatory under durable mid-day save/recovery: closing the host currently ends in-memory practice; do not claim rejoin works. Phone logs collected read-only; may unplug. All full-mode objectives below remain active.

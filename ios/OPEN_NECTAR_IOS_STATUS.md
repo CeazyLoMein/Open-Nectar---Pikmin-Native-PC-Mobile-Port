@@ -1,3 +1,9 @@
+## Submitted PC8/iPhone92 native audio and cursor batch — 2026-10-30 10:22 EDT
+
+Game source/local/remote: `7720d26cb7c31c7bb8843c7d96e34bbc726eae59`. PC8 run **41070915761**, iPhone92 run **41070915736**, both IN_PROGRESS when submitted; no new artifacts, installation or hardware validation yet. Expected shared source identity `d6d042250ff4364f8910f8418a856e03ddc5cb6f360659fe731be38602c23e96` (VERSION_GPIE01_01).31 local CTest tests,234 smoothing assertions, actual original-engine entrypoint tests and negative control, native production-flag syntax checks, actual capture/lifecycle, focus/carry/exit checks PASS. Current installed PC7/phone91 has greatly improved movement but guest SFX still FAIL; native audio hooks correct a confirmed backend integration error. Host force-close recovery remains NOT implemented, queued with durable mid-day saves. Phone logs collected read-only, may unplug. Wait for user build-completion feedback; then retrieve exact-head logs/receipts, verify packages, back up/stage matching peers. No idle polling or extra documentation build. Full current report is in Documents/Open Nectar/2 - Progress and ChatGPT Handoff/LATEST - CODEX TO CHATGPT MASTER HANDOFF.md.
+
+---
+
 ## Native audio integration correction; hardware movement improved — 2026-10-30 10:16 EDT
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
