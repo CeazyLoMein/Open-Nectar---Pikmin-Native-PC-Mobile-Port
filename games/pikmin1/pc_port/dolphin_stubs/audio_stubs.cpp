@@ -20,6 +20,7 @@
 #include "jaudio/verysimple.h"
 #include "MoviePlayer.h"
 #include "audio/pc_audio_source.h"
+#include "netplay/pc_coop_audio.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -456,6 +457,11 @@ void Jac_SceneExit(u32 sceneID, u32 stageID) {
 u32 Jac_GetCurrentScene() { return sNativeScene; }
 BOOL Jac_TellChgMode() { return sChallengeMode ? TRUE : FALSE; }
 void Jac_PlaySystemSe(s32 seID) {
+    PcCoopAudioCall audioCall;
+    // Menu/ownership state stays local; gameplay notifications reach the partner.
+    if(seID!=JACSYS_MenuOn && seID!=JACSYS_MenuOff && seID!=JACSYS_Pause &&
+       seID!=JACSYS_Unpause && seID!=JACSYS_DVDPause && seID!=JACSYS_DVDUnpause)
+        pc_coop_audio_raw(7,seID);
     if (seID < 0) return;
     if (seID == JACSYS_ContainerOK) {
         Jac_PlayOrimaSe(JACORIMA_Unk14);
@@ -623,6 +629,8 @@ void Jac_EnterBossMode() {
     Jac_EasyCrossFade(1, 100);
 }
 void Jac_StopSystemSe(s32 id) {
+    PcCoopAudioCall audioCall;
+    pc_coop_audio_raw(8,id);
     if (id == JACSYS_ContainerOK) {
         Jac_StopOrimaSe(JACORIMA_Unk14);
     } else if (id >= 0) {
@@ -630,6 +638,7 @@ void Jac_StopSystemSe(s32 id) {
     }
 }
 void Jac_PlayOrimaSe(u32 id) {
+    PcCoopAudioCall audioCall;
     // Netplay: a captain's own sounds reach only the PC that plays that
     // captain (pc_audio_source.h). Everyone else's are always audible.
     const bool audible = pc_audio_source_audible();
@@ -640,9 +649,11 @@ void Jac_PlayOrimaSe(u32 id) {
             return;
         if (id == JACORIMA_PikiFly) sPikiFlyReady[flySlot] = sPikiFlyReady[2] = false;
         else if (id == JACORIMA_PikiFlyReady) sPikiFlyReady[flySlot] = true;
+        pc_coop_audio_raw(5,static_cast<int>(id));
         if (audible) pc_audio_send_orima_se(static_cast<u16>(id & 0x7FFF), false, true);
         return;
     }
+    pc_coop_audio_raw(5,static_cast<int>(id));
     if (!audible) {
         // The captain going down is game information, not that captain's own
         // sound: the partner hears the cue and the music change too.
@@ -687,6 +698,8 @@ void Jac_PlayOrimaSe(u32 id) {
     }
 }
 void Jac_StopOrimaSe(s32 id) {
+    PcCoopAudioCall audioCall;
+    pc_coop_audio_raw(6,id);
     if (!pc_audio_source_audible()) return;
     if ((id & JACORIMA_PIKISOUND) == 0 && id == JACORIMA_Gather) {
         // A stop from a captain ends that captain's whistle; one raised
@@ -885,6 +898,7 @@ void Jac_Freeze_Precall() {
 }
 void Jac_Freeze() { pc_audio_stop_dma(); }
 void Jac_Orima_Walk(s32 groundSoundID, u32) {
+    pc_coop_audio_raw(10,groundSoundID);
     if (!pc_audio_source_audible()) return;
     // Original handle 0x10008: alternate writes are intentional; the JAM
     // track selects the correct left/right foot variation itself.
@@ -894,6 +908,7 @@ void Jac_Orima_Walk(s32 groundSoundID, u32) {
         pc_audio_write_se_port(8, 0, static_cast<u16>(groundSoundID));
 }
 void Jac_Orima_Formation(s32 stickX, s32 stickY) {
+    pc_coop_audio_raw(9,0,stickX,stickY);
     // The charge sound is one sound on one track, driven by whichever
     // captains push their C-stick. Each source keeps its own stick, so an idle
     // captain does not stop the sound the other one just started.

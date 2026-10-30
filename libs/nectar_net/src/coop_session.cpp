@@ -2,6 +2,7 @@
 #include "nectar_net/byte_io.h"
 #include "nectar_net/limits.h"
 #include <cmath>
+#include <algorithm>
 #include <cstring>
 #include <limits>
 
@@ -182,8 +183,32 @@ bool CoopSession::configureInputContinuousMask(std::uint8_t mask) {
     resetInput();
     return true;
 }
+bool CoopSession::publishAudio(const std::vector<AudioCue>& cues, std::uint64_t now) {
+    if(mRole!=CoopRole::Host || !hostShouldAdvanceWorld() ||
+       (mAudioSent && (now<mLastAudioAt || now-mLastAudioAt<40))) return false;
+    TransportStats stats;
+    if(mLink.stats(stats) && stats.pendingReliableBytes>=kReliableBacklogLimit) return false;
+    const auto bytes=encodeAudio(cues);if(bytes.empty())return false;
+    ByteWriter w(16+bytes.size());w.writeU64(mView.revision);w.writeU64(mLastPublished);w.writeBytes(bytes.data(),bytes.size());
+    if(!send(MessageType::CoopAudio,w.bytes()))return false;
+    mLastAudioAt=now;mAudioSent=true;return true;
+}
+std::vector<AudioCue> CoopSession::takeAudio(std::uint64_t now) {
+    std::vector<AudioCue> out;
+    if(mRole==CoopRole::Guest && canIssueCommands()) {
+        for(const auto& p:mAudio) {
+            const bool persistent=p.cue.loop || p.cue.kind!=AudioKind::SpatialPlay;
+            const bool oneShot=p.cue.kind==AudioKind::PlayerPlay || p.cue.kind==AudioKind::SystemPlay || p.cue.kind==AudioKind::Footstep;
+            const bool recentFrame=mActors.current().frame<=p.frame || mActors.current().frame-p.frame<=6;
+            if(now>=p.at && ((now-p.at<=300 && recentFrame) || (persistent && !oneShot))) out.push_back(p.cue);
+        }
+    }
+    mAudio.clear();return out;
+}
 void CoopSession::resetInput() {
+    mAudio.clear();mAudioSent=false;mLastAudioAt=0;
     mGuestInput = InputReceiver{mInputPolicy};
+    mHaveHoldClock=false;mHoldClockTick=mHoldClockAt=0;
     mInputRevision = mView.revision;
     mInputSent = false;
     mLastInputAt = mLastInputTarget = mReceivedInputTick = 0;
@@ -210,7 +235,7 @@ bool CoopSession::publishInput(const std::vector<NetInputFrame>& frames, std::ui
     mLastInputTarget = frames.front().tick;
     return true;
 }
-bool CoopSession::consumeGuestInput(std::uint64_t tick, NetInputFrame& input, InputHealth& health) {
+bool CoopSession::consumeGuestInput(std::uint64_t tick, NetInputFrame& input, InputHealth& health, std::uint64_t now) {
     input = NetInputFrame{};
     input.tick = tick;
     health = InputHealth::Neutral;
@@ -219,6 +244,16 @@ bool CoopSession::consumeGuestInput(std::uint64_t tick, NetInputFrame& input, In
         tick < mLastPublishedTick || (mInputConsumed && tick <= mLastInputTick)) return false;
     const auto previous = mInputConsumed ? mLastInputTick : mLastPublishedTick;
     if (tick - previous > 64) mGuestInput = InputReceiver{mInputPolicy}; // bounded skip, no catch-up loop
+    if (now) {
+        if (!mHaveHoldClock || now<mHoldClockAt) {
+            mHaveHoldClock=true;mHoldClockTick=tick;mHoldClockAt=now;
+            mGuestInput.setHoldTicks(18); // initial 150 ms at 120 Hz
+        } else if (now-mHoldClockAt>=100) {
+            const double hz=double(tick-mHoldClockTick)*1000.0/double(now-mHoldClockAt);
+            const auto ticks=static_cast<std::uint32_t>(std::ceil(std::clamp(hz,15.0,240.0)*.15));
+            mGuestInput.setHoldTicks(ticks);mHoldClockTick=tick;mHoldClockAt=now;
+        }
+    }
     input = mGuestInput.consume(tick, health);
     mLastInputTick = tick;
     mInputConsumed = true;
@@ -400,6 +435,17 @@ void CoopSession::receive(const TransportEvent &event, std::uint64_t now) {
         const auto result = mActors.receive(msg.payload.data(), msg.payload.size(), now);
         accepted =
             result == ActorFrameReceiver::Result::Buffered || result == ActorFrameReceiver::Result::Committed;
+    } else if (mRole==CoopRole::Guest && msg.header.type==MessageType::CoopAudio && canIssueCommands() && msg.payload.size()>16) {
+        ByteReader r(msg.payload);std::uint64_t revision=0,frame=0;std::vector<AudioCue> cues;
+        if(r.readU64(revision) && revision==mView.revision && r.readU64(frame) &&
+           frame>=mRequiredFrame && frame<=mActors.current().frame &&
+           decodeAudio(msg.payload.data()+16,msg.payload.size()-16,cues)) {
+            if(mAudio.size()+cues.size()>kAudioQueueCues) {
+                mAudio.clear();mAudio.push_back({AudioCue{},now,frame}); // bounded fail-silent cleanup
+            }
+            for(const auto& cue:cues)mAudio.push_back({cue,now,frame});
+            accepted=true;
+        }
     } else if (msg.header.type == MessageType::CoopMarker) {
         std::uint8_t player = 0;
         MarkerKind kind;

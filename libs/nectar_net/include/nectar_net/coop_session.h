@@ -1,5 +1,6 @@
 #pragma once
 #include "nectar_net/actor_frame.h"
+#include "nectar_net/coop_audio.h"
 #include "nectar_net/gated_transport.h"
 #include "nectar_net/protocol.h"
 #include "nectar_net/input.h"
@@ -58,7 +59,12 @@ class CoopSession {
     // Host simulation thread, once per increasing host tick. On gaps briefly
     // hold continuous movement; then neutralize. Never repeats one-shot edges.
     // Not a position-write API: guest never selects its captain/player slot.
-    bool consumeGuestInput(std::uint64_t hostTick, NetInputFrame& input, InputHealth& health);
+    bool consumeGuestInput(std::uint64_t hostTick, NetInputFrame& input, InputHealth& health,
+                           std::uint64_t nowMs = 0);
+    std::uint32_t inputHoldTicks() const { return mGuestInput.policy().holdTicks; }
+    // Host-only, bounded, authenticated presentation events. No guest simulation.
+    bool publishAudio(const std::vector<AudioCue>& cues, std::uint64_t nowMs);
+    std::vector<AudioCue> takeAudio(std::uint64_t nowMs);
     bool setReady(bool ready);
     bool setBlocked(CoopBlock reason, bool blocked);
     bool placeMarker(MarkerKind kind, const Vec3 &point, std::uint64_t nowMs);
@@ -95,7 +101,13 @@ class CoopSession {
     std::uint64_t mInputRevision = 0, mLastInputAt = 0, mLastInputTarget = 0, mLastInputTick = 0;
     std::uint64_t mReceivedInputTick = 0;
     bool mInputSent = false, mInputConsumed = false;
+    std::uint64_t mHoldClockTick=0,mHoldClockAt=0;
+    bool mHaveHoldClock=false;
     void resetInput();
+    struct PendingAudio { AudioCue cue; std::uint64_t at=0, frame=0; };
+    std::deque<PendingAudio> mAudio;
+    std::uint64_t mLastAudioAt=0;
+    bool mAudioSent=false;
     CoopView mView;
     ActorFrameReceiver mActors;
     std::array<CoopMarker, 2> mMarkers{};

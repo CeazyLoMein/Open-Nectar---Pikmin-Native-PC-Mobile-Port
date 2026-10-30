@@ -1,6 +1,12 @@
+## Current task — 2026-10-29 21:46 EDT
+
+PC5/iPhone90 guest role stutters and lacks SFX on both PC/phone and phone/phone. Timing + bounded host-to-guest audio replacement implemented and locally verified (30 tests,120 rate/jitter combinations); GitHub/native/hardware validation pending. Both peers must update to the next matching pair. No new phone writes; may unplug. All objectives below remain queued.
+
+---
+
 ## Progress reporting preference — 2026-10-29
 
-When the user asks how close P1 co-op is to completion, lead with a percentage of the FULL agreed vision. Label it an engineering estimate, not a measured task count. Current estimate communicated: approximately40% IF the PC5/iPhone90 real-device practice test passes; that test has not happened yet. Include shared campaign world/Onions, game flow/cutscenes, mid-day persistence/recovery, internet play and PC/iPhone continuation in the denominator. Do not inflate the full-mode percentage by reporting only network-foundation completion.
+When the user asks how close P1 co-op is to completion, lead with a percentage of the FULL agreed vision. Label it an engineering estimate, not a measured task count. Current estimate communicated: approximately40% IF the PC5/iPhone90 real-device practice test passes; that hardware test HAS happened and failed guest stutter/audio; no completed-full-mode percentage increase is justified. Include shared campaign world/Onions, game flow/cutscenes, mid-day persistence/recovery, internet play and PC/iPhone continuation in the denominator. Do not inflate the full-mode percentage by reporting only network-foundation completion.
 
 ---
 

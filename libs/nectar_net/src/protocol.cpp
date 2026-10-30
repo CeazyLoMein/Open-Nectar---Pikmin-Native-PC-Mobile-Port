@@ -35,6 +35,7 @@ bool isKnownMessageType(MessageType type)
     case MessageType::CoopControl:
     case MessageType::CoopStatus:
     case MessageType::CoopMarker:
+    case MessageType::CoopAudio:
     case MessageType::ContentManifest:
     case MessageType::ContentDecision:
     case MessageType::ContentChunk:

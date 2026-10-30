@@ -1,5 +1,8 @@
 #include "DebugLog.h"
 #include "SoundMgr.h"
+#if defined(NECTAR_COOP_WORLD)
+#include "audio/pc_audio_source.h"
+#endif
 #include "jaudio/piki_player.h"
 #include "jaudio/verysimple.h"
 #include "stdio.h"
@@ -64,6 +67,11 @@ SeMgr::SeMgr()
 #if defined(PIKI_PC_PORT)
 void SeMgr::playNaviSound(int naviID, s32 stickX, s32 stickY)
 {
+#if defined(NECTAR_COOP_WORLD)
+	// Each online listener owns one captain. Forward that captain's actual
+	// request; the legacy local-co-op arbiter would merge the two first.
+	if(pc_coop_practice_active()) {PcAudioSource source(naviID);Jac_Orima_Formation(stickX,stickY);return;}
+#endif
 	PcFormationStick stick = sFormationArbiter.submit(naviID, stickX, stickY, gameflow.mGenFlowUpdateTickCount);
 	Jac_Orima_Formation(stick.x, stick.y);
 }

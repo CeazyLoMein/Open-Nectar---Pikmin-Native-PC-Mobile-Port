@@ -1,6 +1,7 @@
 #include "nectar_net/byte_io.h"
 #include "nectar_net/coop_session.h"
 #include "nectar_net/sim_network.h"
+#include "../../../games/pikmin1/pc_port/netplay/pc_coop_practice_input.h"
 #include <cstdio>
 #include <limits>
 #include <memory>
@@ -170,7 +171,81 @@ std::vector<std::uint8_t> mark(std::uint8_t player) {
     return w.bytes();
 }
 } // namespace
+void guestTimingMatrix() {
+    for(int jitter:{0,12})for(int delivery:{2,8,16,24})for(int hostRate:{30,60,120,190,240})for(int guestRate:{30,60,120}) {
+        Pair p;p.begin();p.load();p.ready();
+        LinkConditions link;link.latencyMs=static_cast<std::uint32_t>(delivery);link.jitterMs=static_cast<std::uint32_t>(jitter);
+        p.net.setHostToGuest(link);p.net.setGuestToHost(link);
+        PcCoopPracticeInput clock;NetInputFrame moving;moving.stickX=80;
+        const auto start=p.now;std::uint64_t hostTick=1,number=2,applied=0,lastPublish=0,hostSteps=0,guestSteps=0;
+        int neutral=0,settledStop=0;
+        for(;p.now<start+5500;++p.now) {
+            p.net.advance(p.now);const auto elapsed=p.now-start;
+            if(elapsed*hostRate/1000>hostSteps) {
+                ++hostSteps;p.host.pump(p.now);++hostTick;NetInputFrame output;InputHealth health;
+                p.host.consumeGuestInput(hostTick,output,health,p.now);
+                if(elapsed>1500 && elapsed<3500 && output.stickX!=80)++neutral;
+                if(elapsed>4800 && (output.stickX || output.held || output.flags || output.cursorDx))++settledStop;
+                if(p.now-lastPublish>=50) {
+                    CaptainState a,b;b.player=1;std::vector<EntityRecord> records={captainRecord(1,a),captainRecord(1,b)};
+                    std::vector<std::vector<std::uint8_t>> packets;
+                    check(packActorFrame(100,1,number++,hostTick,records,1000,{},packets),"timing matrix packs actual actor frame");
+                    check(p.host.publishActors(packets,p.now),"timing matrix publishes actual actor frame");lastPublish=p.now;
+                }
+            }
+            if(elapsed*guestRate/1000>guestSteps) {
+                ++guestSteps;p.guest.pump(p.now);
+                const auto& a=p.guest.actors();if(a.frame>applied){clock.observe(a.tick,p.now);applied=a.frame;}
+                if(elapsed>3500)moving={};
+                clock.sample(moving,p.now);
+                const auto frames=clock.bundle(p.now,(delivery+jitter)*2);
+                if(!frames.empty()&&p.guest.publishInput(frames,p.now))clock.published(frames,p.now);
+            }
+        }
+        if(neutral)std::printf("starvation jitter=%d delivery=%d host=%d guest=%d gaps=%d\n",jitter,delivery,hostRate,guestRate,neutral);
+        check(neutral==0,"independent 30-240 Hz host / 30-120 Hz guest hold movement through actual gated session");
+        check(settledStop==0,"releasing movement is not kept alive by adaptive hold");
+        check(p.host.inputHoldTicks()>=3 && p.host.inputHoldTicks()<=36,"trusted tick-rate hold remains bounded");
+        check(p.host.phase()==CoopPhase::Running && p.guest.phase()==CoopPhase::Running,"timing matrix keeps readiness barriers intact");
+    }
+}
+void audioSessionChecks() {
+    // A stalled ordered link may deliver a sound and many newer pictures in one
+    // pump. Expire the old one-shot against the latest accepted picture as well.
+    { Pair q;q.begin();q.load();q.ready();AudioCue old;old.kind=AudioKind::PlayerPlay;old.sound=6;old.player=1;
+      check(q.host.publishAudio({old},q.now),"old sound before catch-up");
+      q.now+=50;q.net.advance(q.now);
+      check(q.host.publishActors(q.frame(1,9),q.now),"newer complete picture after a stall");q.settle();
+      check(q.guest.takeAudio(q.now).empty(),"catch-up does not replay a sound over six pictures old"); }
+    Pair p;p.begin();p.load();p.ready();
+    AudioCue cue;cue.kind=AudioKind::SpatialPlay;cue.emitter=1;cue.sound=2;cue.type=6;cue.position={10,20,30};
+    check(!p.guest.publishAudio({cue},p.now),"guest cannot author world audio");
+    check(p.host.publishAudio({cue},p.now),"host publishes bounded presentation cue");p.settle();
+    auto cues=p.guest.takeAudio(p.now);
+    check(cues.size()==1 && cues[0].position.x==10 && cues[0].emitter==1,"audio crosses authenticated compatible session");
+    check(p.guest.takeAudio(p.now).empty(),"audio consumed once, not on every render frame");
+    check(p.host.takeAudio(p.now).empty(),"host never replays its own sound");
+    check(p.host.publishAudio({cue},p.now),"new audio batch after minimum interval");p.settle();
+    check(p.host.setBlocked(CoopBlock::Manual,true),"pause barrier for audio");p.settle();
+    check(p.guest.takeAudio(p.now).empty() && !p.host.publishAudio({cue},p.now),"pause clears queued sounds and blocks publication");
+    check(p.host.setBlocked(CoopBlock::Manual,false),"resume audio barrier");p.settle();
+    check(p.host.publishAudio({cue},p.now),"resumed host publishes fresh audio");p.settle();
+    check(p.guest.takeAudio(p.now+301).empty(),"old queued one-shot expires instead of playing late");
+    cue.loop=true;check(p.host.publishAudio({cue},p.now),"loop publication");p.settle();
+    check(p.guest.takeAudio(p.now+301).size()==1,"loop state survives one-shot expiry");
+    cue.kind=AudioKind::SpatialRelease;cue.loop=false;
+    check(p.host.publishAudio({cue},p.now),"release cue published");p.settle();
+    check(p.guest.takeAudio(p.now+301).size()==1,"cleanup cannot expire and strand a loop");
+    auto bytes=encodeAudio({cue});ByteWriter w(16+bytes.size());w.writeU64(p.host.view().revision);w.writeU64(1);w.writeBytes(bytes.data(),bytes.size());
+    p.inject(MessageType::CoopAudio,w.bytes(),900000);p.settle();
+    check(p.host.takeAudio(p.now).empty() && p.host.phase()==CoopPhase::Running,"forged guest sound does not gain authority or break session");
+    cue.kind=AudioKind::SpatialPlay;
+    check(p.host.publishAudio({cue},p.now),"host still operates after spoof attempt");p.settle();p.guest.end();
+    check(p.guest.takeAudio(p.now).empty(),"end discards old-scene sound cues");
+}
 int main() {
+    guestTimingMatrix();audioSessionChecks();
+    if(!failures)std::puts("PASS 120 independent-rate/jitter session combinations and host-owned audio lifecycle");
     {
         Pair p(false);
         check(!p.host.begin(100, 1, 1, p.now), "old builds without session capability cannot enter");

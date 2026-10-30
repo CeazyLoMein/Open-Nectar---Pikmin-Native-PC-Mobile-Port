@@ -337,7 +337,7 @@ bool GnsTransport::send(Delivery delivery, const std::uint8_t* data, std::size_t
     if (mImpl->currentState != TransportState::Connected || (data == nullptr && size != 0)
         || size > Impl::kMaxMessageBytes || size > std::numeric_limits<std::uint32_t>::max())
         return false;
-    const int flags = delivery == Delivery::ReliableOrdered ? k_nSteamNetworkingSend_Reliable
+    const int flags = delivery == Delivery::ReliableOrdered ? k_nSteamNetworkingSend_ReliableNoNagle
                                                              : k_nSteamNetworkingSend_UnreliableNoDelay;
     return mImpl->sockets->SendMessageToConnection(mImpl->connection, data, static_cast<std::uint32_t>(size),
                                                     flags, nullptr)

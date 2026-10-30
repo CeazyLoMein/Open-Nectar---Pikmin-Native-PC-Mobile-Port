@@ -25,6 +25,7 @@ PcCoopPracticeStart startState;bool cardActive,threadOK;int worldEnds,cancels,pa
 bool ownThread(){return threadOK;}void pc_coop_practice_pause(){++pauses;}
 bool pc_coop_practice_cancel_start(){++cancels;if(startState==PcCoopPracticeStart::Draining){startState=PcCoopPracticeStart::Idle;return true;}return false;}
 PcCoopPracticeStart pc_coop_practice_start_state(){return startState;}bool pc_card_coop_practice_active(){return cardActive;}
+void pc_coop_audio_end(){}
 void pc_coop_world_end_scene(){++worldEnds;}void fail(const char*){stopped=true;}
 bool pc_coop_practice_leave() BODY
 int errors=0,checks=0;void check(bool v,const char* s){++checks;if(!v){std::printf("FAIL %s\\n",s);++errors;}}

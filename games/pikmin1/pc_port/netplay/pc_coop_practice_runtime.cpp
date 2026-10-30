@@ -5,6 +5,7 @@
 #include <TargetConditionals.h>
 #endif
 #include "netplay/pc_coop_practice_runtime.h"
+#include "netplay/pc_coop_audio.h"
 #include "netplay/pc_coop_practice_map.h"
 #include "netplay/pc_coop_practice_start.h"
 #include "netplay/pc_coop_practice_input.h"
@@ -72,7 +73,8 @@ void practiceReport(std::uint64_t now, net::CoopSession* s) {
             const auto finite=[](float v) {return std::isfinite(v) ? v : 0.0f;};
             net::TransportStats stats;const bool measured=owner && owner->stats(stats);
             const int rtt=measured?stats.rttMs:-1;
-            std::fprintf(f,"practice role=%s phase=%d away=%d tick=%llu frame=%llu applied=%llu rtt=%d queued=%d unacked=%d input_live=%llu repeat=%llu neutral=%llu samples=%llu sent=%llu camera=%d eye=%.1f,%.1f,%.1f focus=%.1f,%.1f,%.1f captain=%.1f,%.1f,%.1f\n",
+            std::uint64_t audioSent=0,audioPlayed=0,audioDropped=0;pc_coop_audio_counts(audioSent,audioPlayed,audioDropped);
+            std::fprintf(f,"practice role=%s phase=%d away=%d tick=%llu frame=%llu applied=%llu rtt=%d queued=%d unacked=%d input_live=%llu repeat=%llu neutral=%llu samples=%llu sent=%llu camera=%d eye=%.1f,%.1f,%.1f focus=%.1f,%.1f,%.1f captain=%.1f,%.1f,%.1f host_hz=%.1f actor_age=%llu target=%llu hold=%u revision=%llu audio_sent=%llu audio_played=%llu audio_dropped=%llu\n",
                 role==net::CoopRole::Host?"host":"guest",static_cast<int>(s->phase()),away?1:0,
                 static_cast<unsigned long long>(tick),static_cast<unsigned long long>(frame),static_cast<unsigned long long>(applied),rtt,
                 measured?stats.pendingReliableBytes:-1,measured?stats.unackedReliableBytes:-1,
@@ -80,7 +82,10 @@ void practiceReport(std::uint64_t now, net::CoopSession* s) {
                 static_cast<unsigned long long>(diagnosticSamples),static_cast<unsigned long long>(diagnosticSent),c?1:0,
                 c?finite(c->mPosition.x):0.0f,c?finite(c->mPosition.y):0.0f,c?finite(c->mPosition.z):0.0f,
                 c?finite(c->mFocus.x):0.0f,c?finite(c->mFocus.y):0.0f,c?finite(c->mFocus.z):0.0f,
-                n?finite(n->mSRT.t.x):0.0f,n?finite(n->mSRT.t.y):0.0f,n?finite(n->mSRT.t.z):0.0f);
+                n?finite(n->mSRT.t.x):0.0f,n?finite(n->mSRT.t.y):0.0f,n?finite(n->mSRT.t.z):0.0f,inputs.rateHz(),
+                static_cast<unsigned long long>(inputs.frameAge(now)),static_cast<unsigned long long>(inputs.targetTick()),s->inputHoldTicks(),
+                static_cast<unsigned long long>(s->view().revision),static_cast<unsigned long long>(audioSent),
+                static_cast<unsigned long long>(audioPlayed),static_cast<unsigned long long>(audioDropped));
         }
     }
     std::fclose(f);
@@ -101,13 +106,14 @@ void showPanel() {
 }
 void fail(const char* reason) {
     if (!failure[0]) { std::snprintf(failure,sizeof(failure),"%s",reason);std::fprintf(stderr,"[coop-practice] %s\n",reason); }
-    stopped=true;advancing=false;pc_coop_world_stop();
+    stopped=true;advancing=false;pc_coop_audio_end();pc_coop_world_stop();
     if (loading && entered && role==net::CoopRole::Host)
         pc_coop_world_set_host_running(loading->sessionId(),loading->scene().epoch,false);
     pc_coop_practice_cancel_start(); showPanel();
 }
 void hold(bool run) {
     advancing=run && !stopped && !away;
+    pc_coop_audio_running(session() && session()->canIssueCommands() && !stopped && !away);
     if (entered && role==net::CoopRole::Host &&
         !pc_coop_world_set_host_running(loading->sessionId(),loading->scene().epoch,advancing))
         fail("The practice world changed unexpectedly. Close P1 and reopen; your solo saves are unchanged.");
@@ -120,7 +126,7 @@ void enterWorld() {
     if (!ok || !pc_netplay_present_begin_practice_view(role==net::CoopRole::Host ? 0 : 1)) {
         fail("Could not bind the two practice captains. Close P1 and reopen.");return;
     }
-    entered=true;
+    entered=true;pc_coop_audio_begin(role==net::CoopRole::Host);
     if (role==net::CoopRole::Guest && !pc_coop_world_prepare_guest_visuals(loading->sessionId(),loading->scene().epoch))
         fail("Practice display resources were not ready. Close P1 and reopen.");
 }
@@ -198,7 +204,7 @@ void pc_coop_practice_tick_begin() {
     if (advancing && role==net::CoopRole::Host) {
         ++tick;
         net::InputHealth health;
-        s->consumeGuestInput(tick,remote,health);
+        s->consumeGuestInput(tick,remote,health,now);
         if (health==net::InputHealth::Live) ++diagnosticLive;
         else if (health==net::InputHealth::Repeated) ++diagnosticRepeat;
         else ++diagnosticNeutral;
@@ -210,6 +216,7 @@ void pc_coop_practice_tick_end() {
     // next tick_begin configures the host input policy.
     if (!owner || !ownThread() || stopped || !entered || !session() || !sessionConfigured) return;
     auto* s=session();const auto now=nowMs();
+    pc_coop_audio_tick(*s,now);
     practiceReport(now,s);
     if (role==net::CoopRole::Host && advancing) {
         // This disposable flat arena has no campaign jobs or hazards. A throw
@@ -346,7 +353,7 @@ bool pc_coop_practice_leave() {
         std::snprintf(failure,sizeof(failure),"Practice ended. Close P1 and reopen to return to solo. Your campaign saves and settings are unchanged.");
         return false;
     }
-    loading.reset();owner->close();owner.reset();pc_coop_world_end_scene();
+    pc_coop_audio_end();loading.reset();owner->close();owner.reset();pc_coop_world_end_scene();
     requested=loaded=confirmed=entered=stopped=away=panel=padFiltered=advancing=sessionConfigured=false;
     tick=frame=applied=lastPublish=revision=0;previousButtons=0;failure[0]=0;inputs.reset();smoothing.reset();presented={};remote={};
     return true;

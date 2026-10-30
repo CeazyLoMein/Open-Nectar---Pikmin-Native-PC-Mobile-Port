@@ -1,4 +1,7 @@
 #include "SoundMgr.h"
+#if defined(PIKI_PC_PORT)
+#include "netplay/pc_coop_audio.h"
+#endif
 #include "Boss.h"
 #include "DebugLog.h"
 #include "Font.h"
@@ -511,11 +514,19 @@ void SeContext::createEvent(int eventType)
  */
 void SeContext::playSound(int soundID)
 {
+#if defined(PIKI_PC_PORT)
+	// Guest effects are replayed from host cues, not its dormant load-time contexts.
+	if(pc_coop_audio_guest()) {mEventHandle=-1;return;}
+#endif
 	int jacID = seSystem->getJacID(soundID);
 #if defined(PIKI_PC_PORT)
 	// Sin fila en la tabla no hay accion de jaudio que tocar: no gastar una de
 	// las dieciseis ranuras de evento en algo que no puede sonar.
 	if (jacID < 0) return;
+	if(pc_coop_audio_host()) {
+		const Vector3f audioPos=getPos();
+		pc_coop_audio_spatial(this,mEventType,jacID,true,seSystem->isLoopType(soundID),audioPos.x,audioPos.y,audioPos.z);
+	}
 #endif
 	if (mEventHandle == -1) {
 		gsys->mTimer->start("createEvent", true);
@@ -541,7 +552,17 @@ void SeContext::playSound(int soundID)
  */
 void SeContext::stopSound(int soundID)
 {
+#if defined(PIKI_PC_PORT)
+	// Guest effects are replayed from host cues, not its dormant load-time contexts.
+	if(pc_coop_audio_guest()) {mEventHandle=-1;return;}
+#endif
 	int jacID = seSystem->getJacID(soundID);
+#if defined(PIKI_PC_PORT)
+	if(pc_coop_audio_host()) {
+		const Vector3f audioPos=getPos();
+		pc_coop_audio_spatial(this,mEventType,jacID,false,false,audioPos.x,audioPos.y,audioPos.z);
+	}
+#endif
 	if (mEventHandle != -1) {
 		Jac_StopEventAction(mEventHandle, jacID);
 	}
@@ -552,10 +573,17 @@ void SeContext::stopSound(int soundID)
  */
 void SeContext::update()
 {
+#if defined(PIKI_PC_PORT)
+	// Guest effects are replayed from host cues, not its dormant load-time contexts.
+	if(pc_coop_audio_guest()) {mEventHandle=-1;return;}
+#endif
 	// this function is empty in the DLL
 	if (mEventHandle == -1) {
 		return;
 	}
+#if defined(PIKI_PC_PORT)
+	if(pc_coop_audio_host()) {const Vector3f audioPos=getPos();pc_coop_audio_move(this,audioPos.x,audioPos.y,audioPos.z);}
+#endif
 	seSystem->calcCameraPos(getPos(), mSourceListenerOffset);
 	Jac_UpdateEventPosition(mEventHandle, (SVector_*)&mSourceListenerOffset);
 }
@@ -565,6 +593,10 @@ void SeContext::update()
  */
 bool SeContext::releaseEvent()
 {
+#if defined(PIKI_PC_PORT)
+	if(pc_coop_audio_guest()) {mEventHandle=-1;return false;}
+	pc_coop_audio_release(this);
+#endif
 	PRINT_KANDO("releaseEvent : %x : handle = %d\n", this, mEventHandle);
 
 	if (mEventHandle != -1) {

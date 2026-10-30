@@ -2,7 +2,7 @@
 
 // Netplay audio ownership.
 //
-// A netplay session runs both captains' simulation on both PCs, so every
+// The host simulates both captains. Guest practice replays its sound cues, so every
 // captain-owned sound that is not positional (whistle, footsteps, the
 // C-stick charge, the captain's voice, the Pikmin voices that captain
 // triggers) would play on both machines, and the two captains' calls would
@@ -23,8 +23,11 @@
 #include <cstdlib>
 
 #include "netplay/pc_netplay_present.h"
+#if defined(NECTAR_COOP_WORLD)
+#include "netplay/pc_coop_practice_runtime.h"
+#endif
 
-// Defined by the session TU in netplay builds only, so it is weak here.
+// Defined by the session TU or its normal solo stub.
 bool pc_netplay_session_active(void);
 
 inline int& pc_audio_source_captain_slot()
@@ -51,7 +54,7 @@ private:
 
 inline bool pc_audio_in_netplay_session()
 {
-	return pc_netplay_session_active != nullptr && pc_netplay_session_active();
+	return pc_netplay_session_active();
 }
 
 inline bool pc_audio_legacy_ownership()
@@ -68,6 +71,10 @@ inline bool pc_audio_legacy_ownership()
 inline bool pc_audio_source_audible()
 {
 	const int source = pc_audio_source_captain_slot();
+#if defined(NECTAR_COOP_WORLD)
+	if(pc_coop_practice_active() && pc_netplay_present_single_view() && !pc_audio_legacy_ownership())
+		return source<0 || source==pc_netplay_present_local_player();
+#endif
 	if (source < 0 || !pc_netplay_present_two_pass_active() || !pc_audio_in_netplay_session()
 	    || pc_audio_legacy_ownership()) {
 		return true;

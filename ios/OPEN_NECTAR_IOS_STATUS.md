@@ -1,3 +1,79 @@
+## Guest timing/audio batch locally verified — 2026-10-29 21:46 EDT
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-29 21:46 EDT
+
+**Overall project status:** PC5/iPhone90 compile/package successfully but FAILED guest movement/audio hardware testing. A coordinated replacement is implemented and locally verified; native GitHub compilation, package generation and real-device behavior are still pending. This update supersedes the earlier ready-for-test status.
+
+### Pikmin 1
+
+- Current objective: smooth guest movement and restore guest gameplay sound in disposable online practice, preserving working solo, settings, packs and saves.
+- What was investigated: user-supplied simultaneous PC/phone and phone/phone recordings, PC session log and four latest phone reports collected read-only. On both pairs the host is smooth while the guest stutters and hears only music. Raye's two Olimars are her missing optional Louie model, unrelated to authority/network identity.
+- Root cause or leading hypothesis: the old input helper measures consecutive20Hz picture arrivals, which can alias against a30/60/120Hz guest and underestimate a fast host. Only16ms scheduling padding and a fixed6-host-tick hold allow regular neutral gaps. Reports show190Hz PC host with about40% neutral guest input, and120Hz phone host with about50%, despite3–9ms reported RTT. Actual authenticated-session reproductions demonstrated timing starvation. Guest AI is intentionally dormant and no host gameplay sound events were delivered, so local music plays while voices/effects do not. These are concrete source findings; remaining visual stutter on hardware is not ruled out.
+- Files changed: practice input/runtime, trusted host input hold, reliable GNS send flags; new `pc_coop_audio.h/.cpp` and `nectar_net/coop_audio.h`; CoopSession/protocol; central `soundMgr.cpp`, `seMgr.cpp`, `audio_stubs.cpp`, `pc_audio_source.h`; CMake and regression fixtures; journals. No framebuffer/graphics/FPS/AI/pathing/P2/settings/content changes.
+- Implemented movement changes: cumulative250ms host-clock window;50ms command lead; trusted-host rate-sized approximately150ms continuous-input hold, hard bounded; reliable ordered encrypted messages use ReliableNoNagle. One-shot controls still do not repeat, stale transient actions still expire, and pause revisions clear input.
+- Implemented audio changes: bounded host-owned cues over the existing authenticated compatible scene/session; spatial start/stop/move/release, player voices/whistle, system gameplay cues, formation and footsteps. Capture before host-local captain filtering. Guest uses its own listening position and local original sound assets. Opaque emitter tokens,16 positional voices,24 cues/packet,256 queue bound, malformed/role/revision/replay rejection; pause freezes host effects and clears guest voices, resume restores active positional loops, and old one-shots expire by receipt age and newer picture frame. Guest load-time contexts cannot overwrite replayed audio. Normal solo capture stays inactive.
+- Tests and results: full30-test CTest suite PASSED, including real encrypted loopback/GNS room/stress/companion tests;120 independent host30/60/120/190/240Hz versus guest30/60/120Hz / latency2/8/16/24ms / jitter0/12ms authenticated-session combinations pass continuous movement, release, hold bound and readiness. Replacing the helper with the OLD clock causes10 starvation failures, proving sensitivity. Actual audio adapter exercised with narrow fake playback/session resources; actual session delivery tested separately. Codec truncation/range/NaN/ownership/overflow, sound position/stop/release/pause/loop and stale-catch-up tests pass.231 existing smoothing,14 actual Windows Ready/focus,8 carry-goal and10 actual exit/cleanup checks pass. Six practice runner orchestration tests pass. Actual five touched engine translation units pass Clang syntax/analysis with real engine headers, with existing legacy warnings; strict new adapter/codec fixture analysis passes. No native iPhone compilation or hardware result exists for this batch yet.
+- Confirmed working: USER confirms ordinary P1 gameplay, clear settings, camera/touch/keyboard fixes and better pathing. User confirms120FPS with HD Pikmin removed; GPI retained, original low-detail Louie restored and phone-readback verified earlier. PC5 host smooth, both old practice peers connect with independent cosmetic packs. Neither a full campaign playthrough nor completed online campaign is claimed.
+- Remaining issues: replacement hardware test; possible residual guest presentation latency/stutter; full shared world/Onion/progress and campaign integration; main-menu polish; cutscenes/travel; durable mid-day save/recovery and live rejoin; different-network play; seamless PC/iPhone continuation. Existing practice requires app restart after ending/admitted scene or lost link. Don't describe it as completed campaign co-op.
+
+### Pikmin 2
+
+- Current objective: preserve user-confirmed working build while P1 online practice is prioritized.
+- What was investigated: no new P2 work in this batch.
+- Root cause or leading hypothesis: no new diagnosis.
+- Files changed: none.
+- Tests and results: no new P2 build/runtime tests.
+- Confirmed working: user previously reported P2 gameplay and restored audio working; a full-story completion is not verified.
+- Remaining issues: broader campaign regression and eventual P2 online co-op after P1.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: `ios-experimental`.
+- Starting/local/remote commit before this batch: `21480b5bfcba7e8f0ebc18e58c38de2f65d34070`; origin fetched and reconciled, no remote divergence.
+- Latest game source in INSTALLED pair: PC5 `deaaee1ee0b884c5c939f456b6a5ccfff4d23d40`; phone90 `dcfba41f178d0e8905c215b4d668da67e1f43939` (test-only correction, same game identity).
+- Commits created / changes pushed for new batch: not yet at report creation; commit subject `Fix guest input starvation and deliver practice gameplay audio [ios-build] [ios-p1-update] [pc-coop-build]`. Resolved commit/run IDs will be appended after submission.
+- Uncommitted changes: only the scoped timing/audio/tests/journal batch; no user work overwritten.
+- Existing GitHub Actions run IDs: PC5 `40976294203` SUCCESS/artifact`12943316091`; iPhone90 `40978326061` SUCCESS/artifact`12945005446`. Windows6 intentionally skipped. No replacement artifacts yet.
+- Existing verified pair identity: `26204c2b52dcf03c59c52798930a69a9e11a4a6c9272600e9c7a8eb29e650f9e`. New game source changes identity: update BOTH peers once matching replacements are verified.
+- Existing IPA: `Documents/Open Nectar/1 - Install on iPhone/P1 Build90 - Full PC Co-op Pair` (actual folder has `Build 90`); SHA256`63b75ed059cf288da64fd99c7992a19c36f7dfe24f8411237a025e60735683d8`.
+- Existing PC EXE SHA256`d93bd8dcc7f80b46dc31e7767595940b9c352773f1da80fd401a48dcae831d9a`; launcher remains `Documents/Open Nectar/4 - Windows Version/Pikmin 1 - Full PC Co-op - Experimental/PLAY PIKMIN 1.cmd`.
+
+### Next steps
+
+- Next Pikmin1 task: submit one matching PC/iPhone build; after success inspect full logs/receipts/identity/packages before staging. Preserve all required checks. Do not install unverified artifacts.
+- Next Pikmin2 task: retain current working version.
+- GitHub/build task: record new commit and run IDs; wait for user completion feedback instead of polling CI.
+- Anything requiring user involvement: nothing during compilation; phone may be unplugged. Later update both peers and compare guest movement, whistle/throw/Pikmin/footsteps, pause/resume and reverse host roles with PC+phone first; Raye is optional for that mixed test. No promise that a compile proves the symptoms fixed.
+
+### ChatGPT continuation notes
+
+- Important source-file locations: `games/pikmin1/pc_port/netplay/pc_coop_practice_input.h`, `pc_coop_practice_runtime.cpp`, `pc_coop_audio.h/.cpp`; `games/pikmin1/src/plugPikiKando/soundMgr.cpp`, `seMgr.cpp`; `pc_port/dolphin_stubs/audio_stubs.cpp`, `audio/pc_audio_source.h`; `libs/nectar_net/include/nectar_net/coop_audio.h`, `coop_session.h`, `input.h`; `libs/nectar_net/src/coop_session.cpp`, `gns_transport.cpp`, `protocol.cpp`.
+- Relevant private logs: workspace `work/practice-pc5-phone90/` including `phone-read-210428`, PC reports and protected recordings. Test logs `work/guest-batch-final-ctest.log`, `guest-jitter-result.log`, `guest-timing-negative.log`, `guest-final-engine-check2.log`, `guest-audio-strict-final.log`, `guest-batch-exit-check.log`. No proprietary assets/recordings committed.
+- Unverified fixes: all NEW timing/audio changes need full native builds and hardware validation. Audio backend fixture proves adapter calls/cleanup, not audibility on iOS. Low reported RTT does not measure all queue/pump delay; NoNagle is a latency reduction, not a proven sole root cause.
+- Risks:16-emitter prototype capacity and high-latency sound behavior need real testing; changes do not synchronize enemies/jobs/items/cutscenes/campaign state or implement mid-day saves/live recovery. Do not enable guest AI to produce sound. Preserve separate ordinary `save` and unlocked `save-solo-test`; this is still a solo-update testing profile. No model/FPS/graphics changes needed for network test.
+- Upstream:1.1.1 Oct29 reviewed earlier, main`14a922a9`, no bulk merge. See `ios/UPSTREAM_AUDIT_2026_10_29.md`; possible GL uniform cache is separate work, not in this batch. Keep iOS framebuffer/native pixels. New control indices collide with Recall All, reconcile before any adoption.
+- Full vision stays queued: separate own-screen cameras/squads, shared Onion stock with separate squad allowances, shared host campaign with solo/co-op save separation, mostly health-based difficulty, both-ready cutscenes/travel, private invites/internet, independent graphics/camera/controls/cosmetics, durable mid-day autosaves with exact reconnect and host-loss protection, PC/iPhone cross progression, P2 later. User wants percentage-first progress for the full vision; previous conditional40% was not earned by the failed old test. No new percentage claim here.
+- Exact next actions: confirm new submitted run identities from the checkpoint below / Exact Resume State.json; on user build result, retrieve full project logs yourself, correct actual compiler output if needed, then strict package verification, accessible staging, same-app update with backups, and short mixed-device test. Never idle poll, close a game or send automated game input.
+
+**END PROGRESS REPORT**
+
+---
+
+## PC5/iPhone90 hardware feedback; guest timing/audio batch IN PROGRESS
+
+Both PC-host/phone-guest and phone-host/phone-guest reproduce: host movement smooth, guest movement stutters, guest hears music but no gameplay SFX. This supersedes the earlier ready-for-test checkpoint. Original Louie is restored only on the user's phone; Raye's fallback Olimar is cosmetic.
+
+Read-only current phone reports collected into work/practice-pc5-phone90/phone-read-210428; both videos preserved privately in that evidence folder. No game input, process close, save/config/content writes or P2 changes. Phone may be unplugged. PC host report: about190 logical ticks/sec and40% neutral guest input; phone host120 ticks/sec and about50% neutral, despite3-9ms reported RTT. Controlled actual authenticated CoopSession repro demonstrates guest rate aliasing / insufficient command lead can cause matching starvation. Guest presentation also lacks host audio-event delivery because its AI is intentionally not simulated. These are source findings, not yet proof of a complete runtime fix.
+
+Uncommitted timing changes: 250ms cumulative host-rate measurement, 50ms input lead, trusted-host time-sized bounded hold, reliable NoNagle transport. Audio relay and regression tests still being implemented. Do not submit a timing-only partial build. Early local suite:22/28 pass; timing test expectations require updating for intentional lead changes;5 real-socket tests could not connect under restricted execution and require a permitted network rerun. No new build submitted, installed pair stays PC5/iPhone90. Starting local/remote commit21480b5bfcba7e8f0ebc18e58c38de2f65d34070; no new commits or pushes yet.
+
+Next: finish bounded host-owned audio cues, test ownership/positions/stops/pause/replay, validate independent-rate input matrix and actual source fixtures, then one matching PC+iPhone build. Preserve native framebuffer, graphics/input preferences, solo-update save isolation and all existing mandatory native/socket/package gates. No hardware result claimed for unbuilt changes.
+
+---
+
 ## Verified PC5/iPhone90 ready for device test — 2026-10-29 20:42 EDT
 
 Windows5/run40976294203 SUCCESS, verified and INSTALLED over closed PC4 after backed-up receipt/config/save protection;3199 protected files hash-unchanged. iPhone90/run40978326061 SUCCESS, strict native/simulator/package/identity checks PASS, IPA staged NOT installed. Both identity26204c2b52dcf03c59c52798930a69a9e11a4a6c9272600e9c7a8eb29e650f9e. User next: same-app Sideloadly update phone to90, then mixed both-host-role practice movement/readiness/interruption test. No USB task/new build. P2 unchanged. Full current report at end below and in Documents/Open Nectar/2 - Progress and ChatGPT Handoff. Prior current-state entries are historical.

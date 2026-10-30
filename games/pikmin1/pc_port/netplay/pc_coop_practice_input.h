@@ -13,17 +13,23 @@ public:
     static constexpr std::uint8_t Continuous = 8; // P1 Swarm, other ext bits are edges
     void reset() { *this = PcCoopPracticeInput{}; }
     void observe(std::uint64_t tick, std::uint64_t now) {
-        if (haveFrame && tick > frameTick && now > frameAt && now - frameAt <= 500) {
-            const double sample = double(tick - frameTick) * 1000.0 / double(now - frameAt);
-            if (sample >= 15 && sample <= 240) {
-                rate = haveRate ? rate * 0.75 + sample * 0.25 : sample;
-                haveRate = true;
+        if (haveFrame && (tick < frameTick || now < frameAt)) return;
+        if (!haveRateAnchor) { rateTick=tick;rateAt=now;haveRateAnchor=true; }
+        // Measuring consecutive arrivals aliases a 20 Hz stream against a
+        // 30/60/120 Hz client. Short bursts look impossibly fast and used to be
+        // rejected, while slow gaps biased the learned host clock downward.
+        if (now >= rateAt && now-rateAt >= 250) {
+            if (tick>rateTick && now-rateAt<=1000) {
+                const double measured=double(tick-rateTick)*1000.0/double(now-rateAt);
+                if (measured>=15 && measured<=1000) { rate=haveRate?rate*.5+measured*.5:measured;haveRate=true; }
             }
+            rateTick=tick;rateAt=now;
         }
-        if (!haveFrame || (tick >= frameTick && now >= frameAt)) {
-            frameTick = tick; frameAt = now; haveFrame = true;
-        }
+        frameTick=tick;frameAt=now;haveFrame=true;
     }
+    double rateHz() const { return rate; }
+    std::uint64_t targetTick() const { return sentTick; }
+    std::uint64_t frameAge(std::uint64_t now) const { return haveFrame && now>=frameAt?now-frameAt:0; }
     // Short transient actions cannot be replayed seconds after a network stall.
     // Continuous movement/held state always comes from the latest sample.
     static constexpr std::uint64_t TransientLifetimeMs = 300;
@@ -54,7 +60,7 @@ public:
             frameTick > std::numeric_limits<std::uint64_t>::max() - 64) return {};
         // A snapshot was already in flight before it reached this phone; an
         // input must also travel back. Estimate both halves of the RTT.
-        const double delay = double(now - frameAt) + std::clamp(rtt, 0, 1000) + 16.0;
+        const double delay = double(now - frameAt) + std::clamp(rtt, 0, 1000) + 50.0;
         std::uint64_t target = frameTick + std::min<std::uint64_t>(30, std::max<std::uint64_t>(2, static_cast<std::uint64_t>(std::ceil(delay * rate / 1000.0))));
         if (haveSent) target = std::max(target, sentTick + 1);
         if (target > frameTick + 30) return {};
@@ -95,9 +101,9 @@ public:
     }
 private:
     nectar::net::NetInputFrame latest;
-    std::uint64_t frameTick = 0, frameAt = 0, sentAt = 0, sentTick = 0, rotationAt = 0, sampleAt = 0;
+    std::uint64_t frameTick = 0, frameAt = 0, sentAt = 0, sentTick = 0, rotationAt = 0, sampleAt = 0, rateTick=0, rateAt=0;
     double rate = 120;
-    bool haveFrame = false, haveRate = false, haveSent = false, haveRotation = false, haveSample = false;
+    bool haveFrame = false, haveRate = false, haveSent = false, haveRotation = false, haveSample = false, haveRateAnchor=false;
     std::array<std::uint64_t, 16> tapAt{};
     std::array<std::uint64_t, 8> edgeAt{};
     std::uint16_t taps = 0;

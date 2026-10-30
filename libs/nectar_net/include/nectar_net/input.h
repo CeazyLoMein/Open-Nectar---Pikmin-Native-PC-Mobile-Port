@@ -90,6 +90,10 @@ public:
 
     std::uint64_t ignoredFrames() const { return mIgnored; }
     const InputPolicy& policy() const { return mPolicy; }
+    // Trusted host clock policy, never taken from guest input. Keeps buffered
+    // ticks/edges intact. The session derives a ~150 ms hold from its own clock;
+    // the setter also caps absolute storage policy independently of the peer.
+    void setHoldTicks(std::uint32_t value) { mPolicy.holdTicks=value>48?48:value; }
 
 private:
     InputPolicy mPolicy;

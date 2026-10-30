@@ -605,7 +605,7 @@ if(NECTAR_COOP_WORLD)
     endif()
     target_sources(${NECTAR_GAME} PRIVATE pc_port/netplay/pc_coop_world.cpp pc_port/netplay/pc_coop_pikmin_visuals.cpp
         pc_port/netplay/pc_coop_captain_visuals.cpp pc_port/netplay/pc_coop_practice_runtime.cpp
-        pc_port/netplay/pc_coop_practice_map.cpp)
+        pc_port/netplay/pc_coop_practice_map.cpp pc_port/netplay/pc_coop_audio.cpp)
     target_link_libraries(${NECTAR_GAME} PRIVATE nectar_net)
     target_compile_definitions(${NECTAR_GAME} PRIVATE NECTAR_COOP_WORLD=1)
     target_compile_definitions(${NECTAR_LEGACY} PRIVATE NECTAR_COOP_WORLD=1)

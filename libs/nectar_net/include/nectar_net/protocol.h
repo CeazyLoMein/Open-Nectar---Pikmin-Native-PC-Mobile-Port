@@ -35,6 +35,7 @@ enum class MessageType : std::uint8_t {
     CoopControl          = 67, // authenticated two-player readiness/pause/loading
     CoopStatus           = 68, // host-owned session state
     CoopMarker           = 69, // presentation-only teammate marker
+    CoopAudio            = 70, // host-owned presentation sound cues
     ContentManifest      = 80,
     ContentDecision      = 81,
     ContentChunk         = 82,
