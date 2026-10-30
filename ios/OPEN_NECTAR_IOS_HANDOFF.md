@@ -1,3 +1,18 @@
+## Matching guest timing/audio builds submitted — 2026-10-29 21:54 EDT
+
+Committed and pushed `0296f6a26e0600f3c66f0c8b6038a68c6ae3f3a5` to `ios-experimental`, based on synchronized local/remote`21480b5bfcba7e8f0ebc18e58c38de2f65d34070`. Tree clean after source commit. This is the source included in BOTH replacements:
+
+- iPhone **91**, run **40988434305**, last checked **IN_PROGRESS**: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40988434305
+- Windows **7**, run **40988434328**, last checked **IN_PROGRESS**: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40988434328
+
+No new artifacts/IPA yet; no successful native compilation or new phone runtime result claimed. Installed PC5/iPhone90 stay untouched. P2 unchanged. Stop CI polling and await the user's completion report, then fetch full logs/receipts, verify BOTH packages/identity, stage in Documents and offer one short mixed PC+phone practice test. A second phone is optional. Phone USB work is complete and it may be unplugged.
+
+Local validation:30/30 network/codec/session/engine-adapter tests passed including real encrypted sockets;120 host/guest-rate/latency/jitter combinations pass, old-clock negative control fails10 combinations. New source also coalesces sustained whistle/ready requests and prevents duplicate nested native sound commands; actual adapter regression PASS. Actual5 engine translation units pass Clang syntax/analysis with existing legacy warnings; strict new adapter/codec analysis and existing231 smoothing/14 focus/8 carry/10 exit checks pass. The new audio fixture uses fake playback resources; it does not prove audibility on iOS. Full report below provides exact scope, remaining co-op vision and verification limits.
+
+**Exact next action:** user says build finished -> inspect project GitHub logs yourself; correct actual failures if any, otherwise validate/stage matching Windows7/iPhone91; same-app updates preserve settings/saves/texture packs. Do not reuse PC5 with phone91. User should compare guest movement and whistle/throw/Pikmin/footstep audio, then pause/resume and reverse roles. No need to keep a live game open while builds run. Next-test checklist is in Documents/Open Nectar/2 - Progress and ChatGPT Handoff/NEXT TEST - PC7 and iPhone91.txt.
+
+---
+
 ## Guest timing/audio batch locally verified — 2026-10-29 21:46 EDT
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
