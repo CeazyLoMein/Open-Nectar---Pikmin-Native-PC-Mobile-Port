@@ -1,3 +1,7 @@
+#if defined(NECTAR_COOP_WORLD)
+#include "netplay/pc_coop_audio.h"
+#include "audio/pc_audio_source.h"
+#endif
 #include "jaudio/piki_player.h"
 #include "jaudio/cmdqueue.h"
 #include "jaudio/ja_calc.h"
@@ -16,6 +20,11 @@ static u32 gaya_timer;
  */
 void Jac_Orima_Walk(s32 soundID, u32 unusedArg)
 {
+#if defined(NECTAR_COOP_WORLD)
+	PcCoopAudioCall audioCall;
+	pc_coop_audio_raw(10,soundID);
+	if(!pc_audio_source_audible()) return;
+#endif
 	static seqp_* seqp = NULL;
 	static u8 status   = 0;
 	gaya_timer         = 0;
@@ -46,6 +55,11 @@ static seqp_* stick_seqp;
  */
 void Jac_Orima_Formation(s32 stickX, s32 stickY)
 {
+#if defined(NECTAR_COOP_WORLD)
+	PcCoopAudioCall audioCall;
+	pc_coop_audio_raw(9,0,stickX,stickY);
+	if(!pc_audio_source_audible()) return;
+#endif
 	static int flag = 0;
 
 	if (stick_seqp == NULL) {
@@ -115,6 +129,11 @@ static seqp_* orima_seqp;
  */
 void Jac_PlayOrimaSe(u32 id)
 {
+#if defined(NECTAR_COOP_WORLD)
+	PcCoopAudioCall audioCall;
+	pc_coop_audio_raw(5,static_cast<int>(id));
+	if(!pc_audio_source_audible()) return;
+#endif
 	static u8 status          = 0;
 	static int cmdqueue_reset = 0;
 	static CmdQueue player_se;
@@ -219,6 +238,11 @@ void Jac_UnPauseOrimaSe()
  */
 void Jac_StopOrimaSe(s32 id)
 {
+#if defined(NECTAR_COOP_WORLD)
+	PcCoopAudioCall audioCall;
+	pc_coop_audio_raw(6,id);
+	if(!pc_audio_source_audible()) return;
+#endif
 	static seqp_* seqp        = NULL;
 	static int cmdqueue_reset = 0;
 	static CmdQueue player_se_stop;

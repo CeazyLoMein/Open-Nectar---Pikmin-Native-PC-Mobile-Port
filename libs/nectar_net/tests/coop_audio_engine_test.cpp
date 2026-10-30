@@ -102,9 +102,13 @@ extern "C"
         if (pc_audio_source_audible())
             ++steps;
     }
-    void Jac_PlaySystemSe(int)
+    int Jac_PauseCheck(){return eventsPaused?1:0;}
+    int Jac_DemoCheck(){return 0;}
+    void Jac_PlaySystemSe(int id)
     {
         ++systemPlays;
+        if(id==3)eventsPaused=true;
+        if(id==15)eventsPaused=false;
     }
     void Jac_StopSystemSe(int)
     {
@@ -213,6 +217,11 @@ int main()
     pc_coop_audio_tick(session,4000);
     check(session.out.size()==2 && session.out[1].kind==AudioKind::PlayerPlay,"nested native command relays once, avoiding duplicate jingle playback");
     pc_coop_audio_end();
+#if PIKI_USE_JAUDIO
+    check((pc_coop_audio_backend_state()&128)!=0,"fixture exercises native JAudio branch, not fallback mixer");
+#else
+    check(pc_coop_audio_backend_state()==0,"fixture exercises fallback mixer branch");
+#endif
     practice = false;
     {
         PcAudioSource other(1);

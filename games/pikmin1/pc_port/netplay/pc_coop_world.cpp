@@ -298,7 +298,7 @@ bool pc_coop_world_present_guest(const net::ActorFrame& frame)
         auto* n=captains[player];auto value=guest->captainStates[player];
         const auto& pose=frame.captains.at(guest->ids[player]);
         value.position=pose.position;value.velocity=pose.velocity;value.faceDirection=pose.faceDirection;
-        value.upperFrame=pose.upperFrame;value.lowerFrame=pose.lowerFrame;
+        value.upperFrame=pose.upperFrame;value.lowerFrame=pose.lowerFrame;value.cursor=pose.cursor;
         n->mSRT.t.x=value.position.x;n->mSRT.t.y=value.position.y;n->mSRT.t.z=value.position.z;
         n->mLastPosition=n->mSRT.t;
         n->mVelocity.x=value.velocity.x;n->mVelocity.y=value.velocity.y;n->mVelocity.z=value.velocity.z;

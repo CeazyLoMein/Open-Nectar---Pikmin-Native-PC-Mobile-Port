@@ -1,3 +1,6 @@
+#if defined(NECTAR_COOP_WORLD)
+#include "netplay/pc_coop_audio.h"
+#endif
 #include "jaudio/verysimple.h"
 
 #include "Dolphin/os.h"
@@ -108,6 +111,11 @@ void Jac_SysSEDemoFadeCheck()
  */
 void Jac_PlaySystemSe(s32 id)
 {
+#if defined(NECTAR_COOP_WORLD)
+	PcCoopAudioCall audioCall;
+	if(id!=JACSYS_MenuOn && id!=JACSYS_MenuOff && id!=JACSYS_Pause && id!=JACSYS_Unpause && id!=JACSYS_DVDPause && id!=JACSYS_DVDUnpause)
+		pc_coop_audio_raw(7,id);
+#endif
 	if (!cmdqueue_reset) {
 		cmdqueue_reset = InitQueue();
 		if (!cmdqueue_reset) {
@@ -259,6 +267,10 @@ void Jac_PlaySystemSe(s32 id)
  */
 void Jac_StopSystemSe(s32 id)
 {
+#if defined(NECTAR_COOP_WORLD)
+	PcCoopAudioCall audioCall;
+	pc_coop_audio_raw(8,id);
+#endif
 	if (cmdqueue_reset == FALSE) {
 		cmdqueue_reset = InitQueue();
 	}

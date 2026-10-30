@@ -36,6 +36,13 @@ public:
             ? std::clamp(float(target > left->at ? target-left->at : 0) / float(right->at-left->at),0.0f,1.0f) : 0;
         blend(out.captains, left->frame.captains, right->frame.captains, alpha);
         blend(out.pikmin, left->frame.pikmin, right->frame.pikmin, alpha);
+        for(auto& entry:out.captains) {
+            const auto a=left->frame.captains.find(entry.first),b=right->frame.captains.find(entry.first);
+            if(a==left->frame.captains.end() || b==right->frame.captains.end())continue;
+            const auto& x=a->second.cursor;const auto& y=b->second.cursor;
+            const float dx=x.x-y.x,dy=x.y-y.y,dz=x.z-y.z;
+            if(dx*dx+dy*dy+dz*dz<=400.0f*400.0f)entry.second.cursor=mix(x,y,alpha);
+        }
         return true;
     }
 private:

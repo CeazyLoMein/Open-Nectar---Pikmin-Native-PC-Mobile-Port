@@ -30,6 +30,7 @@ void pc_coop_audio_move(const void *context, float x, float y, float z);
 void pc_coop_audio_release(const void *context);
 // 5/6 player start/stop;7/8 system;9 formation;10 footstep. Native IDs only.
 void pc_coop_audio_raw(unsigned kind, int sound, int x = 0, int y = 0);
+int pc_coop_audio_backend_state();
 void pc_coop_audio_counts(std::uint64_t &sent, std::uint64_t &played, std::uint64_t &dropped);
 #else
 inline bool pc_coop_audio_host() {return false;}

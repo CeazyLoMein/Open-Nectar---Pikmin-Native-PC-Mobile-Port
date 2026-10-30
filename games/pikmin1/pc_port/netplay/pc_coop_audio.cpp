@@ -3,6 +3,9 @@
 #include "audio/pc_audio.h"
 #include "audio/pc_audio_source.h"
 #include "jaudio/piki_player.h"
+#if PIKI_USE_JAUDIO
+#include "jaudio/pikidemo.h"
+#endif
 #include "jaudio/pikiinter.h"
 #include "jaudio/verysimple.h"
 #include "nectar_net/coop_session.h"
@@ -38,7 +41,7 @@ std::array<Source, 16> sources;
 std::array<Voice, 16> voices;
 std::deque<AudioCue> pending;
 std::array<std::array<int, 2>, 3> formation{};
-std::array<bool,3> whistles{};
+std::array<bool,3> whistles{},flyReady{};
 std::uint32_t nextToken = 0;
 std::uint64_t lastFlush = 0, sent = 0, played = 0, dropped = 0;
 bool active = false, host = false, running = false, resync = false, replaying = false, flushed = false;
@@ -224,15 +227,19 @@ void pc_coop_audio_end()
         if (!host)
             silence();
         // The held practice scene requires restart; freeze its effects too.
+#if PIKI_USE_JAUDIO
+        Jac_PlaySystemSe(JACSYS_Pause);
+#else
         Jac_PauseOrimaSe();
         pc_audio_set_events_paused(true);
+#endif
     }
     active = host = running = resync = replaying = flushed = false;
     lastFlush = 0;
     pending.clear();
     sources = {};
     voices = {};
-    formation = {};whistles={};
+    formation = {};whistles={};flyReady={};
 }
 void pc_coop_audio_running(bool value)
 {
@@ -241,7 +248,12 @@ void pc_coop_audio_running(bool value)
     running = value;
     pending.clear();
     flushed = false;
-    formation = {};whistles={};
+    formation = {};whistles={};flyReady={};
+#if PIKI_USE_JAUDIO
+    // Original JAudio owns its own sequence tracks. The fallback SDL mixer
+    // pause flags do not control the native DSP graph.
+    Jac_PlaySystemSe(value?JACSYS_Unpause:JACSYS_Pause);
+#else
     if (value)
         Jac_UnPauseOrimaSe();
     else
@@ -249,6 +261,7 @@ void pc_coop_audio_running(bool value)
         Jac_PauseOrimaSe();
         pc_audio_set_events_paused(true);
     }
+#endif
     if (!host)
         silence();
     else if (value)
@@ -326,6 +339,11 @@ void pc_coop_audio_raw(unsigned kind, int sound, int x, int y)
     c.y = static_cast<std::int8_t>(std::clamp(y, -127, 127));
     const auto ownerSlot=c.player==255?2:c.player;
     if(ownerSlot>2)return;
+    if(c.kind==AudioKind::PlayerPlay) {
+        if(c.sound==0x8004 && flyReady[ownerSlot])return;
+        if(c.sound==0x8004)flyReady[ownerSlot]=true;
+        if(c.sound==0x8002)flyReady[ownerSlot]=false;
+    }
     if((c.kind==AudioKind::PlayerPlay || c.kind==AudioKind::PlayerStop) && c.sound==JACORIMA_Gather) {
         const bool start=c.kind==AudioKind::PlayerPlay;
         if(start && whistles[ownerSlot])return;
@@ -388,4 +406,12 @@ void pc_coop_audio_counts(std::uint64_t &a, std::uint64_t &b, std::uint64_t &c)
     a = sent;
     b = played;
     c = dropped;
+}
+
+int pc_coop_audio_backend_state() {
+#if PIKI_USE_JAUDIO
+    return 128 | (Jac_PauseCheck()?1:0) | (Jac_DemoCheck()?2:0);
+#else
+    return 0;
+#endif
 }

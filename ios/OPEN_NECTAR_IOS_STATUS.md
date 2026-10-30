@@ -1,3 +1,63 @@
+## Native audio integration correction; hardware movement improved — 2026-10-30 10:16 EDT
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-30 10:16 EDT
+
+**Overall project status:** PC7/iPhone91 hardware feedback confirms a LARGE movement improvement (user estimates stutter80% ->15%, subjective) on PC/phone and phone/phone. Guest SFX still absent; host-close cannot resume the same in-memory practice room. Original-engine audio integration correction and cursor smoothing are implemented and locally verified; replacement builds NOT submitted yet. P2 unchanged. Phone reports collected read-only and user told they may unplug.
+
+### Pikmin 1
+
+- Current objective: restore guest gameplay sounds through the ACTUAL audio backend and reduce remaining presentation judder.
+- What was investigated: new simultaneous recordings ScreenRecording_10-30-2026 00-05-30_1.mov and Base Profile2026.10.30 -00.05.28.05.mp4 (sampled frames viewed, metadata checked; full real-time motion/audio not independently listened to). Saved PC report1793333042 and phone guest1793333042/host1793333409, captured under work/practice-pc7-phone91/. Host PC41 neutral ticks /21648 total versus earlier roughly40%; guest records81 sound apply attempts,21 drops. Those counters do not prove audible output.
+- Root cause: production full build compiles `PIKI_USE_JAUDIO=1` / original `src/jaudio`; previous raw voice/whistle/footstep/system hooks lived inside fallback `audio_stubs.cpp`'s !PIKI_USE_JAUDIO branch and were absent from the running game. Earlier adapter test used fallback defaults, so passing it missed this integration error. Positional hooks did send some cues, explaining guest apply attempts. Remaining positional/audibility behavior still needs hardware verification.
+- Files changed: `games/pikmin1/src/jaudio/piki_player.c` and `verysimple.c` now capture original-engine captain/system commands with nested-call scopes and local captain ownership. `pc_coop_audio.cpp/.h` uses native pause/unpause system commands under PIKI_USE_JAUDIO=1, coalesces per-source ready voices, and exposes native pause/demo bits for reports. `pc_coop_practice_runtime.cpp` logs audio_backend_state (128=native;bit1 pause,bit2 demo). `pc_coop_visual_smoothing.h` and `pc_coop_world.cpp` interpolate and apply each captain's cursor with its pose, preserving visibility/metadata; large target changes snap. Camera code reads that cursor, which previously remained20Hz despite smoothed body positions. Tests/CMake/both experimental workflows updated to cover the actual backend.
+- Tests and results:31/31 local CTest tests PASS, including new explicit PIKI_USE_JAUDIO=1 adapter variant, fallback adapter,120 authenticated timing/jitter combinations, real encrypted GNS/socket/room/stress/companion tests. Actual original-engine entrypoint bodies compile/execute against controlled fake tracks: native voice/whistle/footstep/formation/system start/stop, captain ownership, nested-command deduplication and native pause/resume gates PASS. Removing the six native hook blocks causes six expected regression failures. Strict MSVC/Clang entrypoint checks PASS. Actual original JAudio translation units plus runtime/adapter/soundMgr/seMgr compile in Clang with production PIKI_USE_JAUDIO=1 and real engine headers; existing legacy warnings remain, no errors.234 smoothing,14 focus,8 carry and10 actual exit checks PASS. Actual world capture/pool/300-Pikmin lifecycle fixture PASS, including applied cursor assertion and preserved authoritative health/ownership. These are code/adapter validations, not actual native PCM audibility or phone runtime proof.
+- Confirmed working: user reports movement substantially smoother on both tested pair types; host movement/audio working. Accepted solo/graphics/touch/FPS/model/texture baseline preserved. No new game launch/input/close, graphics/settings/save/asset/phone writes.
+- Remaining issues: guest sounds need the corrected paired build and device test; residual stutter needs reevaluation after cursor fix. Host process termination destroys current practice's in-memory authority and room; live rejoin/durable mid-day recovery are NOT implemented. User requires host-close recovery, so it stays queued with persistence, not marked fixed. Existing practice still needs app restart after End Practice/loss. Full shared campaign/Onions/jobs/cutscenes remain unfinished.
+
+### Pikmin 2
+
+- Current objective: preserve user-confirmed working build while P1 co-op is prioritized.
+- What was investigated / root cause: no new P2 diagnosis.
+- Files changed: none.
+- Tests and results: no new P2 tests or build requested.
+- Confirmed working: previously user-reported gameplay and repaired audio; no full-story validation.
+- Remaining issues: broader campaign regression and eventual P2 co-op, after P1.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: ios-experimental.
+- Starting local/remote:57c3403afb24b86e29f07f0db1ddf780dcbf58fb; fetched/synchronized and initially clean.
+- Latest game source in installed PC7/phone91:0296f6a26e0600f3c66f0c8b6038a68c6ae3f3a5; identity31cb99e8cc7d34514117939becbc9465ce24ad08d441bc56bf643af2ec750141.
+- Commits created / pushed: none yet for new batch. Intended subject `Wire native JAudio co-op cues and smooth guest cursor [ios-build] [ios-p1-update] [pc-coop-build]`. Resolve commit/run IDs after submission.
+- Uncommitted: scoped native audio/cursor implementation/tests/workflows/journal, no unrelated work.
+- GitHub Actions: existing PC7/run40988434328 SUCCESS, artifact12947874604; phone91/run40988434305 SUCCESS, P1 artifact12948319637 and scene12948820852. They passed compilation but guest audio FAILED hardware. No newer artifacts yet.
+- Phone91 IPA5366580bytes SHA25667151b43afc883294af15d785641b3b179d5ce6bd15dbac98c56ef43a5d748f2, UUID5e077209-7b07-3a4f-a268-585d7435b1c4. PC7 EXE SHA25616e9821031cdb625050dfe05a04f553c94c55bc7581195b8f2044a705aac08e8.
+- PC7 installed in Documents/Open Nectar/4 - Windows Version/Pikmin 1 - Full PC Co-op - Experimental; usual PLAY PIKMIN1.cmd (actual filename PLAY PIKMIN 1.cmd) remains. PC5 rollback is Backups/Before PC Build7 -20261029-230037 (actual folder `Before PC Build 7 - 20261029-230037`);3199 settings/save/content files hash-unchanged at update. No new installation this turn.
+
+### Next steps
+
+- Next Pikmin1 task: submit one matching native-audio/cursor PC+iPhone pair; after user build completion feedback retrieve full logs/receipts, validate artifacts/shared source identity, back up and stage without closing any running game.
+- Next Pikmin2 task: preserve working build.
+- GitHub/build task: record source/run IDs and stop polling while compiling. No build just for documentation.
+- Anything requiring user involvement: NONE now; phone USB read is finished, may unplug. After verified updates, own PC+phone is sufficient: guest whistle, throw, Pikmin voices and footsteps; pause/resume; compare body/cursor/camera movement; reverse roles. Raye's second phone is optional. Do not uninstall P1 or recopy assets. No further live session requested now.
+
+### ChatGPT continuation notes
+
+- New native hooks are in ORIGINAL `src/jaudio/piki_player.c` and `verysimple.c`, not just fallback audio_stubs.cpp. CMake compiles these .c files as C++; guards keep non-PC/non-co-op builds unchanged. Do not revert the successful0296f6 input clock/lead/hold fix.
+- New test `tests/pikmin1_native_audio_entry_test.py` extracts actual native bodies. Both experimental workflows now require it (MSVC and native/mac+iOS syntax). `libs/nectar_net/tests/coop_audio_engine_test.cpp` is compiled a second time with PIKI_USE_JAUDIO=1. Fake tracks validate routing/gates, not real waveform output. Preserve native package/runtime gates and21 practice/13 room receipt schemas.
+- Logs/evidence: work/practice-pc7-phone91/ (PC session, copied phone reports, sampled PC/phone overview images); source recordings remain private in Downloads/Videos. Phone read originated work/practice-pc5-phone90/phone-read-095535 and was copied; don't mistake the historical parent folder for Build90 evidence. New logs native-audio-cursor-ctest.log, actual-native-audio-engine.log, native-entry-strict.log, native-audio-negative.log, native-audio-cursor-capture.log, native-audio-exit.log. No proprietary assets/recordings committed.
+- Unverified: replacement native compilation/package/device sound; subjective remaining stutter. Cursor fix is targeted presentation work; no guarantee that it removes every source of judder. No broad network/simulation rewrite or extra smoothing latency was added.
+- Risks/limits: native pause path must be tested on devices; report audio_backend_state128 expected while running unless native demo/pause is active. Applying a cue is not proof of audible output. Preserve original low-detail Louie/GPI selection and removed HD characters on phone, PC optional packs, user-selectable120FPS, sharp native resolution, framebuffer correction, settings and independent cosmetics/controls.
+- Full vision remains queued: own-screen cameras and independent squads, shared Onion stock/separate field allowance, host campaign/solo save separation, health-led difficulty, synchronized cutscenes/travel, private internet invites, live rejoin, durable exact mid-day autosave/host-loss recovery for calls/lock/force close, seamless PC/iPhone continuation, P2 later. Current unlocked solo test preset uses save-solo-test; ordinary save preserved. No full-story proof or completed co-op claimed. User wants full-vision percentage first only when asking; do not inflate from build passes.
+- Exact next actions: find final submitted source/run checkpoint in Exact Resume State.json; on build success, verify actual PIKI_USE_JAUDIO=1 compilation and native entry PASS plus26 native CMake tests, then staged same-app update of BOTH peers. Do not use old PC7 with new phone. Await movement/audio evidence before claiming fixed. Host-close recovery remains a separately tracked persistence objective.
+
+**END PROGRESS REPORT**
+
+---
+
 ## PC7/iPhone91 successful, verified and ready to test — 2026-10-29 23:03 EDT
 
 Windows7/run40988434328 and iPhone91/run40988434305 both SUCCESS at source0296f6a26e0600f3c66f0c8b6038a68c6ae3f3a5. PC7 INSTALLED after verified PC5 backup;3199 protected config/save/content files unchanged. Phone91 IPA STAGED, not installed by Codex. Identity31cb99e8cc7d34514117939becbc9465ce24ad08d441bc56bf643af2ec750141 matches both packages and tracked source. Full25 native tests/21 practice/13 room receipts/real UIKit socket+scene resume passed. Hardware guest stutter/audio fix NOT YET tested. No more builds or polling; user next updates phone to91 then tests with usual PC launcher. P2 unchanged. Full current report follows; older status entries are historical.

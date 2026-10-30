@@ -1,3 +1,9 @@
+## Current hardware result and next batch — 2026-10-30 10:16 EDT
+
+User confirms PC7/phone91 movement much better (subjective80% ->15% stutter), guest SFX still absent on mixed and phone pairs. Correct native PIKI_USE_JAUDIO=1 hooks/pause tests and cursor smoothing implemented; native builds pending. HOST FORCE-CLOSE RECOVERY is confirmed absent and remains mandatory under durable mid-day save/recovery: closing the host currently ends in-memory practice; do not claim rejoin works. Phone logs collected read-only; may unplug. All full-mode objectives below remain active.
+
+---
+
 ## PC7/iPhone91 successful, verified and ready to test — 2026-10-29 23:03 EDT
 
 Windows7/run40988434328 and iPhone91/run40988434305 both SUCCESS at source0296f6a26e0600f3c66f0c8b6038a68c6ae3f3a5. PC7 INSTALLED after verified PC5 backup;3199 protected config/save/content files unchanged. Phone91 IPA STAGED, not installed by Codex. Identity31cb99e8cc7d34514117939becbc9465ce24ad08d441bc56bf643af2ec750141 matches both packages and tracked source. Full25 native tests/21 practice/13 room receipts/real UIKit socket+scene resume passed. Hardware guest stutter/audio fix NOT YET tested. No more builds or polling; user next updates phone to91 then tests with usual PC launcher. P2 unchanged. Full current report follows; older status entries are historical.

@@ -317,9 +317,10 @@ int main(){
  smooth.captains[sc0]=ca;smooth.captains[sc1]=cb;smooth.pikmin[sp0]=visual0;smooth.pikmin[sp1]=visual1;
  check(!pc_coop_world_present_guest(smooth),"cannot present before accepted baseline");
  check(pc_coop_world_apply_guest_visuals(109,20,smooth),"baseline before smoothing");
- auto shown=smooth;shown.captains[sc0].position.x=12;shown.pikmin[sp0].position.x=24;
+ auto shown=smooth;shown.captains[sc0].position.x=12;shown.pikmin[sp0].position.x=24;shown.captains[sc0].cursor={18,0,12};
  shown.pikmin[sp0].owner=1;shown.pikmin[sp0].health=0;shown.pikmin[sp0].color=2;shown.captains[sc0].health=0;
  check(pc_coop_world_present_guest(shown)&&n0.mSRT.t.x==12&&d0.last.position.x==24,"actual display applies intermediate transforms");
+ check(n0.mCursorWorldPos.x==18&&n0.mCursorWorldPos.z==12,"actual display applies interpolated cursor instead of latest packet cursor");
  check(n0.mHealth==ca.health&&d0.last.owner==visual0.owner&&d0.last.health==visual0.health&&d0.last.color==visual0.color,"smoothing cannot overwrite accepted captain health or Pikmin metadata");
  check(pc_coop_world_guest_pikmin_state(sp0,diagnostic)&&diagnostic.position.x==visual0.position.x,"smoothing does not overwrite host diagnostic state");
  auto expectPresentationRejected=[&](const ActorFrame& badFrame,const char*why){

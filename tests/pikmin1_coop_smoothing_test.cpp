@@ -48,5 +48,11 @@ int main(){
     check(near(out.captains[1].position.x,10),"same-time burst never divides by zero");
     for(int i=3;i<=20;++i)s.push(frame(i,float(i)),1000+50*i);
     s.sample(0,out);check(near(out.captains[1].position.x,13),"history evicts oldest frames at its fixed eight-frame bound");
+    s.reset();a=frame(1,0);b=frame(2,50);a.captains[1].cursor={0,0,0};b.captains[1].cursor={100,0,0};
+    a.captains[2].cursor={0,0,50};b.captains[2].cursor={0,0,150};s.push(a,1000);s.push(b,1050);s.sample(1100,out);
+    check(near(out.captains[1].cursor.x,50)&&near(out.captains[2].cursor.z,100),"each captain cursor blends with its pose, not at packet frequency");
+    check(out.captains[1].cursorVisible==b.captains[1].cursorVisible,"cursor visibility remains latest authoritative value");
+    b.captains[1].cursor.x=1000;s.reset();s.push(a,1000);s.push(b,1050);s.sample(1100,out);
+    check(near(out.captains[1].cursor.x,1000),"distant cursor target change snaps instead of sweeping across map");
     std::printf("%d guest presentation checks passed\n",checks);
 }
