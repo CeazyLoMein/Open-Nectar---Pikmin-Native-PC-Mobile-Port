@@ -1,3 +1,9 @@
+## iPhone90 submitted; pair with successful PC5 — 2026-10-29 20:14 EDT
+
+Correction source `dcfba41f178d0e8905c215b4d668da67e1f43939` pushed. iPhone90/run40978326061 last checked IN_PROGRESS: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40978326061 . Windows6 is intentionally SKIPPED because this only changes tests/workflows/docs. Keep verified PC5/run40976294203/artifact12943316091 for the pair; identical game identity26204c2b52dcf03c59c52798930a69a9e11a4a6c9272600e9c7a8eb29e650f9e. No new IPA yet. iPhone89 produced diagnostics only; its stale exit fixture is corrected with10 passing real-smoothing cleanup checks and two sensitive negative controls. Preserve installed PC4/phone88 until verified replacements; original Louie restored, no USB task. Await user build result; no idle polling. Full current handoff is at the end below and in Documents/Open Nectar/2 - Progress and ChatGPT Handoff.
+
+---
+
 ## iPhone89 failure diagnosed; PC5 verified — 2026-10-29 20:12 EDT
 
 PC5/run40976294203 PASSED and its package is verified, not installed. iPhone89/run40976294072 stopped in an OUTDATED extracted exit fixture: missing smoothing/presented declarations. Full game/socket probe were not reached; the later mandatory socket error is a correctly rejected skipped step. Actual21 practice/13 room receipts passed. Fixed fixture now uses real smoothing and tests10 exit/lifetime/cleanup cases; strict MSVC/Clang and two negative controls pass. Only tests/workflows/docs change; identity stays26204c2b52dcf03c59c52798930a69a9e11a4a6c9272600e9c7a8eb29e650f9e, compatible with PC5. Submit only new iPhone build, retain PC5; no [pc-coop-build] marker. Original Louie is restored, USB task complete. Latest full report is at the END below and in Documents/Open Nectar/2 - Progress and ChatGPT Handoff. Prior current-state claims below are historical.
@@ -3527,7 +3533,7 @@ RTSS Windows approval completed; P1-only profile installed, API readback OSD1/de
 
 **Date/time:** 2026-10-29 20:12 EDT
 
-**Overall project status:** Windows5 PASSED and its full package is verified. iPhone89 FAILED before the full game compile because an extracted exit test lacked the newly added smoothing objects. Test correction is implemented and locally verified. One iPhone-only replacement is about to be submitted; keep installed PC4/phone88 until the matching replacement packages are verified. Original low-detail Louie is now restored/hash-verified on the user's phone; HD packs remain removed and GPI textures retained.
+**Overall project status:** Windows5 PASSED and its full package is verified. iPhone89 FAILED before the full game compile because an extracted exit test lacked the newly added smoothing objects. Test correction is implemented and locally verified. iPhone90/run40978326061 has been submitted and was last observed IN_PROGRESS; keep installed PC4/phone88 until the matching replacement packages are verified. Original low-detail Louie is now restored/hash-verified on the user's phone; HD packs remain removed and GPI textures retained.
 
 ### Pikmin 1
 - Current objective: get the existing coordinated guest-stutter/PC-Ready/missing-Onion fixes through iPhone validation, preserving the passing PC5 game.
@@ -3551,15 +3557,15 @@ RTSS Windows approval completed; P1-only profile installed, API readback OSD1/de
 ### GitHub
 - Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port ; branch ios-experimental.
 - Starting local/remote:cd6e39ef5e2c65efd1d0a69e8a1cbbaf15dbcc31, fetched and no divergence. Last game code commit:deaaee1ee0b884c5c939f456b6a5ccfff4d23d40.
-- Latest commit/commits created/push: correction and this journal are being committed with [ios-build] [ios-p1-update], WITHOUT [pc-coop-build]. Resolved commit/new run IDs saved in Exact Resume State.json after push.
-- Uncommitted changes: only the listed test/workflow/journal batch at this checkpoint; final clean state will be recorded.
+- Latest build source commit:dcfba41f178d0e8905c215b4d668da67e1f43939, committed and pushed with [ios-build] [ios-p1-update], WITHOUT [pc-coop-build]. iPhone90/run40978326061 IN_PROGRESS at last check. Windows6/run40978326030 SKIPPED by design; reuse successful Windows5, whose compiled game identity matches. No new game code.
+- Uncommitted changes: no test or game edits after the pushed correction; this documentation-only run-ID checkpoint is being saved. Final journal SHA and clean local/remote state are in Exact Resume State.json.
 - Build results: PC5/run40976294203 SUCCESS, artifact12943316091. iPhone89/run40976294072 FAILURE; P1 job123808448668 primary failure at enhancement check, later mandatory socket gate refuses skipped runtime. Scene-startup job123805033631 PASSED. No IPA or full compiled-app artifact from89.
 - Artifacts: PC5 ZIP SHA25693b822b5cc7ae9c5b08cb16437d43240b00cfa42c166ce9e4db9e3904711969a; EXE SHA256d93bd8dcc7f80b46dc31e7767595940b9c352773f1da80fd401a48dcae831d9a.14 receipt file hashes, safe archive paths/no game assets, x64 PE, runtime-DLL closure and shared identity verified. Retained in outputs/P1-Full-PC-Coop-Build5; NOT installed over PC4 yet. iPhone89 artifact12943032855 is diagnostics ONLY, ZIP SHA2567a37b2e6c4d0dd85a93dadff54be60f910e44ef08c546a6275378fcd65a38dd4, checked21/13 PASS receipts/no IPA.
 
 ### Next steps
 - Next P1 task: verify replacement iPhone result/full logs/runtime receipts/artifact against PC5 identity; stage/install the matching pair after success, then repeat both host roles and interruptions.
 - Next P2 task: preserve current app and queue; no new test needed now.
-- GitHub/build task: one iPhone-only replacement; Windows workflow may show SKIPPED on that push by design. Keep existing mandatory native socket/scene/practice/room gates. No idle polling.
+- GitHub/build task: submitted iPhone90/run40978326061: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40978326061 . Windows6 was SKIPPED by design. Keep existing mandatory native socket/scene/practice/room gates. No idle polling.
 - User involvement: no phone/USB task now; original Louie restoration already complete. Tell Codex when the replacement iPhone build finishes. Do not install PC5 alone with phone88 because their game identities differ.
 
 ### ChatGPT continuation notes

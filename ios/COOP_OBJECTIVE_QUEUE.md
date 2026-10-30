@@ -1,3 +1,9 @@
+## iPhone90 submitted; pair with successful PC5 — 2026-10-29 20:14 EDT
+
+Correction source `dcfba41f178d0e8905c215b4d668da67e1f43939` pushed. iPhone90/run40978326061 last checked IN_PROGRESS: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/40978326061 . Windows6 is intentionally SKIPPED because this only changes tests/workflows/docs. Keep verified PC5/run40976294203/artifact12943316091 for the pair; identical game identity26204c2b52dcf03c59c52798930a69a9e11a4a6c9272600e9c7a8eb29e650f9e. No new IPA yet. iPhone89 produced diagnostics only; its stale exit fixture is corrected with10 passing real-smoothing cleanup checks and two sensitive negative controls. Preserve installed PC4/phone88 until verified replacements; original Louie restored, no USB task. Await user build result; no idle polling. Full current handoff is at the end below and in Documents/Open Nectar/2 - Progress and ChatGPT Handoff.
+
+---
+
 ## iPhone89 failure diagnosed; PC5 verified — 2026-10-29 20:12 EDT
 
 PC5/run40976294203 PASSED and its package is verified, not installed. iPhone89/run40976294072 stopped in an OUTDATED extracted exit fixture: missing smoothing/presented declarations. Full game/socket probe were not reached; the later mandatory socket error is a correctly rejected skipped step. Actual21 practice/13 room receipts passed. Fixed fixture now uses real smoothing and tests10 exit/lifetime/cleanup cases; strict MSVC/Clang and two negative controls pass. Only tests/workflows/docs change; identity stays26204c2b52dcf03c59c52798930a69a9e11a4a6c9272600e9c7a8eb29e650f9e, compatible with PC5. Submit only new iPhone build, retain PC5; no [pc-coop-build] marker. Original Louie is restored, USB task complete. Latest full report is at the END below and in Documents/Open Nectar/2 - Progress and ChatGPT Handoff. Prior current-state claims below are historical.
