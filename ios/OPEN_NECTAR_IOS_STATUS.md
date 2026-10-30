@@ -1,3 +1,11 @@
+## Submitted PC9/iPhone93 guest feedback batch
+
+**Submitted checkpoint (2026-10-30 15:23 EDT):** Game source `65595c53b1582c3316c92afefb19d7e37cd56c8b` committed/pushed to ios-experimental. PC9 run41114720301 and iPhone93 run41114720367 IN_PROGRESS; no new artifacts or hardware claims. Expected matching identity `8ac920c968812b41679d6a3ec3e4875ab818189691367b1830e4124454f2d12c` (VERSION_GPIE01_01). Installed PC8/phone92 remains unchanged and user-confirmed smooth with own SFX. Phone/log task finished; may close/disconnect. Documentation-only checkpoint follows, no extra build.
+
+Full report follows in preceding implementation checkpoint; latest accessible copy in Documents/Open Nectar/2 - Progress and ChatGPT Handoff/LATEST - CODEX TO CHATGPT MASTER HANDOFF.md. Wait user build result, retrieve exact-head logs/packages/identity, then stage both peers. No new installation this turn.
+
+---
+
 ## Guest feedback batch: whistle, free aim and speed/recall
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
