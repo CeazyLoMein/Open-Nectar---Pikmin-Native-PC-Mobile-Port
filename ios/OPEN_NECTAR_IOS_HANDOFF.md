@@ -1,3 +1,57 @@
+## Verified PC9/iPhone94; paired test ready
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-30 21:34 EDT
+
+**Overall project status:** PC9 and replacement iPhone94 PASSED and independently verified. PC9 installed with PC8 rollback and3199 protected settings/save/content hashes unchanged. Phone94 staged, NOT installed. Await user same-app update and paired runtime test. Existing smooth movement/own-audio PC8/phone92 baseline preserved; no new hardware-fix claim.
+
+### Pikmin 1
+
+- Current objective: user test guest whistle rings, existing free-aim button drag, independent captain speed back to100, owned Recall All and host-controlled Pikmin walking speed.
+- Investigation/root cause: iPhone93 compiled its actual native game successfully but failed the older whole-captain fixture (missing NaviState/new visual dependencies), so mandatory packaging gate refused output. Fixture correction123d8e27 changed tests/workflow/docs only; existing PC9 game code65595c53 remains byte-identical under the compiled source identity. Build94 repaired full captain gate PASS.
+- Files changed/implemented: all gameplay batch source remains65595c53: captain visual/capture/smoothing, bounded input/replication, original Navi/whistle native particle factory/manager/generator/renderer, settings. Guest forwards whistle active/radius and camera-relative free-aim deltas; dedicated guest effect path updates ONLY original whistle generators, no guest AI/unrelated particle callbacks. Per-captain speed includes validated100 reset. Recall uses existing squad ownership, leaves partner's owned workers alone. Pikmin walking speed is HOST-controlled for both squads; guest row explains this. Other modes' restrictions retained. Existing own-only captain sound preference preserved. New tests fixtures and both workflows retained; no gameplay source changed this verification/staging turn.
+- Tests/results: authenticated GitHub metadata confirms PC9 SUCCESS at65595c53b1582c3316c92afefb19d7e37cd56c8b and phone94 SUCCESS at123d8e27db819889cac59f6863a528dd4d16d53f. Git diff confirms only test/workflow/docs difference. Identical game identity8ac920c968812b41679d6a3ec3e4875ab818189691367b1830e4124454f2d12c verified in PC receipt/header and actual IPA executable. Full native BUILD SUCCEEDED, complete captain fixture CAPTAIN VISUAL PASS,34 feedback checks,236 smoothing,14 focus,8 carry,10 exit,26 native network/audio tests PASS.21 practice and13 room receipts all PASS. Real encrypted UIKit simulator and actual scene resume PASS, no setup retry or cleanup error. IPA unsigned ARM64 platform/resources/icons/notices/bundle ID/landscape verified; PC x64 PE/import dependency closure and14 package file hashes verified.
+- Confirmed working: prior user PC8/phone92 smooth movement/own whistle/Pikmin/footstep audio. Other captain sounds remain local by user preference. Enemy audio UNTESTED: practice has no enemies. PC9 update staged/installed with no game launch, no automated input or app close. Current3199 configs/saves/optional content unchanged; assets junctions preserved. No phone installation/files/settings/assets/save change this turn.
+- Remaining issues: real device behavior of new rings/aim/speed/recall/Pikmin speed/pause. Practice disposable, not campaign. End/loss still restart; live rejoin, durable exact mid-day autosave/host-close recovery and shared campaign not implemented. Full-story solo coverage not proven; normal save and save-solo-test isolation preserved.
+
+### Pikmin 2
+
+- Current objective: preserve accepted working app/audio; later campaign/co-op after P1.
+- Investigation/root cause/files changed: none.
+- Tests/results: no new P2 build/device test. Existing app untouched.
+- Remaining issues: full campaign regression and eventual co-op.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port ; branch ios-experimental.
+- Starting local/remotea122d6918b0237f4bf5dcc8817915d4c21e4a08c, clean/fetched/synchronized. Latest gameplay65595c53; test-only phone correction123d8e27. This turn creates documentation-only checkpoint, [skip ci], no new game build.
+- PC9 run41114720301 SUCCESS, artifact13005907278, ZIP SHA256a7872d324fa617949d77d827076bf5fc4b3b2fefb4a267f67dd8dcf23fdb82b2, EXE SHA256056efccfb4d1884ce7ed79b94a4f0a16738625c148ea4141cd1a4e21ecfcbbf4. Windows10/run41151124251 intentionally SKIPPED, not a failed game. Existing PC9 reused to avoid redundant compilation.
+- iPhone94 run41151124155 SUCCESS, artifact13024470150, ZIP SHA256c2af40d449864132bbcfa3e184d07ab96be7cc392eb1c9a38383312b0249b4eb. IPA 5367756bytes, SHA256de2a4520401c713b28b289a8050de0524c210e3a3b6effcec4a2f3f974998977, UUIDf0b3e057-e4c7-303b-9c0d-127ee67803be. Scene artifact13023657137 SHA256b57351341f33c2d0c390c1c39b2c24b0df8abf38be2b2eea83ae3cc5a2ca92ae. Failed93/run41114720367 is superseded; do not install its partial artifact.
+- PC9 installed in Documents/Open Nectar/4 - Windows Version/Pikmin 1 - Full PC Co-op - Experimental; same PLAY PIKMIN 1.cmd/shortcut. PC8 rollback: C:\Users\chazz\Documents\Open Nectar\4 - Windows Version\Pikmin 1 - Full PC Co-op - Experimental\Backups\Before PC Build 9 - 20261030-213309.3199 protected files verified unchanged.
+- Phone94 ready: C:\Users\chazz\Documents\Open Nectar\1 - Install on iPhone\P1 Build 94 - Guest Movement and Audio\Pikmin 1 - Build 94.ipa. START HERE.txt, TEST CHECKLIST.txt and Package Verification.json alongside. Same-app Sideloadly update required; DO NOT uninstall P1 or recopy assets. Installed phone remains92 until user confirms update. PC9 cannot pair with old phone92; optional Raye phone also needs94.
+- Uncommitted: none after documentation checkpoint; latest exact docs hash recorded in Exact Resume State.json. No unrelated edits/pushes or history rewrite.
+
+### Next steps
+
+- P1/user: same-app update own phone94, use installed PC9. PC hosts NEW practice room; phone joins, enter and Ready each. Test both visible whistle rings; drag free aim in all directions while stationary/walking; change phone captain speed150/200 then100, repeat PC and confirm other captain unaffected. Enable own Recall All, leave partner squad working, confirm only owned Pikmin recalled. Host Pikmin Speed150 then100 affects both squads; guest explanation intentional. Pause/Ready both and retest; reverse roles if convenient.
+- Test checklist: Documents/Open Nectar/2 - Progress and ChatGPT Handoff/NEXT TEST - PC9 and iPhone94.txt, also in phone94 install folder. No USB/live session required now. Tell Codex which step, host device and exact symptom; keep apps installed if reporting failure.
+- P2: leave accepted app alone.
+- GitHub/build: no further build until meaningful runtime findings. No idle polling.
+
+### ChatGPT continuation notes
+
+- Proven distinct source metadata is expected: PC9 source65595c53, phone94 correction123d8e27, same8ac920 compiled identity. Verification must assert each source against its OWN successful run and compare actual source identity. Do not demand identical commit strings or rebuild Windows unnecessarily. Test-only changes excluded by ios/generate_coop_build_identity.py (ROOTS games/pikmin1/libs/ios, docs ignored by suffix); checked git diff paths.
+- Work evidence: work/run-41151124155-current.json/artifacts.json/logs.zip/logs/0_build (pikmin1).txt; work/build94-package-verification.json, windows-coop-build9-verification.json, pair9_94-verification.log, pc9-iphone94-stage-result.json. Reproducible helpers work/verify_pair9_94.py and stage_pc9_iphone94.py. Old93 failure diagnosis/fixture repair logs preserved. No private recordings/game assets uploaded.
+- Important files: tests/pikmin1_practice_captain_test.py now compiles full real pc_coop_captain_visuals.cpp; tests/run_pikmin1_practice_checks.py unchanged21 mandatory checks. New feedback test extracts real particle/captain/input/settings behavior. Shared input21bytes and captain schema3/63bytes. Existing native JAudio hooks/backend diagnostics, successful timing/lead/hold and75ms smoothing preserved.
+- Preserve GPI textures, removed phone HD character models, original low-detail Louie on own phone, independent graphics/camera/controls/120FPS option/native resolution/framebuffer/keyboard fixes, PC optional content and all save backups. No new mod install or FPS change. Solo test preset still unlocked/save-solo-test; not a completed normal campaign claim.
+- Full mode roadmap stays active in COOP_OBJECTIVE_QUEUE.md / COOP_MIDDAY_RECOVERY_REQUIREMENTS.md: independent screens/squads, shared Onion stock/separate allowance, solo/shared campaign saves, mostly health-led difficulty, both-ready cutscenes/travel, private internet invitations/live reconnect, exact durable mid-day recovery for calls/lock/host force-close, seamless PC/iPhone continuation, P2 later. User accepts bounded compromises; avoid endless optional expansion.
+- Unverified: new pair phone installation/runtime behavior, enemy audio (empty practice), full story, host-force-close recovery. Do not label any of those completed from compilation. Exact next action: wait user94install/test result and gather role-specific evidence if needed. No new phone connection request now.
+
+**END PROGRESS REPORT**
+
+---
+
 ## Final corrective submission — 2026-10-30 20:38 EDT
 
 - Local/remote correction source `123d8e27db819889cac59f6863a528dd4d16d53f`, fixture/workflow/documents only. Game code unchanged from PC9 source65595c53b1582c3316c92afefb19d7e37cd56c8b. Expected/shared identity `8ac920c968812b41679d6a3ec3e4875ab818189691367b1830e4124454f2d12c` independently recomputed and verified inside PC9 package.
