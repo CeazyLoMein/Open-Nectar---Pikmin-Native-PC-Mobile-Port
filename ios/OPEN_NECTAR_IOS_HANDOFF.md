@@ -1,3 +1,57 @@
+## PC9 success; iPhone93 fixture correction
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-30 20:36 EDT
+
+**Overall project status:** PC9 SUCCESS; iPhone93 FAILED only its captain test fixture and refused packaging. The actual iPhone game compiled successfully. Corrected test-only integration gap locally; replacement iPhone-only build next. Installed PC8/phone92 unchanged, user-confirmed smooth with own SFX. All new gameplay fixes remain hardware UNVERIFIED.
+
+### Pikmin 1
+
+- Current objective: package the already-compiled guest whistle/free-aim/independent-speed/owned-recall/host-Pikmin-speed batch with all mandatory checks passing.
+- Investigation: authenticated full logs and jobs from iPhone93/run41114720367; failed step30, Require actual practice startup, view and authority checks before packaging. compile-captain and ios-captain failed because controlled captain fixture lacked NaviState.h/new visual members. run-captain blocked. Other practice fixtures and scene passed. Native game log contains BUILD SUCCEEDED. Packaging correctly refused the failed fixture; do not install partial failed artifact.
+- Root cause: production captain_visuals gained NaviState/NaviMgr/UtEffect dependencies and whistle presentation methods, but older whole-translation-unit fixture wasn't expanded. Previous34 extracted feedback checks and real engine syntax checks covered different dependencies and didn't catch this stale fixture.
+- Files changed this correction: tests/pikmin1_practice_captain_test.py now supplies controlled state/property/effect headers, new Navi fields/declarations and guest world symbols; compiles ENTIRE actual pc_coop_captain_visuals.cpp and adds checks for wire field application, capture/stop/radius, independent original effects, no repeated allocation, release and solo preservation. .github/workflows/windows-coop-experimental.yml now adds this same full captain fixture to future Windows preflight. No game/codec/asset/config/save modifications this correction.
+- Tests/results: whole captain fixture MSVC/W4/WX compile+execute CAPTAIN VISUAL PASS, strict Clang syntax/analyzer PASS for actual adapter and fixture. Six practice runner/receipt gate tests PASS. Required21-check schema and packaging gate retained. Independent identity generation still8ac920c968812b41679d6a3ec3e4875ab818189691367b1830e4124454f2d12c,2922 tracked code/configuration files; test/workflow paths are excluded, proving game bytes match PC9. Prior batch31 CTest/34 feedback/236 smoothing/283 speed/110 command/20 PC-recall/actual capture checks retained, not rerun unnecessarily for test-only change.
+- Confirmed working: user PC8/phone92 smooth movement and own whistle/Pikmin/footstep sounds; other captain sound kept local by preference. Enemy sound UNTESTED because practice contains no enemies. New PC9 source/game compilation passed; not installed or runtime tested yet.
+- Remaining issues: replacement iPhone native gate/package completion and paired device tests for ring/aim/speed100 reset/owned recall/shared host Pikmin speed. Host force-close/durable mid-day recovery/live rejoin/campaign still unfinished.
+
+### Pikmin 2
+
+- Current objective: preserve accepted working app/audio; resume campaign/co-op later.
+- Investigation/root cause/files changed: none.
+- Tests/results: no new P2 build or runtime validation. Existing install untouched.
+- Remaining issues: broader story coverage and eventual co-op after P1.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port ; branch ios-experimental.
+- Starting local/remote664e6fc34ab187765ea09d05d526383c35eb91b6; clean, fetched, synchronized before changes. Game source for PC9 and failed phone93 is65595c53b1582c3316c92afefb19d7e37cd56c8b.
+- PC9 run41114720301 SUCCESS; iPhone93 run41114720367 FAILURE. Exact logs in work/run-41114720367-current.json, jobs.json, logs.zip, logs/0_build (pikmin1).txt; all unique failures grouped above. Scene success. No new IPA produced/installed.
+- Commits created/pushed/latest commit: correction pending commit; final submission/commit/run checkpoint in Exact Resume State.json. Only two implementation/test files above plus journal. No game code changes; PC9 can be reused with replacement iPhone IF final packaged identities match. Different metadata source commits will be expected; compare compiled code identity, not only commit strings.
+- Uncommitted: fixture/workflow/journal correction until final checkpoint. No unrelated work.
+- Artifacts: PC9 artifact metadata/package will be verified before staging. Failed phone93 artifact must not be used. Installed PC8 and phone92 remain accepted rollback baseline; PC7 backup preserved at Before PC Build 8 -20261030-110203. Full staging locations/hashes in earlier handoff below and Exact Resume State.json.
+
+### Next steps
+
+- P1: commit/push fixture correction with [ios-build] [ios-p1-update], WITHOUT [pc-coop-build]. Record replacement iPhone run ID once, then stop polling. Windows workflow may show skipped jobs; do not mistake this for a new Windows game build.
+- GitHub/build: on successful replacement, retrieve logs/21 practice +13 room/real UIKit+scene receipts, verify unsigned ARM64 IPA/resources, exact expected code identity and existing PC9 package. Verify git diff from65595c53 contains only unhashed tests/workflows/docs. Stage matching pair after PC backup and closed-process check; do not close running games automatically.
+- User involvement: none now, no phone/live session required. Report replacement iPhone result when ready. Later same-app update and test both rings/free aim/independent speed100 reset/owned Recall All/host Pikmin speed/pause. No enemy sound test in empty practice.
+- P2: leave working app alone.
+
+### ChatGPT continuation notes
+
+- This correction is a stale TEST fixture, not a newly diagnosed game rendering crash. Native iPhone build93 actually compiled; final packaging blocked by its mandatory gate. Keep all gates enabled. No source reversion or smaller feature rollbacks needed.
+- Relevant paths: tests/pikmin1_practice_captain_test.py; original actual adapter games/pikmin1/pc_port/netplay/pc_coop_captain_visuals.cpp; tests/run_pikmin1_practice_checks.py (unchanged,21 required checks); Windows workflow adds whole captain preflight. Local helpers work/repair_captain_fixture.py, check_captain_fixture_repair.cmd, check_captain_fixture_clang.cmd. Evidence work/captain-fixture-repair.log, captain-fixture-repair-clang.log, captain-fixture-runner-tests.log, captain-fixture-identity.h.
+- Installed PC8/phone92 smooth/audio baseline, remaining user-reported issues and full previously implemented pending batch are preserved in the preceding complete handoff below. Current code uses input21bytes/captain schema3/63bytes; older installed pair cannot connect to new pair. PC9/replacement iPhone can match because this fix doesn't alter hashed game sources.
+- Full vision remains queued: independent cameras/squads/settings, shared Onion stock/separate allowance, solo/shared campaign saves, health-led difficulty, synchronized cutscenes/travel, internet invitations/rejoin, durable exact mid-day recovery for lock/calls/host close, seamless PC/iPhone continuation and P2 later. Don't expand indefinitely; resolve confirmed test/runtime gaps first.
+- Unverified: actual new pair rings/free aim/speed reset/owned Recall All/Pikmin speed, enemy audio, full story, host-close recovery. No new game launch/input/close, settings/save/phone install or asset writes.
+- Exact next action: final checkpoint gives corrective source and replacement run. Wait for build result, verify genuine packages with same8ac920 identity and different expected source commits, then stage/test. No idle CI polling.
+
+**END PROGRESS REPORT**
+
+---
+
 ## Submitted PC9/iPhone93 guest feedback batch
 
 **Submitted checkpoint (2026-10-30 15:23 EDT):** Game source `65595c53b1582c3316c92afefb19d7e37cd56c8b` committed/pushed to ios-experimental. PC9 run41114720301 and iPhone93 run41114720367 IN_PROGRESS; no new artifacts or hardware claims. Expected matching identity `8ac920c968812b41679d6a3ec3e4875ab818189691367b1830e4124454f2d12c` (VERSION_GPIE01_01). Installed PC8/phone92 remains unchanged and user-confirmed smooth with own SFX. Phone/log task finished; may close/disconnect. Documentation-only checkpoint follows, no extra build.
