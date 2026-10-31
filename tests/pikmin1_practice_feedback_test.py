@@ -16,6 +16,8 @@ runtime=(root/'games/pikmin1/pc_port/netplay/pc_coop_practice_runtime.cpp').read
 parts=[body(visual,s) for s in ['void Navi::pcCoopWhistleCapture(', 'bool Navi::pcCoopWhistleRadius(', 'void Navi::pcCoopWhistleEffects(']]
 parts += [body(nav,s) for s in ['void Navi::renderCircle(', 'static bool pcTouchAim(', 'void Navi::pcUpdateRecallAll(']]
 parts += [body(runtime,s) for s in ['bool pc_coop_practice_cursor_delta(', 'float pc_coop_practice_remote_speed(']]
+fallback=body(nav,'} else if (localCursor && pc_window_get_control_mode() != PC_CONTROL_CLASSIC)').replace('} else if','if',1)
+parts.append('Vector3f actualVirtualFallback(bool localCursor,bool mouseIsMine) {(void)mouseIsMine;Vector3f stickVec2{77,0,88};'+fallback+';return stickVec2;}')
 parts += [body(settings,s) for s in ['int pc_settings_get_recall_all(', 'float pc_settings_get_piki_speed_scale(', 'const char* disabledReason(']]
 particles=(root/'games/pikmin1/src/plugPikiYamashita/particleManager.cpp').read_text(encoding='utf-8')
 parts += [body(particles,'void zen::particleManager::updateCoopWhistles('),body(runtime,'bool pc_coop_practice_guest_effects_running(')]
@@ -33,7 +35,11 @@ assert 'f.flags|=PcCoopPracticeInput::AimHeld' in runtime
 assert 'pc_window_get_mouse_cursor_delta_x(),dy=pc_window_get_mouse_cursor_delta_y()' in runtime
 assert 'f.naviSpeedPct=' in runtime and 'pc_touch_take_recall_request() || recall' in runtime
 assert 'pc_coop_practice_remote_speed(mNaviID)' in nav
-assert 'pc_coop_practice_control_yaw(mNaviID,&aimSin,&aimCos)' in nav
+assert 'const auto localDelta=pc_coop_cursor::project(mouseX,mouseY' in nav
+assert 'const auto motion=pc_coop_cursor::project(dx,dy' in runtime
+assert '} else if (localCursor && pc_window_get_control_mode() != PC_CONTROL_CLASSIC)' in nav
+assert '} else if (localCursor && pc_gyro_take_recenter_cursor())' in nav
+assert 'if (localCursor && pc_settings_get_free_camera()' in nav
 assert '!remoteCursor) pc_window_clear_mouse_cursor_delta()' in nav
 assert 'pc_practice_may_whistle(pc_coop_practice_active(),mNaviID,piki->mPlayerId)' in nav
 code=r'''
@@ -44,6 +50,7 @@ code=r'''
 #include "nectar_net/replication.h"
 #include "nectar_net/input.h"
 #include "netplay/pc_coop_practice_input.h"
+#include "netplay/pc_coop_cursor_motion.h"
 #include "netplay/pc_practice_squad_policy.h"
 #define PIKI_PC_PORT 1
 #define PIKI_PC_TOUCH 1
@@ -51,6 +58,11 @@ code=r'''
 using f32=float;
 constexpr float TAU=6.28318530718f;
 struct Vector3f{float x=0,y=0,z=0;Vector3f()=default;Vector3f(float a,float b,float c):x(a),y(b),z(c){}Vector3f operator+(const Vector3f&b)const{return {x+b.x,y+b.y,z+b.z};}};
+using NVector3f=Vector3f;
+int controlMode=1,virtualReads=0;
+int pc_window_get_control_mode(){return controlMode;}
+float pc_window_get_virtual_cursor_x(){++virtualReads;return 100;}
+float pc_window_get_virtual_cursor_y(){++virtualReads;return -90;}
 struct Graphics{};
 struct Map{float getMinY(float,float,bool){return 5;}}map;Map*mapMgr=&map;
 bool guest=true,validGuest=true,host=false,heldAim=false,keyboardRecall=false,touchRecall=false,enabled=true;
@@ -153,7 +165,7 @@ int main(){
  heldAim=true;host=false;check(!pcTouchAim(&a)&&pcTouchAim(&b),"guest touch aim belongs to local captain one, not hardcoded zero");
  host=true;localPlayer=0;heldAim=false;remote.flags=16|32;remote.cursorDx=24;remote.cursorDy=-12;
  check(pcTouchAim(&b)&&!pcTouchAim(&a),"desktop host uses authenticated guest aim-held state");
- float x=0,y=0;check(pc_coop_practice_cursor_delta(1,&x,&y)&&near(x,6)&&near(y,-3),"actual host consumer decodes both quarter-pixel cursor axes");
+ float x=0,y=0;check(pc_coop_practice_cursor_delta(1,&x,&y)&&near(x,1.5f)&&near(y,-.75f),"actual host consumer decodes both world-space cursor axes");
  check(!pc_coop_practice_cursor_delta(0,&x,&y),"remote cursor never replaces host controls");
  remote.flags=0;pc_coop_practice_cursor_delta(1,&x,&y);check(!pcTouchAim(&b)&&x==0&&y==0,"release clears aim without stale displacement");
  remote.naviSpeedPct=250;check(near(pc_coop_practice_remote_speed(1),2.5f),"guest captain chooses independent speed");
@@ -176,6 +188,11 @@ int main(){
  check(pm.recycled==1&&near(allowed.step,1),"native whitelist path recycles ended effects and bounds interruption time step");
  role=net::CoopRole::Host;pm.updateCoopWhistles();check(allowed.calls==1,"whistle presentation path never double-updates host effects");
  role=net::CoopRole::Guest;away=true;pm.updateCoopWhistles();check(allowed.calls==1,"background interruption freezes guest effect clock");
+ controlMode=1;virtualReads=0;const bool remoteMouse=true;
+ const bool localMouse=pc_coop_cursor::localMouse(false,remoteMouse,1,0);
+ auto fallback=actualVirtualFallback(localMouse,remoteMouse||localMouse);
+ check(fallback.x==77&&fallback.z==88&&virtualReads==0,"actual Escape/absolute cursor fallback never reads host mouse for guest captain");
+ fallback=actualVirtualFallback(true,true);check(near(fallback.x,100.0f/127)&&virtualReads==2,"actual local PC absolute fallback retains existing solo behavior");
  std::printf("%s %d actual practice feedback checks\n",failures?"FAIL":"PASS",checks);return failures?1:0;
 }
 '''

@@ -247,6 +247,9 @@ jobs:
           set -euo pipefail
           c++ -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -Ilibs/nectar_net/include tests/pikmin1_coop_smoothing_test.cpp -o "$RUNNER_TEMP/p1-smoothing"
           "$RUNNER_TEMP/p1-smoothing"
+          c++ -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -Ilibs/nectar_net/include tests/pikmin1_coop_cursor_test.cpp -o "$RUNNER_TEMP/p1-cursor"
+          "$RUNNER_TEMP/p1-cursor"
+          xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -Ilibs/nectar_net/include -fsyntax-only tests/pikmin1_coop_cursor_test.cpp
           for name in desktop_focus missing_carry_goal native_audio_entry practice_feedback; do
             python3 "tests/pikmin1_${name}_test.py" "$RUNNER_TEMP/p1-${name}.cpp"
             c++ -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port -Ilibs/nectar_net/include "$RUNNER_TEMP/p1-${name}.cpp" -o "$RUNNER_TEMP/p1-${name}"

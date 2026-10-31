@@ -1,5 +1,6 @@
 #pragma once
 #include "nectar_net/input.h"
+#include "pc_coop_cursor_motion.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -99,6 +100,10 @@ public:
             frames.push_back(value);
         }
         return frames;
+    }
+    pc_coop_cursor::Motion pendingCursorWorld(std::uint64_t now) const {
+        if (!haveDelta || now<deltaAt || now-deltaAt>TransientLifetimeMs) return {};
+        return pc_coop_cursor::decode(static_cast<std::int16_t>(deltaX),static_cast<std::int16_t>(deltaY));
     }
     void published(const std::vector<nectar::net::NetInputFrame>& frames, std::uint64_t now) {
         if (frames.empty()) return;

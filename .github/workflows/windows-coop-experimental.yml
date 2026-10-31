@@ -28,6 +28,10 @@ jobs:
           if errorlevel 1 exit /b 1
           p1-smoothing.exe
           if errorlevel 1 exit /b 1
+          cl /nologo /std:c++17 /EHsc /W4 /WX /Igames/pikmin1/pc_port /Ilibs/nectar_net/include tests/pikmin1_coop_cursor_test.cpp /Fe:p1-cursor.exe
+          if errorlevel 1 exit /b 1
+          p1-cursor.exe
+          if errorlevel 1 exit /b 1
           python tests/pikmin1_desktop_focus_test.py "%RUNNER_TEMP%/p1-focus.cpp"
           if errorlevel 1 exit /b 1
           cl /nologo /std:c++17 /EHsc /W4 /WX "%RUNNER_TEMP%/p1-focus.cpp" /Fe:p1-focus.exe

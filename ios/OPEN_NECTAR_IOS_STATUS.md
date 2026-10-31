@@ -1,3 +1,56 @@
+## Guest aim direction and host Escape input leak
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-10-30 22:02 EDT
+
+**Overall project status:** PC9/iPhone94 runtime: user confirms Recall All works, accepts host-controlled Pikmin walking speed; reports guest free aim backwards/poor feel and PC Escape lets host mouse move guest cursor until throwing. Corrected cursor projection/ownership plus bounded local marker preview implemented and locally verified. Replacement paired builds pending submission. No changes to installed games, settings, saves, assets or phones this turn.
+
+### Pikmin 1
+
+- Current objective: match working solo free aim and prevent PC mouse/gyro/camera state affecting guest captain; improve aim-marker response without guest gameplay simulation.
+- Investigation: private PC recording Base Profile2026.10.30-21.46.11.01.mp4,12.28sec, sampled8 overview frames viewed; original recording unchanged, no full audio analysis claimed. Read/copied saved PC report p1-coop-practice-1793410698.txt to work/practice-pc9-phone94/pc-session.txt. It stops at21:41 with RTT4ms,29 neutral/22920 ticks, audio_sent518/dropped0/backend128; report is bounded, so these are saved samples rather than proof of current live state. Process scan found no game at read time; no process was closed or controlled. User told may close/disconnect.
+- Root causes: remoteCursor identified guest captain even on ticks without a remote drag; mouseIsMine included that captain, then absolute/virtual mouse fallback read HOST PC cursor whenever PC mode was non-classic. Escape releases relative mode and exposes that fallback. Remote path also eligible to consume host gyro/recenter/camera side effects. Aim projected on host using reconstructed one-angle camera basis, which could differ in handedness from actual camera axes used by working solo. Guest marker waited for network/20Hz snapshots/75ms presentation.
+- Files/changes: original navi.cpp explicitly separates local keyboard owner from remote cursor. Host virtual mouse fallback, gyro, cursor-facing magnitude and automatic camera requests require localCursor. New engine-independent pc_coop_cursor_motion.h provides the SAME normalized actual-camera-axis projection and .5 sensitivity for solo and online sender. Remote wire fields now carry world X/Z at1/16world-unit precision, not raw screen delta; no host camera guess. Existing input21bytes/captain schema3 unchanged, but changed source identity requires both peers update. pc_coop_practice_input.h exposes exact unsent accumulator. New pc_coop_cursor_preview.h predicts only local guest aim marker from latest host truth plus unsent/unacknowledged drag. Host actor ticks acknowledge pending commands; duplicate ticks ignored, queue capped32, motion expires300ms, release settles150ms, reach bounded, pause/revision/leave reset. Runtime applies preview only to local captain cursor. Throws/whistles/actors/health/ownership remain authoritative. Body/camera/squad timing and75ms actor smoothing unchanged. Normal solo build header has no network dependency.
+- Tests/results:32/32 local CTest PASS including actual encrypted GNS/room/companion and existing120 timing/jitter combinations. New510 cursor checks cover24 camera angles/two handedness choices, solo/wire equivalence, axis direction/sensitivity/precision, ownership, immediate unsent marker, acknowledgement/no double apply, expiry/release/pause/radius/invalid input.36 extracted actual feedback checks PASS MSVC/W4/WX and strict Clang, including actual Navi virtual fallback with poisoned PC cursor. Restoring old fallback in isolated generated test causes two EXPECTED assertion failures, proving it detects the bug.283 walking-speed/config,110 command/recall/cursor/edge and20 PC Recall All checks PASS. Actual Navi/runtime/captain translation units syntax-check PASS with native backend flags and real engine headers (legacy warnings only). Standalone solo-only cursor header compiles/runs without network headers. Both workflows require new cursor preflight and iOS syntax. Native CI builds/device results for this correction not yet available.
+- Confirmed working: user reports Recall All expected behavior and accepted smooth movement/own audio baseline. Host controls Pikmin walking speed for both; individual captain speed retained. No claim that independent100-reset or both normal rings fully passed this user test (not explicitly reported). Other captain voices/whistles stay local by preference; enemy audio still untested because practice empty.
+- Remaining issues: device test new free aim/Escape isolation/marker response and reverse-host roles. Host-close recovery/live rejoin/durable mid-day autosave/campaign unfinished. Ordinary save/save-solo-test separation and existing unlocked solo test preset preserved. No full-story proof.
+
+### Pikmin 2
+
+- Current objective: preserve working accepted app/audio; later campaign/co-op.
+- Investigation/root cause/files changed: none in P2. P1-specific cursor source only; shared native test registration updated.
+- Tests/results: no new P2 build/runtime test, existing app untouched.
+- Remaining issues: full campaign coverage and eventual co-op after P1.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port ; branch ios-experimental.
+- Starting local/remote475a50170f22be29cb8ec5fbf7e85953be38e65c; clean/fetched/synchronized. Current installed PC9 source65595c53b1582c3316c92afefb19d7e37cd56c8b, phone94 correction123d8e27db819889cac59f6863a528dd4d16d53f, compiled identity8ac920c968812b41679d6a3ec3e4875ab818189691367b1830e4124454f2d12c.
+- Latest game commit / commits / pushes: cursor correction pending commit; final exact source/run IDs will be recorded in Exact Resume State.json. Only scoped code/tests/workflows/journals; no unrelated work.
+- Uncommitted: cursor ownership/projection/preview, tests and journal until final checkpoint. If interrupted, preserve this work; no hardware validation claim.
+- Existing runs: PC9/run41114720301 SUCCESS, artifact13005907278; phone94/run41151124155 SUCCESS, artifact13024470150, scene13023657137. Earlier phone93 fixture failure superseded, Windows10 intentionally skipped. No replacement artifacts yet.
+- Existing PC install unchanged: Documents/Open Nectar/4 - Windows Version/Pikmin 1 - Full PC Co-op - Experimental, same PLAY PIKMIN 1.cmd. PC8 rollback Before PC Build 9 -20261030-213309 (actual folder Before PC Build 9 - 20261030-213309);3199 protected files preserved at last update. Phone94 IPA still in usual install folder, user testing current features; no USB installed-version query performed now.
+
+### Next steps
+
+- P1/build: commit/push one coordinated PC+iPhone cursor batch, record exact run IDs once and stop polling. On pass, verify matching artifacts, native27 network tests/36 feedback/510 cursor/full captain/21 practice/13 room/real UIKit/scene gates, backup/stage pair. No installation before CI verification or game closure.
+- User test later: drag existing phone aim right/left/up/down at several camera angles, stationary and walking; compare solo feel. Leave phone cursor idle, press Escape/move PC mouse with/without throw/whistle, ensure guest cursor never follows PC. Check both cursors independently and pause/resume, optionally reverse host. Recall All already passed; retain quick regression only. No USB/live session needed now.
+- P2: leave working game alone.
+- Anything requiring user involvement: none before builds complete. User already told can close/disconnect.
+
+### ChatGPT continuation notes
+
+- Important files: games/pikmin1/src/plugPikiKando/navi.cpp; pc_port/netplay/pc_coop_cursor_motion.h, pc_coop_cursor_preview.h, pc_coop_practice_input.h, pc_coop_practice_runtime.cpp; tests/pikmin1_coop_cursor_test.cpp and expanded actual practice feedback fixture; libs/nectar_net/CMakeLists.txt and both experimental workflows. Whole captain fixture from94 remains intact; don't omit it.
+- Source evidence: work/practice-pc9-phone94/pc-session.txt and pc-overview.jpg; original MP4 private in Videos. Verification logs cursor-net-ctest.log, cursor-feedback-checks.log, cursor-feedback-clang.log, cursor-math-clang.log, cursor-actual-engine.log; negative control cursor-old-fallback-negative.log (expected failures), cursor-negative-build.log, standalone cursor-solo-header.cpp. No proprietary assets or recording committed.
+- Unverified fixes: direction/feel/Escape and marker preview on actual devices, pending native packages. Prediction affects only display, not host game actions; this is not rollback gameplay or mid-day save implementation. Existing global audio behavior unchanged.
+- Preserve working framebuffer/native pixel scaling/touch/keyboard/120FPS options, accepted graphics/GPI texture pack, removed HD characters/original low-detail Louie, PC content and saves. No new downloads/mods or graphics/FPS changes. All shared-campaign/Onion/separate allowance/difficulty/cutscene/travel/internet invite/rejoin/exact mid-day host-loss recovery/PC-iPhone continuation/P2 objectives remain queued. User wants finite progress; stay on confirmed bugs.
+- Exact next action: final checkpoint provides new source/build IDs. Wait build feedback; verify actual artifacts/gates and stage both peers, then obtain hardware cursor evidence. No idle polling or automated game input.
+
+**END PROGRESS REPORT**
+
+---
+
 ## Verified PC9/iPhone94; paired test ready
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT

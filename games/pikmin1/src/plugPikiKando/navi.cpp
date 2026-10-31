@@ -1,5 +1,8 @@
 #include "netplay/pc_practice_squad_policy.h"
 #include "netplay/pc_coop_practice_runtime.h"
+#if defined(PIKI_PC_PORT)
+#include "netplay/pc_coop_cursor_motion.h"
+#endif
 #include <chrono>
 #include <cmath>
 #include "Navi.h"
@@ -3537,15 +3540,16 @@ void Navi::makeVelocity(bool isSunset)
 	const bool detMode     = pc_netplay_deterministic();
     float remoteX=0,remoteY=0;
     const bool remoteCursor=pc_coop_practice_cursor_delta(mNaviID,&remoteX,&remoteY);
-    const bool mouseIsMine = remoteCursor || (!detMode && mNaviID == pc_window_get_keyboard_owner());
-    const float cursorDeltaX=remoteCursor?remoteX:pc_window_get_mouse_cursor_delta_x();
-    const float cursorDeltaY=remoteCursor?remoteY:pc_window_get_mouse_cursor_delta_y();
+    const bool localCursor=pc_coop_cursor::localMouse(detMode,remoteCursor,mNaviID,pc_window_get_keyboard_owner());
+    const bool mouseIsMine = remoteCursor || localCursor;
+    const float cursorDeltaX=remoteCursor?remoteX:(localCursor?pc_window_get_mouse_cursor_delta_x():0.0f);
+    const float cursorDeltaY=remoteCursor?remoteY:(localCursor?pc_window_get_mouse_cursor_delta_y():0.0f);
 	// "Gyro Recenter": el cursor vuelve delante del capitán, en la dirección
 	// de la cámara, para corregir la deriva acumulada del giroscopio.
 	if (detMode) {
 		pc_gyro_take_recenter_cursor();
 		pc_window_clear_mouse_cursor_delta();
-	} else if (mouseIsMine && pc_gyro_take_recenter_cursor()) {
+	} else if (localCursor && pc_gyro_take_recenter_cursor()) {
 		Vector3f fwd(-ctrlCam->mLookAtMtx.mMtx[2][0], 0.0f, -ctrlCam->mLookAtMtx.mMtx[2][2]);
 		const f32 len = speedy_sqrtf(fwd.x * fwd.x + fwd.z * fwd.z);
 		if (len > 0.0001f) {
@@ -3557,11 +3561,10 @@ void Navi::makeVelocity(bool isSunset)
 		pc_window_clear_mouse_cursor_delta();
 	}
 	if (mouseIsMine
-	    && (pcTouchAim(this) || (!remoteCursor && pc_window_get_control_mode() == PC_CONTROL_MOUSE_CURSOR)
+	    && (pcTouchAim(this) || (localCursor && pc_window_get_control_mode() == PC_CONTROL_MOUSE_CURSOR)
 	        || cursorDeltaX != 0.0f || cursorDeltaY != 0.0f)) {
 		// Direct mouse delta mode: use raw deltas, no normalization or frame time scaling
 		// SDL already provides distance since last poll
-		static const float kMouseCursorWorldScale = 0.5f; // Convert SDL counts to world units
 
 		const float mouseX = cursorDeltaX;
 		const float mouseY = cursorDeltaY;
@@ -3574,17 +3577,18 @@ void Navi::makeVelocity(bool isSunset)
 		// SDL Y grows downwards, whereas the gameplay cursor's positive screen
 		// vertical direction is camera-forward on the ground plane.
 		Vector3f screenDown(-ctrlCam->mViewZAxis.x, 0.0f, -ctrlCam->mViewZAxis.z);
-        float aimSin=0,aimCos=1;
-        if (remoteCursor && pc_coop_practice_control_yaw(mNaviID,&aimSin,&aimCos)) {
-            screenRight.set(aimCos,0,aimSin); screenDown.set(aimSin,0,-aimCos);
-        }
 		if (screenRight.length() > 0.0001f) {
 			screenRight.normalise();
 		}
 		if (screenDown.length() > 0.0001f) {
 			screenDown.normalise();
 		}
-		Vector3f mouseDelta = (screenRight * mouseX + screenDown * mouseY) * kMouseCursorWorldScale;
+        // The sender already projected remote x/z through its actual camera.
+        // Solo and online use the SAME projection, never a guessed yaw basis.
+        const auto localDelta=pc_coop_cursor::project(mouseX,mouseY,
+            {ctrlCam->mViewXAxis.x,0,ctrlCam->mViewXAxis.z},
+            {ctrlCam->mViewZAxis.x,0,ctrlCam->mViewZAxis.z});
+        Vector3f mouseDelta=remoteCursor?Vector3f(mouseX,0,mouseY):Vector3f(localDelta.x,0,localDelta.z);
 
 		// Direct displacement: targetPos = currentPos + delta
 		Vector3f targetPos = mCursorPosition + mouseDelta;
@@ -3598,7 +3602,7 @@ void Navi::makeVelocity(bool isSunset)
 			// un lado de la pantalla gira la cámara hacia ese lado (y el cursor
 			// gira con ella). Mismo sentido y acumulador que mantener Shift.
 			// Con objetivo fijado lo hace el cursor libre (más abajo).
-			if (pc_settings_get_free_camera() && !pc_first_person_active_for(mNaviID) && !mPcLockTarget && !pcTouchAim(this)) {
+			if (localCursor && pc_settings_get_free_camera() && !pc_first_person_active_for(mNaviID) && !mPcLockTarget && !pcTouchAim(this)) {
 				const Vector3f excess = wanted - targetPos;
 				const f32 lateral     = excess.x * screenRight.x + excess.z * screenRight.z;
 				if (lateral != 0.0f) {
@@ -3612,7 +3616,7 @@ void Navi::makeVelocity(bool isSunset)
 		// Lock-On + Free Camera: el cursor visible está clavado en el objetivo,
 		// pero el libre (mPcAimOffset) sigue al ratón. Empujarlo contra su
 		// límite gira la cámara igual que sin objetivo, y el bloqueo se queda.
-		if (mPcLockTarget && pc_settings_get_free_camera() && !pc_first_person_active_for(mNaviID) && !pcTouchAim(this)) {
+		if (localCursor && mPcLockTarget && pc_settings_get_free_camera() && !pc_first_person_active_for(mNaviID) && !pcTouchAim(this)) {
 			const Vector3f wanted = mPcAimOffset + mouseDelta;
 			const f32 maxRadius   = NAVI_PARM(mCursorMaxRadius);
 			const f32 len         = wanted.length();
@@ -3669,7 +3673,7 @@ void Navi::makeVelocity(bool isSunset)
 		// this hides many developer sins i am sure.
 		STACK_PAD_VAR(5);
 		return;
-	} else if (mouseIsMine && pc_window_get_control_mode() != PC_CONTROL_CLASSIC) {
+	} else if (localCursor && pc_window_get_control_mode() != PC_CONTROL_CLASSIC) {
 		// Fallback for other non-classic modes (if any): use virtual cursor
 		NVector3f cursorStickVec(
 			pc_window_get_virtual_cursor_x() / 127.0f,
@@ -3710,7 +3714,7 @@ void Navi::makeVelocity(bool isSunset)
 	// For cursor-facing logic, use virtual cursor in mouse modes
 	#ifdef PIKI_PC_PORT
 	f32 cursorStickMag = moveStickMag;
-	if (!detMode && mNaviID == pc_window_get_keyboard_owner() && pc_window_get_control_mode() != PC_CONTROL_CLASSIC) {
+	if (localCursor && pc_window_get_control_mode() != PC_CONTROL_CLASSIC) {
 		cursorStickMag = sqrtf(
 			(pc_window_get_virtual_cursor_x() / 127.0f) * (pc_window_get_virtual_cursor_x() / 127.0f) +
 			(pc_window_get_virtual_cursor_y() / 127.0f) * (pc_window_get_virtual_cursor_y() / 127.0f)

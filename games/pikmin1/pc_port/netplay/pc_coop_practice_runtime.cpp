@@ -9,6 +9,7 @@
 #include "netplay/pc_coop_practice_map.h"
 #include "netplay/pc_coop_practice_start.h"
 #include "netplay/pc_coop_practice_input.h"
+#include "netplay/pc_coop_cursor_preview.h"
 #include "netplay/pc_coop_practice_status.h"
 #include "netplay/pc_coop_world.h"
 #include "netplay/pc_coop_visual_smoothing.h"
@@ -50,6 +51,7 @@ std::unique_ptr<net::PracticeBootstrap> loading;
 std::thread::id thread;
 net::CoopRole role=net::CoopRole::Guest;
 PcCoopPracticeInput inputs;
+PcCoopCursorPreview cursorPreview;
 PcCoopVisualSmoothing smoothing;
 net::ActorFrame presented;
 net::NetInputFrame remote;
@@ -187,7 +189,7 @@ void pc_coop_practice_tick_begin() {
     s->setBlocked(net::CoopBlock::Settings,pc_settings_menu_is_open()!=0);
     s->setBlocked(net::CoopBlock::Background,away);
     if (s->phase()==net::CoopPhase::WaitingForPartner) { hold(false);showPanel();return; }
-    if (s->view().revision!=revision) { inputs.reset();smoothing.reset();revision=s->view().revision; }
+    if (s->view().revision!=revision) { inputs.reset();cursorPreview.reset();smoothing.reset();revision=s->view().revision; }
     if (role==net::CoopRole::Guest && s->actors().frame>applied) {
         const auto& actors=s->actors();
         if (!pc_coop_world_apply_guest_visuals(loading->sessionId(),loading->scene().epoch,actors)) {
@@ -198,8 +200,20 @@ void pc_coop_practice_tick_begin() {
     }
     if (role==net::CoopRole::Guest && applied) {
         if (s->phase()!=net::CoopPhase::Running) { smoothing.reset();smoothing.push(s->actors(),now); }
-        if (smoothing.sample(now,presented) && !pc_coop_world_present_guest(presented)) {
-            fail("The practice view changed unexpectedly. Close P1 and reopen.");return;
+        if (smoothing.sample(now,presented)) {
+            if (s->phase()!=net::CoopPhase::Running) cursorPreview.reset();
+            else if (inputs.frameAge(now)<=300) {
+                Navi* local=naviMgr?naviMgr->getNavi(1):nullptr;
+                for(auto& entry:presented.captains) if(local && entry.second.player==1) {
+                    const auto latest=s->actors().captains.find(entry.first);
+                    net::Vec3 cursor;
+                    if(latest!=s->actors().captains.end() && cursorPreview.sample(latest->second,s->actors().tick,
+                        inputs.pendingCursorWorld(now),C_NAVI_PARM(local,mCursorMaxRadius),now,cursor)) entry.second.cursor=cursor;
+                }
+            }
+            if (!pc_coop_world_present_guest(presented)) {
+                fail("The practice view changed unexpectedly. Close P1 and reopen.");return;
+            }
         }
     }
     // A running session dismisses the one-shot panel latch so that a later
@@ -244,7 +258,7 @@ void pc_coop_practice_tick_end() {
     if (role==net::CoopRole::Guest && s->canIssueCommands()) {
         net::TransportStats stats; const int rtt=owner->stats(stats) ? stats.rttMs : 0;
         const auto frames=inputs.bundle(now,rtt);
-        if (!frames.empty() && s->publishInput(frames,now)) { ++diagnosticSent;inputs.published(frames,now); }
+        if (!frames.empty() && s->publishInput(frames,now)) { ++diagnosticSent;cursorPreview.published(frames.front(),now);inputs.published(frames,now); }
     }
 }
 void pc_coop_practice_loaded(GameCoreSection& core) {
@@ -320,10 +334,11 @@ void pc_coop_practice_filter_pad(PADStatus* pads) {
         if (pc_touch_aim_active()) f.flags|=PcCoopPracticeInput::AimHeld;
 #endif
         const float dx=pc_window_get_mouse_cursor_delta_x(),dy=pc_window_get_mouse_cursor_delta_y();
-        if (dx!=0 || dy!=0) {
+        if (c && (dx!=0 || dy!=0)) {
+            const auto motion=pc_coop_cursor::project(dx,dy,{c->mViewXAxis.x,0,c->mViewXAxis.z},
+                {c->mViewZAxis.x,0,c->mViewZAxis.z});
             f.flags|=PcCoopPracticeInput::CursorDelta;
-            f.cursorDx=static_cast<std::int16_t>(std::clamp(dx*4.0f,-32767.0f,32767.0f));
-            f.cursorDy=static_cast<std::int16_t>(std::clamp(dy*4.0f,-32767.0f,32767.0f));
+            f.cursorDx=pc_coop_cursor::encode(motion.x);f.cursorDy=pc_coop_cursor::encode(motion.z);
         }
         pc_window_clear_mouse_cursor_delta();
         bool recall=pc_window_take_recall_press();
@@ -331,7 +346,11 @@ void pc_coop_practice_filter_pad(PADStatus* pads) {
         recall=pc_touch_take_recall_request() || recall;
 #endif
         if (recall && pc_settings_get_recall_all()) f.flags|=64;
-        if (session() && session()->canIssueCommands()) { ++diagnosticSamples;inputs.sample(f,nowMs()); }
+        if (session() && session()->canIssueCommands()) {
+            const auto sampleNow=nowMs();++diagnosticSamples;inputs.sample(f,sampleNow);
+            cursorPreview.activity((f.flags&PcCoopPracticeInput::AimHeld)!=0,
+                (f.flags&PcCoopPracticeInput::CursorDelta)!=0,sampleNow);
+        }
         pads[1]=physical;pads[1].button&=~(PAD_BUTTON_START|PAD_BUTTON_Y);
         pads[0]={};pads[0].err=PAD_ERR_NONE;
     } else {
@@ -355,8 +374,8 @@ std::uint8_t pc_coop_practice_ext(int p) { return pc_coop_practice_remote_input(
 std::int16_t pc_coop_practice_cursor_rotate(int p) { return pc_coop_practice_remote_input(p) && !(remote.flags&PcCoopPracticeInput::CursorDelta)?remote.cursorDx:0; }
 bool pc_coop_practice_cursor_delta(int p,float* x,float* y) {
     if (!pc_coop_practice_remote_input(p)) return false;
-    *x=(remote.flags&PcCoopPracticeInput::CursorDelta)?remote.cursorDx*.25f:0;
-    *y=(remote.flags&PcCoopPracticeInput::CursorDelta)?remote.cursorDy*.25f:0;
+    const auto delta=(remote.flags&PcCoopPracticeInput::CursorDelta)?pc_coop_cursor::decode(remote.cursorDx,remote.cursorDy):pc_coop_cursor::Motion{};
+    *x=delta.x;*y=delta.z;
     return true;
 }
 float pc_coop_practice_remote_speed(int p) {
@@ -386,7 +405,7 @@ bool pc_coop_practice_leave() {
     }
     pc_coop_audio_end();loading.reset();owner->close();owner.reset();pc_coop_world_end_scene();
     requested=loaded=confirmed=entered=stopped=away=panel=padFiltered=advancing=sessionConfigured=false;
-    tick=frame=applied=lastPublish=revision=0;previousButtons=0;failure[0]=0;inputs.reset();smoothing.reset();presented={};remote={};
+    tick=frame=applied=lastPublish=revision=0;previousButtons=0;failure[0]=0;inputs.reset();cursorPreview.reset();smoothing.reset();presented={};remote={};
     return true;
 }
 void pc_coop_practice_background(bool value) { if (!owner || !ownThread()) return;away=value;if (session()) session()->setBlocked(net::CoopBlock::Background,value);if(value){panel=false;hold(false);} }
