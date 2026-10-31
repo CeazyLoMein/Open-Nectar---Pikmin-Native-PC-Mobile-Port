@@ -1,3 +1,14 @@
+## Final corrective submission — 2026-10-30 20:38 EDT
+
+- Local/remote correction source `123d8e27db819889cac59f6863a528dd4d16d53f`, fixture/workflow/documents only. Game code unchanged from PC9 source65595c53b1582c3316c92afefb19d7e37cd56c8b. Expected/shared identity `8ac920c968812b41679d6a3ec3e4875ab818189691367b1830e4124454f2d12c` independently recomputed and verified inside PC9 package.
+- Replacement **iPhone94/run41151124155 IN_PROGRESS**: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port/actions/runs/41151124155 . iPhone93/run41114720367 FAILED mandatory captain fixture despite actual native game BUILD SUCCEEDED. No failed IPA installation allowed.
+- **PC9/run41114720301 SUCCESS**, artifact13005907278 downloaded/verified: ZIP SHA256 `a7872d324fa617949d77d827076bf5fc4b3b2fefb4a267f67dd8dcf23fdb82b2`, EXE SHA256 `056efccfb4d1884ce7ed79b94a4f0a16738625c148ea4141cd1a4e21ecfcbbf4`,14 receipt files, Windows x64 PE and imported dependency closure PASS. Extracted outputs/P1-Full-PC-Coop-Build9, NOT installed. Windows workflow10/run41151124251 intentionally SKIPPED; not a failed new Windows build.
+- New captain fixture now compiles full actual adapter with current Navi state/property/effect seams and extra whistle lifecycle assertions. MSVC/W4/WX execute PASS and strict Clang PASS; six runner/receipt gate tests PASS. Required21 practice checks remain mandatory. Future Windows preflight includes full captain fixture too.
+- Intended next pair is **PC9 + iPhone94**, with DIFFERENT commit metadata but identical verified game code identity. On94success verify exact head123d8e27, new package/receipts/real UIKit/scene, matching8ac920identity, then backup/stage both peers. Do not require source commit strings to match when test-only corrections are proven excluded from identity.
+- Installed PC8/phone92 remains user-confirmed smooth with own SFX; unchanged this turn. No new game launch/input/close, phone/asset/settings/save writes. No user action now. Stop idle polling, await user94result. Full gameplay batch, unresolved runtime tests and co-op roadmap remain in complete handoff below.
+
+---
+
 ## PC9 success; iPhone93 fixture correction
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
