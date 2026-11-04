@@ -1,3 +1,60 @@
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date:** 2026-11-04 (America/New_York)
+
+**Overall status:** Resumed after usage gap. Repository clean and synchronized at c2fbd839fccc6c54fa294fc02883cfa208dff7f5 before edits. PC11/run41158191292 and iPhone95/run41158191039 both FAILED. Both stopped at the same extracted exit test: cursorPreview was newly reset by production code but missing from the fixture. Other compiler failures/timeouts inside the iOS runner self-test are deliberately simulated; do not diagnose those as game failures. No successful native package from this batch. Installed PC9/iPhone94 baseline unchanged.
+
+### Pikmin 1
+
+- Current objective: finish the existing guest free-aim/host Escape input isolation batch, then progress from practice to campaign integration.
+- Implemented previously in c2fbd839: same camera-axis projection as solo, strict local mouse/gyro/camera ownership, bounded own-marker preview. These are locally tested but NOT hardware verified.
+- This session: tests/pikmin1_practice_exit_test.py now uses the REAL preview class, seeds pending cursor movement, and checks clearing on safe leave/cancel plus retention during held live scene/wrong-thread calls. No gameplay changes this session.
+- Verification: 15 extracted actual exit checks PASS under MSVC /W4 /WX and Clang strict analysis. Isolated negative control removing production preview reset fails expected cleanup assertions. Existing last-batch 32 network tests/510 cursor checks/36 feedback checks remain recorded; not rerun unnecessarily. Git diff whitespace check passes.
+- User-confirmed baseline: smooth practice movement, own guest whistle/Pikmin/footstep audio, Recall All. Host-controlled shared Pikmin walking speed accepted. Remaining reported bugs: guest free aim reversed/poor feel and host Escape affecting guest cursor. Proposed correction still needs native builds and device test. Enemy sound not tested in empty practice.
+- No game launched/closed/controlled; no phone/asset/settings/save writes. USB/live session not needed while builds run.
+
+### Pikmin 2
+
+- Preserve accepted working app/audio. No P2 code or build changes this session; full-story validation and co-op remain future work.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port
+- Branch: ios-experimental. Starting commit c2fbd839fccc6c54fa294fc02883cfa208dff7f5, remote fetched and synchronized.
+- New correction commit/run IDs recorded in Exact Resume State.json after submission. No history rewrite/main merge.
+- PC11 and iPhone95 failed before a distributable pair. Do not install partial artifacts.
+- Installed baseline: PC9/source65595c53b1582c3316c92afefb19d7e37cd56c8b; phone94/source123d8e27db819889cac59f6863a528dd4d16d53f (user runtime reported). Same old game identity8ac920c968812b41679d6a3ec3e4875ab818189691367b1830e4124454f2d12c.
+- Next builds retain gameplay identity5ccf64fde395ea2c94113f55d9dcbd2297ddbd621e2db8333aa39bb74b75e488; both peers must update from installed baseline after verification. No new artifacts installed/staged yet.
+
+### Next steps
+
+1. Submit one coordinated paired rebuild with corrected fixture; record IDs, then wait without idle polling.
+2. On pass, verify native receipts/packages and shared identity, back up/stage under Documents/Open Nectar; short PC+phone test for aim direction/feel and Escape isolation, then both host roles as practical.
+3. Move toward a small playable campaign slice: shared Onions/inventory/ownership, tasks/carrying/enemies and story/day flow; reuse current local co-op engine and authoritative transport.
+4. Durable mid-day save/load and guest reconnect are required full-mode work. Host force-close currently loses the RAM world/room. Never claim recovery or cross-progression exists.
+5. Verify different-network joining; later deliberate PC/phone campaign transfer. Preserve offline solo separately.
+
+### Scope and efficiency decision
+
+User wants faster delivery and lower usage. Avoid new optional polish/research loops, repeat broad checks only for new evidence, batch related failures, one coordinated CI pair, and bounded device tests. No feature silently removed.
+
+Largest remaining work: full campaign state replication (not just captains/practice); exact durable mid-day restoration across world/jobs/enemies/story; reliable recovery after host loss; cross-device campaign transfer/conflict handling; public-internet/NAT/relay delivery. P2 co-op is a separate later project stage. Independent graphics/cameras/touch controls remain supported, not the main schedule driver. Existing local co-op saves work on two captains and gameplay rules but does not supply networking or durable whole-world snapshots.
+
+Suggested release order (recommendation, not user-approved cuts): P1 shared campaign core and essential interruption/recovery first; then PC/phone transfer automation, extra per-player cheats and difficulty refinements; P2 co-op afterward. No automatic host migration promised. Cross-device runtime compatibility stays in the core. A bounded partial-progress checkpoint may be offered as an earlier milestone but does not meet the full exact mid-day requirement without user agreement.
+
+### ChatGPT continuation notes
+
+- Source of truth: repo journals plus Exact Resume State.json; old top entries describing unsubmitted work are historical after this checkpoint.
+- Latest log evidence: work/resume-pc11.log and resume-ios95.log; authenticated metadata resume-*-jobs.json. Exit correction evidence: work/practice-exit-test.cpp, work/resume-exit-negative.log.
+- Preserve accepted native framebuffer, pixel scaling, keyboard/touch fixes, 120FPS option, GPI texture pack and original low-detail Louie; HD character models remain removed. No graphics/FPS change.
+- Existing rollback: Documents/Open Nectar/4 - Windows Version/Pikmin 1 - Full PC Co-op - Experimental/Backups/Before PC Build 9 - 20261030-213309. Existing phones/saves and all proprietary assets remain private.
+- Full future vision remains in COOP_OBJECTIVE_QUEUE.md and COOP_MIDDAY_RECOVERY_REQUIREMENTS.md: own screens/squads, shared stock/separate allowance, cutscenes/travel, internet invitations/rejoin, durable recovery/cross-progression, P2 later. Practice is not a completed campaign.
+- User involvement now: none. Games may stay closed and phones disconnected. After verified packages, install same-app updates and run the short checklist. Do not uninstall accepted apps.
+
+**END PROGRESS REPORT**
+
+---
+
 ## Guest aim direction and host Escape input leak
 
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
