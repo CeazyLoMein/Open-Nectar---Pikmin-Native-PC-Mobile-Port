@@ -2,6 +2,57 @@
 
 **Date/time:** 2026-11-04, America/New_York
 
+**Overall project status:** PC12 and iPhone97 PASSED and independently package-verified. PC12 installed over CLOSED PC9 with verified rollback and3199 protected settings/save/content hashes unchanged. Phone97 IPA staged, NOT installed. Await short PC+phone cursor test. No new hardware behavior claim; P2 unchanged.
+
+### Pikmin 1
+
+- Current objective: hardware validate the existing solo-equivalent guest aim/host Escape isolation correction, then coherent full campaign integration including CORE two-player difficulty balance.
+- Investigated/root cause: old guest path could read host virtual mouse/gyro/camera state; old screen-delta host projection could differ from actual sender camera axes. Game correction c2fbd839 uses exact solo camera projection and strict ownership plus bounded own-marker preview. PC12 source935ee1f7 includes corrected exit fixture. Phone97 source2f560df6 differs only in tests/journals; actual compiled identity matches PC12.
+- Latest test-only change: dedicated disposable startup simulator; one bounded pre-launch boot/install-timeout recovery, strict native startup/background/resume unchanged. Phone97 actually recovered its first install timeout, then completed native scene proof. Do not present this as new gameplay work.
+- Files: game navi.cpp and pc_port/netplay/pc_coop_cursor_motion.h, pc_coop_cursor_preview.h, pc_coop_practice_input.h/runtime.cpp; regression tests/full captain and workflows from prior batch preserved. Latest corrections in tests/pikmin1_practice_exit_test.py, tests/run_ios_scene_smoke.py and ios_scene_runner_test.py.
+- Tests/results: actual native game BUILD SUCCEEDED;27 native network/audio tests,510 cursor,36 actual feedback,236 smoothing,14 focus,8 carry and15 exit checks PASS; whole captain/native audio gates pass.21 practice and13 room receipts all PASS. Real encrypted UIKit socket runtime PASS, owned simulator, health PASS, no cleanup errors. Scene same-process one-entry startup/background/resume PASS after one documented install setup recovery. ZIP/API digests, unsigned ARM64 Mach-O platform/bundle/landscape/icons/notices and actual shared source identity verified. Windows x64 PE/import dependency closure and14 package file hashes verified. These are compiler/simulator/package milestones, not phone gameplay proof.
+- Confirmed working: earlier user smooth practice/own audio/Recall All baseline; new aim/Escape corrections require device test. Enemy audio UNTESTED because practice has no enemies. Shared Pikmin walking speed host-controlled, personal captain speed/camera/graphics/controls separate. No actual game launched/closed/controlled automatically.
+- Remaining: aim test; full campaign world/actions/Onions/jobs/enemies/story synchronization and two-player balance; durable mid-day recovery; internet/live rejoin and PC-phone campaign continuation. Host force-close currently loses room/RAM world; practice exit can require restart. Full solo story completion not proven. Core difficulty is NOT deferred.
+
+### Pikmin 2
+
+- Objective: preserve accepted working application/audio. No investigation, code/build/device changes this turn. Full story/co-op later.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port ; branch ios-experimental.
+- Starting local/remote2f560df687cd55720064377c7f4e8cec568e90a8, clean. Current source unchanged; documentation-only [skip ci] checkpoint follows; exact docs hash in Exact Resume State.json.
+- PC12/run41864685625 SUCCESS source935ee1f7ab564b8288c7d32764ec35c6cfae1e8e, artifact13342226961, ZIP SHA2565278e0df42da3f77558f5fc7c8430763287ed538244e6403e331803ba625a98a, EXE SHA2565f2b74adc3fcf23eff75e51bf153f7b69b4f665a992eaabf75258016d69af226.
+- iPhone97/run41906689580 SUCCESS source2f560df687cd55720064377c7f4e8cec568e90a8, artifact13362892322. ZIP SHA2560e2a30cd310ea3da7bc6ca5f070b720e1e66d29d2f50e11472cfddcfd87124e3, IPA SHA2562d228b4d652ec25234aecfbc3e8c39957a79d67cbcfe65ccec058c0bb9b6af28, 5369981bytes, UUID93723f6e-0a05-30f9-ab7f-6ac762cef291.
+- Scene artifact13362690423 ZIP SHA25603f6fe5cdfdfa93e78351096fb829809c3dbce3f8f0c62fa435efa02ad8d4549. Initial setup install timed out, single allowed recovery succeeded; all strict startup/resume assertions passed.
+- Both compiled identities: 5ccf64fde395ea2c94113f55d9dcbd2297ddbd621e2db8333aa39bb74b75e488. Native97 test-only differences do not change gameplay identity. Windows13 from test-only push intentionally skipped; reuse12. iPhone96 attempts1-3 runner acquisition cancellations, attempt4 install timeout, superseded by97.
+- PC12 installed in Documents/Open Nectar/4 - Windows Version/Pikmin 1 - Full PC Co-op - Experimental. Same PLAY PIKMIN 1.cmd and shortcut. No launcher/input sent. PC9 rollback: C:\Users\chazz\Documents\Open Nectar\4 - Windows Version\Pikmin 1 - Full PC Co-op - Experimental\Backups\Before PC Build 12 - 20261104-162756.3199 protected hashes unchanged; assets junctions preserved.
+- Phone staged: C:\Users\chazz\Documents\Open Nectar\1 - Install on iPhone\P1 Build 97 - Co-op Aim Fix\Pikmin 1 - Build 97.ipa. START HERE.txt / TEST CHECKLIST.txt / Package Verification.json alongside. No phone installation/USB writes. Last phone baseline94 remains until user update confirmed.
+- Uncommitted: none after docs checkpoint. No extra game builds requested, force push/history rewrite/main merge/security changes.
+
+### Next steps
+
+- User: same-app Sideloadly update phone97, do not uninstall/reimport assets. PC already12. New practice room PC host +phone guest; test phone free aim right/left/up/down at multiple camera angles, stationary/walking; leave phone idle and PC Escape/mouse/throw/whistle must never move its cursor. Pause/Ready and repeat; reverse hosts if convenient. Raye optional, needs same97 IPA if used. USB only for installation or requested logs; no need maintain live game.
+- Test guide: NEXT TEST - PC12 and iPhone97.txt in this folder and copied beside IPA.
+- P1 next engineering milestone: coherent campaign integration with shared stock/separate ownership/tasks and core difficulty, followed by durable recovery/internet/cross-device continuation. Do not expand unrelated optional polish. Existing local co-op rules are starting point, audit our modified rules before scaling.
+- P2: leave working app alone.
+- GitHub: no new build while awaiting this focused runtime evidence. On failure gather actual reports; preserve rollback/settings/saves.
+
+### ChatGPT continuation notes
+
+- Verifiers: work/verify_pc12_phone97.py; work/verify_windows_game12.py; receipts work/build97-package-verification.json, windows-coop-build12-verification.json and pc12-iphone97-stage-result.json. Logs/artifacts work/build97-logs.zip, pc12-logs.zip, build97-p1-artifact.zip, build97-scene-artifact.zip. Actual source diff935ee1f7..2f560df6 contains only tests/journals.
+- Unverified fixes: guest aim direction/feel and PC Escape isolation on devices, independent speed reset/both rings if not explicitly reported. New state is not campaign completion, reconnect, exact autosave or cross-progression implementation.
+- Preserve native framebuffer/pixel scaling/touch/keyboard/120FPS choice and current graphics; GPI texture pack kept, HD characters removed, original low-detail Louie only. No new mods/graphics settings changes. Keep normal save / save-solo-test isolation.
+- Exact resume: read Exact Resume State.json, obtain short hardware result, fix confirmed failures or move campaign work forward in broad coherent batches. Full agreed vision remains in COOP_OBJECTIVE_QUEUE.md and COOP_MIDDAY_RECOVERY_REQUIREMENTS.md. No lost queue items; two-player balance CORE.
+
+**END PROGRESS REPORT**
+
+---
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-11-04, America/New_York
+
 **Overall project status:** PC12 passed. iPhone96 attempts1-3 never acquired a hosted runner; attempt4 acquired one and compiled the asset-free startup probe, then timed out installing it into the supplied simulator. P1 game build was skipped. Retrieved complete job log and startup artifact before diagnosis. Installed PC9/phone94 unchanged.
 
 ### Pikmin 1
