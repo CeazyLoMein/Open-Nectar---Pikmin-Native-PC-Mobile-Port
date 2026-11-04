@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import time
 import traceback
+import uuid
 
 BUNDLE = 'org.opennectar.tests.scene'
 PROCESS = 'NectarSceneSmoke'
@@ -127,16 +128,42 @@ def run_probe(app, output, execute=command):
     devices = json.loads(execute('xcrun', 'simctl', 'list', 'devices', 'available', '--json'))['devices']
     (output / 'simulator-inventory.json').write_text(json.dumps(devices, indent=2))
     runtime, device = select_device(devices)
-    udid = device['udid']
-    started = device['state'] != 'Booted'
+    # Only operate on a simulator created for this probe, never the image's
+    # preconfigured device. Keep the same newest runtime/device type coverage.
+    borrowed = {item['udid'].lower() for items in devices.values() for item in items}
+    device_type = device.get('deviceTypeIdentifier')
+    assert device_type, 'Selected simulator has no device type identifier'
+    text = execute('xcrun', 'simctl', 'create', 'NectarScene-' + uuid.uuid4().hex,
+                   device_type, runtime)
+    (output / 'created-simulator.txt').write_text(text, encoding='utf-8')
+    udid = str(uuid.UUID(text.strip()))
+    assert udid.lower() not in borrowed, 'Refusing to operate on a borrowed simulator'
+    setup_attempts = []
     report_path = None
     stage = 'boot'
     try:
-        if started:
-            execute('xcrun', 'simctl', 'boot', udid)
-        execute('xcrun', 'simctl', 'bootstatus', udid, '-b')
-        stage = 'install'
-        execute('xcrun', 'simctl', 'install', udid, str(app))
+        for attempt in range(1, 3):
+            setup = {'attempt': attempt, 'result': 'FAIL'}
+            setup_attempts.append(setup)
+            try:
+                stage = 'boot'
+                execute('xcrun', 'simctl', 'boot', udid)
+                execute('xcrun', 'simctl', 'bootstatus', udid, '-b')
+                stage = 'install'
+                execute('xcrun', 'simctl', 'install', udid, str(app))
+                setup['result'] = 'PASS'
+                break
+            except subprocess.TimeoutExpired:
+                setup.update(stage=stage, traceback=traceback.format_exc())
+                if attempt == 2:
+                    raise
+                # One recovery for infrastructure setup only. Native launch,
+                # startup, background and resume failures are never retried.
+                diagnostics = output / 'setup-attempt-1'
+                diagnostics.mkdir(exist_ok=True)
+                collect_diagnostics(udid, diagnostics, since, None)
+                stage = 'setup recovery'
+                execute('xcrun', 'simctl', 'shutdown', udid)
         # Read the native report through stdout redirected to this known host
         # path. No app-container query is needed (Build49 timed out there).
         report_path = output / 'scene-smoke-stdout.log'
@@ -165,7 +192,8 @@ def run_probe(app, output, execute=command):
         assert final['entry_count'] == 1 and final['reconnect_preserved_window'], final
         for key in keys:
             assert final[key] == initial[key] + 1, final
-        result = {'result': 'PASS', 'runtime': runtime, 'device': device['name'], 'initial': first,
+        result = {'result': 'PASS', 'simulator_policy': 'owned-disposable',
+                  'simulator_udid': udid, 'setup_attempts': setup_attempts, 'runtime': runtime, 'device': device['name'], 'initial': first,
                   'background': background, 'resumed': final, 'launch': launch, 'resumed_launch': resumed_launch}
         (output / 'scene-smoke-result.json').write_text(json.dumps(result, indent=2))
         print('PASS: actual SDL/UIKit scene startup and background/resume; one entry/window and no duplicate SDL events.', flush=True)
@@ -173,6 +201,7 @@ def run_probe(app, output, execute=command):
     except Exception:
         (output / 'scene-smoke-failure.json').write_text(json.dumps({
             'result': 'FAIL', 'stage': stage, 'runtime': runtime,
+            'simulator_udid': udid, 'setup_attempts': setup_attempts,
             'device': device['name'], 'traceback': traceback.format_exc()}, indent=2))
         raise
     finally:
@@ -181,7 +210,7 @@ def run_probe(app, output, execute=command):
         except Exception:
             (output / 'diagnostic-collection-exception.txt').write_text(traceback.format_exc())
         # Never mask the test result if diagnostic collection or cleanup fails.
-        for args in [('terminate', udid, BUNDLE)] + ([('shutdown', udid)] if started else []):
+        for args in [('terminate', udid, BUNDLE), ('shutdown', udid), ('delete', udid)]:
             try:
                 subprocess.run(['xcrun', 'simctl', *args], stdout=subprocess.DEVNULL,
                                stderr=subprocess.DEVNULL, timeout=45)

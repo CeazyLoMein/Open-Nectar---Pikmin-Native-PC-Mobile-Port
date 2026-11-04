@@ -1,3 +1,49 @@
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-11-04, America/New_York
+
+**Overall project status:** PC12 passed. iPhone96 attempts1-3 never acquired a hosted runner; attempt4 acquired one and compiled the asset-free startup probe, then timed out installing it into the supplied simulator. P1 game build was skipped. Retrieved complete job log and startup artifact before diagnosis. Installed PC9/phone94 unchanged.
+
+### Pikmin 1
+
+- Current objective: unblock native validation of the pending solo-equivalent aim/input-ownership correction; then campaign integration including core two-player balance.
+- Investigated: run41864685609 attempt4, job126828429625, artifact13358988965 (ZIP SHA25690f7a1b22b97f0662801d3a62a7454693fbc1ba745b4f37a161a8f8bc5728225). Actual failure receipt stage=install; simctl install timed out180sec after bootstatus returned. Probe compilation BUILD SUCCEEDED; not a game compiler error or proven game startup defect.
+- Leading cause: simulator setup became unresponsive before app launch; exact underlying CoreSimulator cause unknown. Do not claim a phone/game fix.
+- Files changed: tests/run_ios_scene_smoke.py now creates a dedicated disposable simulator matching the newest available runtime/device type, rejects borrowed IDs, allows exactly one timeout recovery during boot/install before any native launch, preserves attempt diagnostics, and cleans up only its own simulator. All native launch/startup/background/resume assertions remain strict, without retry. tests/ios_scene_runner_test.py covers success, setup recovery, second timeout failure/no launch, borrowed-ID rejection/no cleanup, and no native-launch retries.
+- Tests/results:16 local runner unit tests PASS;26 scene metadata/shared lifecycle contract checks PASS; git diff --check PASS. Host mocks prove orchestration only; actual Apple runtime validation still pending.
+- Confirmed working: prior user smooth practice/own audio/Recall All baseline. New cursor correction not yet hardware verified. Enemy audio remains untested in empty practice. No phone/files/settings/save changes or game input.
+- Remaining issues: native validation, short aim/Escape device test, full campaign replication and TWO-PLAYER BALANCE (core), durable mid-day recovery, internet/rejoin and cross-device continuation. P2 later. No automatic host migration promised.
+
+### Pikmin 2
+
+- Current objective: preserve accepted working application/audio.
+- Investigation/root cause/files changed/tests: none this turn; no P2 build requested.
+- Confirmed working: prior user report only; full story/co-op pending.
+
+### GitHub
+
+- Repository https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port ; branch ios-experimental.
+- Starting local/remote2bccd899 (clean, fetched), existing game source c2fbd839, test-correction build source935ee1f7. This session changes tests/journals only; no game identity change from PC12 (5ccf64fde395ea2c94113f55d9dcbd2297ddbd621e2db8333aa39bb74b75e488).
+- PC12/run41864685625 SUCCESS retained, artifact13342226961 (package validation/staging pending). iPhone96/run41864685609 attempt4 FAIL at simulator install; no IPA.
+- New iPhone-only source/run IDs recorded in Exact Resume State.json after push. No force push/main merge/security changes. No redundant full PC rebuild.
+
+### Next steps
+
+- Submit one iPhone-only correction; record ID once, await result without idle polling.
+- On pass verify actual scene/room/practice/native package evidence and match PC12 identity; then backup/stage pair. Do not update phones before verification.
+- User later tests mobile aim direction/feel and PC Escape isolation. No phone or live game needed while CI runs.
+- Follow with coherent campaign integration batches, balance included; preserve full queued vision and use targeted local checks rather than endless optional additions.
+
+### ChatGPT continuation notes
+
+- Source evidence: work/ios96-attempt4-126828429625.log, work/ios96-scene-artifact.zip; extracted failure receipt confirms install timeout. Earlier runner cancellations are separate failures.
+- Local evidence: work/scene-runner-recovery-tests.log. Simulator orchestration tests are NOT real UIKit proof. Never skip startup gate just to produce IPA or claim ownership recovery cures every infrastructure failure.
+- Exact next action: await new iPhone build; verify and stage with PC12 if passed, otherwise retrieve actual full failure log. Installed games/settings/assets/saves untouched; phone may stay disconnected. No new runtime claim.
+
+**END PROGRESS REPORT**
+
+---
+
 ## Core co-op balance and larger work batches — 2026-11-04
 
 User clarification: two-player difficulty balance is CORE, not deferred optional polish. This supersedes any suggestion to postpone co-op balance in the previous finish-line recommendation. Extra difficulty modes can wait; baseline campaign balance cannot.

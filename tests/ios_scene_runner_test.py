@@ -17,9 +17,9 @@ import run_ios_scene_smoke as runner
 def devices():
     return {
         'com.apple.CoreSimulator.SimRuntime.iOS-27-0': [
-            {'name': 'iPhone 18 Pro', 'udid': 'older', 'isAvailable': True, 'state': 'Booted'}],
+            {'name': 'iPhone 18 Pro', 'udid': 'older', 'deviceTypeIdentifier': 'com.apple.CoreSimulator.SimDeviceType.iPhone-Duo', 'isAvailable': True, 'state': 'Booted'}],
         'com.apple.CoreSimulator.SimRuntime.iOS-27-1': [
-            {'name': 'iPhone Duo', 'udid': 'newer', 'isAvailable': True, 'state': 'Shutdown'}],
+            {'name': 'iPhone Duo', 'udid': 'newer', 'deviceTypeIdentifier': 'com.apple.CoreSimulator.SimDeviceType.iPhone-Duo', 'isAvailable': True, 'state': 'Shutdown'}],
     }
 
 
@@ -37,7 +37,7 @@ class RunnerTests(TestCase):
     def test_booted_device_breaks_equal_runtime_tie(self):
         inventory = devices()
         inventory[next(key for key in inventory if key.endswith('27-1'))].append(
-            {'name': 'iPhone Duo', 'udid': 'booted-newer', 'isAvailable': True, 'state': 'Booted'})
+            {'name': 'iPhone Duo', 'udid': 'booted-newer', 'deviceTypeIdentifier': 'com.apple.CoreSimulator.SimDeviceType.iPhone-Duo', 'isAvailable': True, 'state': 'Booted'})
         self.assertEqual(runner.select_device(inventory)[1]['udid'], 'booted-newer')
 
     def test_unavailable_or_wrong_os_does_not_fake_runtime_pass(self):
@@ -95,6 +95,8 @@ class RunnerTests(TestCase):
             operation = args[2]
             if operation == 'list':
                 return json.dumps({'devices': devices()})
+            if operation == 'create':
+                return '11111111-2222-3333-4444-555555555555'
             if operation == 'get_app_container':
                 raise AssertionError('Container lookup must not block startup')
             if operation == 'launch':
@@ -142,9 +144,70 @@ class RunnerTests(TestCase):
              mock.patch.object(runner.subprocess, 'run') as cleanup:
             with self.assertRaisesRegex(AssertionError, 'Observed failure'):
                 runner.run_probe(app, output, execute)
-        self.assertEqual(cleanup.call_count, 2)  # terminate our app, shutdown our simulator
+        self.assertEqual(cleanup.call_count, 3)  # terminate, shutdown and delete ONLY our created simulator
         self.assertTrue((output / 'diagnostic-collection-exception.txt').exists())
         self.assertEqual(json.loads((output / 'scene-smoke-failure.json').read_text())['stage'], 'scene startup')
+
+    def test_setup_install_timeout_recovers_once_before_native_launch(self):
+        app, output, base, history = self.fixture()
+        installs = 0
+        def execute(*args):
+            nonlocal installs
+            if args[2] == 'install':
+                installs += 1
+                if installs == 1:
+                    history.append(args)
+                    raise subprocess.TimeoutExpired(args, 180)
+            return base(*args)
+        with mock.patch.object(runner, 'collect_diagnostics'), mock.patch.object(runner.subprocess, 'run') as cleanup:
+            result = runner.run_probe(app, output, execute)
+        self.assertEqual(installs, 2)
+        self.assertEqual([a['result'] for a in result['setup_attempts']], ['FAIL', 'PASS'])
+        self.assertEqual(result['simulator_policy'], 'owned-disposable')
+        self.assertTrue((output / 'setup-attempt-1').is_dir())
+        for call in cleanup.call_args_list:
+            self.assertEqual(call.args[0][3], '11111111-2222-3333-4444-555555555555')
+
+    def test_repeated_install_timeout_fails_without_launching(self):
+        app, output, base, history = self.fixture()
+        def execute(*args):
+            if args[2] == 'install':
+                history.append(args)
+                raise subprocess.TimeoutExpired(args, 180)
+            return base(*args)
+        with mock.patch.object(runner, 'collect_diagnostics'), mock.patch.object(runner.subprocess, 'run'):
+            with self.assertRaises(subprocess.TimeoutExpired):
+                runner.run_probe(app, output, execute)
+        self.assertEqual(sum(x[2] == 'install' for x in history), 2)
+        self.assertFalse(any(x[2] == 'launch' for x in history))
+        self.assertFalse((output / 'scene-smoke-result.json').exists())
+
+    def test_borrowed_device_create_result_is_rejected_without_cleanup(self):
+        app, output, base, _ = self.fixture()
+        inventory = devices()
+        for items in inventory.values():
+            for item in items:
+                item['udid'] = '11111111-2222-3333-4444-555555555555'
+        def execute(*args):
+            return json.dumps({'devices': inventory}) if args[2] == 'list' else base(*args)
+        with mock.patch.object(runner.subprocess, 'run') as cleanup:
+            with self.assertRaisesRegex(AssertionError, 'borrowed'):
+                runner.run_probe(app, output, execute)
+        cleanup.assert_not_called()
+
+    def test_native_launch_timeout_is_not_retried(self):
+        app, output, base, history = self.fixture()
+        def execute(*args):
+            if args[2] == 'launch':
+                history.append(args)
+                raise subprocess.TimeoutExpired(args, 180)
+            return base(*args)
+        with mock.patch.object(runner, 'collect_diagnostics'), mock.patch.object(runner.subprocess, 'run'):
+            with self.assertRaises(subprocess.TimeoutExpired):
+                runner.run_probe(app, output, execute)
+        self.assertEqual(sum(x[2] == 'install' for x in history), 1)
+        self.assertEqual(sum(x[2] == 'launch' for x in history), 1)
+        self.assertEqual(json.loads((output / 'scene-smoke-failure.json').read_text())['stage'], 'launch')
 
     def test_scoped_crash_collection_survives_one_command_failure(self):
         root = self.root / 'crashes'
