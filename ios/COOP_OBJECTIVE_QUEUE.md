@@ -1,3 +1,17 @@
+## Core co-op balance and larger work batches — 2026-11-04
+
+User clarification: two-player difficulty balance is CORE, not deferred optional polish. This supersedes any suggestion to postpone co-op balance in the previous finish-line recommendation. Extra difficulty modes can wait; baseline campaign balance cannot.
+
+Use the existing local co-op rules as the starting point, but audit the CURRENT modified engine, not an untouched upstream copy. Existing practice networking, separate squad ownership, host-controlled Pikmin speed, individual captain speed, Recall All, follower recovery and other enabled gameplay options can change the effective challenge. Some campaign requirements (including separate squad allowances) remain planned, not proven live. Record which rules are actually active before choosing scaling; do not assume existing co-op already balances our final mode.
+
+Initial balance approach retains agreed priorities: mostly enemy health/durability adjustments, deliberate encounter changes only where performance and stability allow, and account for two independently controlled squads, shared Onion stock, field allowances, parallel tasks and day pacing. Avoid blanket doubled health or entity count, mandatory bullet-sponge encounters, or silently applying multiplayer scaling to solo. Host owns shared gameplay rules; camera/graphics/controls remain personal. No numerical multiplier is approved or implemented by this note. Final values require campaign playtests and must preserve encounter mechanics and solo behavior.
+
+Delivery preference: larger coherent end-to-end batches, not one optional addition per build. Group campaign actions/replication/ownership/balance/flow and relevant checks into meaningful playable milestones, followed by a coordinated PC+iPhone build. Retain scoped commits and targeted local validation within a batch. Do not use batching as grounds to promise all defects will be automatically detected: network/gameplay/balance issues still require device and playtest evidence. Fix justified related issues together, avoid unrelated scope growth and repeated cosmetic build cycles.
+
+Current builds PC12/run41864685625 and iPhone96/run41864685609 already submitted from935ee1f7; this clarification is documentation only, no new game build or package. Next: verify that pair on completion, short aim/Escape check, then campaign milestone including baseline two-player balance. Full durable mid-day recovery/internet/cross-progression/P2 remain queued.
+
+---
+
 ## 2026-10-30 15:21 EDT: PC8/phone92 hardware baseline accepted; next batch
 
 User confirms smooth movement and own audio. Other captain sounds kept local by preference. Enemy audio UNTESTED: no practice enemies. Guest ring/free-aim/speed-reset plus bounded owned Recall All and host Pikmin speed implemented with local checks; new paired build/hardware pending. No change to full-mode objective priorities; avoid endless optional expansion.
