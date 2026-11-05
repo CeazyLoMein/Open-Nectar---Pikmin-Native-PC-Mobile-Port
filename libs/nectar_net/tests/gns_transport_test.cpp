@@ -114,6 +114,18 @@ int main()
     check(host.state() == TransportState::Closed && guest.state() == TransportState::Closed,
           "both transports close cleanly");
 
+    // Same wildcard bind used by the game must accept both address families.
+    for(const char* address:{"::1","127.0.0.1"}) {
+        GnsTransport dualHost,dualGuest;
+        check(dualHost.listen({"",39872}),"wildcard internet listener starts");
+        check(dualGuest.connect({address,39872}),"IPv4/IPv6 guest connects to wildcard listener");
+        check(waitFor(dualHost,dualGuest,TransportEventType::Connected,event) &&
+              waitFor(dualHost,dualGuest,TransportEventType::Connected,event),"dual-stack encrypted handshake completes");
+        check(dualGuest.send(Delivery::ReliableOrdered,reliable,sizeof(reliable)),"dual-stack reliable send");
+        check(waitFor(dualHost,dualGuest,TransportEventType::Message,event) &&
+              event.payload==std::vector<std::uint8_t>(reliable,reliable+sizeof(reliable)),"dual-stack reliable payload arrives");
+        dualGuest.close();dualHost.close();
+    }
     std::printf("nectar_net_gns_transport_test: %s\n", failures == 0 ? "all tests passed" : "FAILED");
     return failures == 0 ? 0 : 1;
 }
