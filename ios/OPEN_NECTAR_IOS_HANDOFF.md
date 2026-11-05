@@ -1,3 +1,64 @@
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-11-05T10:20:02-05:00
+
+**Overall project status:** Tailscale-first connection delivery approved by user; private host mode implemented and pushed. PC15 and iPhone99 compiling. No external-network device test or new artifact yet. Embedded networking service deferred last as optional convenience. Core campaign, balance and durable recovery remain required.
+
+### Pikmin 1
+
+- Current objective: reliable different-network practice connection via companion app, before expanding shared campaign.
+- What was investigated: current publisher omits private Tailscale IPv6; official Tailscale prefix and Personal pricing verified. Existing direct-cellular failure not attributed to gameplay.
+- Root cause or leading hypothesis: current invites had no overlay endpoint. Direct router/carrier route blocked somewhere, exact external blocker unproven.
+- Files changed: libs/nectar_net/include/nectar_net/room.h, src/room.cpp, tests/room_test.cpp; games/pikmin1/pc_port/netplay/pc_desktop_coop.cpp; ios/ios_coop_room.mm; status/handoff/queue plus ios/TAILSCALE_PLAY_GUIDE.md.
+- Tests and results: all34 local networking/core tests passed; new private-address/bind/invite/handshake/no-router/missing-interface cases passed; strict actual Windows frontend compilation passed;15 actual iOS properties passed ARC check; existing scroll/share contract passed.
+- Confirmed working: previous installed PC14/iPhone98 same-network baseline, per user. Local implementation checks for new mode only.
+- Remaining issues: Tailscale not installed or signed in by agent, cross-network device validation pending. Practice is not a saved shared campaign. Host process termination still loses active room/world. No new save/graphics/FPS changes.
+
+### Pikmin 2
+
+- Current objective: preserve accepted working port, development paused while P1 co-op progresses.
+- What was investigated: none in this batch.
+- Root cause or leading hypothesis: none new.
+- Files changed: none P2-specific.
+- Tests and results: no new P2 build or runtime test.
+- Confirmed working: earlier user reports only, not a full story completion claim.
+- Remaining issues: eventual stronger story/cave/save regression, then co-op.
+
+### GitHub
+
+- Repository: CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port.
+- Branch: ios-experimental.
+- Starting commit: d8c768681d63aac8da4546f3c7ccef9060e5b169, clean and fetched.
+- Latest game commit: 01f011bf6d0d42ca35f03961b772ee1d98c07ad9.
+- Commits created: 01f011bf, explicit private Tailscale rooms on both platforms, plus following skip-ci journal checkpoint.
+- Changes pushed: all scoped source/tests/docs above.
+- Uncommitted changes: journal checkpoint being committed separately; source tree clean after source push.
+- Matching build identity: 90b49a5e36d3df0c1cd5b3d2ee68a4d38617f300f3e6c80b2a479b4730cff944.
+- GitHub Actions: PC15 run42053661667; iPhone99 run42053661740. Both observed in_progress for EXACT same source.
+- Build results: pending, not passed.
+- Artifacts produced: none from these new runs yet. Installed14/98 and existing backups retained.
+
+### Next steps
+
+- Next Pikmin1 task: inspect both build results/logs and package identities, stage only verified pair, then test Tailscale PC-host/cellular phone and reversed roles. Phone-to-phone later when available.
+- Next Pikmin2 task: remain paused and preserve accepted baseline.
+- GitHub/build task: wait for user's result; avoid idle polling. Read complete failed logs if either fails; batch related fixes.
+- Anything requiring user: install official Tailscale and personally sign in; get both players into the same private network. No payment or broad firewall/router changes. Full setup guide saved next to this report.
+
+### ChatGPT continuation notes
+
+- Tailscale choice is accepted, not awaiting preference. Embedded relay/signaling is last optional convenience; do not resume that research instead of usable progress.
+- Host Tailscale binds/advertises only fd7a:115c:a1e0::/48 active interface, rejects missing interface, never maps router ports or advertises manual/LAN/public fallback in that mode. Existing authentication/game-data compatibility unchanged. Generic Join Room uses same private invite.
+- Relevant local evidence: work/local-net-win/core-build/Testing/Temporary/LastTest.log, work/tailscale-build-runs.json; source regression in room_test.cpp; work/check_full_desktop_source.cmd; tests/ios_coop_arc_names_test.py and ios_coop_presentation_contract_test.py. Earlier native relay proof remains separate deferred research.
+- Unverified: actual iOS VPN interface visibility/binding and remote join, cellular latency and interruption behavior. Local fake-address and encrypted loopback tests do not prove these.
+- No automated live gameplay or phone changes. Preserve settings, texture pack, original Louie; HD characters stay removed; no FPS limit changes.
+- Core final scope retained: own views/squads, shared Onion inventory with separate limits, two-player balance, cutscene/area coordination, separate solo/shared saves, durable mid-day saves and interruption/rejoin, mixed PC/iPhone with progression transfer. None is implied completed by this connection change.
+- Exact next actions: validate PC15/iPhone99 for source above; use TAILSCALE - START HERE.md, then perform real separate-network practice. Existing14/98 is rollback.
+
+**END PROGRESS REPORT**
+
+---
+
 ## Tailscale-first internet play accepted and implemented, 2026-11-05
 
 The user chose the companion-app route to get to internet play sooner. Fully embedded traversal/signaling/relay is deferred until last as an optional convenience. Tailscale can remain the connection method indefinitely. This changes connection delivery, not the core shared-campaign, two-player balance, durable mid-day saves, interruption/rejoin, or PC/iPhone progression requirements.

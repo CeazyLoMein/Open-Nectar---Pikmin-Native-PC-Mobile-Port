@@ -1,3 +1,7 @@
+## Submitted Tailscale build pair — 2026-11-05
+
+PC15 run42053661667 and iPhone99 run42053661740 both in progress, source 01f011bf6d0d42ca35f03961b772ee1d98c07ad9, identity 90b49a5e36d3df0c1cd5b3d2ee68a4d38617f300f3e6c80b2a479b4730cff944. Local checks passed; no new artifact or device verification. See latest handoff and TAILSCALE_PLAY_GUIDE.md.
+
 ## Tailscale-first internet play accepted and implemented, 2026-11-05
 
 The user chose the companion-app route to get to internet play sooner. Fully embedded traversal/signaling/relay is deferred until last as an optional convenience. Tailscale can remain the connection method indefinitely. This changes connection delivery, not the core shared-campaign, two-player balance, durable mid-day saves, interruption/rejoin, or PC/iPhone progression requirements.
