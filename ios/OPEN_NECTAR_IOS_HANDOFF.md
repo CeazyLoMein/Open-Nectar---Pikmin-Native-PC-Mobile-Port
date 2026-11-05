@@ -2,6 +2,56 @@
 
 **Date:** 2026-11-04, America/New_York
 
+**Overall status:** PC14/iPhone98 SUCCESS, independently verified. PC14 installed over closed PC12 with verified rollback and3199 protected file hashes unchanged; phone98 staged NOT installed. Next is one real home-PC host/cellular guest test. Installed phones untouched, no game launch/control/close or real router mapping by agent. No new build requested. Campaign integration and CORE two-player balance remain queued.
+
+### Pikmin 1
+
+- Objective: validate direct internet reachability before further campaign expansion, preserving accepted PC12/phone97 LAN movement/audio/aim baseline.
+- Implemented in source2e8c8f7b: explicit Host Wi-Fi/Host Internet on Windows+iOS; background router setup/renewal/cleanup worker without transport/credentials/game access; immediate LAN fallback; pending/publicIPv4/IPv6/carrier-NAT/no-route/error status; copy/share gated while checking; endpoint/code refresh; actionable unreachable messages. Windows UPnP enabled and new license shipped; actual UPnP adapter refuses permanent-only lease fallback. Exact implementation details remain in previous prebuild report below.
+- Investigation/verification: authenticated API confirms both runs SUCCESS on SAME source2e8c8f7bcf19bd9a5ac423564d166076723b2f85. All API artifact SHA256 digests match downloads. Windows x64 PE/import dependency closure PASS (no missing DLL),15 package file hashes verified including new Licenses/miniupnpc.txt and9 notices. Actual EXE build identity verified from four compiler-folded movabs values stored into successive8-byte positions of one destination (not a contiguous constant array); generated header agrees. UPnP/Internet UI code present. iPhone unsigned ARM64 Mach-O platform/bundle/landscape/icons/notices and actual executable identity verified; identical to PC.29 native tests,510 cursor,36 actual feedback,236 smoothing,14 focus,8 carry,15 exit/full captain/native audio gates pass.21 practice+13 room receipts ALL PASS. Real encrypted UIKit socket health/session PASS with no cleanup errors. Scene same-process startup/background/resume PASS FIRST setup attempt, no recovery needed this run. These do not prove home router/cellular reachability.
+- Files changed this staging turn: documentation/state only; no gameplay/graphics/FPS/settings/save/phone files changed. PC package files updated within existing install after backup. New license was the ONLY package layout addition; rollback script restores old package and removes only that newly absent-before file on failure.
+- User-confirmed working baseline: previous PC12/phone97 PC-phone great, phone-phone pretty good with minor stutter; everything else reported working. New14/98 runtime UNTESTED. Enemy audio remains untested in empty practice. Original recording reviewed by sampled frames; stutter cause unproven, no smoothing tweak.
+- Limitations: DIRECT internet mode only, no relay yet. Public route advertised does not guarantee carrier/firewall reachability. iOS UPnP remains OFF; phone-hosting mainly depends on publicIPv6, while Windows can use PCP/NAT-PMP/UPnP. Test PC host first. Host process close still loses RAM world/room; full campaign/live rejoin/durable mid-day saves/cross-progression not implemented. Campaign difficulty remains CORE, not optional/deferred.
+
+### Pikmin 2
+
+- Preserve user-accepted working app/audio. No files/build/phone/runtime changes. Full campaign tests/co-op later.
+
+### GitHub
+
+- Repository https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port ; ios-experimental.
+- Starting local/remote2e8c8f7bcf19bd9a5ac423564d166076723b2f85 clean. Documentation-only normal [skip ci] checkpoint follows; exact final local/remote hash in Exact Resume State.json. No new game build, force push/history rewrite/main merge/security changes.
+- PC14 run41949265789 SUCCESS, artifact13380028891, ZIP SHA25645d6bdb3d7b9200a32952a3396563c81edc21f811a730588669f8a1f9c49f8e4, EXE SHA256cfde405576255f7799c365bddef788080223ed698ea9e886aecca1b19dd6a70b.
+- iPhone98 run41949265723 SUCCESS, artifact13382335538, ZIP SHA2564614978a4154e532fc4ec5484d83828a6f5f01ba9bc8e386e1e3edd8ae30fe63, IPA SHA25650e9704091003de984744e846b81b98e3a46e954023a00a5a0b450d7f7e9b28f, 5374891bytes, UUID7e56a540-4c00-31e5-ab5d-85391ba29ca2.
+- Scene artifact13381085576 SHA2560228b8768d007b982d742e3748a9d24bef4162cd1e8a53ed094df1b6cf569e73. Both shared source identity 4ab1fd30f8ca47e1747878399d06a58f1077adee848632ea354959435d3975e8.
+- PC installed in Documents/Open Nectar/4 - Windows Version/Pikmin 1 - Full PC Co-op - Experimental; usual PLAY PIKMIN 1.cmd/shortcut unchanged. PC12 rollback C:\Users\chazz\Documents\Open Nectar\4 - Windows Version\Pikmin 1 - Full PC Co-op - Experimental\Backups\Before PC Build 14 - 20261104-212628;3199 configs/saves/content hashes preserved, asset junctions retained. Older PC9 backup remains.
+- Phone ready: C:\Users\chazz\Documents\Open Nectar\1 - Install on iPhone\P1 Build 98 - Internet Hosting\Pikmin 1 - Build 98.ipa; START HERE.txt, TEST CHECKLIST.txt, Package Verification.json alongside. Same-app Sideloadly update required; phone last97 until user confirms98. Do not uninstall/reimport assets. No new hardware install/runtime claim.
+- Uncommitted none after checkpoint. No CI pending; next action needs user device test.
+
+### Next steps
+
+1. User updates existing phone P1 to98 using SAME Sideloadly signing identity; PC14 already installed.
+2. PC on home internet, Online Co-op > Host Internet. Wait until router check finishes. If no direct route, STOP and report exact text; no repeated joins/manual router changes.
+3. If IPv4/IPv6 route advertised, copy LATEST code privately. Phone Wi-Fi OFF IN SETTINGS, mobile dataON, not hotspot/sharedLAN. Join; report whether both say Connected and delay.
+4. If connected, enter disposable practice and Ready on each. Test movement/own audio/aim for~1minute, then pause/resume and optional guest background-return. Host force-close recovery is not implemented; don't mistake that for a new failure.
+5. If blocked, gather route/network evidence and select relay approach without pretending all carriers support direct hosting. Keep existing LAN path. Phone hosting/reverse-role internet proof later subject to platform route limits.
+6. Continue full campaign world/Onions/separate squads/tasks/enemies/day/story integration and two-player balance; then durable mid-day recovery/live rejoin/internet fallback/cross-device campaign continuation, P2 later. Preserve all queued requirements, broader coherent batches, no unrelated polish loop.
+
+### ChatGPT continuation notes
+
+- Exact test guide NEXT TEST - PC14 and iPhone98.txt in this folder and beside IPA. No USB needed for networking; only installation or requested logs. GPI textures and removedHD models/original Louie unchanged; no FPS/graphics change required.
+- Verification sources work/verify_windows_game14.py (compiler-folded actual binary identity), verify_pc14_phone98.py; receipts windows-coop-build14-verification.json, build98-package-verification.json, pc14-iphone98-stage-result.json. Artifacts/logs work/windows-coop-build14.zip, build98-p1-artifact.zip, build98-scene-artifact.zip, pc14-logs.zip, build98-logs.zip. Current Windows15files includes new notice; future baseline update must respect15-file layout. Native no-GNS test count29.
+- No agent real-router probing, external service deployment or paid account change. Pinned miniupnpc archive matches original trusted hash, original failed TLS/HTML downloads were rejected. Official GitHub release used, SAME version/hash. New networking remains opt-in via Host Internet.
+- User autonomy instruction: keep working until build submission, a genuinely required user test, or blocker; do not stop after planning. Here device internet-route validation is the required next step; no extra speculative build needed.
+
+**END PROGRESS REPORT**
+
+---
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date:** 2026-11-04, America/New_York
+
 **Overall status:** Internet-hosting integration batch IMPLEMENTED and locally verified; new paired native builds being submitted. Existing PC12/iPhone97 apps/settings/saves unchanged. No real router mapping/cellular test performed by agent. User requires autonomous continuation until submitted build, needed runtime test or genuine blocker, not stopping after a plan. Full campaign integration including CORE two-player balance remains queued; internet reachability proof is brought forward, not a replacement.
 
 ### Pikmin 1
