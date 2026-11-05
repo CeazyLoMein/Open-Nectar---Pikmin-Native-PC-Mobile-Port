@@ -21,6 +21,9 @@ jobs:
           if errorlevel 1 exit /b 1
           p1-pc-recall.exe
           if errorlevel 1 exit /b 1
+      - name: Verify bounded practice diagnostics retain recent events
+        shell: cmd
+        run: python tests/pikmin1_coop_diagnostics_test.py
       - name: Verify guest smoothing, Ready focus and missing carry goals
         shell: cmd
         run: |

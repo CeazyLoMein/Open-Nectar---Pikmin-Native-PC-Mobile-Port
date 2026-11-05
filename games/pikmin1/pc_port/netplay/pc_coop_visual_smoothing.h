@@ -12,10 +12,31 @@
 class PcCoopVisualSmoothing {
 public:
     static constexpr std::uint64_t DelayMs = 75;
-    void reset() { history.clear(); }
+    static constexpr std::uint64_t MinDelayMs = 50, MaxDelayMs = 150;
+    std::uint64_t delayMs() const { return delay; }
+    void reset() { history.clear(); intervals.clear(); delay=DelayMs; haveSample=false; displayTarget=sampledAt=0; }
     bool push(const nectar::net::ActorFrame& frame, std::uint64_t now) {
         if (!frame.frame || (!history.empty() &&
             (frame.frame <= history.back().frame.frame || now < history.back().at))) return false;
+        if (!history.empty()) {
+            const auto gap=now-history.back().at;
+            // Ignore same-pump bursts as timing evidence. A long stall must
+            // not permanently inflate latency after packets resume.
+            if (gap>500) { intervals.clear(); delay=DelayMs; }
+            else if (gap) {
+                if (intervals.size()==32) intervals.pop_front();
+                intervals.push_back(gap);
+                if (intervals.size()>=8) {
+                    auto sorted=intervals;
+                    std::sort(sorted.begin(),sorted.end());
+                    const auto desired=std::clamp(sorted[(sorted.size()-1)*9/10],MinDelayMs,MaxDelayMs);
+                    // Grow promptly for uneven delivery, release delay slowly
+                    // after recovery. The playhead below never runs backwards.
+                    if(desired>delay) delay+=std::min<std::uint64_t>(10,desired-delay);
+                    else if(desired<delay) delay-=std::min<std::uint64_t>(2,delay-desired);
+                }
+            }
+        }
         if (history.size() == 8) history.pop_front();
         history.push_back({frame, now});
         return true;
@@ -23,7 +44,9 @@ public:
     bool sample(std::uint64_t now, nectar::net::ActorFrame& out) const {
         if (history.empty()) return false;
         out = history.back().frame; // authoritative identity, health, ownership, population
-        const auto target = now >= DelayMs ? now - DelayMs : 0;
+        auto target = now >= delay ? now - delay : 0;
+        if(haveSample && now>=sampledAt)target=std::max(target,displayTarget);
+        if(!haveSample || now>=sampledAt){displayTarget=target;sampledAt=now;haveSample=true;}
         const Entry* left = &history.front();
         const Entry* right = left;
         for (const auto& entry : history) {
@@ -50,6 +73,10 @@ public:
 private:
     struct Entry { nectar::net::ActorFrame frame; std::uint64_t at; };
     std::deque<Entry> history;
+    std::deque<std::uint64_t> intervals;
+    std::uint64_t delay=DelayMs;
+    mutable std::uint64_t displayTarget=0,sampledAt=0;
+    mutable bool haveSample=false;
     static float mix(float a,float b,float t) { return a+(b-a)*t; }
     static nectar::net::Vec3 mix(const nectar::net::Vec3& a,const nectar::net::Vec3& b,float t) {
         return {mix(a.x,b.x,t),mix(a.y,b.y,t),mix(a.z,b.z,t)};

@@ -58,5 +58,22 @@ int main(){
     check(out.captains[1].whistleActive==0,"release stops effect immediately instead of replaying stale whistle");
     b.captains[1].cursor.x=1000;s.reset();s.push(a,1000);s.push(b,1050);s.sample(1100,out);
     check(near(out.captains[1].cursor.x,1000),"distant cursor target change snaps instead of sweeping across map");
+    // Steady links shed avoidable presentation delay after warmup.
+    s.reset();
+    for(int i=0;i<80;++i)s.push(frame(i+1,float(i*4)),1000+i*50);
+    check(s.delayMs()==50,"steady 20Hz delivery settles at50ms rather than fixed75ms");
+    s.sample(4950,out);check(near(out.captains[1].position.x,312),"adaptive playhead still interpolates the accepted history");
+    // Changing delivery quality cannot rewind a moving captain.
+    s.reset();float last=-1;std::uint64_t at=1000;
+    for(int i=0;i<150;++i){
+        at+=i<50?50:(i<100?(i%3==0?140:35):50);
+        s.push(frame(i+1,float(i*2)),at);
+        check(s.delayMs()>=50 && s.delayMs()<=150,"adaptive delay remains bounded under jitter");
+        for(unsigned d=0;d<30;d+=5){s.sample(at+d,out);check(out.captains[1].position.x>=last,"changing delay never rewinds presentation");last=out.captains[1].position.x;}
+        if(i==99)check(s.delayMs()>75,"uneven arrivals increase cushioning");
+    }
+    check(s.delayMs()<100,"steady recovery releases accumulated buffering");
+    s.push(frame(151,300),at+1500);check(s.delayMs()==75,"long outage resets timing evidence");
+    s.reset();check(s.delayMs()==75&&!s.sample(0,out),"new scene resets policy and playhead");
     std::printf("%d guest presentation checks passed\n",checks);
 }

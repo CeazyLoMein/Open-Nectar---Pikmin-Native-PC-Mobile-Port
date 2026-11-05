@@ -28,6 +28,8 @@ jobs:
         run: |
           python3 tests/ios_scene_contract_test.py
           python3 tests/ios_scene_runner_test.py
+      - name: Verify bounded practice diagnostics retain recent events
+        run: python3 tests/pikmin1_coop_diagnostics_test.py
       - name: Build asset-free simulator startup probe
         shell: bash
         run: |

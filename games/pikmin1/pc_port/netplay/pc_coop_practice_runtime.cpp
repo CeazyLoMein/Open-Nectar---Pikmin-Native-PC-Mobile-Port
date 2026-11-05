@@ -69,7 +69,18 @@ void practiceReport(std::uint64_t now, net::CoopSession* s) {
     static char path[96]={};
     if (!path[0]) std::snprintf(path,sizeof(path),"p1-coop-practice-%llu.txt",
         static_cast<unsigned long long>(std::time(nullptr)));
-    FILE* f=std::fopen(path,"ab");if(!f)return;
+    // Preserve startup plus two rotating recent segments, never an unbounded
+    // file or a report that silently stops after the first few minutes.
+    static unsigned segment=0;
+    char selected[128]={};
+    if(segment)std::snprintf(selected,sizeof(selected),"%s.recent-%u.txt",path,segment);
+    else std::snprintf(selected,sizeof(selected),"%s",path);
+    FILE* f=std::fopen(selected,"ab");if(!f)return;
+    if(std::fseek(f,0,SEEK_END)==0 && std::ftell(f)>=65000){
+        std::fclose(f);segment=segment==2?1:segment+1;
+        std::snprintf(selected,sizeof(selected),"%s.recent-%u.txt",path,segment);
+        f=std::fopen(selected,"wb");if(!f)return;
+    }
     if (std::fseek(f,0,SEEK_END)==0) {
         const long size=std::ftell(f);
         if (size>=0 && size<65000) {
@@ -79,9 +90,12 @@ void practiceReport(std::uint64_t now, net::CoopSession* s) {
             net::TransportStats stats;const bool measured=owner && owner->stats(stats);
             const int rtt=measured?stats.rttMs:-1;
             std::uint64_t audioSent=0,audioPlayed=0,audioDropped=0;pc_coop_audio_counts(audioSent,audioPlayed,audioDropped);
-            std::fprintf(f,"practice role=%s phase=%d away=%d tick=%llu frame=%llu applied=%llu rtt=%d queued=%d unacked=%d input_live=%llu repeat=%llu neutral=%llu samples=%llu sent=%llu camera=%d eye=%.1f,%.1f,%.1f focus=%.1f,%.1f,%.1f captain=%.1f,%.1f,%.1f host_hz=%.1f actor_age=%llu target=%llu hold=%u revision=%llu audio_sent=%llu audio_played=%llu audio_dropped=%llu audio_backend_state=%d\n",
+            std::fprintf(f,"practice role=%s phase=%d away=%d tick=%llu frame=%llu applied=%llu rtt=%d quality_local=%.3f quality_remote=%.3f out_bps=%.1f in_bps=%.1f smooth_ms=%llu queued=%d unacked=%d input_live=%llu repeat=%llu neutral=%llu samples=%llu sent=%llu camera=%d eye=%.1f,%.1f,%.1f focus=%.1f,%.1f,%.1f captain=%.1f,%.1f,%.1f host_hz=%.1f actor_age=%llu target=%llu hold=%u revision=%llu audio_sent=%llu audio_played=%llu audio_dropped=%llu audio_backend_state=%d\n",
                 role==net::CoopRole::Host?"host":"guest",static_cast<int>(s->phase()),away?1:0,
                 static_cast<unsigned long long>(tick),static_cast<unsigned long long>(frame),static_cast<unsigned long long>(applied),rtt,
+                measured?stats.localQuality:-1.0,measured?stats.remoteQuality:-1.0,
+                measured?stats.outBytesPerSecond:-1.0,measured?stats.inBytesPerSecond:-1.0,
+                static_cast<unsigned long long>(role==net::CoopRole::Guest?smoothing.delayMs():0),
                 measured?stats.pendingReliableBytes:-1,measured?stats.unackedReliableBytes:-1,
                 static_cast<unsigned long long>(diagnosticLive),static_cast<unsigned long long>(diagnosticRepeat),static_cast<unsigned long long>(diagnosticNeutral),
                 static_cast<unsigned long long>(diagnosticSamples),static_cast<unsigned long long>(diagnosticSent),c?1:0,
