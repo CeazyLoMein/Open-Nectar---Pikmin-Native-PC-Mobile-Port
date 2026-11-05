@@ -1,6 +1,6 @@
 # Play over different networks with Tailscale
 
-Status: implementation locally checked; awaiting matching PC/iPhone build and device test. Current PC14/iPhone98 lacks this button. This is still co-op practice, not a finished saved campaign.
+Status: PC15 and iPhone99 passed compilation, simulator and package checks. PC15 installed; iPhone99 staged for user update. Real Tailscale device test pending. Both sides need the new matching version. This is still co-op practice, not a finished saved campaign.
 
 ## One-time setup
 

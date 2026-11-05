@@ -1,3 +1,15 @@
+## PC15/iPhone99 passed, verified and prepared — 2026-11-05T11:16:18-05:00
+
+Both runs succeeded for source 01f011bf6d0d42ca35f03961b772ee1d98c07ad9: Windows15/run42053661667/artifact13429400384; iPhone99/run42053661740/artifact13430019470. Matching identity 90b49a5e36d3df0c1cd5b3d2ee68a4d38617f300f3e6c80b2a479b4730cff944 verified in both actual executables. PC artifact SHA256 0707b5317810eee8b325082e45545398728cf536bf9747a3f0032ce8b04b4130,15 receipt files and imports checked. IPA SHA256 eaf163320cb4e46e7de0e77eb9794a543146a17b944066bf47e812800ebbb407 (5375632 bytes), unsigned ARM64 bundle, retained icons/notices, native29 core tests,510 cursor,36 actual feedback,15 exit, captain visuals,21 practice/13 room checks, encrypted UIKit runtime and scene resume verified. Scene probe passed after one setup recovery; do not describe it as first-attempt success. This is CI/simulator/package evidence, not real Tailscale gameplay proof.
+
+PC update INSTALLED with existing game CLOSED (agent did not close or launch it). Prior14 package backed up at C:\Users\chazz\Documents\Open Nectar\4 - Windows Version\Pikmin 1 - Full PC Co-op - Experimental\Backups\Before PC Build 15 - 20261105-111524. All3199 protected settings/save/content hashes unchanged. Same PLAY PIKMIN1.cmd remains. iPhone99 IPA STAGED, NOT installed by agent: C:\Users\chazz\Documents\Open Nectar\1 - Install on iPhone\P1 Build 99 - Tailscale\Pikmin 1 - Build 99.ipa. Use Sideloadly with same signing/app identity to update existing P1, no uninstall or game-data recopy. P2 untouched.
+
+User next task: install official Tailscale on PC and phone and personally complete sign-in into same private network; then install P1 iPhone99. Test PC home-internet host via Host Tailscale + cellular phone guest, then reverse roles. Raye phone optional for later pair tests. No USB needed for gameplay. Do not repeat Host Internet/direct cellular failures. Use accessible NEXT TEST - PC15 and iPhone99.txt and TAILSCALE - START HERE.md. No Tailscale install, account change, firewall change or new phone files performed by agent.
+
+Next agent action after user setup/test: collect exact messages/logs if private host unavailable or connection fails; actual iOS overlay interface/binding not yet proven. Do not claim campaign, saves, host-loss recovery, two-player balance or cross-progression implemented by this networking change. Embedded internet integration remains deferred last; core objectives remain queued.
+
+---
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** 2026-11-05T10:20:02-05:00
