@@ -356,8 +356,16 @@ void pc_coop_practice_filter_pad(PADStatus* pads) {
 #endif
         const float dx=pc_window_get_mouse_cursor_delta_x(),dy=pc_window_get_mouse_cursor_delta_y();
         if (c && (dx!=0 || dy!=0)) {
-            const auto motion=pc_coop_cursor::project(dx,dy,{c->mViewXAxis.x,0,c->mViewXAxis.z},
+            auto motion=pc_coop_cursor::project(dx,dy,{c->mViewXAxis.x,0,c->mViewXAxis.z},
                 {c->mViewZAxis.x,0,c->mViewZAxis.z});
+#if !PIKI_PC_TOUCH
+            if(n && pc_settings_get_free_camera() && !n->mPcLockTarget) {
+                const auto turn=pc_coop_cursor::edgeTurn({n->mCursorPosition.x,0,n->mCursorPosition.z},motion,
+                    {c->mViewXAxis.x,0,c->mViewXAxis.z},C_NAVI_PARM(n,mCursorMaxRadius));
+                pc_window_add_camera_drag_player(1,turn.drag);
+                motion=turn.delta;
+            }
+#endif
             f.flags|=PcCoopPracticeInput::CursorDelta;
             f.cursorDx=pc_coop_cursor::encode(motion.x);f.cursorDy=pc_coop_cursor::encode(motion.z);
         }

@@ -63,5 +63,25 @@ int main(){
     const auto kept=shown;Vec3 badPosition{std::numeric_limits<float>::quiet_NaN(),0,0};
     check(!preview.sample(truth,150,{},200,2002,shown,&badPosition)&&near(shown.x,kept.x),"invalid displayed position leaves cursor output unchanged");
     check(truth.position.x==100&&truth.cursor.x==115,"moving preview never changes authoritative state");
+    for(int degrees=0;degrees<360;degrees+=30){
+        const float angle=degrees*.01745329252f;
+        pc_coop_cursor::Motion right{std::cos(angle),0,std::sin(angle)};
+        for(float side:{-1.0f,1.0f}){
+            const pc_coop_cursor::Motion offset{right.x*100*side,0,right.z*100*side};
+            const pc_coop_cursor::Motion step{right.x*10*side,0,right.z*10*side};
+            const auto turn=pc_coop_cursor::edgeTurn(offset,step,right,100);
+            check(near(turn.drag,-side*.1f/3.2f,.0001f),"guest edge camera uses solo turn sign at every view angle");
+            const float c=std::cos(turn.drag*3.2f),sn=std::sin(turn.drag*3.2f);
+            check(near(offset.x+turn.delta.x,offset.x*c+offset.z*sn)
+                &&near(offset.z+turn.delta.z,offset.z*c-offset.x*sn),"encoded cursor displacement includes same rotation as solo camera");
+            check(near(std::hypot(offset.x+turn.delta.x,offset.z+turn.delta.z),100),"edge turning keeps final cursor at radial reach");
+        }
+    }
+    auto inside=pc_coop_cursor::edgeTurn({10,0,10},{2,0,3},{1,0,0},100);
+    check(inside.drag==0&&inside.delta.x==2&&inside.delta.z==3,"ordinary interior mouse aim stays unchanged");
+    auto vertical=pc_coop_cursor::edgeTurn({0,0,100},{0,0,10},{1,0,0},100);
+    check(vertical.drag==0,"vertical edge movement does not invent horizontal camera turn");
+    auto invalid=pc_coop_cursor::edgeTurn({100,0,0},{10,0,0},{1,0,0},0);
+    check(invalid.drag==0&&invalid.delta.x==10,"invalid reach cannot rotate camera or divide by zero");
     std::printf("%d cursor projection/ownership/preview checks passed\n",checks);
 }

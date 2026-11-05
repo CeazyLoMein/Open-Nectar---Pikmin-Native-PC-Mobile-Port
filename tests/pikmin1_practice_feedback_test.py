@@ -36,12 +36,13 @@ assert 'pc_window_get_mouse_cursor_delta_x(),dy=pc_window_get_mouse_cursor_delta
 assert 'f.naviSpeedPct=' in runtime and 'pc_touch_take_recall_request() || recall' in runtime
 assert 'pc_coop_practice_remote_speed(mNaviID)' in nav
 assert 'const auto localDelta=pc_coop_cursor::project(mouseX,mouseY' in nav
-assert 'const auto motion=pc_coop_cursor::project(dx,dy' in runtime
+assert 'auto motion=pc_coop_cursor::project(dx,dy' in runtime
 assert '} else if (localCursor && pc_window_get_control_mode() != PC_CONTROL_CLASSIC)' in nav
 assert '} else if (localCursor && pc_gyro_take_recenter_cursor())' in nav
 assert 'if (localCursor && pc_settings_get_free_camera()' in nav
 assert '!remoteCursor) pc_window_clear_mouse_cursor_delta()' in nav
 assert 'pc_practice_may_whistle(pc_coop_practice_active(),mNaviID,piki->mPlayerId)' in nav
+parts.append('void actualGuestMouseCamera(Navi* n,Camera* c,pc_coop_cursor::Motion& motion) {'+body(runtime,'if(n && pc_settings_get_free_camera()')+'}')
 code=r'''
 #include <algorithm>
 #include <cmath>
@@ -64,6 +65,9 @@ int pc_window_get_control_mode(){return controlMode;}
 float pc_window_get_virtual_cursor_x(){++virtualReads;return 100;}
 float pc_window_get_virtual_cursor_y(){++virtualReads;return -90;}
 struct Graphics{};
+struct Camera{Vector3f mViewXAxis{1,0,0};};
+bool freeCam=true;bool pc_settings_get_free_camera(){return freeCam;}
+float cameraDrag[2]={};void pc_window_add_camera_drag_player(int p,float drag){cameraDrag[p]+=drag;}
 struct Map{float getMinY(float,float,bool){return 5;}}map;Map*mapMgr=&map;
 bool guest=true,validGuest=true,host=false,heldAim=false,keyboardRecall=false,touchRecall=false,enabled=true;
 int localPlayer=1;nectar::net::NetInputFrame remote;
@@ -100,9 +104,9 @@ struct Machine{int id=0;int getCurrID(void*){return id;}}machine;
 struct Navi{
  int mNaviID=0;Machine*mStateMachine=&machine;
  struct{Vector3f t;}mSRT;
- struct{float mWhistleExpandTime=.5f,mWhistleMinRadius=20,mWhistleMaxRadius=180;}parms;
+ struct{float mWhistleExpandTime=.5f,mWhistleMinRadius=20,mWhistleMaxRadius=180,mCursorMaxRadius=100;}parms;
  float mWhistleTimer=0,mWhistleRadiusFrac=0,mWhistleCircleRadius=0;int mWhistleCircleMode=0;
- Vector3f mCursorWorldPos,mWhistleFxPosArr[32];
+ Vector3f mCursorWorldPos,mWhistleFxPosArr[32],mCursorPosition;void* mPcLockTarget=nullptr;
  bool mPcCoopWhistleActive=false,mPcCoopWhistleShown=false;float mPcCoopWhistleRadius=0;
  NaviGatherState*getCurrState(){return &gatherState;}
  void pcCoopWhistleCapture(nectar::net::CaptainState&);
@@ -193,6 +197,13 @@ int main(){
  auto fallback=actualVirtualFallback(localMouse,remoteMouse||localMouse);
  check(fallback.x==77&&fallback.z==88&&virtualReads==0,"actual Escape/absolute cursor fallback never reads host mouse for guest captain");
  fallback=actualVirtualFallback(true,true);check(near(fallback.x,100.0f/127)&&virtualReads==2,"actual local PC absolute fallback retains existing solo behavior");
+ Camera camera;b.mCursorPosition={100,0,0};pc_coop_cursor::Motion mouseMotion{10,0,0};
+ actualGuestMouseCamera(&b,&camera,mouseMotion);
+ check(cameraDrag[1]<0&&cameraDrag[0]==0&&mouseMotion.x!=10,"actual guest route turns only local camera and forwards matching cursor displacement");
+ cameraDrag[1]=0;freeCam=false;mouseMotion={10,0,0};actualGuestMouseCamera(&b,&camera,mouseMotion);
+ check(cameraDrag[1]==0&&mouseMotion.x==10,"disabled Free Camera preserves ordinary aim");
+ freeCam=true;b.mPcLockTarget=&a;actualGuestMouseCamera(&b,&camera,mouseMotion);
+ check(cameraDrag[1]==0&&mouseMotion.x==10,"guest edge route does not invent a local lock target");
  std::printf("%s %d actual practice feedback checks\n",failures?"FAIL":"PASS",checks);return failures?1:0;
 }
 '''
