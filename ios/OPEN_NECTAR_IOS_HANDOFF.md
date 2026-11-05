@@ -1,3 +1,17 @@
+## PC17/iPhone101 passed, verified and prepared — 2026-11-05T16:08:34-05:00
+
+Both runs succeeded for EXACT source d4dfd7310e23606fa74932751427ce67afdf266a: PC17/run42102774818/artifact13450946406; iPhone101/run42102774914/artifact13453091262. Matching actual executable identity 2645c791af8894b9c436a57875e3941b455ba48819f80f8725d5ea7c82db1e30 verified. PC ZIP SHA256 c1a23657e4d5e0545e647aac8842d75974a36386a1a5678c3728727ec9dd342e; IPA SHA256 55aa75a471b5b6be1fddf02f85e1e857e4ff976702e6628f5ae80eba7f7bc531 (5386329bytes). Package/resource/dependency/unsigned ARM64 checks passed,15 PC receipt files/import closure valid. Native29tests,510cursor,1292smoothing,36feedback,15exit/captain gates,21practice/13room, scene background/resume and actual-source diagnostic rotation passed. NEW real encrypted iOS simulator socket probe explicitly passes running replaceable multipart pictures and reliable audio together; no scene setup retry. These are CI/simulator/package checks, not hardware stutter/camera proof.
+
+PC17 INSTALLED with game confirmed CLOSED; agent did not close/launch/input a live game. Prior16 backup C:\Users\chazz\Documents\Open Nectar\4 - Windows Version\Pikmin 1 - Full PC Co-op - Experimental\Backups\Before PC Build 17 - 20261105-160742. All3199 protected save/settings/content hashes unchanged. Same launcher/shortcut retained. iPhone101 IPA STAGED, NOT installed by agent: C:\Users\chazz\Documents\Open Nectar\1 - Install on iPhone\P1 Build 101 - Phone Host Fixes\Pikmin 1 - Build 101.ipa. User must update with Sideloadly using same signing account/app identity, no uninstall or asset recopy. P2 untouched. No Tailscale/account/firewall/FPS/graphics changes.
+
+User test: PHONE HOST via Tailscale on cellular, PC guest on home internet FIRST. Test E camera zoom immediately, Q/Z and mouse/free aim, movement/turn/stop-start, missing/partial Pikmin, own sound/whistle ring/throw/Recall All, no stuck loops and pause/resume.2-3minutes. Then PC host/phone guest regression comparison using fresh room. No USB needed to play. Guide NEXT TEST - PC17 and iPhone101.txt in progress folder, copied beside IPA as START HERE and TEST CHECKLIST. User can close/unplug after testing unless logs requested. Phone-phone separate-network test remains unverified until Raye available.
+
+Prior accepted behavior:16/100 PC host works with improved modest delay; phone host was dramatically laggy with dead E, so do NOT mark17/101 hardware fixed until user comparison. Changes are guest-only controller polling, replaceable running pictures with independent sequence/atomic guards, bounded deferred audio and immediate cleanup,1000-byte payload budget for1280MTU VPN, accurate host tick diagnostics. Loading/paused pictures and control/input/audio stay reliable. No guest AI or authority/save changes. Campaign/2-player balance/durable mid-day/host-loss recovery/cross-progression remain core unfinished work; Tailscale connection accepted, embedded service last optional.
+
+Exact resume: read user phone-host test, collect newest rotating reports if needed; work/verify_windows_game17.py, verify_pc17_phone101.py, pc17-iphone101-stage-result.json and run42102774818/42102774914 metadata/logs retain evidence. No CI pending or additional game build needed merely to document this milestone.
+
+---
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date/time:** 2026-11-05T15:21:51-05:00
