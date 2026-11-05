@@ -22,6 +22,7 @@ CompatibilityInfo identity;bool checked=false,hashing=false;
 std::future<bool> hashJob;std::array<std::uint8_t,32> content{};
 std::uint64_t lastStatus=0;
 bool readyRequested=false;
+bool internetHosting=false;RoomStatus hostStatus;
 std::uint64_t nowMs(){return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());}
 void status(const char* text){if(roomStatus)SetWindowTextA(roomStatus,text);}
 void stop(){readyRequested=false;if(handoff)handoff->close();if(guest)guest->cancel();if(host)host->close();guest.reset();host.reset();if(codeBox)SetWindowTextA(codeBox,"");}
@@ -52,16 +53,16 @@ void action(int id){
     if(id==11){ShowWindow(panel,SW_HIDE);if(game)SetForegroundWindow(game);return;}
     if(id==12){if(pc_coop_practice_leave())ShowWindow(panel,SW_HIDE);return;}
     if(!checked){status("Wait for the base game-data check to finish.");return;}
-    if(id==1){
-        if(host||guest)return;host=std::make_unique<HostRoom>();RoomConfig c;c.compatibility=identity;c.automaticPortMapping=false;
+    if(id==1||id==9){
+        if(host||guest)return;host=std::make_unique<HostRoom>();RoomConfig c;c.compatibility=identity;internetHosting=id==9;c.automaticPortMapping=internetHosting;c.asynchronousPortMapping=internetHosting;
         RoomStatus s;if(host->open(c,static_cast<std::uint64_t>(std::time(nullptr)),s)!=RoomError::None){stop();status("Could not host. Check home network and private firewall permission.");return;}
-        SetWindowTextA(codeBox,s.code.c_str());status("Room open. Copy code to your partner. Both games need the SAME new PC/iPhone update.");
+        hostStatus=s;SetWindowTextA(codeBox,s.code.c_str());status(hostRoomStatusText(hostStatus,internetHosting));
     }else if(id==2){
         if(host||guest)return;char value[4097]={};if(GetWindowTextLengthA(codeBox)>4096){status("Code too long.");return;}
         GetWindowTextA(codeBox,value,sizeof(value));guest=std::make_unique<GuestJoin>();
         if(guest->start(value,identity,1,static_cast<std::uint64_t>(std::time(nullptr)),nowMs())!=JoinFailure::None){stop();status("Invalid or expired room code.");}
         SecureZeroMemory(value,sizeof(value));
-    }else if(id==3){SendMessageW(codeBox,EM_SETSEL,0,-1);SendMessageW(codeBox,WM_COPY,0,0);
+    }else if(id==3){if(host&&hostStatus.checkingInternet){status("Wait for the internet route check before copying the code.");return;}SendMessageW(codeBox,EM_SETSEL,0,-1);SendMessageW(codeBox,WM_COPY,0,0);
     }else if(id==4){if(!host&&!guest){SetFocus(codeBox);SendMessageW(codeBox,WM_PASTE,0,0);}
     }else if(id==5){
         if(!pc_coop_practice_can_enter()){status("Return to the title screen first. Ending admitted practice may require reopening P1.");return;}
@@ -80,7 +81,7 @@ LRESULT CALLBACK procedure(HWND window,UINT msg,WPARAM w,LPARAM l){
 HWND createWindow(bool practice){
     WNDCLASSW c{};c.lpfnWndProc=procedure;c.hInstance=GetModuleHandleW(nullptr);c.lpszClassName=L"NectarFullGameCoop";
     c.hCursor=LoadCursorW(nullptr,MAKEINTRESOURCEW(32512));c.hbrBackground=reinterpret_cast<HBRUSH>(COLOR_WINDOW+1);RegisterClassW(&c);
-    return CreateWindowW(c.lpszClassName,practice?L"Pikmin 1 - Online practice":L"Pikmin 1 - Online Co-op",WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,760,420,game,nullptr,c.hInstance,nullptr);
+    return CreateWindowW(c.lpszClassName,practice?L"Pikmin 1 - Online practice":L"Pikmin 1 - Online Co-op",WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,760,465,game,nullptr,c.hInstance,nullptr);
 }
 HWND label(HWND parent,const char* text,int y,int height){return CreateWindowA("STATIC",text,WS_CHILD|WS_VISIBLE,20,y,700,height,parent,nullptr,nullptr,nullptr);}
 void button(HWND parent,const char* text,int x,int y,int id,int width=160){CreateWindowA("BUTTON",text,WS_CHILD|WS_VISIBLE|WS_TABSTOP,x,y,width,38,parent,reinterpret_cast<HMENU>(static_cast<INT_PTR>(id)),nullptr,nullptr);}
@@ -91,13 +92,13 @@ extern "C" void nectar_ios_open_coop_room(){
     if(!handoff)handoff=std::make_unique<CoopConnection>();
     if(!game)game=GetForegroundWindow();
     if(!room){
-        room=createWindow(false);label(room,"Same-LAN PC / iPhone practice. Each device renders the full game. Campaign play and recovery are still being developed.",15,45);
+        room=createWindow(false);label(room,"PC / iPhone practice. Host Wi-Fi for the same network, or Host Internet to check a route for a cellular guest. No campaign progress is saved.",15,45);
         roomStatus=label(room,"Checking immutable base game data...",65,60);
         codeBox=CreateWindowA("EDIT","",WS_CHILD|WS_VISIBLE|WS_BORDER|ES_MULTILINE|ES_AUTOVSCROLL|WS_TABSTOP,20,130,700,65,room,nullptr,nullptr,nullptr);
         SendMessageW(codeBox,EM_SETLIMITTEXT,4096,0);
-        button(room,"Host Room",20,210,1);button(room,"Join Room",200,210,2);button(room,"Copy Code",380,210,3);button(room,"Paste Code",560,210,4);
+        button(room,"Host Wi-Fi",20,210,1);button(room,"Join Room",200,210,2);button(room,"Copy Code",380,210,3);button(room,"Paste Code",560,210,4);
         button(room,"Start Co-op Practice",20,270,5,220);button(room,"Leave Room",260,270,8,200);button(room,"Return to Game",480,270,7,240);
-        label(room,"Personal graphics and controls stay local. Use matching new builds. No campaign progress is saved by practice.",330,45);
+        button(room,"Host Internet",20,325,9,180);label(room,"Internet mode requests a temporary UDP router mapping. Some networks need a relay. Personal graphics and controls stay local.",375,45);
         hashing=true;const auto root=std::filesystem::current_path()/"dataDir";
         hashJob=std::async(std::launch::async,[root]{return nectar_desktop::contentIdentity(root,content);});
     }
@@ -119,11 +120,11 @@ extern "C" void nectar_desktop_coop_pump(){
         else status("Base data verification failed. Launch from the prepared game folder with its original dataDir.");
     }
     const auto now=nowMs();
-    if(host){RoomStatus s;host->maintain(now,static_cast<std::uint64_t>(std::time(nullptr)),s);TransportEvent e;
+    if(host){RoomStatus s;if(host->maintain(now,static_cast<std::uint64_t>(std::time(nullptr)),s)){hostStatus=s;SetWindowTextA(codeBox,s.code.c_str());status(hostRoomStatusText(hostStatus,internetHosting));}TransportEvent e;
         for(int n=0;n<64&&host->transport()->poll(e);++n){if(e.type==TransportEventType::Message){if(!handoff->bufferBeforeHandoff(std::move(e))){stop();status("Too many early messages. Retry the room.");break;}}}}
     if(guest){TransportEvent e;bool has=false;const auto progress=guest->poll(now,e,has);
         if(has&&e.type==TransportEventType::Message&&!handoff->bufferBeforeHandoff(std::move(e))){stop();status("Early practice message could not be retained.");}
-        else if(progress==JoinProgress::Failed){std::string text="Join failed: "+std::string(joinFailureString(guest->failure()))+" ("+compatibilityFieldString(guest->incompatibility())+"). Use the same new build and base game version.";stop();status(text.c_str());}}
+        else if(progress==JoinProgress::Failed){std::string text=guest->failure()==JoinFailure::Unreachable ? "Could not reach host. Cellular needs a reachable Host Internet room; routers/carriers may block direct access. A relay may be needed." : "Join failed: "+std::string(joinFailureString(guest->failure()))+" ("+compatibilityFieldString(guest->incompatibility())+"). Use the same new build and base game version.";stop();status(text.c_str());}}
     if(now-lastStatus>=200){lastStatus=now;
         auto* link=host?host->transport():guest?guest->transport():nullptr;
         if(link&&link->state()==TransportState::Connected)status("Connected. Start Co-op Practice on both devices, then Ready / Resume. You do not need simultaneous clicks.");

@@ -19,6 +19,7 @@ add_library(nectar_net STATIC
     src/net_platform.cpp
     src/port_mapping.cpp
     src/port_publisher.cpp
+    src/async_port_publisher.cpp
     src/protocol.cpp
     src/recording.cpp
     src/replication.cpp
@@ -40,6 +41,8 @@ add_library(nectar_net STATIC
 )
 
 target_compile_features(nectar_net PUBLIC cxx_std_17)
+find_package(Threads REQUIRED)
+target_link_libraries(nectar_net PUBLIC Threads::Threads)
 target_include_directories(nectar_net PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
@@ -99,9 +102,19 @@ if(NECTAR_NET_BUILD_TESTS AND NOT ANDROID)
     endfunction()
 
     foreach(name protocol_test connection_code_test join_gate_test gated_transport_test compatibility_test
-                 decoder_fuzz_test port_mapping_test port_publisher_test room_test input_test clock_test world_scene_test soak_test replication_test onion_authority_test entity_registry_test pikmin_replication_test actor_frame_test coop_session_test coop_connection_test practice_input_test practice_visual_blend_test reliable_queue_delay_test coop_audio_test)
+                 decoder_fuzz_test port_mapping_test port_publisher_test async_port_publisher_test room_test input_test clock_test world_scene_test soak_test replication_test onion_authority_test entity_registry_test pikmin_replication_test actor_frame_test coop_session_test coop_connection_test practice_input_test practice_visual_blend_test reliable_queue_delay_test coop_audio_test)
         nectar_net_add_test(${name})
     endforeach()
+    add_executable(nectar_net_upnp_client_engine_test tests/upnp_client_engine_test.cpp)
+    target_include_directories(nectar_net_upnp_client_engine_test PRIVATE tests/upnp_fixture include)
+    target_compile_definitions(nectar_net_upnp_client_engine_test PRIVATE NECTAR_NET_HAS_UPNP=1)
+    target_compile_features(nectar_net_upnp_client_engine_test PRIVATE cxx_std_17)
+    if(MSVC)
+        target_compile_options(nectar_net_upnp_client_engine_test PRIVATE /W4 /WX)
+    else()
+        target_compile_options(nectar_net_upnp_client_engine_test PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    endif()
+    add_test(NAME nectar_net_upnp_client_engine_test COMMAND nectar_net_upnp_client_engine_test)
     nectar_net_add_test(coop_audio_engine_test)
     target_sources(nectar_net_coop_audio_engine_test PRIVATE ../../games/pikmin1/pc_port/netplay/pc_coop_audio.cpp)
     target_include_directories(nectar_net_coop_audio_engine_test BEFORE PRIVATE tests/audio_fixture ../../games/pikmin1/pc_port)

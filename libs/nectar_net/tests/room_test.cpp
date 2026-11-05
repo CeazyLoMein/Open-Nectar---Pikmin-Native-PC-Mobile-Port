@@ -6,6 +6,8 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <thread>
+#include <chrono>
 
 namespace {
 
@@ -346,6 +348,15 @@ void testHostErrors()
 
 int main()
 {
+    {
+        FakeNet net;HostRoom host(factory(net),lanOnly());RoomStatus status;
+        auto c=config();c.asynchronousPortMapping=true;
+        check(host.open(c,kNow,status)==RoomError::None && status.checkingInternet && !status.code.empty(),"async room opens LAN immediately while router check runs");
+        bool updated=false;
+        for(int i=0;i<1000&&!updated;++i){updated=host.maintain(1000,kNow,status);if(!updated)std::this_thread::sleep_for(std::chrono::milliseconds(1));}
+        check(updated&&!status.checkingInternet&&!status.internetCheckFailed&&!status.code.empty(),"unsupported internet check settles without losing Wi-Fi room");
+        host.close();check(host.transport()==nullptr,"async room transport closes immediately");
+    }
     testHappyPath();
     testDeadEndpointIsSkipped();
     testBadCodes();

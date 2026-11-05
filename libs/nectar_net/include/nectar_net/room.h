@@ -4,6 +4,7 @@
 #include "nectar_net/connection_code.h"
 #include "nectar_net/gated_transport.h"
 #include "nectar_net/port_publisher.h"
+#include "nectar_net/async_port_publisher.h"
 
 #include <cstdint>
 #include <functional>
@@ -35,6 +36,8 @@ struct RoomConfig {
     bool includeLanEndpoint = true;
     // Skip PCP/NAT-PMP/UPnP, for a manually forwarded port.
     bool automaticPortMapping = true;
+    // Game UIs opt in: publish LAN immediately, discover/renew router off-thread.
+    bool asynchronousPortMapping = false;
     // Manual forwarding: the public address the user typed (optional).
     std::vector<DirectEndpoint> manualEndpoints;
 };
@@ -50,11 +53,16 @@ enum class RoomError {
 const char* roomErrorString(RoomError error);
 
 struct RoomStatus {
+    bool checkingInternet = false;
+    bool internetCheckFailed = false;
     std::string code;
     Reachability reachability = Reachability::NoAutomaticMapping;
     MappingMethod method = MappingMethod::None;
     std::uint16_t localPort = 0;
 };
+
+// Route advertisement is not proof that a remote carrier/firewall is reachable.
+const char* hostRoomStatusText(const RoomStatus& status, bool internetHosting);
 
 class HostRoom {
 public:
@@ -65,7 +73,8 @@ public:
     HostRoom(const HostRoom&) = delete;
     HostRoom& operator=(const HostRoom&) = delete;
 
-    // Blocking (port mapping can take a few seconds): call from a worker.
+    // Legacy synchronous mapping can block. Game UIs must set
+    // asynchronousPortMapping so setup, renewal and lease cleanup stay off-thread.
     RoomError open(const RoomConfig& config, std::uint64_t nowUnixSeconds, RoomStatus& status);
 
     // Renews the mapping. True when the code changed and must be shown again;
@@ -87,7 +96,9 @@ private:
     std::unique_ptr<GatedTransport> mTransport;
     RoomConfig mConfig;
     ConnectionCode mCode;
-    PublishResult mPublished;
+    PublishResult mPublished, mLocalPublished;
+    std::unique_ptr<AsyncPortPublisher> mAsyncPublisher;
+    bool mCheckingInternet = false, mInternetCheckFailed = false;
 };
 
 enum class JoinFailure {

@@ -112,7 +112,7 @@ fetch "GameNetworkingSockets-${gns_commit:0:8}.tar.gz" \
     "${gns_sha}"
 if [[ "${target}" != ios-* ]]; then
     fetch "miniupnpc-${miniupnpc_version}.tar.gz" \
-        "https://miniupnp.tuxfamily.org/files/miniupnpc-${miniupnpc_version}.tar.gz" \
+        "https://github.com/miniupnp/miniupnp/releases/download/miniupnpc_${miniupnpc_version//./_}/miniupnpc-${miniupnpc_version}.tar.gz" \
         "${miniupnpc_sha}"
 fi
 

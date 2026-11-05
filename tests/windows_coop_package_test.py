@@ -15,7 +15,7 @@ class Package(unittest.TestCase):
  def test_required_source_paths(self):
   paths=pack.notice_inputs(ROOT,Path('fixture'))
   self.assertTrue(any('deps-cache/work/mingw64/protobuf-3.21.12/LICENSE' in str(p).replace('\\','/') for p in paths.values()))
-  self.assertEqual(len(paths),8)
+  self.assertEqual(len(paths),9)
  def test_missing_notice_fails_early(self):
   with tempfile.TemporaryDirectory() as d:
    root,work=self.fixture(Path(d));pack.notice_inputs(root,work)['protobuf.txt'].unlink()
@@ -28,7 +28,7 @@ class Package(unittest.TestCase):
    out=work/'package';receipt=json.loads((out/'BUILD RECEIPT.json').read_text(encoding='utf-8'))
    self.assertFalse(receipt['phone_or_windows_runtime_tested'])
    self.assertEqual(receipt['source'],'fixture-source')
-   self.assertEqual(len(list((out/'Licenses').glob('*.txt'))),8)
+   self.assertEqual(len(list((out/'Licenses').glob('*.txt'))),9)
    for name,digest in receipt['files'].items():self.assertEqual(hashlib.sha256((out/name).read_bytes()).hexdigest(),digest)
  def test_missing_identity_refused(self):
   with tempfile.TemporaryDirectory() as d:

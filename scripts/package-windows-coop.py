@@ -11,6 +11,7 @@ def notice_inputs(root,work):
     deps=work/'deps-cache/work/mingw64'
     return {
         'protobuf.txt':deps/('protobuf-'+pin('protobuf_version'))/'LICENSE',
+        'miniupnpc.txt':deps/('miniupnpc-'+pin('miniupnpc_version'))/'LICENSE',
         'GameNetworkingSockets.txt':deps/('GameNetworkingSockets-'+pin('gns_commit'))/'LICENSE',
         'SDL2.txt':work/'SDL2-2.32.10/LICENSE.txt',
         'OpenNectar-Pikmin1.txt':root/'games/pikmin1/LICENSE.MD',

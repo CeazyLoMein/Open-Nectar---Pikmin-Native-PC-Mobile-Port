@@ -1,3 +1,51 @@
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date:** 2026-11-04, America/New_York
+
+**Overall status:** Internet-hosting integration batch IMPLEMENTED and locally verified; new paired native builds being submitted. Existing PC12/iPhone97 apps/settings/saves unchanged. No real router mapping/cellular test performed by agent. User requires autonomous continuation until submitted build, needed runtime test or genuine blocker, not stopping after a plan. Full campaign integration including CORE two-player balance remains queued; internet reachability proof is brought forward, not a replacement.
+
+### Pikmin 1
+
+- Objective: make a real PC-home-internet host +cellular-phone guest test possible, preserving current LAN practice and responsive UI/gameplay.
+- Confirmed issue: both UIs disabled automatic mapping; PC had zero globalIPv6 addresses. Current accepted LAN build could not advertise a usable route for its cellular guest. Library had router support, but Windows game explicitly disabled UPnP too. Internet hosting cannot be tested merely by turning phone Wi-Fi off on the old pair.
+- Implemented: explicit Host Wi-Fi and Host Internet on Windows/iOS. New RoomConfig asynchronousPortMapping opt-in. Local route published immediately; background worker exclusively owns router discovery, lease renewal and teardown. UI/game thread polls immutable mailbox; no transport/game/room-code/secrets accessed on worker. Close retires its private mailbox without waiting for router I/O; an in-flight bounded operation completes and removes its lease off-thread. Reopening uses separate mailbox, not old results. Work coalesced to at most1 queued tick, renewal checks throttled1sec. Existing synchronous API behavior retained for other callers. Main-thread room code generation/authentication/listener and safe handoff to game remain unchanged.
+- UI feedback: route check pending versus router-advertised IPv4,IPv6-only,carrier/double NAT,no automatic mapping,exception. Advertising a route is NOT a passed cellular connection. Copy/share gated while checking; PC/iOS refresh code if published endpoints change. Added missing iOS room-screen renewal pumping; existing game-driver renewal continues after handoff. Unreachable errors explain direct-route/relay limitation rather than blaming build mismatch. No relay service exists yet.
+- Router/backend: enabled existing pinned miniupnpc for Windows game. iOS build still has UPnP OFF and its platform gateway lookup has no native Apple route backend, so phone hosting currently relies primarily on publicIPv6; this is not universal cellular-host support. First real test should use PC as host. Added Windows miniupnpc notice (9 required notices, expected15 package files versus14 old). Permanent-only UPnP rules are refused instead of silently requesting lifetime0; fallback routes remain. No actual firewall/router security changes made. Home-router temporary mapping only requested when user chooses Internet mode later.
+- Dependency: existing miniupnpc2.3.3 exact SHA256d52a0afa614ad6c088cc9ddff1ae7d29c8c595ac5fdd321170a05f41e634bd1a. Original upstream site failed TLS and HTTP returned HTML/hash mismatch; nothing from those responses built. Retrieved identical archive from official GitHub release, verified exact pinned SHA, compiled static library locally and actual production UPnP backend. Dependency script now uses verified official release URL with SAME hash/version. No unverified executable download.
+- Files: libs/nectar_net/include/nectar_net/async_port_publisher.h,new src/async_port_publisher.cpp; room.h/room.cpp; upnp_client.cpp; CMakeLists; async/router-adapter/room tests. games/pikmin1/CMakeLists.txt enables desktop UPnP; pc_desktop_coop.cpp and ios/ios_coop_room.mm implement UI/status/maintenance. scripts/netplay-deps.sh URL and package-windows-coop.py+package tests include new license. No gameplay balance/FPS/graphics/touch/save changes.
+- Local verification:34/34 CTest PASS with real GNS+real UPnP backend compiled, encrypted/socket/session/room tests retained. New controlled worker tests check nonblocking discovery/cancel, late canceled lease cleanup, error handling, CGNAT rejection and single-consumption results; actual adapter test compiles production upnp_client.cpp against a controlled router API and covers temporary request, permanent refusal,denial,bad external-address cleanup. Room integration opens LAN immediately then settles async internet failure without losing code. Actual Windows frontend MSVC /W4/WX compiles.4 Windows packaging tests PASS with9 notices. Real14 iOS property ARC getter checks and presentation contract pass. Actual Apple full screen/native runtime compilation still requires CI. No real internet/cellular success claim.
+- Confirmed working baseline: user PC12+iPhone97 PC-phone great, phone-phone pretty good with small stutter, otherwise working. Original clip31.067sec/30FPS restored and sampled frames reviewed; update-age variation fits minor stutter but root cause remains unproven. No smoothing change in this batch. Keep it queued with later campaign work, avoid a separate tiny build for a speculative adjustment.
+- Remaining: real direct internet route test; blocked NAT/firewalls require relay later. Host-close recovery/live rejoin/durable mid-day autosave/shared campaign and PC-phone campaign transfer NOT implemented. Enemy audio still untested in empty practice. Core two-player balance remains mandatory.
+
+### Pikmin 2
+
+- Preserve user-accepted working app/audio; no P2 code, assets, build or runtime changes. Full campaign testing/co-op later.
+
+### GitHub
+
+- Repository https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port ; ios-experimental.
+- Starting source3e7c109b9b691edd7a4e1c49eb734678c190b948, clean/fetched/synchronized. Only scoped new/modified files staged. Exact submitted commit/run IDs in Exact Resume State.json after push; no force push/main merge/security settings change.
+- Expected new shared game identity 4ab1fd30f8ca47e1747878399d06a58f1077adee848632ea354959435d3975e8,2930 tracked source/config files including staged new sources. Both peers need new matching update once native builds/packages verified.
+- Existing baseline PC12/run41864685625 and phone97/run41906689580 SUCCESS, installed/user tested. No new artifact/install/hardware result yet. PC9 rollback remains Before PC Build 12 -20261104-162756;3199 protected file hashes unchanged at prior update. GPI textures/original low-detail Louie/removedHD characters and user settings remain accepted.
+
+### Next steps
+
+- Submit ONE coordinated PC+iPhone build with this internet integration batch, capture IDs once, then wait for user result without idle polling.
+- On success verify native receipts/package identity/new miniupnpc license/static dependency closure; stage with backups in Documents. Do not install partial/unverified output.
+- First runtime test: PC on home internet Host Internet; wait route-check status. If publicIPv4/IPv6 candidate shown, copy LATEST code privately; phone Wi-Fi OFF, mobile dataON, not hotspot/sharedLAN, join and check both connected. Then practice movement/audio/pause. If no public route, capture exact route message and stop futile repeats; decide relay path. Passing one home-host/carrier pairing is not universal carrier support. Reverse phone-host tests later subject to platform routing limits. No phone needed while CI builds.
+- After reachability proof: full campaign state/actions/Onions/separate squads/tasks/enemies/story/day flow with core difficulty; reliable interruptions/rejoin/exact mid-day recovery; cross-device continuation; P2 later. Do not drop earlier objectives or add unrelated optional polish.
+
+### ChatGPT continuation notes
+
+- Evidence: work/internet-final-ctest.log, internet-real-upnp-build.log, internet-desktop-source.log, controlledupnp test executable/source, package tests and ARC outputs. SHA-pinned miniupnpc source in work/local-net-win/miniupnpc-2.3.3. No player data/assets or private codes committed.
+- Native CMake GNS-OFF test count now29 (previous27+2), full GNS+companion local count34. Future verifier must expect9 Windows notices and15 files, review one new Licenses/miniupnpc.txt when staging over PC12 instead of demanding identical14-file layout. IPA notice set unchanged because iOS UPnP remains off.
+- Worker deliberately carries router state only; game transport/session ownership stays on owning thread. Do not move whole HostRoom polling to a worker, bypass compatibility/authentication, block UI on lease renewal/destruction, or claim a public endpoint is verified reachable. Generic library permanent-lease test backend can still model lifetime0, but actual shipped UPnP adapter refuses permanent-only router fallback.
+- Actual iOS screen compile/runtime/new packages NOT yet verified. No true relay, seamless reconnect, host migration or durable snapshot implied by Internet button. Phone can remain disconnected. Handoff/queue updated; no memory files changed.
+
+**END PROGRESS REPORT**
+
+---
+
 ## Restored video reviewed; move internet reachability before campaign expansion — 2026-11-04
 
 User asks whether to test Wi-Fi versus cellular first while preserving all ongoing campaign/balance objectives. Answer: prioritize a real separate-network test before expanding campaign integration, but current shipped room configuration must first expose a reachable internet hosting route.

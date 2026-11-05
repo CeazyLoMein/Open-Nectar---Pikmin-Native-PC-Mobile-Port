@@ -82,11 +82,9 @@ public:
         std::string lease = std::to_string(leaseSeconds);
         int result = UPNP_AddPortMapping(mUrls.controlURL, mData.first.servicetype, external.c_str(),
                                          internal.c_str(), mLan, "Open Nectar", "UDP", nullptr, lease.c_str());
-        if (result == kOnlyPermanentLeasesSupported) {
-            lease = "0";
-            result = UPNP_AddPortMapping(mUrls.controlURL, mData.first.servicetype, external.c_str(),
-                                         internal.c_str(), mLan, "Open Nectar", "UDP", nullptr, lease.c_str());
-        }
+        // Internet mode promises a bounded lease. Never silently downgrade
+        // to a permanent router rule that could survive an app/PC crash.
+        if (result == kOnlyPermanentLeasesSupported) return MappingError::Refused;
         if (result == kActionNotAuthorized) return MappingError::NotAuthorized;
         if (result == kConflictInMappingEntry) return MappingError::Refused;
         if (result != UPNPCOMMAND_SUCCESS) return MappingError::Refused;

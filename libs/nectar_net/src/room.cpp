@@ -80,6 +80,20 @@ const char* joinFailureString(JoinFailure failure)
     return "invalid_join_failure";
 }
 
+const char* hostRoomStatusText(const RoomStatus& status,bool internetHosting)
+{
+    if(!internetHosting)return "Wi-Fi room open. Copy the code to a device on the same network.";
+    if(status.checkingInternet)return "Checking your router for an internet route. You can leave or cancel while this runs.";
+    if(status.internetCheckFailed)return "Internet setup failed. Same-Wi-Fi play is still available if a code is shown. Try again later.";
+    switch(status.reachability) {
+    case Reachability::Public:return "Router advertised an internet route. Copy the latest code; your partner can try cellular. Remote access is not verified yet.";
+    case Reachability::Ipv6Only:return "IPv6 route advertised. Copy the latest code and try cellular; either network's firewall may still block it.";
+    case Reachability::BehindCgnat:return "No direct internet route: this connection is behind another router or carrier NAT. Use same Wi-Fi for now; a relay may be needed.";
+    case Reachability::NoAutomaticMapping:return "No direct internet route found. Use same Wi-Fi for now; this router may need forwarding or a relay.";
+    }
+    return "Could not determine internet reachability.";
+}
+
 // --- Host ------------------------------------------------------------------
 
 HostRoom::HostRoom(TransportFactory factory, PublisherBackends backends)
@@ -143,7 +157,7 @@ RoomError HostRoom::open(const RoomConfig& config, std::uint64_t nowUnixSeconds,
         return RoomError::ListenFailed;
     }
 
-    if (config.automaticPortMapping) {
+    if (config.automaticPortMapping && !config.asynchronousPortMapping) {
         mPublished = mPublisher->publish(port, 7200, config.includeLanEndpoint);
     } else {
         PublisherBackends local = mBackends;
@@ -153,12 +167,21 @@ RoomError HostRoom::open(const RoomConfig& config, std::uint64_t nowUnixSeconds,
         mPublished = addressesOnly.publish(port, 0, config.includeLanEndpoint);
     }
 
+    if(config.automaticPortMapping && config.asynchronousPortMapping) {
+        mLocalPublished=mPublished;
+        try {
+            mAsyncPublisher=std::make_unique<AsyncPortPublisher>(mBackends,port,config.includeLanEndpoint);
+            mCheckingInternet=true;
+        } catch(...) { mInternetCheckFailed=true; } // preserve LAN if thread creation fails
+    }
     status = RoomStatus{};
+    status.checkingInternet=mCheckingInternet;
+    status.internetCheckFailed=mInternetCheckFailed;
     status.localPort = port;
     status.reachability = mPublished.reachability;
     status.method = mPublished.method;
     status.code = issueCode(nowUnixSeconds);
-    if (status.code.empty()) {
+    if (status.code.empty() && !mCheckingInternet) {
         close();
         status = RoomStatus{};
         return RoomError::NoEndpoint;
@@ -168,14 +191,26 @@ RoomError HostRoom::open(const RoomConfig& config, std::uint64_t nowUnixSeconds,
 
 bool HostRoom::maintain(std::uint64_t nowMs, std::uint64_t nowUnixSeconds, RoomStatus& status)
 {
-    if (!mTransport || !mPublisher->maintain(nowMs, mPublished)) return false;
+    if (!mTransport) return false;
+    if(mAsyncPublisher) {
+        mAsyncPublisher->tick(nowMs);
+        PublishResult result;bool failed=false;
+        if(!mAsyncPublisher->take(result,failed))return false;
+        mCheckingInternet=false;mInternetCheckFailed=failed;
+        mPublished=failed?mLocalPublished:std::move(result);
+    } else if(!mPublisher->maintain(nowMs,mPublished))return false;
+    status.checkingInternet=mCheckingInternet;
+    status.internetCheckFailed=mInternetCheckFailed;
     status.reachability = mPublished.reachability;
+    status.method = mPublished.method;
     status.code = issueCode(nowUnixSeconds);
     return true;
 }
 
 void HostRoom::close()
 {
+    mAsyncPublisher.reset(); // worker retires its own lease, never blocks game/UI
+    mCheckingInternet=mInternetCheckFailed=false;
     if (mPublisher) mPublisher->withdraw();
     if (mTransport) mTransport->close();
     mTransport.reset();
@@ -183,6 +218,7 @@ void HostRoom::close()
     secureWipe(mCode.sessionNonce.data(), mCode.sessionNonce.size());
     mCode = ConnectionCode{};
     mPublished = PublishResult{};
+    mLocalPublished = PublishResult{};
 }
 
 // --- Guest -----------------------------------------------------------------

@@ -40,6 +40,7 @@ NSString* joinError(JoinFailure failure, CompatibilityField field) {
         default: return @"These game versions are not compatible. Check both updates and game data.";
         }
     case JoinFailure::NoTransport: return @"P1 couldn't start its network connection. Close and reopen P1, then try again.";
+    case JoinFailure::Unreachable: return @"Could not reach the host. For cellular, the host must use Host Internet and have a usable route. Routers or carriers may block direct access; a relay may be needed. Same-Wi-Fi play is still available.";
     case JoinFailure::Lost: return @"Connection lost. Host or join again when both phones are ready.";
     default: return @"Couldn't reach the host. Use the same Wi-Fi, allow Local Network access, and leave the host's connection screen open. Then try again.";
     }
@@ -51,16 +52,20 @@ NSString* joinError(JoinFailure failure, CompatibilityField field) {
     std::unique_ptr<GuestJoin> _guest;
     std::unique_ptr<CoopConnection> _handoff;
     CompatibilityInfo _identity;
+    RoomStatus _hostStatus;
+    BOOL _internetHosting;
     BOOL _checked;
     BOOL _closed;
     BOOL _away;
 }
 - (BOOL)detachConnection:(std::unique_ptr<CoopConnection>*)output;
 - (BOOL)rememberEvent:(TransportEvent*)event;
+- (void)openHost:(BOOL)internet;
 @property(nonatomic, weak) UIWindowScene* gameScene;
 @property(nonatomic, strong) UILabel* status;
 @property(nonatomic, strong) UITextView* code;
 @property(nonatomic, strong) UIButton* hostButton;
+@property(nonatomic, strong) UIButton* internetHostButton;
 @property(nonatomic, strong) UIButton* practiceButton;
 @property(nonatomic, strong) UIButton* joinButton;
 @property(nonatomic, strong) UIButton* clipboardButton;
@@ -97,7 +102,7 @@ static std::atomic<bool> sRoomCoversGame{false};
     title.numberOfLines = 0;
     nectarCoopStyleLabel(title);
     UILabel* explanation = [UILabel new];
-    explanation.text = @"Connect both phones to the same Wi-Fi. Host a private room, then copy its code to the other phone. After connecting, tap Start Co-op Practice on both phones from the title screen. The small practice area uses disposable state and does not change your campaign. Campaign co-op is still being developed.";
+    explanation.text = @"Use Host Wi-Fi for the same network. Host Internet checks for a direct route; mobile networks may need a relay. Internet mode requests a temporary UDP mapping where supported. Copy the latest code after the check finishes. After connecting, tap Start Co-op Practice on both phones from the title screen. The small practice area uses disposable state and does not change your campaign. Campaign co-op is still being developed.";
     explanation.font = [UIFont preferredFontForTextStyle:UIFontTextStyleBody];
     explanation.numberOfLines = 0;
     nectarCoopStyleLabel(explanation);
@@ -118,7 +123,8 @@ static std::atomic<bool> sRoomCoversGame{false};
     self.code.smartDashesType = UITextSmartDashesTypeNo;
     self.code.accessibilityLabel = @"Private room code";
     [self.code.heightAnchor constraintEqualToConstant:100].active = YES;
-    self.hostButton = [self button:@"Host Room" action:@selector(hostRoom)];
+    self.hostButton = [self button:@"Host Wi-Fi" action:@selector(hostRoom)];
+    self.internetHostButton = [self button:@"Host Internet (checks router)" action:@selector(hostInternet)];
     self.joinButton = [self button:@"Join Room" action:@selector(joinRoom)];
     self.clipboardButton = [self button:@"Copy Code" action:@selector(didTapCopy)];
     self.pasteButton = [self button:@"Paste Code" action:@selector(pasteCode)];
@@ -138,7 +144,7 @@ static std::atomic<bool> sRoomCoversGame{false};
     UIStackView* ending = [[UIStackView alloc] initWithArrangedSubviews:@[self.leaveButton, done]];
     ending.distribution = UIStackViewDistributionFillEqually;
     ending.spacing = 8;
-    UIStackView* content = [[UIStackView alloc] initWithArrangedSubviews:@[title, explanation, self.status, actions, self.code, editing, self.rejoinButton, ending]];
+    UIStackView* content = [[UIStackView alloc] initWithArrangedSubviews:@[title, explanation, self.status, actions, self.internetHostButton, self.code, editing, self.rejoinButton, ending]];
     if(self.practiceButton) [content insertArrangedSubview:self.practiceButton atIndex:3];
     content.axis = UILayoutConstraintAxisVertical;
     content.spacing = 12;
@@ -194,9 +200,10 @@ static std::atomic<bool> sRoomCoversGame{false};
 - (void)updateButtons {
     const BOOL busy = static_cast<bool>(_host) || static_cast<bool>(_guest);
     self.hostButton.enabled = _checked && !busy;
+    self.internetHostButton.enabled = _checked && !busy;
     self.joinButton.enabled = _checked && !busy;
     self.rejoinButton.enabled = _checked && !busy && sLastJoinedRoomCode.length > 0;
-    self.clipboardButton.enabled = static_cast<bool>(_host) && self.code.text.length > 0;
+    self.clipboardButton.enabled = static_cast<bool>(_host) && !_hostStatus.checkingInternet && self.code.text.length > 0;
     self.shareButton.enabled = self.clipboardButton.enabled;
     self.pasteButton.enabled = _checked && !busy;
     self.code.editable = _checked && !busy;
@@ -217,13 +224,17 @@ static std::atomic<bool> sRoomCoversGame{false};
     [self.view endEditing:YES];
     [self updateButtons];
 }
-- (void)hostRoom {
+- (void)hostRoom { [self openHost:NO]; }
+- (void)hostInternet { [self openHost:YES]; }
+- (void)openHost:(BOOL)internet {
     if (!_checked || _closed || _host || _guest) return;
     [self.view endEditing:YES];
     _host = std::make_unique<HostRoom>();
     RoomConfig config;
     config.compatibility = _identity;
-    config.automaticPortMapping = false;
+    _internetHosting=internet;
+    config.automaticPortMapping = internet;
+    config.asynchronousPortMapping = internet;
     config.includeLanEndpoint = true;
     RoomStatus status;
     const auto error = _host->open(config, unixSeconds(), status);
@@ -234,8 +245,9 @@ static std::atomic<bool> sRoomCoversGame{false};
     }
     // Only successful hosting replaces the previously remembered guest role.
     sLastJoinedRoomCode = nil;
+    _hostStatus=status;
     self.code.text = [NSString stringWithUTF8String:status.code.c_str()];
-    self.status.text = @"Room open. Copy the code to the other phone and leave this screen open.";
+    self.status.text = [NSString stringWithUTF8String:hostRoomStatusText(_hostStatus,_internetHosting)];
     [self updateButtons];
 }
 - (void)joinRoom {
@@ -278,6 +290,11 @@ static std::atomic<bool> sRoomCoversGame{false};
     if (_closed || _away) return;
     GatedTransport* link = nullptr;
     if (_host) {
+        RoomStatus updated;
+        if(_host->maintain(nowMs(),unixSeconds(),updated)) {
+            _hostStatus=updated;self.code.text=[NSString stringWithUTF8String:updated.code.c_str()];
+            [self updateButtons];
+        }
         TransportEvent event;
         for (int count = 0; count < 64 && _host->transport()->poll(event); ++count)
             if (![self rememberEvent:&event]) return;
@@ -288,7 +305,7 @@ static std::atomic<bool> sRoomCoversGame{false};
             return;
         }
         if (link->state() == TransportState::Listening)
-            self.status.text = @"Room open. Waiting for your partner. If they already joined, they can tap Rejoin Last Room.";
+            self.status.text = [NSString stringWithUTF8String:hostRoomStatusText(_hostStatus,_internetHosting)];
     } else if (_guest) {
         TransportEvent event; bool hasEvent = false;
         const auto progress = _guest->poll(nowMs(), event, hasEvent);
