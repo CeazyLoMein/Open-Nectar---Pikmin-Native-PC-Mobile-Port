@@ -53,5 +53,15 @@ int main(){
     check(near(unsent.x,4)&&near(unsent.z,-2),"preview reads exact quantized unsent accumulator used by network bundle");
     auto bundle=input.bundle(1010,0);input.published(bundle,1010);
     check(input.pendingCursorWorld(1010).x==0&&input.pendingCursorWorld(1010).z==0,"publishing clears unsent preview accumulator");
+    preview.reset();preview.activity(true,true,2000);
+    truth.position={100,0,200};truth.cursor={115,5,220};
+    for(int delta=-100;delta<=100;delta+=10){
+        Vec3 displayed{100.0f+delta,0,200.0f-delta};
+        check(preview.sample(truth,150,{3,0,-2},200,2001,shown,&displayed),"moving captain supports local aim preview");
+        check(near(shown.x-displayed.x,18)&&near(shown.z-displayed.z,18),"pending aim stays attached to displayed captain, not newer unsmoothed position");
+    }
+    const auto kept=shown;Vec3 badPosition{std::numeric_limits<float>::quiet_NaN(),0,0};
+    check(!preview.sample(truth,150,{},200,2002,shown,&badPosition)&&near(shown.x,kept.x),"invalid displayed position leaves cursor output unchanged");
+    check(truth.position.x==100&&truth.cursor.x==115,"moving preview never changes authoritative state");
     std::printf("%d cursor projection/ownership/preview checks passed\n",checks);
 }

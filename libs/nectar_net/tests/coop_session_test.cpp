@@ -251,6 +251,30 @@ void replaceablePictureChecks() {
     p.settle(10);check(p.guest.actors().frame==4,"old reordered pictures cannot roll back current world");
 }
 
+void interruptionRecoveryChecks() {
+    for(bool suspendHost:{false,true})for(bool announced:{false,true}) {
+        Pair p;p.begin();p.load();p.ready();p.net.setHostToGuest({});p.net.setGuestToHost({});
+        auto& absent=suspendHost?p.host:p.guest;auto& present=suspendHost?p.guest:p.host;
+        if(announced){check(absent.setBlocked(CoopBlock::Background,true),"interruption pauses before suspension");p.settle(50);}
+        const auto end=p.now+65000;
+        for(;p.now<end;p.now+=100){p.net.advance(p.now);present.pump(p.now);}
+        check(!present.canIssueCommands(),"remaining peer cannot play through65second interruption");
+        check(p.host.phase()!=CoopPhase::WaitingForPartner&&p.guest.phase()!=CoopPhase::WaitingForPartner,"call retains live session on both host roles");
+        absent.pump(p.now); // Must mark stale readiness BEFORE draining queued data.
+        if(announced)check(absent.setBlocked(CoopBlock::Background,false),"returning app clears background block");
+        p.settle(1000);
+        check(!p.host.hostShouldAdvanceWorld()&&!p.guest.canIssueCommands(),"return never automatically restarts simulation");
+        check(p.host.setReady(true)&&p.guest.setReady(true),"both can explicitly resume after call");p.settle();
+        check(p.host.hostShouldAdvanceWorld()&&p.guest.canIssueCommands()&&p.guest.actors().pikmin.size()==60,"same complete world resumes after announced/unannounced host/guest call");
+    }
+    Pair dead;dead.begin();dead.load();dead.ready();dead.net.setHostToGuest({});dead.net.setGuestToHost({});dead.settle();
+    LinkConditions blackhole;blackhole.lossPerMille=1000;blackhole.reliableLossDelayMs=static_cast<unsigned>(CoopSession::kReconnectGraceMs+10000);
+    dead.net.setHostToGuest(blackhole);dead.net.setGuestToHost(blackhole);
+    dead.now+=CoopSession::kReconnectGraceMs+1000;dead.net.advance(dead.now);dead.host.pump(dead.now);dead.guest.pump(dead.now);
+    check(dead.host.phase()==CoopPhase::WaitingForPartner&&dead.guest.phase()==CoopPhase::WaitingForPartner,"genuine prolonged silence has a bounded hard deadline");
+    check(!dead.host.setReady(true)&&!dead.guest.setReady(true),"expired session cannot resume with a ready click");
+}
+
 void audioSessionChecks() {
     // A stalled ordered link may deliver a sound and many newer pictures in one
     // pump. Expire the old one-shot against the latest accepted picture as well.
@@ -286,7 +310,7 @@ void audioSessionChecks() {
     check(p.guest.takeAudio(p.now).empty(),"end discards old-scene sound cues");
 }
 int main() {
-    guestTimingMatrix();audioSessionChecks();replaceablePictureChecks();
+    guestTimingMatrix();audioSessionChecks();replaceablePictureChecks();interruptionRecoveryChecks();
     if(!failures)std::puts("PASS 120 independent-rate/jitter session combinations and host-owned audio lifecycle");
     {
         Pair p(false);
@@ -402,14 +426,15 @@ int main() {
         p.net.advance(p.now);
         p.host.pump(p.now);
     }
-    check(p.host.phase() == CoopPhase::WaitingForPartner && !p.host.hostShouldAdvanceWorld(),
-          "missing peer heartbeat freezes host world");
+    check(p.host.connectionInterrupted() && !p.host.hostShouldAdvanceWorld(),
+          "missing heartbeat freezes world without discarding an intact connection");
     p.guest.pump(p.now);
-    check(p.guest.phase() == CoopPhase::WaitingForPartner && !p.guest.canIssueCommands(),
-          "stale queued status cannot revive suspended guest");
-    check(p.guest.actors().pikmin.size() == 60, "disconnect retains last complete visual replica");
-    check(!p.guest.setReady(true) && !p.host.setReady(true),
-          "lost peer cannot silently resume with ready command");
+    check(!p.guest.canIssueCommands(),"stale queued status cannot silently resume suspended guest");
+    check(p.guest.actors().pikmin.size()==60,"interruption retains the complete replica");
+    p.settle();
+    check(!p.host.hostShouldAdvanceWorld() && !p.guest.canIssueCommands(),"restored messages still require explicit ready");
+    check(p.host.setReady(true)&&p.guest.setReady(true),"both explicitly resume the retained session");p.settle();
+    check(p.host.hostShouldAdvanceWorld()&&p.guest.canIssueCommands(),"short unannounced interruption resumes without new room or lost actors");
     p.host.end();
     p.guest.end();
     check(!p.host.begin(100, 1, 1, p.now) && !p.guest.begin(100, 1, 1, p.now),
@@ -549,13 +574,11 @@ int main() {
         delayed.net.setHostToGuest(loss);
         check(delayed.host.setBlocked(CoopBlock::Manual,true), "host pause enters severely delayed connection");
         delayed.settle(8000);
-        check(delayed.host.phase()==CoopPhase::WaitingForPartner && !delayed.host.hostShouldAdvanceWorld(),
-              "host freezes when sustained one-way delay causes partner timeout");
-        check(delayed.guest.phase()==CoopPhase::WaitingForPartner && !delayed.guest.canIssueCommands(),
-              "late reliable messages cannot silently revive a timed-out guest");
+        check(!delayed.host.hostShouldAdvanceWorld() && !delayed.guest.canIssueCommands(),
+              "severely delayed connection freezes both worlds");
         delayed.net.setHostToGuest({});delayed.settle(1000);
-        check(delayed.host.phase()==CoopPhase::WaitingForPartner && delayed.guest.phase()==CoopPhase::WaitingForPartner,
-              "restored delivery alone cannot resume a lost session");
+        check(!delayed.host.hostShouldAdvanceWorld() && !delayed.guest.canIssueCommands(),
+              "late delivery cannot silently restore readiness");
     }
 
     if (!failures)

@@ -21,7 +21,7 @@ public:
         pending.push_back({input.tick,now,pc_coop_cursor::decode(input.cursorDx,input.cursorDy)});
     }
     bool sample(const nectar::net::CaptainState& authoritative,std::uint64_t ackTick,
-                const pc_coop_cursor::Motion& unsent,float radius,std::uint64_t now,nectar::net::Vec3& out) {
+                const pc_coop_cursor::Motion& unsent,float radius,std::uint64_t now,nectar::net::Vec3& out,const nectar::net::Vec3* shownCaptain=nullptr) {
         while (!pending.empty() && (pending.front().tick<=ackTick || now<pending.front().at || now-pending.front().at>300)) pending.pop_front();
         if (!haveActivity || now<lastActivity || (!held && pending.empty() && now-lastActivity>150)) return false;
         if (!std::isfinite(radius)||radius<=0||radius>10000) return false;
@@ -32,6 +32,16 @@ public:
         const float dx=wanted.x-authoritative.position.x,dz=wanted.z-authoritative.position.z;
         const float distance=std::hypot(dx,dz);
         if(distance>radius){wanted.x=authoritative.position.x+dx/distance*radius;wanted.z=authoritative.position.z+dz/distance*radius;}
+        // Aim response uses acknowledged truth plus pending input, while the
+        // displayed captain is interpolated in the past. Attach the marker to
+        // that displayed position, otherwise walking makes it jump ahead of
+        // the captain every time a new network picture arrives.
+        if(shownCaptain) {
+            if(!std::isfinite(shownCaptain->x)||!std::isfinite(shownCaptain->y)||!std::isfinite(shownCaptain->z))return false;
+            wanted.x+=shownCaptain->x-authoritative.position.x;
+            wanted.y+=shownCaptain->y-authoritative.position.y;
+            wanted.z+=shownCaptain->z-authoritative.position.z;
+        }
         out=wanted;return true;
     }
 private:

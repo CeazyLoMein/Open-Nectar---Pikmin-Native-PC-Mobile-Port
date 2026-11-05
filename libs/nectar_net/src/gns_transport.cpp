@@ -288,10 +288,14 @@ bool GnsTransport::listen(const Endpoint& endpoint)
         mImpl->queue(TransportEventType::Error, "Invalid listen endpoint");
         return false;
     }
-    SteamNetworkingConfigValue_t option;
+    SteamNetworkingConfigValue_t options[2];
+    // Application freezes after3s silence; preserve its ten-minute recovery
+    // window plus transport slack if iOS suspends the networking threads too.
+    options[1].SetInt32(k_ESteamNetworkingConfig_TimeoutConnected, 605000);
+    auto& option=options[0];
     option.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged,
                   reinterpret_cast<void*>(+Impl::statusChanged));
-    mImpl->listener = mImpl->sockets->CreateListenSocketIP(bindAddress, 1, &option);
+    mImpl->listener = mImpl->sockets->CreateListenSocketIP(bindAddress, 2, options);
     if (mImpl->listener == k_HSteamListenSocket_Invalid) {
         mImpl->currentState = TransportState::Failed;
         mImpl->queue(TransportEventType::Error, "Could not create the encrypted UDP listener");
@@ -315,10 +319,14 @@ bool GnsTransport::connect(const Endpoint& endpoint)
         mImpl->queue(TransportEventType::Error, "Invalid remote endpoint");
         return false;
     }
-    SteamNetworkingConfigValue_t option;
+    SteamNetworkingConfigValue_t options[2];
+    // Application freezes after3s silence; preserve its ten-minute recovery
+    // window plus transport slack if iOS suspends the networking threads too.
+    options[1].SetInt32(k_ESteamNetworkingConfig_TimeoutConnected, 605000);
+    auto& option=options[0];
     option.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged,
                   reinterpret_cast<void*>(+Impl::statusChanged));
-    mImpl->connection = mImpl->sockets->ConnectByIPAddress(remoteAddress, 1, &option);
+    mImpl->connection = mImpl->sockets->ConnectByIPAddress(remoteAddress, 2, options);
     if (mImpl->connection == k_HSteamNetConnection_Invalid) {
         mImpl->currentState = TransportState::Failed;
         mImpl->queue(TransportEventType::Error, "Could not start the encrypted UDP connection");

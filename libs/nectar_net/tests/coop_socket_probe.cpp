@@ -179,6 +179,20 @@ int main() {
                  until(pump, [&] { return h.phase() == CoopPhase::WaitingForReady; }) &&
                  g.setReady(true) && until(pump, [&] { return h.hostShouldAdvanceWorld(); }),
                  "foreground needs explicit partner readiness")) return 1;
+    if(!require(h.setBlocked(CoopBlock::Background,true) && until(pump,[&] {return g.phase()==CoopPhase::Paused;}),
+                "host call pauses encrypted session before polling suspension"))return 1;
+    const auto callEnd=nowMs()+4200;
+    while(nowMs()<callEnd){g.pump(nowMs());std::this_thread::sleep_for(std::chrono::milliseconds(2));}
+    if(!require(g.phase()!=CoopPhase::WaitingForPartner && !g.canIssueCommands(),
+                "encrypted guest waits safely beyond old three-second host timeout"))return 1;
+    h.pump(nowMs());
+    if(!require(h.setBlocked(CoopBlock::Background,false) && until(pump,[&] {
+                    return !h.connectionInterrupted()&&!g.connectionInterrupted();}) &&
+                !h.hostShouldAdvanceWorld()&&!g.canIssueCommands(),
+                "returning host drains queued messages without silently restarting world"))return 1;
+    if(!require(h.setReady(true)&&g.setReady(true)&&until(pump,[&] {
+                    return h.hostShouldAdvanceWorld()&&g.canIssueCommands();}),
+                "same encrypted session resumes after host call with explicit readiness"))return 1;
     TransportStats stats;
     if (!require(host.stats(stats) && stats.rttMs >= 0, "real connection exposes measured RTT")) return 1;
     guest.disconnectPeer(false);

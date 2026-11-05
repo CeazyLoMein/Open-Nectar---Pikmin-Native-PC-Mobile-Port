@@ -128,6 +128,6 @@ extern "C" void nectar_desktop_coop_pump(){
     if(now-lastStatus>=200){lastStatus=now;
         auto* link=host?host->transport():guest?guest->transport():nullptr;
         if(link&&link->state()==TransportState::Connected)status("Connected. Start Co-op Practice on both devices, then Ready / Resume. You do not need simultaneous clicks.");
-        if(panel){char value[600];pc_coop_practice_status(value,sizeof(value));SetWindowTextA(practiceStatus,value);}
+        if(panel){char value[600];pc_coop_practice_status(value,sizeof(value));SetWindowTextA(practiceStatus,value);EnableWindow(GetDlgItem(panel,10),pc_coop_practice_can_ready());}
     }
 }

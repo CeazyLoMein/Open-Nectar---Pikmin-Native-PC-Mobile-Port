@@ -87,7 +87,7 @@ bool CoopSession::begin(std::uint64_t session, std::uint16_t epoch, std::uint64_
 }
 void CoopSession::end() {
     mActive = false;
-    mLost = false;
+    mLost = mQuiet = false;
     mBuffered.clear();
     mSession = 0;
     mEpoch = 0;
@@ -293,7 +293,7 @@ bool CoopSession::confirmWorldLoaded() {
 }
 bool CoopSession::setReady(bool ready) {
     if (!mActive || mLost ||
-        (ready && (!mLocalLoaded || (mLocalBlocks & static_cast<std::uint8_t>(CoopBlock::Background)))))
+        (ready && (mQuiet || !mLocalLoaded || (mLocalBlocks & static_cast<std::uint8_t>(CoopBlock::Background)))))
         return false;
     if (mLocalReady == ready)
         return true;
@@ -354,7 +354,7 @@ CoopPhase CoopSession::phase() const {
         return CoopPhase::WaitingForPartner;
     if (!mHaveView || !mView.loaded[0] || !mView.loaded[1])
         return CoopPhase::Loading;
-    if (mLocalBlocks || mView.blockers[0] || mView.blockers[1])
+    if (mQuiet || mLocalBlocks || mView.blockers[0] || mView.blockers[1])
         return CoopPhase::Paused;
     if (!mLocalReady || !mView.ready[0] || !mView.ready[1])
         return CoopPhase::WaitingForReady;
@@ -485,14 +485,24 @@ void CoopSession::receive(const TransportEvent &event, std::uint64_t now) {
     if (accepted) {
         if(!transientPicture)mReceived = msg.header.sequence;
         mLastHeard = now;
+        mQuiet = false;
     }
 }
 void CoopSession::pump(std::uint64_t now) {
     if (!mActive || mLost)
         return;
-    if (!linked() || now < mLastHeard || now - mLastHeard >= kPeerTimeoutMs) {
+    if (!linked() || now < mLastHeard) {
         lost();
         return;
+    }
+    if(now-mLastHeard>=kPeerTimeoutMs && !mQuiet) {
+        // Silence first freezes the world and revokes local readiness. A call
+        // may suspend polling without destroying the authenticated UDP link.
+        // Mark this BEFORE draining queued data so stale Running status cannot
+        // silently resume a suspended process on its first frame back.
+        mQuiet=true;
+        setReady(false);
+        if(mLost)return;
     }
     TransportEvent event;
     for (std::size_t i = 0; i < 64; ++i) {
@@ -503,7 +513,7 @@ void CoopSession::pump(std::uint64_t now) {
             return;
     }
     mActors.expire(now);
-    if (now < mLastHeard || now - mLastHeard >= kPeerTimeoutMs) {
+    if (now < mLastHeard || now - mLastHeard >= kReconnectGraceMs) {
         lost();
         return;
     }

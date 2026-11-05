@@ -226,7 +226,7 @@ void pc_coop_practice_tick_begin() {
                     const auto latest=s->actors().captains.find(entry.first);
                     net::Vec3 cursor;
                     if(latest!=s->actors().captains.end() && cursorPreview.sample(latest->second,s->actors().tick,
-                        inputs.pendingCursorWorld(now),C_NAVI_PARM(local,mCursorMaxRadius),now,cursor)) entry.second.cursor=cursor;
+                        inputs.pendingCursorWorld(now),C_NAVI_PARM(local,mCursorMaxRadius),now,cursor,&entry.second.position)) entry.second.cursor=cursor;
                 }
             }
             if (!pc_coop_world_present_guest(presented)) {
@@ -266,7 +266,8 @@ void pc_coop_practice_tick_end() {
             if(n) { p->mSRT.t=n->mSRT.t;p->mLastPosition=p->mSRT.t;p->mVelocity.set(0,0,0);p->changeMode(PikiMode::FormationMode,n); }
         }
     }
-    if (role==net::CoopRole::Host && (!frame || now-lastPublish>=net::CoopSession::kActorPeriodMs)) {
+    if (role==net::CoopRole::Host && !s->connectionInterrupted() && s->phase()!=net::CoopPhase::WaitingForPartner
+        && (!frame || now-lastPublish>=(s->phase()==net::CoopPhase::Paused?1000:net::CoopSession::kActorPeriodMs))) {
         std::vector<std::vector<std::uint8_t>> packets;
         // Leave room for the protocol/encrypted UDP headers inside a1280-byte
         // VPN interface (including Tailscale). Receiver retains its1200 limit.
@@ -402,7 +403,7 @@ float pc_coop_practice_remote_speed(int p) {
     return pc_coop_practice_remote_input(p)?remote.naviSpeedPct*.01f:1.0f;
 }
 int pc_coop_practice_local_player() { return owner && role==net::CoopRole::Guest ? 1 : 0; }
-bool pc_coop_practice_can_ready() { return owner && !stopped && confirmed && session() && session()->phase()!=net::CoopPhase::WaitingForPartner; }
+bool pc_coop_practice_can_ready() { return owner && !stopped && confirmed && session() && !session()->connectionInterrupted() && session()->phase()!=net::CoopPhase::WaitingForPartner; }
 bool pc_coop_practice_ready() {
     if (!ownThread() || !pc_coop_practice_can_ready()) return false;
     return session()->setBlocked(net::CoopBlock::Manual,false) && session()->setReady(true);
@@ -436,6 +437,7 @@ void pc_coop_practice_status(char* out,std::size_t cap) {
         auto* s=session();
         if (!s || !confirmed) msg="Loading disposable practice area. Keep both phones in P1. Your campaign is untouched.";
         else if (s->phase()==net::CoopPhase::WaitingForPartner) msg="Partner disconnected. The practice world is frozen. This first test requires reopening P1 on both phones to reconnect; live rejoin is next.";
+        else if (s->connectionInterrupted()) msg="Connection interrupted. The world is paused while your partner returns. Return to P1, wait for the connection, then tap Ready / Resume. You can end practice here.";
         else if (s->phase()==net::CoopPhase::Running) msg="Practice running. Each captain has 12 Pikmin. Move, throw, whistle and dismiss; Pause opens this panel. No campaign progress is saved.";
         else msg=pc_practice_wait_message(s->view(),role==net::CoopRole::Host ? 0 : 1);
     }

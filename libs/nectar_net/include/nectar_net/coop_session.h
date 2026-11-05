@@ -33,7 +33,7 @@ struct CoopView {
 // Integrate with actual engine readiness/pause/input/camera only in prototype.
 class CoopSession {
   public:
-    static constexpr std::uint64_t kHeartbeatMs = 500, kPeerTimeoutMs = 3000, kMarkerMs = 8000,
+    static constexpr std::uint64_t kHeartbeatMs = 500, kPeerTimeoutMs = 3000, kReconnectGraceMs = 10*60*1000, kMarkerMs = 8000,
                                    kMarkerCooldownMs = 1000, kActorPeriodMs = 50;
     static constexpr std::int32_t kReliableBacklogLimit = 64 * 1024;
     CoopSession(GatedTransport &link, CoopRole role) : mLink(link), mRole(role) {}
@@ -74,6 +74,7 @@ class CoopSession {
     // Diagnostic acknowledgement of buffered input, NOT a simulation clock or
     // proof it was applied. Clears at every pause/readiness revision.
     std::uint64_t receivedGuestInputTick() const { return mReceivedInputTick; }
+    bool connectionInterrupted() const { return mQuiet; }
     const CoopView &view() const { return mView; }
     const ActorFrame &actors() const { return mActors.current(); }
     CoopMarker marker(std::uint8_t player, std::uint64_t nowMs) const;
@@ -94,7 +95,7 @@ class CoopSession {
                   mLastHeartbeat = 0, mLastActorAt = 0, mLastPublishedTick = 0;
     std::uint16_t mEpoch = 0, mLastEpoch = 0;
     std::uint32_t mSent = 0, mReceived = 0;
-    bool mActive = false, mLost = false, mLocalLoaded = false, mLocalReady = false, mHaveView = false;
+    bool mActive = false, mLost = false, mQuiet = false, mLocalLoaded = false, mLocalReady = false, mHaveView = false;
     std::uint8_t mLocalBlocks = 0;
     InputPolicy mInputPolicy;
     InputReceiver mGuestInput;
