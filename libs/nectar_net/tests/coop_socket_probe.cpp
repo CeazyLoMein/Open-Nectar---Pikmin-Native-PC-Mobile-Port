@@ -134,6 +134,17 @@ int main() {
                  "both deliberately ready after fixture baseline loads")) return 1;
     if (!require(until(pump, [&] { return h.hostShouldAdvanceWorld() && g.canIssueCommands(); }),
                  "host alone owns simulation; ready partner may issue commands")) return 1;
+    bool pictureSent=false;
+    if (!require(packActorFrame(100,1,2,2,records,1000,{},packets) &&
+                 until([&] { pump(); if(!pictureSent)pictureSent=h.publishActors(packets,nowMs()); },
+                       [&] { return g.actors().frame==2; }) && g.actors().pikmin.size()==60,
+                 "running replaceable multipart picture crosses real encrypted UDP atomically")) return 1;
+    AudioCue cue;cue.kind=AudioKind::PlayerPlay;cue.player=1;cue.sound=6;
+    std::vector<AudioCue> heard;
+    if (!require(h.publishAudio({cue},nowMs()) && until([&] {
+        pump();auto fresh=g.takeAudio(nowMs());heard.insert(heard.end(),fresh.begin(),fresh.end());
+    },[&] {return !heard.empty();}) && heard.size()==1,
+                 "reliable audio coexists with replaceable pictures over encrypted UDP")) return 1;
     NetInputFrame movement; movement.tick = 4; movement.stickX = 90; movement.held = 1;
     if (!require(g.publishInput({movement}, nowMs()) &&
                  until(pump, [&] { return h.receivedGuestInputTick() == 4; }),

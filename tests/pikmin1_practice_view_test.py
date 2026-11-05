@@ -56,7 +56,10 @@ void envPlayer(const char* value){
 using f32=float;
 #define AREA_FULL_SCREEN(gfx) 0
 struct Vector3f{float x=0,y=0,z=0; Vector3f operator+(Vector3f b)const{return {x+b.x,y+b.y,z+b.z};}Vector3f operator*(float s)const{return {x*s,y*s,z*s};}};
-struct Navi{Camera* mNaviCamera=nullptr;struct {Vector3f t;}mSRT;bool isAlive(){return true;}};
+struct Controller {int polls=0; void update(){++polls;}};
+struct Kontroller:Controller{};
+Kontroller viewControllers[2];
+struct Navi{Kontroller* mKontroller=nullptr;Camera* mNaviCamera=nullptr;struct {Vector3f t;}mSRT;bool isAlive(){return true;}};
 namespace zen {
 struct GameInfo {};
 struct DrawGameInfo {int full=0,player=0,shared=0,updates=0;GameInfo data;GameInfo* info(){return &data;}void update(){++updates;}void draw(Graphics&){++full;}void drawPlayer(Graphics&){++player;}void drawShared(Graphics&){++shared;}};
@@ -99,7 +102,7 @@ struct Renderer {int mSplitViews=0;float mCameraFarClip=9000;void drawViews(Grap
 void resetOutputs(zen::DrawGameInfo* hud){for(int i=0;i<2;++i){hud[i]={};box[i]={};}sound={};camleadCalls=0;}
 int main(){
  Camera cameras[2];Navi navis[2];zen::DrawGameInfo hud[2];Graphics gfx;Renderer renderer;GameCoreSection core;
- for(int i=0;i<2;++i){navis[i].mNaviCamera=&cameras[i];navis[i].mSRT.t={float(i*80),0,0};}
+ for(int i=0;i<2;++i){navis[i].mKontroller=&viewControllers[i];navis[i].mNaviCamera=&cameras[i];navis[i].mSRT.t={float(i*80),0,0};}
  core.mNavi=&navis[0];core.mNavi2=&navis[1];core.mGameCamera2=&cameras[1];core.mDrawGameInfo=&hud[0];core.mDrawGameInfo2=&hud[1];gamecore=&core;
  envPlayer("0");pc_netplay_present_reset_local_player();pc_render_begin_authoritative_tick();
  check(!pc_netplay_present_single_view()&&!pc_netplay_present_local_view_pass(),"normal play has no single-view override");
@@ -122,7 +125,14 @@ int main(){
   check(sound.calls==1&&sound.listener.x==float(local*80),"sound listener follows own captain, not distant other player");
   check(merge&&firstPerson==(local==1)&&!deterministic,"view entry never overwrites personal merge/first-person settings or simulation mode");
   worldAdvance=false;pc_render_begin_presentation(1.0);int ownUpdates=managers[local].updates,otherUpdates=managers[1-local].updates;
-  hasGuest=true;core.pcUpdateCoopHeldView();check(hud[0].updates==1 && hud[1].updates==1,"held guest HUD refreshes both replicated displays");hasGuest=false;
+  int beforePoll=viewControllers[1].polls,otherPoll=viewControllers[0].polls;
+  hasGuest=true;core.pcUpdateCoopHeldView();
+  check(viewControllers[1].polls==beforePoll+1&&viewControllers[0].polls==otherPoll,"held guest refreshes only its physical camera controller without actor AI");
+  hasGuest=false;core.pcUpdateCoopHeldView();
+  check(viewControllers[1].polls==beforePoll+1,"host path never double-polls the normal character controller");
+  // Undo the extra host-camera sample for the existing ownership assertions.
+  --managers[local].updates;
+  hasGuest=true;check(hud[0].updates==1 && hud[1].updates==1,"held guest HUD refreshes both replicated displays");hasGuest=false;
   check(managers[local].updates==ownUpdates+1&&managers[1-local].updates==otherUpdates&&cameraMgr==&managers[0]&&sCameraMgrP1==nullptr,"held world advances only local camera and restores legacy singleton");
   check(!pc_netplay_present_sim_side()&&pc_netplay_present_local_player()==local,"camera motion never releases held world or changes identity");
   pc_render_end_presentation();worldAdvance=true;

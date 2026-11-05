@@ -3309,6 +3309,11 @@ void GameCoreSection::pcUpdateCoopHeldView()
 	if (!gameflow.mMoviePlayer->mIsActive) {
 		// setActiveView scopes the legacy camera singleton, not gameplay input
 		// ownership. Only this phone's camera advances; restore P1 afterward.
+		// Guest actors are presentation-only, so Navi::update (which normally
+		// polls its Kontroller) never runs. Refresh only this guest's physical
+		// view controller; do not execute character AI or replay remote input.
+		if (pc_coop_world_has_guest() && mNavi2->mKontroller)
+			mNavi2->mKontroller->Controller::update();
 		setActiveView(pc_netplay_present_local_player());
 		cameraMgr->update();
 		setActiveView(0);

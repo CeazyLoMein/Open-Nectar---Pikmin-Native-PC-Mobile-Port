@@ -65,6 +65,10 @@ std::uint64_t diagnosticAt=0,diagnosticLive=0,diagnosticRepeat=0,diagnosticNeutr
 void practiceReport(std::uint64_t now, net::CoopSession* s) {
     if (!s || (diagnosticAt && (now<diagnosticAt || now-diagnosticAt<1000))) return;
     diagnosticAt=now;
+    static std::uint64_t rateAt=0,rateTick=0;
+    const double hostRate=rateAt && now>rateAt && tick>=rateTick
+        ? double(tick-rateTick)*1000.0/double(now-rateAt) : 0.0;
+    rateAt=now;rateTick=tick;
     // Keep separate bounded reports per app launch, preserving earlier tests.
     static char path[96]={};
     if (!path[0]) std::snprintf(path,sizeof(path),"p1-coop-practice-%llu.txt",
@@ -101,7 +105,7 @@ void practiceReport(std::uint64_t now, net::CoopSession* s) {
                 static_cast<unsigned long long>(diagnosticSamples),static_cast<unsigned long long>(diagnosticSent),c?1:0,
                 c?finite(c->mPosition.x):0.0f,c?finite(c->mPosition.y):0.0f,c?finite(c->mPosition.z):0.0f,
                 c?finite(c->mFocus.x):0.0f,c?finite(c->mFocus.y):0.0f,c?finite(c->mFocus.z):0.0f,
-                n?finite(n->mSRT.t.x):0.0f,n?finite(n->mSRT.t.y):0.0f,n?finite(n->mSRT.t.z):0.0f,inputs.rateHz(),
+                n?finite(n->mSRT.t.x):0.0f,n?finite(n->mSRT.t.y):0.0f,n?finite(n->mSRT.t.z):0.0f,role==net::CoopRole::Host?hostRate:inputs.rateHz(),
                 static_cast<unsigned long long>(inputs.frameAge(now)),static_cast<unsigned long long>(inputs.targetTick()),s->inputHoldTicks(),
                 static_cast<unsigned long long>(s->view().revision),static_cast<unsigned long long>(audioSent),
                 static_cast<unsigned long long>(audioPlayed),static_cast<unsigned long long>(audioDropped),pc_coop_audio_backend_state());
@@ -264,7 +268,9 @@ void pc_coop_practice_tick_end() {
     }
     if (role==net::CoopRole::Host && (!frame || now-lastPublish>=net::CoopSession::kActorPeriodMs)) {
         std::vector<std::vector<std::uint8_t>> packets;
-        if (!pc_coop_world_capture_packets(++frame,tick,net::kActorMaxPacketBytes,packets)) {
+        // Leave room for the protocol/encrypted UDP headers inside a1280-byte
+        // VPN interface (including Tailscale). Receiver retains its1200 limit.
+        if (!pc_coop_world_capture_packets(++frame,tick,1000,packets)) {
             fail("Practice actors could not be captured safely. Close P1 and reopen.");return;
         }
         if (s->publishActors(packets,now)) { lastPublish=now;if (!confirmed) confirmed=s->confirmWorldLoaded(); }

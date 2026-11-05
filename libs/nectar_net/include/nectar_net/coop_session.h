@@ -82,7 +82,7 @@ class CoopSession {
     friend class CoopConnection; // exclusive already-authenticated handoff queue
     std::deque<TransportEvent> mBuffered;
     bool linked() const;
-    bool send(MessageType type, const std::vector<std::uint8_t> &payload);
+    bool send(MessageType type, const std::vector<std::uint8_t> &payload, Delivery delivery = Delivery::ReliableOrdered);
     bool control(std::uint8_t op, std::uint8_t value = 0, std::uint64_t frame = 0);
     bool publishView();
     void receive(const TransportEvent &event, std::uint64_t nowMs);

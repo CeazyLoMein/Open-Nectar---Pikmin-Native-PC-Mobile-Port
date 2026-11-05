@@ -109,7 +109,7 @@ void CoopSession::lost() {
     mLost = true;
     mLocalReady = false;
 }
-bool CoopSession::send(MessageType type, const std::vector<std::uint8_t> &payload) {
+bool CoopSession::send(MessageType type, const std::vector<std::uint8_t> &payload, Delivery delivery) {
     if (!mActive || mLost)
         return false;
     if (!linked() || mSent == std::numeric_limits<std::uint32_t>::max()) {
@@ -123,7 +123,7 @@ bool CoopSession::send(MessageType type, const std::vector<std::uint8_t> &payloa
     msg.header.sequence = mSent + 1;
     msg.payload = payload;
     std::vector<std::uint8_t> bytes;
-    if (!encodeMessage(msg, bytes) || !mLink.send(Delivery::ReliableOrdered, bytes.data(), bytes.size())) {
+    if (!encodeMessage(msg, bytes) || !mLink.send(delivery, bytes.data(), bytes.size())) {
         lost();
         return false;
     }
@@ -170,7 +170,10 @@ bool CoopSession::publishActors(const std::vector<std::vector<std::uint8_t>> &pa
         check.current().frame <= mLastPublished || check.current().tick < mLastPublishedTick)
         return false;
     for (const auto &p : packets)
-        if (!send(MessageType::WorldSnapshot, p))
+        // Admission/reload baselines retain guaranteed delivery. During play,
+        // each full picture supersedes previous ones; don't queue newer views
+        // behind retransmissions of an obsolete picture.
+        if (!send(MessageType::WorldSnapshot, p, phase()==CoopPhase::Running ? Delivery::Unreliable : Delivery::ReliableOrdered))
             return false;
     mLastPublished = check.current().frame;
     mLastPublishedTick = check.current().tick;
@@ -195,15 +198,25 @@ bool CoopSession::publishAudio(const std::vector<AudioCue>& cues, std::uint64_t 
 }
 std::vector<AudioCue> CoopSession::takeAudio(std::uint64_t now) {
     std::vector<AudioCue> out;
+    std::deque<PendingAudio> waiting;
     if(mRole==CoopRole::Guest && canIssueCommands()) {
         for(const auto& p:mAudio) {
+            // Reliable audio can beat the corresponding replaceable picture.
+            // Wait briefly for that or a newer complete picture, never play
+            // against an emitter that hasn't been admitted to the guest yet.
+            const bool cleanup=p.cue.kind==AudioKind::SpatialRelease || p.cue.kind==AudioKind::Reset || p.cue.kind==AudioKind::SpatialStop
+                || p.cue.kind==AudioKind::PlayerStop || p.cue.kind==AudioKind::SystemStop;
+            if(p.frame>mActors.current().frame && !cleanup) {
+                if(now>=p.at && now-p.at<=300)waiting.push_back(p);
+                continue;
+            }
             const bool persistent=p.cue.loop || p.cue.kind!=AudioKind::SpatialPlay;
             const bool oneShot=p.cue.kind==AudioKind::PlayerPlay || p.cue.kind==AudioKind::SystemPlay || p.cue.kind==AudioKind::Footstep;
             const bool recentFrame=mActors.current().frame<=p.frame || mActors.current().frame-p.frame<=6;
             if(now>=p.at && ((now-p.at<=300 && recentFrame) || (persistent && !oneShot))) out.push_back(p.cue);
         }
     }
-    mAudio.clear();return out;
+    mAudio.swap(waiting);return out;
 }
 void CoopSession::resetInput() {
     mAudio.clear();mAudioSent=false;mLastAudioAt=0;
@@ -356,14 +369,20 @@ void CoopSession::receive(const TransportEvent &event, std::uint64_t now) {
         lost();
         return;
     }
-    if (event.type != TransportEventType::Message || event.delivery != Delivery::ReliableOrdered)
+    if (event.type != TransportEventType::Message)
         return;
     Message msg;
     if (decodeMessage(event.payload.data(), event.payload.size(), msg, kActorMaxPacketBytes) !=
         DecodeError::None)
         return;
-    if (msg.header.sessionId != mSession || msg.header.sceneEpoch != mEpoch || !msg.header.sequence ||
-        msg.header.sequence <= mReceived)
+    const bool transientPicture = event.delivery==Delivery::Unreliable
+        && mRole==CoopRole::Guest && msg.header.type==MessageType::WorldSnapshot;
+    // Snapshot fragments have their own atomic frame/epoch/duplicate checks.
+    // Their reordered sequence must never reject a later reliable control or
+    // an earlier fragment of the SAME picture. Every other message stays ordered.
+    if ((!transientPicture && event.delivery!=Delivery::ReliableOrdered)
+        || msg.header.sessionId != mSession || msg.header.sceneEpoch != mEpoch || !msg.header.sequence
+        || (!transientPicture && msg.header.sequence <= mReceived))
         return;
     bool accepted = false;
     if (mRole == CoopRole::Host && msg.header.type == MessageType::CoopControl && msg.payload.size() == 10) {
@@ -438,7 +457,7 @@ void CoopSession::receive(const TransportEvent &event, std::uint64_t now) {
     } else if (mRole==CoopRole::Guest && msg.header.type==MessageType::CoopAudio && canIssueCommands() && msg.payload.size()>16) {
         ByteReader r(msg.payload);std::uint64_t revision=0,frame=0;std::vector<AudioCue> cues;
         if(r.readU64(revision) && revision==mView.revision && r.readU64(frame) &&
-           frame>=mRequiredFrame && frame<=mActors.current().frame &&
+           frame>=mRequiredFrame && (frame<=mActors.current().frame || frame-mActors.current().frame<=32) &&
            decodeAudio(msg.payload.data()+16,msg.payload.size()-16,cues)) {
             if(mAudio.size()+cues.size()>kAudioQueueCues) {
                 mAudio.clear();mAudio.push_back({AudioCue{},now,frame}); // bounded fail-silent cleanup
@@ -464,7 +483,7 @@ void CoopSession::receive(const TransportEvent &event, std::uint64_t now) {
         }
     }
     if (accepted) {
-        mReceived = msg.header.sequence;
+        if(!transientPicture)mReceived = msg.header.sequence;
         mLastHeard = now;
     }
 }

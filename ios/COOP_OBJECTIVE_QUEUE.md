@@ -1,3 +1,48 @@
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
+**Date/time:** 2026-11-05T15:21:51-05:00
+
+**Overall project status:** User accepts improved PC16-host/iPhone100-cellular guest, but reports reversed phone-host/PC-guest dramatically laggy and E camera control unresponsive. Read-only phone/PC reports and sampled recording frames reviewed; phone released, USB/session not needed. Implemented combined guest camera and picture-delivery batch, locally verified; paired CI next. No new hardware result yet.
+
+### Pikmin 1
+
+- Current objective: preserve PC-host baseline while correcting phone-host guest camera and transport stutter risks.
+- What was investigated: video Desktop2026.11.05-13.41.16.01.mp4 (41.58seconds, sampled contact sheet), reports p1-coop-practice1793903977 PC guest/3978 phone host and3812 PC host/3814 phone guest. Copies and summary in work/practice-pc16-phone100-phonehost. Original recording not moved/deleted. USB read-only collector succeeded; no phone changes or game input/launch/close.
+- Evidence: reversed-role RTT medians54/55ms, local delivery quality mostly1.0 with minima.988/.993, pendingReliableBytes0 in active samples, host uplink~36KB/s; guest latest-picture age max267ms/p9569 vs phone-guest p9544ms; guest adaptive buffering median71ms vs59ms phone guest. This does NOT prove cellular bandwidth/CPU saturation or all-role packet loss. Phone-pair external networks remain untested. Summary field samples contains guest input counter statistics, not a row count.
+- Confirmed root cause for E: Navi::update normally polls Kontroller; guest visual world intentionally skips Navi AI, so local camera button edges stayed stale. Fix in GameCoreSection::pcUpdateCoopHeldView explicitly calls only guest captain's Controller::update before camera update. Does not run guest AI or double-poll host's controller. Existing actual-view fixture expanded; mutant deleting poll fails expected assertions.
+- Stutter contributor identified in source, not proven sole cause: entire world-picture stream used reliable ordered delivery, so lost picture fragments delay fresh pictures. Running snapshots now Unreliable/replaceable; baseline loading and paused/reload snapshots remain reliable; control/input/pause/readiness/audio remain reliable. Guest actor frames retain authenticated session/epoch, checksum, fragment bounds, atomic complete-picture and stale-frame checks. Unordered snapshot message sequences cannot advance/reject the reliable control sequence; reverse-order fragments of same picture accepted. No partial actor application or guest authority introduced.
+- Sound ordering: reliable cues may arrive before corresponding replaceable picture. Bounded queue waits<=300ms for that/newer complete picture, expires one-shots, stops/releases/reset pass immediately so loops cannot be stranded. Existing queue limits/pause/scene cleanup retained. Future cue-frame lead limited32pictures. No claimed audio hardware validation.
+- Payload budget reduced to1000bytes per snapshot fragment, leaving room for protocol/encryption on1280-byte VPN interfaces. Read-only PC Tailscale interface query confirms MTU1280 on IPv4/IPv6. Receiver protocol maximum1200 unchanged. Real socket probe uses same1000-byte packing. Host report now measures actual observed tick rate rather than printing guest input clock's unused default120Hz; guest estimate retained.
+- Files changed: games/pikmin1/src/plugPikiKando/gameCoreSection.cpp; games/pikmin1/pc_port/netplay/pc_coop_practice_runtime.cpp; libs/nectar_net/include/nectar_net/coop_session.h and src/coop_session.cpp; tests/coop_session_test.cpp and coop_socket_probe.cpp under that library; tests/pikmin1_practice_view_test.py; journals.
+- Tests/results: all34 core/GNS tests PASS,120 independent-rate/jitter combinations retained, actual-source guest camera/HUD/audio fixture PASS and original missing-poll negative control FAIL as expected;1292 smoothing checks PASS; actual engine/runtime header Clang analysis completed with existing legacy warnings. New deterministic reversed-fragment, lost-picture/newer-picture-before200ms-retransmission, mixed-channel pause/resume, high-sequence unordered control rejection, stale-picture rollback refusal, deferred sound exactly-once/immediate cleanup regressions PASS. Real encrypted loopback probe confirms running multipart pictures and reliable audio coexist and remaining auth/rejoin lifecycle PASS.
+- Verification corrections: old stale-sound test assumed one picture guaranteed under10% loss; made that particular catch-up fixture explicitly lossless to test stale-sound expiry, leaving loss simulations elsewhere. New cleanup fixture initially omitted required emitter type; corrected fixture to valid type6, no production validation weakened. Local view script needed NECTAR_COOP_WORLD=1 to avoid duplicate fallback symbol; actual CI already uses it.
+- Confirmed working: user PC-host cellular16/100 improved, controls/sound usable; own settings/assets remain. Current new source only locally verified.
+- Remaining issues: phone-host hardware comparison, phone-phone across networks, exact total latency. Fresh-picture loss can cause held frames; never claim guaranteed smooth motion on bad service. Still practice, not saved shared campaign.
+
+### Pikmin 2
+
+- Objective: preserve working accepted port; no files/build/device tests in this batch. Full story/cave/save regression and co-op later remain queued.
+
+### GitHub
+
+- Repo CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port; branch ios-experimental, fetched clean at2a51dd3f before changes. Installed source6a027c4d remains PC16/iPhone100, runs42068138957/42068139575, validated packages and backups retained. New combined source being committed/pushed next; record exact hash/run IDs in Exact Resume State.json. No new artifact/install yet. No main merge/history rewrite/security changes.
+
+### Next steps
+
+- Push matching PC/iPhone build, verify artifacts and actual binary identities, stage only complete pair. Test same PC-host route for regression, then PHONE HOST/PC GUEST with E zoom, movement, own sound/whistle/free aim and pause/resume. No synchronized button timing. Phone-pair later when Raye available, do not assume its performance from PC alone.
+- User: can close game and unplug now, update phone only after next verified IPA staged. Tailscale personal setup already complete; no need repeat signup or direct Host Internet failure tests.
+
+### ChatGPT continuation notes
+
+- Exact local evidence: work/phonehost-final-core-tests.log, phonehost-encrypted-probe.log (running replaceable multipart picture and reliable audio PASS), phonehost-final-engine-check.log, practice-view-fixture and negative-control work/practice-view-mutant-bin. Source tests persist in repo/CI.
+- Networking reference considered: original-author snapshot-interpolation discussion https://github.com/mas-bandwidth/gafferongames/blob/main/content/post/snapshot_interpolation.md . Source inspection of our reliable stream is direct evidence; article is design context, not diagnosis of this user's network.
+- Keep accepted15/99 and16/100 backups/packages. Pending changes apply both platforms and require matching updates; never compare mismatched binary identities. No phone configuration, graphics or FPS changes; no HD characters reintroduced. P2 untouched.
+- Core objectives intact: balanced2-player shared campaign/Onion stock/separate squads and allowance, own views/settings, cutscene/area coordination, durable mid-day/host-loss recovery and mixed PC/iPhone cross progression. Embedded internet service deferred last, Tailscale route accepted. Do not call baseline/whole campaign fully completed from practice tests.
+
+**END PROGRESS REPORT**
+
+---
+
 ## PC16/iPhone100 verified and prepared — 2026-11-05T12:27:38-05:00
 
 Both successful runs verified: Windows16/run42068138957/artifact13434004915 and iPhone100/run42068139575/artifact13435984274, same source 6a027c4d4d221ae1c0a9dc43f94d1d9dcf58aeb1, actual compiled identity f64eb0a5b904e307116f73828c371d8ef31e83cb391f4db314ea933d49d58edf. PC ZIP SHA256 057d9f14b2c67122bbe9f64c69526693e1f4c7f0bedb9fcac8b33fd6b3653fbb; IPA SHA256 ff59b91ead8b97601dfb4fae62b5b83620158ae02813492ac659cd9500c1c748 (5386442bytes). No missing PC runtime imports,15receipt files verified. iOS unsigned ARM64/bundle/icons/notices verified; native29tests,510cursor,1292presentation,36feedback,15exit/captain checks,21practice/13room, real encrypted UIKit socket and scene resume passed. Scene PASS without setup retry this time. Actual diagnostic300KB rotation test passed in BOTH workflows (iOS scene-startup job, not game-build log); initial local verifier looked in wrong job log, corrected verifier only, no source rebuild necessary.

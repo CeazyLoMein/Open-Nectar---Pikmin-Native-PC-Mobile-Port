@@ -11,12 +11,19 @@ namespace {
 struct MeteredTransport final : ITransport {
     std::unique_ptr<ITransport> inner;
     int pending = 0;
-    std::size_t sends = 0;
+    std::size_t sends = 0, reliablePictures=0, replaceablePictures=0;
+    bool capturePictures=false;
+    std::vector<std::vector<std::uint8_t>> pictures;
     explicit MeteredTransport(std::unique_ptr<ITransport> p) : inner(std::move(p)) {}
     bool listen(const Endpoint &e) override { return inner->listen(e); }
     bool connect(const Endpoint &e) override { return inner->connect(e); }
     bool send(Delivery d, const std::uint8_t *p, std::size_t n) override {
         ++sends;
+        Message msg;
+        if(decodeMessage(p,n,msg,kActorMaxPacketBytes)==DecodeError::None && msg.header.type==MessageType::WorldSnapshot) {
+            if(d==Delivery::ReliableOrdered)++reliablePictures;else ++replaceablePictures;
+            if(capturePictures){pictures.emplace_back(p,p+n);return true;}
+        }
         return inner->send(d, p, n);
     }
     bool poll(TransportEvent &e) override { return inner->poll(e); }
@@ -209,10 +216,45 @@ void guestTimingMatrix() {
         check(p.host.phase()==CoopPhase::Running && p.guest.phase()==CoopPhase::Running,"timing matrix keeps readiness barriers intact");
     }
 }
+void replaceablePictureChecks() {
+    Pair p;p.begin();p.load();p.ready();p.net.setHostToGuest({});
+    check(p.meter->reliablePictures>0 && p.meter->replaceablePictures==0,"admission baseline uses guaranteed delivery");
+    p.meter->capturePictures=true;
+    check(p.host.publishActors(p.frame(1,2),p.now),"running picture2 captured for reordered delivery");
+    check(p.meter->replaceablePictures>0,"running pictures bypass reliable ordered stream");
+    auto packets=std::move(p.meter->pictures);p.meter->capturePictures=false;
+    for(auto it=packets.rbegin();it!=packets.rend();++it)check(p.h.send(Delivery::Unreliable,it->data(),it->size()),"fragment delivered in reverse order");
+    p.settle(20);
+    check(p.guest.actors().frame==2,"all reversed fragments commit one atomic complete picture");
+    // Simulate100% loss/retransmission delay for the old picture, then recover.
+    LinkConditions loss;loss.lossPerMille=1000;loss.reliableLossDelayMs=200;
+    p.net.setHostToGuest(loss);p.now+=50;p.net.advance(p.now);
+    check(p.host.publishActors(p.frame(1,3),p.now),"lost running picture accepted by sender");
+    p.net.setHostToGuest({});
+    AudioCue cue;cue.kind=AudioKind::PlayerPlay;cue.player=1;cue.sound=6;
+    AudioCue release;release.kind=AudioKind::SpatialRelease;release.emitter=1;release.type=6;
+    check(p.host.publishAudio({cue,release},p.now),"reliable audio for missing picture sent");p.settle(10);
+    const auto immediate=p.guest.takeAudio(p.now);
+    check(immediate.size()==1 && immediate[0].kind==AudioKind::SpatialRelease,"cleanup plays immediately while new sound waits for its picture");
+    p.now+=50;p.net.advance(p.now);
+    check(p.host.publishActors(p.frame(1,4),p.now),"fresh picture after packet loss sent");p.settle(10);
+    check(p.guest.actors().frame==4,"fresh picture bypasses200ms old retransmission delay");
+    check(p.guest.takeAudio(p.now).size()==1&&p.guest.takeAudio(p.now).empty(),"deferred audio plays exactly once after newer complete picture");
+    Message forged;forged.header.type=MessageType::CoopControl;forged.header.sessionId=100;forged.header.sceneEpoch=1;forged.header.sequence=900000;
+    forged.payload.resize(10);std::vector<std::uint8_t> bytes;encodeMessage(forged,bytes);
+    check(p.h.send(Delivery::Unreliable,bytes.data(),bytes.size()),"unordered control spoof injected");p.settle(10);
+    check(p.host.setBlocked(CoopBlock::Manual,true),"real reliable pause after newer unordered pictures");p.settle(10);
+    check(p.guest.phase()==CoopPhase::Paused,"unordered sequence cannot poison reliable pause controls");
+    check(p.host.setBlocked(CoopBlock::Manual,false),"real reliable resume after mixed channels");p.settle();
+    check(p.guest.phase()==CoopPhase::Running,"mixed streams preserve readiness and resume");
+    for(auto it=packets.rbegin();it!=packets.rend();++it)p.h.send(Delivery::Unreliable,it->data(),it->size());
+    p.settle(10);check(p.guest.actors().frame==4,"old reordered pictures cannot roll back current world");
+}
+
 void audioSessionChecks() {
     // A stalled ordered link may deliver a sound and many newer pictures in one
     // pump. Expire the old one-shot against the latest accepted picture as well.
-    { Pair q;q.begin();q.load();q.ready();AudioCue old;old.kind=AudioKind::PlayerPlay;old.sound=6;old.player=1;
+    { Pair q;q.begin();q.load();q.ready();q.net.setHostToGuest({});AudioCue old;old.kind=AudioKind::PlayerPlay;old.sound=6;old.player=1;
       check(q.host.publishAudio({old},q.now),"old sound before catch-up");
       q.now+=50;q.net.advance(q.now);
       check(q.host.publishActors(q.frame(1,9),q.now),"newer complete picture after a stall");q.settle();
@@ -244,7 +286,7 @@ void audioSessionChecks() {
     check(p.guest.takeAudio(p.now).empty(),"end discards old-scene sound cues");
 }
 int main() {
-    guestTimingMatrix();audioSessionChecks();
+    guestTimingMatrix();audioSessionChecks();replaceablePictureChecks();
     if(!failures)std::puts("PASS 120 independent-rate/jitter session combinations and host-owned audio lifecycle");
     {
         Pair p(false);
