@@ -1,3 +1,17 @@
+## Tailscale-first internet play accepted and implemented, 2026-11-05
+
+The user chose the companion-app route to get to internet play sooner. Fully embedded traversal/signaling/relay is deferred until last as an optional convenience. Tailscale can remain the connection method indefinitely. This changes connection delivery, not the core shared-campaign, two-player balance, durable mid-day saves, interruption/rejoin, or PC/iPhone progression requirements.
+
+Starting local/remote commit d8c768681d63aac8da4546f3c7ccef9060e5b169, correct ios-experimental branch, clean tree before changes and fetched origin. Accepted installed baseline remains PC14 + iPhone98, source2e8c8f7b. Their direct cellular tests failed; same-network gameplay remains accepted. P2 remains untouched.
+
+Implemented explicit Host Tailscale in room core plus Windows/iOS menus. Detect only the active Tailscale IPv6 fd7a:115c:a1e0::/48 prefix, bind the listener to that private address, advertise exactly one private endpoint, ignore manual/public/LAN candidates in this mode and skip every automatic router-mapping path. Missing interface returns an actionable error with no listener/code. Existing authenticated compatibility handshake and generic Join Room remain. Wi-Fi and experimental direct internet remain separate choices. Official address reference: https://tailscale.com/docs/concepts/ipv6 . No dependency, external service, app installation, account sign-in, firewall setting, phone files or graphics/FPS settings changed.
+
+Validation: all34 native core/network tests passed, including real encrypted IPv4/IPv6 loopback tests and new injected-address Tailscale isolation/compatible-handshake/missing-interface tests; strict actual Windows menu compilation passed; actual15 iOS properties passed ARC naming check and existing accessibility/scroll/share contract passed. These are local validation, not an iOS device VPN/internet proof. Apple full UIKit/game compilation and cross-network phone tests remain required. Companion app not installed/signed in yet. No external network reachability claim.
+
+Next: matching Windows/iOS CI, inspect artifacts and source identities, stage only complete validated pair, then user installs/signs into Tailscale on their PC/phone and invites Raye into the same private network. User handles personal sign-in. Test PC-host/cellular-phone and reversed host roles before campaign expansion; do not repeat failed direct internet mode as though it is fixed. Existing14/98 is rollback. No gameplay automated input.
+
+---
+
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
 **Date:** 2026-11-04, America/New_York

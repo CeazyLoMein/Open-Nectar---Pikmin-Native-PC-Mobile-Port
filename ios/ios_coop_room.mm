@@ -40,7 +40,7 @@ NSString* joinError(JoinFailure failure, CompatibilityField field) {
         default: return @"These game versions are not compatible. Check both updates and game data.";
         }
     case JoinFailure::NoTransport: return @"P1 couldn't start its network connection. Close and reopen P1, then try again.";
-    case JoinFailure::Unreachable: return @"Could not reach the host. For cellular, the host must use Host Internet and have a usable route. Routers or carriers may block direct access; a relay may be needed. Same-Wi-Fi play is still available.";
+    case JoinFailure::Unreachable: return @"Could not reach the host. For different networks, turn on Tailscale on both devices in the same private network. Ask the host to use Host Tailscale and send a fresh code. Direct internet may be blocked; same-Wi-Fi play is still available.";
     case JoinFailure::Lost: return @"Connection lost. Host or join again when both phones are ready.";
     default: return @"Couldn't reach the host. Use the same Wi-Fi, allow Local Network access, and leave the host's connection screen open. Then try again.";
     }
@@ -61,11 +61,13 @@ NSString* joinError(JoinFailure failure, CompatibilityField field) {
 - (BOOL)detachConnection:(std::unique_ptr<CoopConnection>*)output;
 - (BOOL)rememberEvent:(TransportEvent*)event;
 - (void)openHost:(BOOL)internet;
+- (void)openHost:(BOOL)internet tailscale:(BOOL)tailscale;
 @property(nonatomic, weak) UIWindowScene* gameScene;
 @property(nonatomic, strong) UILabel* status;
 @property(nonatomic, strong) UITextView* code;
 @property(nonatomic, strong) UIButton* hostButton;
 @property(nonatomic, strong) UIButton* internetHostButton;
+@property(nonatomic, strong) UIButton* tailscaleHostButton;
 @property(nonatomic, strong) UIButton* practiceButton;
 @property(nonatomic, strong) UIButton* joinButton;
 @property(nonatomic, strong) UIButton* clipboardButton;
@@ -102,7 +104,7 @@ static std::atomic<bool> sRoomCoversGame{false};
     title.numberOfLines = 0;
     nectarCoopStyleLabel(title);
     UILabel* explanation = [UILabel new];
-    explanation.text = @"Use Host Wi-Fi for the same network. Host Internet checks for a direct route; mobile networks may need a relay. Internet mode requests a temporary UDP mapping where supported. Copy the latest code after the check finishes. After connecting, tap Start Co-op Practice on both phones from the title screen. The small practice area uses disposable state and does not change your campaign. Campaign co-op is still being developed.";
+    explanation.text = @"Use Host Wi-Fi for the same network. For different networks, turn on Tailscale on both devices in the same private network, then use Host Tailscale. Host Internet checks a direct route and may fail on cellular. Internet mode requests a temporary UDP mapping where supported. Copy the latest code after the check finishes. After connecting, tap Start Co-op Practice on both phones from the title screen. The small practice area uses disposable state and does not change your campaign. Campaign co-op is still being developed.";
     explanation.font = [UIFont preferredFontForTextStyle:UIFontTextStyleBody];
     explanation.numberOfLines = 0;
     nectarCoopStyleLabel(explanation);
@@ -124,6 +126,7 @@ static std::atomic<bool> sRoomCoversGame{false};
     self.code.accessibilityLabel = @"Private room code";
     [self.code.heightAnchor constraintEqualToConstant:100].active = YES;
     self.hostButton = [self button:@"Host Wi-Fi" action:@selector(hostRoom)];
+    self.tailscaleHostButton = [self button:@"Host Tailscale (different networks)" action:@selector(hostTailscale)];
     self.internetHostButton = [self button:@"Host Internet (checks router)" action:@selector(hostInternet)];
     self.joinButton = [self button:@"Join Room" action:@selector(joinRoom)];
     self.clipboardButton = [self button:@"Copy Code" action:@selector(didTapCopy)];
@@ -144,7 +147,7 @@ static std::atomic<bool> sRoomCoversGame{false};
     UIStackView* ending = [[UIStackView alloc] initWithArrangedSubviews:@[self.leaveButton, done]];
     ending.distribution = UIStackViewDistributionFillEqually;
     ending.spacing = 8;
-    UIStackView* content = [[UIStackView alloc] initWithArrangedSubviews:@[title, explanation, self.status, actions, self.internetHostButton, self.code, editing, self.rejoinButton, ending]];
+    UIStackView* content = [[UIStackView alloc] initWithArrangedSubviews:@[title, explanation, self.status, actions, self.tailscaleHostButton, self.internetHostButton, self.code, editing, self.rejoinButton, ending]];
     if(self.practiceButton) [content insertArrangedSubview:self.practiceButton atIndex:3];
     content.axis = UILayoutConstraintAxisVertical;
     content.spacing = 12;
@@ -201,6 +204,7 @@ static std::atomic<bool> sRoomCoversGame{false};
     const BOOL busy = static_cast<bool>(_host) || static_cast<bool>(_guest);
     self.hostButton.enabled = _checked && !busy;
     self.internetHostButton.enabled = _checked && !busy;
+    self.tailscaleHostButton.enabled = _checked && !busy;
     self.joinButton.enabled = _checked && !busy;
     self.rejoinButton.enabled = _checked && !busy && sLastJoinedRoomCode.length > 0;
     self.clipboardButton.enabled = static_cast<bool>(_host) && !_hostStatus.checkingInternet && self.code.text.length > 0;
@@ -226,12 +230,15 @@ static std::atomic<bool> sRoomCoversGame{false};
 }
 - (void)hostRoom { [self openHost:NO]; }
 - (void)hostInternet { [self openHost:YES]; }
-- (void)openHost:(BOOL)internet {
+- (void)hostTailscale { [self openHost:NO tailscale:YES]; }
+- (void)openHost:(BOOL)internet { [self openHost:internet tailscale:NO]; }
+- (void)openHost:(BOOL)internet tailscale:(BOOL)tailscale {
     if (!_checked || _closed || _host || _guest) return;
     [self.view endEditing:YES];
     _host = std::make_unique<HostRoom>();
     RoomConfig config;
     config.compatibility = _identity;
+    config.tailscaleOnly = tailscale;
     _internetHosting=internet;
     config.automaticPortMapping = internet;
     config.asynchronousPortMapping = internet;
@@ -240,7 +247,7 @@ static std::atomic<bool> sRoomCoversGame{false};
     const auto error = _host->open(config, unixSeconds(), status);
     if (error != RoomError::None) {
         [self stopConnection];
-        self.status.text = @"Couldn't open a room. Connect to Wi-Fi, allow Local Network access, then try again.";
+        self.status.text = error == RoomError::TailscaleNotConnected ? @"Turn on Tailscale first and connect both players to the same Tailscale network, then try Host Tailscale again." : @"Couldn't open a room. Check your connection and Local Network permission, then try again.";
         return;
     }
     // Only successful hosting replaces the previously remembered guest role.

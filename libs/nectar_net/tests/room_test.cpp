@@ -28,6 +28,7 @@ struct FakeEnd;
 struct FakeNet {
     std::map<std::uint16_t, FakeEnd*> listeners;
     std::set<std::string> deadAddresses;
+    std::string lastBindAddress;
 };
 
 struct FakeEnd final : ITransport {
@@ -55,6 +56,7 @@ struct FakeEnd final : ITransport {
     {
         if (net.listeners.count(endpoint.port) != 0) return false;
         net.listeners[endpoint.port] = this;
+        net.lastBindAddress = endpoint.address;
         listening = endpoint.port;
         current = TransportState::Listening;
         return true;
@@ -174,6 +176,56 @@ JoinProgress run(HostRoom& host, GuestJoin& guest, std::uint64_t& clockMs, int r
         clockMs += 1000;
     }
     return progress;
+}
+
+void testTailscaleRoom()
+{
+    FakeNet net;
+    auto b = lanOnly();
+    bool routerTouched = false;
+    b.findGateway = [&](Ipv4Address&) { routerTouched = true; return false; };
+    b.openUpnp = [&]() -> std::unique_ptr<IUpnpClient> { routerTouched = true; return nullptr; };
+    const Ipv6Address overlay = {0xfd,0x7a,0x11,0x5c,0xa1,0xe0,0xab,0x12,0,0,0,0,0,0,0,7};
+    b.listAddresses = [overlay] {
+        LocalAddresses a;
+        a.ipv4 = {{100,64,0,8}, {192,168,1,23}};
+        a.ipv6 = {{0xfd,0x44,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                  {0x20,0x01,0x48,0x60,0,0,0,0,0,0,0,0,0,0,0,1}, overlay, overlay};
+        return a;
+    };
+    HostRoom host(factory(net), b);
+    auto c = config(); c.tailscaleOnly = true;
+    // Deliberately conflicting settings must never enable public discovery.
+    c.automaticPortMapping = c.asynchronousPortMapping = true;
+    DirectEndpoint publicAddress; publicAddress.address = {81,32,10,20}; publicAddress.port = 45000;
+    c.manualEndpoints.push_back(publicAddress);
+    RoomStatus status;
+    check(host.open(c,kNow,status)==RoomError::None, "Tailscale host opens with overlay address");
+    ConnectionCode decoded;
+    check(decodeConnectionCode(status.code,decoded)==ConnectionCodeError::None
+          && decoded.endpoints.size()==1 && decoded.endpoints[0].address==overlay
+          && decoded.endpoints[0].port==45000, "invite has only the private overlay endpoint, no manual/public/LAN route");
+    check(net.lastBindAddress==endpointAddressText(decoded.endpoints[0]), "private room binds only to overlay interface");
+    check(!host.maintain(1000,kNow,status) && !routerTouched && status.tailscaleOnly, "private room maintenance never starts router discovery");
+    check(status.tailscaleOnly && !status.checkingInternet && !routerTouched,
+          "Tailscale skips all router discovery, including async requests");
+    check(std::string(hostRoomStatusText(status,false)).find("Tailscale")!=std::string::npos,
+          "room explains companion requirement without claiming a proven connection");
+    GuestJoin guest(factory(net)); std::uint64_t clock = 0;
+    check(guest.start(status.code,game(1),1,kNow,clock)==JoinFailure::None
+          && run(host,guest,clock)==JoinProgress::Connected, "overlay invite retains authenticated compatible room handshake");
+    host.close();
+    check(host.transport()==nullptr, "private room closes normally");
+    HostRoom missing(factory(net),lanOnly());
+    status.code = "stale";
+    check(missing.open(c,kNow,status)==RoomError::TailscaleNotConnected
+          && status.code.empty() && missing.transport()==nullptr,
+          "missing overlay reports actionable error without listener or stale code");
+    b.listAddresses = [] { LocalAddresses a; a.ipv4.push_back({100,64,0,8});
+        a.ipv6.push_back({0xfd,0x7a,0x11,0x5c,0xa1,0xe1,0,0,0,0,0,0,0,0,0,1}); return a; };
+    HostRoom unrelated(factory(net),b);
+    check(unrelated.open(c,kNow,status)==RoomError::TailscaleNotConnected,
+          "carrier shared IPv4 and a near-match ULA are not mistaken for Tailscale");
 }
 
 void testHappyPath()
@@ -357,6 +409,7 @@ int main()
         check(updated&&!status.checkingInternet&&!status.internetCheckFailed&&!status.code.empty(),"unsupported internet check settles without losing Wi-Fi room");
         host.close();check(host.transport()==nullptr,"async room transport closes immediately");
     }
+    testTailscaleRoom();
     testHappyPath();
     testDeadEndpointIsSkipped();
     testBadCodes();

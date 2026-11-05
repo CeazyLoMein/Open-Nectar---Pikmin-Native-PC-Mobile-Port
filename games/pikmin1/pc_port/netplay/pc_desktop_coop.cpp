@@ -53,9 +53,9 @@ void action(int id){
     if(id==11){ShowWindow(panel,SW_HIDE);if(game)SetForegroundWindow(game);return;}
     if(id==12){if(pc_coop_practice_leave())ShowWindow(panel,SW_HIDE);return;}
     if(!checked){status("Wait for the base game-data check to finish.");return;}
-    if(id==1||id==9){
-        if(host||guest)return;host=std::make_unique<HostRoom>();RoomConfig c;c.compatibility=identity;internetHosting=id==9;c.automaticPortMapping=internetHosting;c.asynchronousPortMapping=internetHosting;
-        RoomStatus s;if(host->open(c,static_cast<std::uint64_t>(std::time(nullptr)),s)!=RoomError::None){stop();status("Could not host. Check home network and private firewall permission.");return;}
+    if(id==1||id==9||id==13){
+        if(host||guest)return;host=std::make_unique<HostRoom>();RoomConfig c;c.compatibility=identity;c.tailscaleOnly=id==13;internetHosting=id==9;c.automaticPortMapping=internetHosting;c.asynchronousPortMapping=internetHosting;
+        RoomStatus s;const auto error=host->open(c,static_cast<std::uint64_t>(std::time(nullptr)),s);if(error!=RoomError::None){stop();status(error==RoomError::TailscaleNotConnected?"Turn on Tailscale first and connect both players to the same Tailscale network, then choose Host Tailscale again.":"Could not host. Check network and firewall permission.");return;}
         hostStatus=s;SetWindowTextA(codeBox,s.code.c_str());status(hostRoomStatusText(hostStatus,internetHosting));
     }else if(id==2){
         if(host||guest)return;char value[4097]={};if(GetWindowTextLengthA(codeBox)>4096){status("Code too long.");return;}
@@ -92,13 +92,13 @@ extern "C" void nectar_ios_open_coop_room(){
     if(!handoff)handoff=std::make_unique<CoopConnection>();
     if(!game)game=GetForegroundWindow();
     if(!room){
-        room=createWindow(false);label(room,"PC / iPhone practice. Host Wi-Fi for the same network, or Host Internet to check a route for a cellular guest. No campaign progress is saved.",15,45);
+        room=createWindow(false);label(room,"Practice only; campaign progress is not saved. Use Host Wi-Fi at home, or Host Tailscale with Tailscale connected on both devices for different networks.",15,45);
         roomStatus=label(room,"Checking immutable base game data...",65,60);
         codeBox=CreateWindowA("EDIT","",WS_CHILD|WS_VISIBLE|WS_BORDER|ES_MULTILINE|ES_AUTOVSCROLL|WS_TABSTOP,20,130,700,65,room,nullptr,nullptr,nullptr);
         SendMessageW(codeBox,EM_SETLIMITTEXT,4096,0);
         button(room,"Host Wi-Fi",20,210,1);button(room,"Join Room",200,210,2);button(room,"Copy Code",380,210,3);button(room,"Paste Code",560,210,4);
         button(room,"Start Co-op Practice",20,270,5,220);button(room,"Leave Room",260,270,8,200);button(room,"Return to Game",480,270,7,240);
-        button(room,"Host Internet",20,325,9,180);label(room,"Internet mode requests a temporary UDP router mapping. Some networks need a relay. Personal graphics and controls stay local.",375,45);
+        button(room,"Host Tailscale",20,325,13,220);button(room,"Host Internet (direct)",260,325,9,220);label(room,"Tailscale must be on for both players in the same private network. Direct internet checks your router and may fail on cellular. Personal graphics and controls stay local.",375,45);
         hashing=true;const auto root=std::filesystem::current_path()/"dataDir";
         hashJob=std::async(std::launch::async,[root]{return nectar_desktop::contentIdentity(root,content);});
     }
@@ -124,7 +124,7 @@ extern "C" void nectar_desktop_coop_pump(){
         for(int n=0;n<64&&host->transport()->poll(e);++n){if(e.type==TransportEventType::Message){if(!handoff->bufferBeforeHandoff(std::move(e))){stop();status("Too many early messages. Retry the room.");break;}}}}
     if(guest){TransportEvent e;bool has=false;const auto progress=guest->poll(now,e,has);
         if(has&&e.type==TransportEventType::Message&&!handoff->bufferBeforeHandoff(std::move(e))){stop();status("Early practice message could not be retained.");}
-        else if(progress==JoinProgress::Failed){std::string text=guest->failure()==JoinFailure::Unreachable ? "Could not reach host. Cellular needs a reachable Host Internet room; routers/carriers may block direct access. A relay may be needed." : "Join failed: "+std::string(joinFailureString(guest->failure()))+" ("+compatibilityFieldString(guest->incompatibility())+"). Use the same new build and base game version.";stop();status(text.c_str());}}
+        else if(progress==JoinProgress::Failed){std::string text=guest->failure()==JoinFailure::Unreachable ? "Could not reach host. For different networks, turn on Tailscale on both devices in the same private network and use Host Tailscale with a fresh code. Direct internet may be blocked by routers/carriers." : "Join failed: "+std::string(joinFailureString(guest->failure()))+" ("+compatibilityFieldString(guest->incompatibility())+"). Use the same new build and base game version.";stop();status(text.c_str());}}
     if(now-lastStatus>=200){lastStatus=now;
         auto* link=host?host->transport():guest?guest->transport():nullptr;
         if(link&&link->state()==TransportState::Connected)status("Connected. Start Co-op Practice on both devices, then Ready / Resume. You do not need simultaneous clicks.");

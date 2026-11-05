@@ -55,6 +55,7 @@ const char* roomErrorString(RoomError error)
 {
     switch (error) {
     case RoomError::None:                return "none";
+    case RoomError::TailscaleNotConnected: return "tailscale_not_connected";
     case RoomError::NoTransport:         return "no_transport";
     case RoomError::ListenFailed:        return "listen_failed";
     case RoomError::RandomSourceFailure: return "random_source_failure";
@@ -82,6 +83,7 @@ const char* joinFailureString(JoinFailure failure)
 
 const char* hostRoomStatusText(const RoomStatus& status,bool internetHosting)
 {
+    if(status.tailscaleOnly)return "Tailscale room open. Both players must turn on Tailscale in the same private network. Copy this code; the connection is not verified until your partner joins.";
     if(!internetHosting)return "Wi-Fi room open. Copy the code to a device on the same network.";
     if(status.checkingInternet)return "Checking your router for an internet route. You can leave or cancel while this runs.";
     if(status.internetCheckFailed)return "Internet setup failed. Same-Wi-Fi play is still available if a code is shown. Try again later.";
@@ -106,7 +108,7 @@ HostRoom::~HostRoom() { close(); }
 
 std::string HostRoom::issueCode(std::uint64_t nowUnixSeconds)
 {
-    std::vector<DirectEndpoint> endpoints = mConfig.manualEndpoints;
+    std::vector<DirectEndpoint> endpoints = mConfig.tailscaleOnly ? std::vector<DirectEndpoint>{} : mConfig.manualEndpoints;
     for (DirectEndpoint& endpoint : endpoints)
         if (endpoint.priority == 0) endpoint.priority = kPriorityManual;
     endpoints.insert(endpoints.end(), mPublished.endpoints.begin(), mPublished.endpoints.end());
@@ -123,6 +125,22 @@ RoomError HostRoom::open(const RoomConfig& config, std::uint64_t nowUnixSeconds,
 {
     close();
     mConfig = config;
+    status = RoomStatus{};
+    DirectEndpoint tailscale;
+    if (config.tailscaleOnly) {
+        // Tailscale reserves fd7a:115c:a1e0::/48. Do not mistake carrier
+        // 100.64/10 or arbitrary ULA addresses for a working companion VPN.
+        const auto addresses = mBackends.listAddresses ? mBackends.listAddresses() : LocalAddresses{};
+        const std::uint8_t prefix[] = {0xfd, 0x7a, 0x11, 0x5c, 0xa1, 0xe0};
+        const auto found = std::find_if(addresses.ipv6.begin(), addresses.ipv6.end(), [&](const Ipv6Address& a) {
+            return std::equal(std::begin(prefix), std::end(prefix), a.begin())
+                && std::any_of(a.begin()+6, a.end(), [](std::uint8_t b) { return b != 0; });
+        });
+        if (found == addresses.ipv6.end()) return RoomError::TailscaleNotConnected;
+        tailscale.family = DirectEndpoint::Family::Ipv6;
+        tailscale.address = *found;
+        tailscale.priority = 5;
+    }
     mCode = ConnectionCode{};
     if (!secureRandomBytes(mCode.sessionNonce.data(), mCode.sessionNonce.size())
         || !secureRandomBytes(mCode.joinSecret.data(), mCode.joinSecret.size()) || allZero(mCode.sessionNonce)
@@ -149,7 +167,7 @@ RoomError HostRoom::open(const RoomConfig& config, std::uint64_t nowUnixSeconds,
         auto gated = std::make_unique<GatedTransport>(std::move(inner), GatedTransport::Role::Host,
                                                       joinCredentialsFromCode(mCode));
         gated->requireCompatibility(config.compatibility);
-        if (gated->listen({config.listenAddress, port})) mTransport = std::move(gated);
+        if (gated->listen({config.tailscaleOnly ? endpointAddressText(tailscale) : config.listenAddress, port})) mTransport = std::move(gated);
         if (config.localPort != 0) break; // a fixed port is not changed behind the user's back
     }
     if (!mTransport) {
@@ -157,7 +175,10 @@ RoomError HostRoom::open(const RoomConfig& config, std::uint64_t nowUnixSeconds,
         return RoomError::ListenFailed;
     }
 
-    if (config.automaticPortMapping && !config.asynchronousPortMapping) {
+    if (config.tailscaleOnly) {
+        tailscale.port = port;
+        mPublished.endpoints.push_back(tailscale);
+    } else if (config.automaticPortMapping && !config.asynchronousPortMapping) {
         mPublished = mPublisher->publish(port, 7200, config.includeLanEndpoint);
     } else {
         PublisherBackends local = mBackends;
@@ -167,7 +188,7 @@ RoomError HostRoom::open(const RoomConfig& config, std::uint64_t nowUnixSeconds,
         mPublished = addressesOnly.publish(port, 0, config.includeLanEndpoint);
     }
 
-    if(config.automaticPortMapping && config.asynchronousPortMapping) {
+    if(!config.tailscaleOnly && config.automaticPortMapping && config.asynchronousPortMapping) {
         mLocalPublished=mPublished;
         try {
             mAsyncPublisher=std::make_unique<AsyncPortPublisher>(mBackends,port,config.includeLanEndpoint);
@@ -175,6 +196,7 @@ RoomError HostRoom::open(const RoomConfig& config, std::uint64_t nowUnixSeconds,
         } catch(...) { mInternetCheckFailed=true; } // preserve LAN if thread creation fails
     }
     status = RoomStatus{};
+    status.tailscaleOnly=mConfig.tailscaleOnly;
     status.checkingInternet=mCheckingInternet;
     status.internetCheckFailed=mInternetCheckFailed;
     status.localPort = port;
@@ -199,6 +221,7 @@ bool HostRoom::maintain(std::uint64_t nowMs, std::uint64_t nowUnixSeconds, RoomS
         mCheckingInternet=false;mInternetCheckFailed=failed;
         mPublished=failed?mLocalPublished:std::move(result);
     } else if(!mPublisher->maintain(nowMs,mPublished))return false;
+    status.tailscaleOnly=mConfig.tailscaleOnly;
     status.checkingInternet=mCheckingInternet;
     status.internetCheckFailed=mInternetCheckFailed;
     status.reachability = mPublished.reachability;

@@ -38,6 +38,9 @@ struct RoomConfig {
     bool automaticPortMapping = true;
     // Game UIs opt in: publish LAN immediately, discover/renew router off-thread.
     bool asynchronousPortMapping = false;
+    // Explicit companion-VPN mode: only advertise/bind the Tailscale IPv6 route.
+    // Never discover a router or fall back to public/LAN addresses in this mode.
+    bool tailscaleOnly = false;
     // Manual forwarding: the public address the user typed (optional).
     std::vector<DirectEndpoint> manualEndpoints;
 };
@@ -45,6 +48,7 @@ struct RoomConfig {
 enum class RoomError {
     None,
     NoTransport,
+    TailscaleNotConnected,
     ListenFailed,
     RandomSourceFailure,
     NoEndpoint, // nothing to put in the code: no LAN, IPv6, mapping or manual address
@@ -53,6 +57,7 @@ enum class RoomError {
 const char* roomErrorString(RoomError error);
 
 struct RoomStatus {
+    bool tailscaleOnly = false;
     bool checkingInternet = false;
     bool internetCheckFailed = false;
     std::string code;
