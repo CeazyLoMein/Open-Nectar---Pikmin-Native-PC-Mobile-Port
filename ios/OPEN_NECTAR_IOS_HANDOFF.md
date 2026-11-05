@@ -1,5 +1,51 @@
 # OPEN NECTAR iOS — CODEX PROGRESS REPORT
 
+**Date:** 2026-11-04, America/New_York
+
+**Overall project status:** User tested verified PC12/iPhone97: PC-to-phone works great; phone-to-phone pretty good, slightly more stutter than earlier; otherwise user says everything works. Treat this as successful current practice functionality with residual phone-pair smoothness issue, not full campaign completion. Phone logs collected read-only; user explicitly told collection finished, may close P1 and unplug. No phone writes/game input/app termination.
+
+### Pikmin 1
+
+- Current objective: preserve accepted aim/input-isolation batch; use evidence to address phone-host update jitter within next coherent campaign batch including core balance.
+- What investigated: two fresh guest reports from connected phone and matching PC host report. reports1793839660 (PC pairing,77 active samples) and1793839896 (later phone pairing,70 active samples). Copy only P1 diagnostic/settings data to private work/practice-pc12-phone97. User recording Downloads/4b173e6b-7ce9-4b66-b8a4-89d1a6440e02.mp4 absent at exact path and narrow filename search in Downloads/remote attachments; NOT watched or analyzed, original not changed. Do not imply video review occurred.
+- Findings/leading hypothesis: PC-pair guest RTT median4ms,max4; latest actor age median27ms,p95=52,max54;~19 applied updates per report interval. Later phone-pair guest RTT median9,p95=11,max42; actor age median28,p95=78,max85,5/70 active samples over75ms;~18 applied updates per interval. Estimated host tick rate median60.25Hz versus189.4 PC. This host_hz is game tick estimate, NOT device render FPS or direct thermal measurement. At~1sec diagnostic sampling, no precise interarrival or rendered-frame trace; cannot prove regression/cause. Fixed visual delay75ms can exhaust its interpolation bracket during late updates, consistent with short holds. No evidence justifies changing personal graphics/FPS. Smoothing header unchanged between older PC9 source65595c53 and c2fbd839 cursor batch.
+- Files changed: documentation/state only this turn. No gameplay tweak, blind buffer increase, graphics changes or new build. Need measure per-update timing/presentation holds in an isolated PC+phone-rate scenario before changing smoothing; integrate proven adjustment with campaign work rather than another tiny build.
+- Tests/results: current pair native/package/simulator checks previously verified; actual user now reports PC-phone great and phone-phone good except minor stutter, everything else works. This supports aim/Escape correction acceptance at user-report level; not separate instrumented proof of each gesture. No fresh compiler tests necessary for docs-only change.
+- Confirmed working: current practice user baseline above, accepted prior audio/Recall All. P2 untouched. Enemy sounds still not tested in empty practice. No full story coverage or full campaign co-op.
+- Remaining issues: residual phone-pair movement stutter, campaign world/Onions/tasks/enemies/progression/story synchronization and core two-player balance, exact durable mid-day save/recovery, live rejoin/internet, cross-device campaign transfer. Host process close still loses room/RAM practice world. Do not claim autosave or recovery implemented.
+
+### Pikmin 2
+
+- Objective/status: preserve user-accepted working app/audio. No source, assets, build, device investigation or tests this turn. Full campaign validation/co-op later.
+
+### GitHub
+
+- Repository: https://github.com/CeazyLoMein/Open-Nectar---Pikmin-Native-PC-Mobile-Port ; ios-experimental.
+- Starting local/remote91418fc9142f186f56f511e45420a708c7767815. Docs-only normal [skip ci] checkpoint; final hash in Exact Resume State.json. No game builds triggered.
+- Current PC12/run41864685625 SUCCESS source935ee1f7; iPhone97/run41906689580 SUCCESS source2f560df6; exact compiled identity5ccf64fde395ea2c94113f55d9dcbd2297ddbd621e2db8333aa39bb74b75e488. Both installed/tested by user report (PC12 install directly verified previous turn, phone97 install inferred from requested updated-pair test).
+- Artifacts: PC13342226961, IPA13362892322, scene13362690423. Current IPA SHA2562d228b4d652ec25234aecfbc3e8c39957a79d67cbcfe65ccec058c0bb9b6af28. No new artifact.
+- PC9 rollback preserved at Documents/Open Nectar/4 - Windows Version/Pikmin 1 - Full PC Co-op - Experimental/Backups/Before PC Build 12 - 20261104-162756. Phone/PC settings/saves/assets unchanged this turn. Uncommitted none after checkpoint.
+
+### Next steps
+
+- P1: next coherent milestone is real campaign integration including current modified co-op rule audit, shared Onion stock/separate squads/limits, jobs/combat/day-story flow and core two-player balance. Add a measured phone-host jitter/presentation check to that batch. Existing local co-op is starting point, not proof final balance correct. Avoid optional polish expansion or isolated one-addition builds.
+- P2: preserve accepted application.
+- GitHub: no CI pending and no build needed solely for this report. Keep current pair as accepted practice baseline.
+- User involvement: none now; can close P1/disconnect phone. Missing recording can be reattached later if needed, no technical task required now.
+
+### ChatGPT continuation notes
+
+- Evidence work/practice-pc12-phone97/installed-p1.json, pikmin_settings.conf, p1-coop-practice-1793839660.txt, p1-coop-practice-1793839896.txt, pc-latest.txt, timing-summary.json. Reports private, do not commit logs/assets/video/device identifiers.
+- Important code games/pikmin1/pc_port/netplay/pc_coop_visual_smoothing.h and pc_coop_practice_runtime.cpp. History8 snapshots,75ms fixed visual delay, interpolate only compatible entities/animations; no guest AI. Cursor preview separate. Inspect actual update timestamps and host tick/guest presentation separation before modifying.
+- Unverified: objective stutter root cause and per-frame impact, exact prior/new performance comparison, enemy audio/campaign mechanics. Diagnostics host tick rate not render FPS. No video analysis possible while file absent.
+- Exact resume: current cursor/ownership work accepted; do not repeat install/testing loops. Work on coherent campaign milestone, retain residual jitter task and mandatory difficulty/recovery/cross-progression queue. No automatic host migration promised. Preserve own graphics/camera/controls, existing save isolation,120FPS option,GPI textures, removed HD characters/original low-detail Louie.
+
+**END PROGRESS REPORT**
+
+---
+
+# OPEN NECTAR iOS — CODEX PROGRESS REPORT
+
 **Date/time:** 2026-11-04, America/New_York
 
 **Overall project status:** PC12 and iPhone97 PASSED and independently package-verified. PC12 installed over CLOSED PC9 with verified rollback and3199 protected settings/save/content hashes unchanged. Phone97 IPA staged, NOT installed. Await short PC+phone cursor test. No new hardware behavior claim; P2 unchanged.
