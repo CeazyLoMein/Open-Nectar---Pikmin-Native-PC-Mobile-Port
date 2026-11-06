@@ -1,3 +1,9 @@
+## iPhone107 retry submitted; reuse PC22
+
+Source 3b1d83ecff9779c38b01a43ce5217b426b298947, iPhone107/run42306246349 IN PROGRESS at submission check. PC22/run42301993810 remains successful, package verification pending. Windows23/run42306245926 was a skipped workflow, not another game compilation. Actual generated source identity stayed bcf977aa0ec23d2d2ffb334f1d7cedb2d8c0b19ac8b9b2a5d70985e00fbcc670; verify it in both packages. Source repair changes only standalone command test. No app/phone changes. Next inspect107 after user completion, verify PC22/iPhone107 packages and test matching pair. No CI idle polling. Replace106 with107 in next hardware checklist.
+
+---
+
 ## PC22 passed; iPhone106 fixture failure repaired - 2026-11-06T17:38:17-05:00
 
 PC22/run42301993810 SUCCESS, iPhone106/run42301993791 FAILURE, source fe456f1c75a2dc362b204326c97ba02c03ea335f. Downloaded COMPLETE failed job128186604386 to work/iphone106-failed-job.log. Root: tests/pikmin1_command_test.py extracts updated Navi targeting code but omitted pc_coop_practice_lock_on declaration/solo adapter. The standalone test failed BEFORE native app compilation. Later skipped socket probe receipt failure was consequent to that prerequisite failure, not diagnosed transport failure. Scene-startup passed. No new phone app installed.
