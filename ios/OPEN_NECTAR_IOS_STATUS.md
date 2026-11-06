@@ -1,3 +1,11 @@
+## PC21 / iPhone105 replacement pair submitted — 2026-11-06T10:33:36-05:00
+
+Exact source dd4b2c33cd8e6b4b1ba4f921e414fd65f402d44f, identity 58dbdb6c1c1856a5885279f654bd89cc41e040a0198eaca3502c96c2a3fe016a. PC21 run42243880456 and iPhone105 run42243880435 were IN PROGRESS when checked. This replaces failed20/104, no new compilation pass or artifacts claimed. Accepted installed19/103 still intact. Full failed-job logs were retrieved and BOTH integration roots repaired together: legacy draw hooks now use a networking-independent header; actual capture fixture and standalone codec link inputs now include enemy dependencies. Expanded actual engine-adapter tests and minimal legacy header probe passed locally. All package/runtime gates remain required. GitHub accepted the updated workflow and started both jobs. No phone/app/settings/content work this turn, P2 untouched.
+
+Next: when user reports completion, read both run results. On failure retrieve complete failing-job logs/annotations before diagnosis; on success verify actual NEW21/105 package digests, build identity, required resources/imports, native socket runtime and expanded capture pass before staging/install. Preserve backup of accepted19/103. Do not treat skipped native checks or an old artifact as success. The expanded capture test success line now includes shared enemy capture/display/retirement. Test guide is Documents/Open Nectar/2 - Progress and ChatGPT Handoff/NEXT TEST - PC21 and iPhone105.txt. No idle CI polling. Encounter combat/audio/rendering and Raye phone-to-phone tests remain unverified. Full campaign and durable mid-day/host-loss recovery remain unfinished.
+
+---
+
 ## PC20 / iPhone104 failure diagnosis and coordinated repair — 2026-11-06T10:31:28-05:00
 
 Both failed on source a1a9b538d6e6ffdb80c3d603ad5c17dbdd012849. Full logs retrieved directly: PC20/run42146610969/job127659752645 and iPhone104/run42146610819/job127664507416. Windows failed compiling legacy tekimgr.cpp: pc_coop_world.h imported nectar_net/world.h, which is deliberately absent from the legacy target include paths. Fixed by declaring enemy draw/gauge hooks in existing lightweight pc_coop_world_hooks.h and including that header in tekimgr.cpp. No broad networking dependency added to legacy engine.
