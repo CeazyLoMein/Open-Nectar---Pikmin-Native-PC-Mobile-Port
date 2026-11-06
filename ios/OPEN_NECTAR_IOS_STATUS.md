@@ -1,3 +1,11 @@
+## PC22 / iPhone106 submitted - 2026-11-06T17:06:53-05:00
+
+Source fe456f1c75a2dc362b204326c97ba02c03ea335f; generated identity bcf977aa0ec23d2d2ffb334f1d7cedb2d8c0b19ac8b9b2a5d70985e00fbcc670 (2938 tracked source/configuration files). PC22 run42301993810 and iPhone106 run42301993791 are IN PROGRESS when checked. No new compilation pass, artifacts, install or hardware fix claimed. One combined push; P2 excluded. Local/remote matched before push. Installed PC21/iPhone105 preserved; Dwarf HD-off user choice preserved. Read-only phone reports collected, phone may be closed/unplugged. No phone writes this turn.
+
+Next: user reports build completion; inspect both results once, retrieve full failing-job logs if needed. On success verify actual new package identity/digests/imports/resources/native socket and fixture gates before staging. Expect631 cursor/89 actual feedback/1296 smoothing checks. Back up PC21 current settings/packs before replacing program files; do not rerun old PC21 installer expecting PC19. Both platforms must update due changed packet layouts. Exact new checklist: Documents/Open Nectar/2 - Progress and ChatGPT Handoff/NEXT TEST - PC22 and iPhone106.txt. Actual source audit: ios/COOP_CHEAT_AUDIT.md. Do not idle-poll CI.
+
+---
+
 ## PC22 / iPhone106 source batch ready; compilation pending - 2026-11-06T17:05:08-05:00
 
 Starting/local/remote documentation commit 80d8910043eb3f660926065fe4a378a758a86611 on ios-experimental; remote fetched and matched before commit. Installed/tested game source remains dd4b2c33cd8e6b4b1ba4f921e414fd65f402d44f, PC21/iPhone105. User confirmed both squads can attack together and pause/resume works. Guest Soft Assist/target indicator, enemy health gauge and idle counter were faulty. User A/B confirmed missing PC Dwarf eyes come from optional Dwarf Bulborb HD model; original model works. Keep ONLY that model off, preserve other packs. Underlying HD model compatibility remains unresolved. Tailscale MagicSock receive warning recovered; direct phone ping ~4ms. No VPN/firewall changes.
