@@ -1,3 +1,13 @@
+## PC22 passed; iPhone106 fixture failure repaired - 2026-11-06T17:38:17-05:00
+
+PC22/run42301993810 SUCCESS, iPhone106/run42301993791 FAILURE, source fe456f1c75a2dc362b204326c97ba02c03ea335f. Downloaded COMPLETE failed job128186604386 to work/iphone106-failed-job.log. Root: tests/pikmin1_command_test.py extracts updated Navi targeting code but omitted pc_coop_practice_lock_on declaration/solo adapter. The standalone test failed BEFORE native app compilation. Later skipped socket probe receipt failure was consequent to that prerequisite failure, not diagnosed transport failure. Scene-startup passed. No new phone app installed.
+
+Fixed fixture adapter to delegate to existing solo lockMode. Actual online per-player routing remains exercised against actual runtime source in89 feedback checks. Regenerated CURRENT command, feedback, walking and RecallAll scenarios and passed110/89/283/20 checks. Strict Clang check passed with existing Windows CRT portability define. Previous local command check inadvertently reused generated source; this is corrected, local work/check_practice_feedback.cmd now ALWAYS regenerates all four fixtures with failure guards before compiling. No production code changed for this repair; no gates bypassed.
+
+Retry ONLY iPhone with [ios-build] [ios-p1-update]. Retain successful PC22, no redundant Windows rebuild. Expected compiled game identity remains bcf977aa0ec23d2d2ffb334f1d7cedb2d8c0b19ac8b9b2a5d70985e00fbcc670 because only tests/docs changed. Verify actual identity from both binaries, not commit equality. PC22 artifact still needs full package verification before installation. iPhone107 expected, actual run ID follows submission. Installed21/105 preserved; original Dwarf workaround remains; phone may stay unplugged. P2 untouched.
+
+---
+
 ## PC22 / iPhone106 submitted - 2026-11-06T17:06:53-05:00
 
 Source fe456f1c75a2dc362b204326c97ba02c03ea335f; generated identity bcf977aa0ec23d2d2ffb334f1d7cedb2d8c0b19ac8b9b2a5d70985e00fbcc670 (2938 tracked source/configuration files). PC22 run42301993810 and iPhone106 run42301993791 are IN PROGRESS when checked. No new compilation pass, artifacts, install or hardware fix claimed. One combined push; P2 excluded. Local/remote matched before push. Installed PC21/iPhone105 preserved; Dwarf HD-off user choice preserved. Read-only phone reports collected, phone may be closed/unplugged. No phone writes this turn.

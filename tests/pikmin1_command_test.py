@@ -127,6 +127,9 @@ bool pc_window_take_lockon_press(int){bool b=lockPress;lockPress=false;return b;
 bool pc_window_take_swarm_press(int){bool b=chargePress;chargePress=false;return b;}
 bool keyboardRecall=false;bool pc_window_take_recall_press(){bool b=keyboardRecall;keyboardRecall=false;return b;}
 int pc_settings_get_lock_on(){return lockMode;}int pc_settings_get_charge(){return chargeOn;}
+// These are solo command scenarios; the online per-player adapter is exercised
+// against its actual source in pikmin1_practice_feedback_test.py.
+int pc_coop_practice_lock_on(int){return pc_settings_get_lock_on();}
 int pc_settings_get_better_pathfinding(){return better;}void pc_settings_note_lock_on(int){}
 bool touchAim=false;bool pcTouchAim(const Navi*n){return touchAim&&!det&&n->mNaviID==0;}
 bool pc_coop_active(){return coop;}bool pc_vs_active(){return vs;}bool pc_speedrun_active(){return speedrun;}bool pc_hardmode_active(){return hard;}
