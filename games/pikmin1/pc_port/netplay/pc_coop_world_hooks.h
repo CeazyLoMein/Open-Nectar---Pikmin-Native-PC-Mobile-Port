@@ -12,6 +12,9 @@ class Graphics;
 // True means a dedicated guest population owns this draw, including an empty
 // or invalidated population. Never fall back to drawing stale local actors.
 bool pc_coop_world_draw_guest_pikmin(Graphics&);
+// Keep renderer hooks independent of networking headers and target includes.
+bool pc_coop_world_draw_guest_enemies(Graphics&);
+bool pc_coop_world_draw_guest_enemy_gauges(Graphics&);
 #else
 inline void pc_coop_world_forget(const void*) {}
 inline void pc_coop_world_end_scene() {}
@@ -19,4 +22,6 @@ inline bool pc_coop_world_may_advance() { return true; }
 inline bool pc_coop_world_has_guest() { return false; }
 class Graphics;
 inline bool pc_coop_world_draw_guest_pikmin(Graphics&) { return false; }
+inline bool pc_coop_world_draw_guest_enemies(Graphics&) { return false; }
+inline bool pc_coop_world_draw_guest_enemy_gauges(Graphics&) { return false; }
 #endif

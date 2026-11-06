@@ -26,10 +26,7 @@ bool pc_coop_world_set_host_running(std::uint64_t sessionId, std::uint32_t scene
 bool pc_coop_world_begin_guest(std::uint64_t sessionId, std::uint32_t sceneEpoch);
 bool pc_coop_world_guest_active();
 class Teki;
-class Graphics;
 bool pc_coop_world_bind_guest_encounter(Teki* enemy);
-bool pc_coop_world_draw_guest_enemies(Graphics& gfx);
-bool pc_coop_world_draw_guest_enemy_gauges(Graphics& gfx);
 // Apply both captain transforms atomically, between ticks, from the current
 // authenticated session's fully assembled frame. Session ID is trusted context
 // supplied by the adapter (ActorFrame itself intentionally carries no session).

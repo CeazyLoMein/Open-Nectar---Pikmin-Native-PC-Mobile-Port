@@ -238,6 +238,7 @@ jobs:
             libs/nectar_net/src/onion_authority.cpp libs/nectar_net/tests/onion_authority_test.cpp \
             libs/nectar_net/src/entity_registry.cpp libs/nectar_net/tests/entity_registry_test.cpp \
             libs/nectar_net/src/pikmin_replication.cpp libs/nectar_net/tests/pikmin_replication_test.cpp \
+            libs/nectar_net/src/enemy_replication.cpp libs/nectar_net/tests/enemy_replication_test.cpp \
             libs/nectar_net/src/actor_frame.cpp libs/nectar_net/tests/actor_frame_test.cpp \
             libs/nectar_net/src/coop_session.cpp libs/nectar_net/tests/coop_session_test.cpp \
             libs/nectar_net/src/coop_connection.cpp libs/nectar_net/tests/coop_connection_test.cpp \
@@ -268,12 +269,16 @@ jobs:
           python3 tests/pikmin1_coop_capture_test.py "$FIXTURE"
           SOURCES=("$FIXTURE/capture-test.cpp" games/pikmin1/pc_port/netplay/pc_coop_world.cpp
             libs/nectar_net/src/actor_frame.cpp libs/nectar_net/src/entity_registry.cpp libs/nectar_net/src/pikmin_replication.cpp
+            libs/nectar_net/src/enemy_replication.cpp
             libs/nectar_net/src/replication.cpp libs/nectar_net/src/world.cpp libs/nectar_net/src/byte_io.cpp)
           c++ -std=c++17 -Wall -Wextra -Werror -DPIKI_PC_PORT=1 -DNECTAR_COOP_WORLD=1 \
             -I"$FIXTURE" -Igames/pikmin1/pc_port -Ilibs/nectar_net/include "${SOURCES[@]}" -o "$FIXTURE/capture-test"
           "$FIXTURE/capture-test"
           c++ -std=c++17 -Wall -Wextra -Werror -Igames/pikmin1/pc_port "$FIXTURE/disabled-test.cpp" -o "$FIXTURE/disabled-test"
           "$FIXTURE/disabled-test"
+          c++ -std=c++17 -Wall -Wextra -Werror -DPIKI_PC_PORT=1 -DNECTAR_COOP_WORLD=1 \
+            -Igames/pikmin1/pc_port "$FIXTURE/legacy-hooks-test.cpp" -o "$FIXTURE/legacy-hooks-test"
+          "$FIXTURE/legacy-hooks-test"
           xcrun --sdk iphoneos clang++ -target arm64-apple-ios15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
             -std=c++17 -Wall -Wextra -Werror -DPIKI_PC_PORT=1 -DNECTAR_COOP_WORLD=1 -fsyntax-only \
             -I"$FIXTURE" -Igames/pikmin1/pc_port -Ilibs/nectar_net/include "${SOURCES[@]}"

@@ -11,7 +11,7 @@
 #include "sysNew.h"
 #include "teki.h"
 #if defined(NECTAR_COOP_WORLD)
-#include "netplay/pc_coop_world.h"
+#include "netplay/pc_coop_world_hooks.h"
 #endif
 #include "timers.h"
 

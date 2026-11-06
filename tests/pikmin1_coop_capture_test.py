@@ -10,12 +10,21 @@ common=r'''
 #include <cstdint>
 #include <set>
 #include "nectar_net/pikmin_replication.h"
-struct Vec{float x=0,y=0,z=0;};
-struct Creature{virtual ~Creature()=default;struct{Vec t,r;}mSRT;Vec mVelocity,mLastPosition;
+struct Vec{float x=0,y=0,z=0;
+ Vec(float a=0,float b=0,float c=0):x(a),y(b),z(c){}
+ void set(float a,float b,float c){x=a;y=b;z=c;}void input(const Vec&v){*this=v;}};
+using Vector3f=Vec;using NVector3f=Vec;
+struct Quat{Quat(float,float,float,float){}void rotate(const Vec&,float){}void genVectorZ(Vec& v){v={0,0,1};}};
+struct Matrix4f{static const Matrix4f ident;void makeVQS(const Vec&,const Quat&,const Vec&){}
+ void multiplyTo(const Matrix4f&,Matrix4f&)const{}};
+inline const Matrix4f Matrix4f::ident;
+struct FixtureCamera{Matrix4f mLookAtMtx;float mNear=1;bool visible=true;
+ bool isPointVisible(const Vec&,float)const{return visible;}};
+class Graphics{public:FixtureCamera camera;FixtureCamera*mCamera=&camera;void useMatrix(const Matrix4f&,int){}};
+struct Creature{virtual ~Creature()=default;struct{Vec t,r,s{1,1,1};}mSRT;Vec mVelocity,mLastPosition;
  float mFaceDirection=0,mHealth=100;bool alive=true,canRemove=true;
  virtual bool isAlive(){return alive;}bool removable(){return canRemove;}};
 
-class Graphics{};
 struct Animator{int mCurrentAnimID=0;float mAnimationCounter=0;};
 struct Animations{Animator upper,lower;Animator&getUpperAnimator(){return upper;}Animator&getLowerAnimator(){return lower;}};
 struct Navi:Creature{int mNaviID=0;Vec mCursorWorldPos;bool mIsCursorVisible=true;Animations mNaviAnimMgr;
@@ -28,11 +37,36 @@ class ViewPiki:public Piki{public:bool ready=true;int applied=0,drawn=0;nectar::
  bool pcCoopVisualValidate(const nectar::net::PikminState&s)const{return ready&&nectar::net::validPikminState(s)&&s.color<3&&s.upperAnimation<90&&s.lowerAnimation<90&&s.upperFrame<=64&&s.lowerFrame<=64;}
  void pcCoopVisualApply(const nectar::net::PikminState&s){++applied;last=s;}
  void pcCoopVisualDraw(Graphics&){++drawn;}};
+enum{TEKIOPT_Visible=1,TEKIOPT_LifeGaugeVisible=4,TEKIOPT_ShapeVisible=16384,ANIMSTATE_Inactive=0,TPF_LifeGaugeOffset=0};
+struct FixtureAnimData{int mTotalFrameCount=64;};
+struct AnimInfo{AnimInfo*mNext=nullptr;FixtureAnimData*mData=nullptr;};
+struct FixtureAnimMgr{struct{AnimInfo*mChild=nullptr;}mAnimList;int lazyLoads=0;
+ AnimInfo*findAnim(int){++lazyLoads;return mAnimList.mChild;}};
+struct FixtureEnemyAnimator:Animator{void*mListener=reinterpret_cast<void*>(1);int mCurrentKeyIndex=0,mPlayState=1,mMotionIdx=0;
+ AnimInfo*mAnimInfo=nullptr;int contextUpdates=0;void updateContext(){++contextUpdates;}};
+struct FixtureMaterials{int animations=0;void animate(void*){++animations;}};
+struct FixtureShape{int poses=0,draws=0;void updateAnim(Graphics&,Matrix4f&,void*,void*){++poses;}
+ void drawshape(Graphics&,FixtureCamera&,FixtureMaterials*){++draws;}};
+struct FixtureTekiShape{FixtureShape*mShape=nullptr;FixtureAnimMgr*mAnimMgr=nullptr;};
+struct FixtureGauge{float health=0,maximum=0,mScale=0;Vec mPosition,mOffset;int draws=0;
+ void updValue(float h,float m){health=h;maximum=m;}void refresh(Graphics&){++draws;}};
+class Teki:public Creature{public:int mTekiType=3,mDeadState=0,mTekiOptions=TEKIOPT_Visible|TEKIOPT_LifeGaugeVisible|TEKIOPT_ShapeVisible;
+ float _3A4=0,maxHealth=150;FixtureAnimData animationData;AnimInfo animationInfo;
+ FixtureAnimMgr animations;FixtureEnemyAnimator animator;FixtureEnemyAnimator*mTekiAnimator=&animator;
+ FixtureShape shape;FixtureTekiShape tekiShape;FixtureTekiShape*mTekiShape=&tekiShape;
+ FixtureMaterials mAnimatedMaterials;FixtureGauge mLifeGauge;int aiCalls=0,strategyDraws=0;
+ Teki(){animationInfo.mData=&animationData;animations.mAnimList.mChild=&animationInfo;animator.mAnimInfo=&animationInfo;
+ tekiShape.mShape=&shape;tekiShape.mAnimMgr=&animations;}
+ bool getTekiOption(int bits)const{return (mTekiOptions&bits)!=0;}
+ void setTekiOption(int bits){mTekiOptions|=bits;}void clearTekiOption(int bits){mTekiOptions&=~bits;}
+ float getMaxLife()const{return maxHealth;}float getBoundingSphereRadius()const{return 40;}
+ float getParameterF(int)const{return 30;}void startAI(int){++aiCalls;}void refresh(Graphics&){++strategyDraws;}};
 struct ObjectMgr{std::vector<Creature*>objects;};
 struct MonoObjectMgr:ObjectMgr{int mNumObjects=0,mMaxElements=1;Creature*objectStorage[4]={};Creature**mObjectList=objectStorage;int statusStorage[4]={-1,-1,-1,-1};int*mEntryStatus=statusStorage;
  int getEmptyIndex(){for(int i=0;i<mMaxElements;++i)if(mEntryStatus[i]==-1)return i;return -1;}
  int getIndex(Creature*p){for(int i=0;i<mMaxElements;++i)if(mObjectList[i]==p)return i;return -1;}
  Creature*birth();void kill(Creature*);};
+struct TekiMgr:MonoObjectMgr{};extern TekiMgr*tekiMgr;
 struct NaviMgr:MonoObjectMgr{};struct PikiMgr:MonoObjectMgr{
  bool pcCoopVisualSlots(std::vector<ViewPiki*>&);bool pcCoopVisualSlotsValid(const std::vector<ViewPiki*>&)const;};
 extern NaviMgr*naviMgr;extern PikiMgr*pikiMgr;
@@ -41,7 +75,7 @@ struct Iterator{ObjectMgr*m;std::size_t i=0;explicit Iterator(ObjectMgr*p):m(p){
 #define PRINT(...) do{}while(false)
 '''
 (out/'engine_fixture.h').write_text(common,encoding='utf-8')
-for name in ['Navi.h','NaviMgr.h','Piki.h','PikiMgr.h']:(out/name).write_text('#include "engine_fixture.h"\n',encoding='utf-8')
+for name in ['Navi.h','NaviMgr.h','Piki.h','PikiMgr.h','teki.h','Graphics.h','Material.h']:(out/name).write_text('#include "engine_fixture.h"\n',encoding='utf-8')
 def method(text,signature):
  a=text.index(signature);b=text.index('{',a);i=b+1;depth=1
  while depth:
@@ -61,7 +95,7 @@ test=r'''
 #include "nectar_net/pikmin_replication.h"
 #include <cstdio>
 #include <limits>
-NaviMgr*naviMgr=nullptr;PikiMgr*pikiMgr=nullptr;
+NaviMgr*naviMgr=nullptr;PikiMgr*pikiMgr=nullptr;TekiMgr*tekiMgr=nullptr;
 int bad=0;void check(bool ok,const char*why){if(!ok){std::printf("FAIL %s\n",why);++bad;}}
 '''
 test+=method(visual,'bool PikiMgr::pcCoopVisualSlots(')+'\n'+method(visual,'bool PikiMgr::pcCoopVisualSlotsValid(')+'\n'
@@ -347,12 +381,68 @@ int main(){
        read(records,pc_coop_world_actor_id(&p1,EntityKind::Pikmin)).owner==1,"idle squads retain owners after host registry reconstruction");
  p1.mPlayerId=0;check(!pc_coop_world_capture(records),"unexpected owner change fails whole practice capture");
  pc_coop_world_end_scene();
+
+ // Actual enemy engine capture, typed lifetime, safe display and whole-frame admission.
+ TekiMgr enemies;Teki enemy;tekiMgr=&enemies;enemies.objects={&enemy};p1.mPlayerId=1;
+ enemy.mHealth=120;enemy.mSRT.t={250,5,400};enemy.animator.mAnimationCounter=12;
+ check(pc_coop_world_begin_host(112,21,true)&&pc_coop_world_capture(records),"actual host encounter capture enters existing owner-safe world");
+ const auto enemyId=pc_coop_world_actor_id(&enemy,EntityKind::Enemy);EnemyState captured;bool gotEnemy=false;
+ for(const auto& entry:records)if(entry.id==enemyId)gotEnemy=decodeEnemyState(entry.data.data(),entry.data.size(),captured);
+ check(enemyId&&gotEnemy&&captured.health==120&&captured.maxHealth==150&&captured.position.x==250&&captured.animationFrame==12,"actual enemy capture contains host health and loaded animation pose");
+ check(!pc_coop_world_actor_id(&enemy,EntityKind::Pikmin)&&!pc_coop_world_set_owner(enemyId,1),"enemy cannot acquire squad ownership");
+ const auto savedCount=records.size();enemy.mTekiType=34;
+ check(!pc_coop_world_capture(records)&&records.size()==savedCount,"unsupported enemy cannot partially replace captured world");enemy.mTekiType=3;
+ enemy.animator.mCurrentAnimID=-1;check(!pc_coop_world_capture(records),"uninitialized enemy animation cannot be sent");enemy.animator.mCurrentAnimID=0;
+ enemy.mHealth=151;check(!pc_coop_world_capture(records),"enemy health beyond host maximum cannot be sent");enemy.mHealth=120;
+ enemy.mSRT.t.x=std::numeric_limits<float>::quiet_NaN();check(!pc_coop_world_capture(records),"nonfinite enemy transform cannot be sent");enemy.mSRT.t.x=250;
+ check(pc_coop_world_capture_packets(1,1,100,packets),"actual host combatants packetize together");ActorFrameReceiver encounterReceiver;encounterReceiver.begin(112,21);
+ for(const auto& packet:packets)encounterReceiver.receive(packet.data(),packet.size(),1);
+ check(encounterReceiver.current().enemies.size()==1&&encounterReceiver.current().pikmin.size()==2,"actual host encounter survives complete-frame network admission");
+ MonoObjectMgr enemyPool;enemyPool.mObjectList[0]=&enemy;enemyPool.mEntryStatus[0]=0;enemyPool.mNumObjects=1;
+ enemyPool.kill(&enemy);enemies.objects.clear();
+ check(!pc_coop_world_actor_id(&enemy,EntityKind::Enemy)&&pc_coop_world_capture_packets(2,2,100,packets),"actual pool retirement removes typed enemy lifetime");
+ for(const auto& packet:packets)encounterReceiver.receive(packet.data(),packet.size(),2);
+ check(encounterReceiver.current().enemies.empty(),"actual enemy retirement replaces full world without ghost");pc_coop_world_end_scene();
+
+ pikiMgr=&displayPool;Teki replica;navis.objects={&n0,&n1};
+ check(pc_coop_world_begin_guest(113,22)&&pc_coop_world_prepare_guest_visuals(113,22),"enemy guest enters actual dormant visual population mode");
+ check(!pc_coop_world_bind_guest_encounter(nullptr),"null enemy binding rejected");
+ replica.mTekiType=34;check(!pc_coop_world_bind_guest_encounter(&replica),"unknown enemy cannot claim guest binding");replica.mTekiType=3;
+ check(pc_coop_world_bind_guest_encounter(&replica)&&!pc_coop_world_bind_guest_encounter(&replica),"known locally created enemy binds only once");
+ ActorFrame combat;combat.frame=1;combat.tick=50;
+ const auto ec0=NetEntityId{22,EntityKind::Captain,0,1}.pack(),ec1=NetEntityId{22,EntityKind::Captain,0,2}.pack();
+ const auto ep0=NetEntityId{22,EntityKind::Pikmin,0,10}.pack(),ep1=NetEntityId{22,EntityKind::Pikmin,0,11}.pack();
+ const auto ee=NetEntityId{22,EntityKind::Enemy,0,20}.pack();
+ combat.captains[ec0]=ca;combat.captains[ec1]=cb;combat.pikmin[ep0]=visual0;combat.pikmin[ep1]=visual1;combat.enemies[ee]=captured;
+ auto badCombat=combat;badCombat.enemies[ee].animation=99;const auto beforePiki=d0.applied;const float beforeEnemyNavi=n0.mSRT.t.x;
+ check(!pc_coop_world_apply_guest_visuals(113,22,badCombat)&&d0.applied==beforePiki&&n0.mSRT.t.x==beforeEnemyNavi,"missing enemy pose rejects all captains and Pikmin atomically");
+ badCombat=combat;badCombat.enemies[ee].health=200;
+ check(!pc_coop_world_apply_guest_visuals(113,22,badCombat)&&d0.applied==beforePiki,"invalid enemy health rejects whole engine transaction");
+ badCombat=combat;badCombat.enemies.clear();badCombat.enemies[NetEntityId{21,EntityKind::Enemy,0,20}.pack()]=captured;
+ check(!pc_coop_world_apply_guest_visuals(113,22,badCombat)&&d0.applied==beforePiki,"old-scene enemy cannot be applied in current world");
+ check(pc_coop_world_apply_guest_visuals(113,22,combat)&&replica.mSRT.t.x==250&&replica.mHealth==120&&replica.mLifeGauge.maximum==150,"actual guest pose and gauge use host combat state");
+ check(replica.animator.mListener==nullptr&&replica.animator.mPlayState==ANIMSTATE_Inactive&&replica.animator.mMotionIdx==-1&&replica.animator.mAnimationCounter==12,"guest samples raw pose with no gameplay animation listener");
+ check(pc_coop_world_draw_guest_enemies(gfx)&&pc_coop_world_draw_guest_enemy_gauges(gfx)&&replica.shape.draws==1&&replica.mLifeGauge.draws==1,"actual replica draw and gauge hooks own guest presentation");
+ check(replica.mLifeGauge.mPosition.x==250&&replica.aiCalls==0&&replica.strategyDraws==0&&replica.animations.lazyLoads==0,"display follows received position without AI, strategy or packet-driven asset loading");
+ auto displayed=combat;displayed.enemies[ee].position.x=275;displayed.enemies[ee].animationFrame=13;
+ check(pc_coop_world_present_guest(displayed)&&replica.mSRT.t.x==275&&replica.mHealth==120,"enemy smooth redraw cannot consume host frame or change health");
+ displayed.enemies[ee].health=0;const auto beforeBadDisplay=d0.applied;
+ check(!pc_coop_world_present_guest(displayed)&&replica.mHealth==120&&d0.applied==beforeBadDisplay,"smoothed display cannot forge enemy defeat or partially change squad");
+ combat.frame=2;combat.tick=51;combat.enemies.clear();combat.pikmin.erase(ep0);
+ check(pc_coop_world_apply_guest_visuals(113,22,combat)&&!pc_coop_world_guest_pikmin_state(ep0,diagnostic),"enemy and Pikmin defeat retire in one actual engine transaction");
+ pc_coop_world_draw_guest_enemies(gfx);pc_coop_world_draw_guest_enemy_gauges(gfx);
+ check(replica.shape.draws==1&&replica.mLifeGauge.draws==1,"retired enemy has no ghost model or gauge");
+ combat.frame=3;combat.tick=52;combat.enemies[ee]=captured;const auto beforeResurrection=d0.applied;
+ check(!pc_coop_world_apply_guest_visuals(113,22,combat)&&d0.applied==beforeResurrection,"retired encounter identity cannot resurrect through a later packet");
+ pc_coop_world_forget(&replica);check(!pc_coop_world_guest_active()&&!pc_coop_world_may_advance()&&pc_coop_world_draw_guest_enemies(gfx),"enemy pointer reuse holds invalid guest and never falls back to normal AI rendering");
+ pc_coop_world_end_scene();check(!pc_coop_world_draw_guest_enemies(gfx)&&!pc_coop_world_draw_guest_enemy_gauges(gfx),"scene teardown restores normal enemy render ownership");tekiMgr=nullptr;
  pc_coop_world_stop();check(!pc_coop_world_may_advance(),"startup failure freezes even before adapter binding");pc_coop_world_end_scene();check(pc_coop_world_may_advance(),"scene teardown clears emergency hold");
 
- if(!bad)std::puts("PASS actual P1 capture and pool hooks: default inert, ownership, recycled actors, finite/atomic snapshot, whole guest squad, 300-Pikmin packet apply and stage lifetime");
+ if(!bad)std::puts("PASS actual P1 capture and pool hooks: default inert, ownership, recycled actors, finite/atomic snapshot, whole guest squad, 300-Pikmin packet apply, shared enemy capture/display/retirement and stage lifetime");
  return bad?1:0;
 }
 '''
 (out/'capture-test.cpp').write_text(test,encoding='utf-8')
 (out/'disabled-test.cpp').write_text('#include "netplay/pc_coop_world_hooks.h"\nint main(){pc_coop_world_forget(nullptr);pc_coop_world_end_scene();return (!pc_coop_world_may_advance()||pc_coop_world_has_guest())?1:0;}\n',encoding='utf-8')
+(out/'legacy-hooks-test.cpp').write_text('#include "netplay/pc_coop_world_hooks.h"\n#include <type_traits>\nstatic_assert(std::is_same<decltype(&pc_coop_world_draw_guest_enemies),bool(*)(Graphics&)>::value,"lightweight renderer hook");\nstatic_assert(std::is_same<decltype(&pc_coop_world_draw_guest_enemy_gauges),bool(*)(Graphics&)>::value,"lightweight gauge hook");\nint main(){return 0;}\n',encoding='utf-8')
 print('Generated actual capture/pool regression fixture and compile-out check:',out)
