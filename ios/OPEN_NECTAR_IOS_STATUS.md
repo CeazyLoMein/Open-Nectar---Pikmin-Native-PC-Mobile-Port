@@ -1,3 +1,11 @@
+## PC20 / iPhone104 submitted — 2026-11-05T20:53:36-05:00
+
+Source a1a9b538d6e6ffdb80c3d603ad5c17dbdd012849, identity e25d84ca21f17429841a283c5a3c061bf41ca205ff09b8d7bfc39e07cee18a16. PC20 run42146610969 and iPhone104 run42146610819 are IN PROGRESS, no artifacts verified yet. One coordinated batch, P1-only iOS update; P2 untouched. Local35/35 CTests (83 encounter checks),1296 actual smoother checks, actual engine-header analysis and real encrypted encounter/interruption socket probe passed. Accepted installed baseline remains PC19/iPhone103 (d6c7b013f4518bd054be8f773a02c7d6951a5e86), provisional user camera/pause pass; Raye phone-to-phone pending. No app installed or changed this turn. No repeated CI polling: user will report completion.
+
+Exact next action: inspect both runs once user reports pass/fail; retrieve all failed-job annotations/logs if any. If both succeed, verify artifact digests, actual matching build identity, imports/bundle/resources/fixtures; adapt existing work/verify_windows_game19.py and work/verify_pc19_phone103.py for NEW20/104 and1296 smoothing count. Preserve strict checks, do not accept old binaries/logs. Back up accepted19/103 before any install. No user phone access required until actual package preparation/test. Checklist Documents/Open Nectar/2 - Progress and ChatGPT Handoff/NEXT TEST - PC20 and iPhone104.txt. New encounter hardware combat/health/audio/rendering are UNTESTED; full campaign, corpses/rewards/Onions/cutscenes and durable mid-day recovery remain unfinished.
+
+---
+
 ## Shared encounter milestone implemented; build pending — 2026-11-05
 
 Accepted baseline remains PC19/iPhone103, source d6c7b013f4518bd054be8f773a02c7d6951a5e86. User provisionally passed camera and interruption pause; slight cellular lag accepted. Raye phone-to-phone regression remains pending.
