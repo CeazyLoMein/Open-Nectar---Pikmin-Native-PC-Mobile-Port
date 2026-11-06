@@ -2,6 +2,7 @@
 #include "teki.h"
 #if defined(PIKI_PC_PORT)
 #include "netplay/pc_netplay_policy.h"
+#include "netplay/pc_coop_world_hooks.h"
 #include "netplay/pc_netplay_present.h"
 #endif
 #include "AIConstant.h"
@@ -2107,7 +2108,10 @@ void BTeki::refresh2d(Graphics& gfx)
 		mLifeGauge.mPosition.input(pos);
 		mLifeGauge.mOffset.y = getParameterF(TPF_LifeGaugeOffset);
 		mLifeGauge.mScale    = 5000.0f / gfx.mCamera->mNear;
-		mLifeGauge.refresh(gfx);
+#if defined(PIKI_PC_PORT)
+        pc_coop_world_prepare_enemy_gauge(mLifeGauge,mHealth,getMaxLife());
+#endif
+        mLifeGauge.refresh(gfx);
 	}
 
 	// w/e man.

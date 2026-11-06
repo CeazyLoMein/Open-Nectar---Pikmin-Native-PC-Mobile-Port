@@ -157,6 +157,18 @@ if(PIKMIN_BUILD_TESTS)
     add_executable(pc_seed_landing_test pc_port/pc_seed_landing_test.cpp)
     target_include_directories(pc_seed_landing_test PRIVATE pc_port)
     add_test(NAME pc_seed_landing_test COMMAND pc_seed_landing_test)
+
+    # Upstream fc8bcf94: retain completed gate side pieces.
+    add_executable(pc_wall_sides_test pc_port/pc_wall_sides_test.cpp)
+    target_include_directories(pc_wall_sides_test PRIVATE pc_port)
+    add_test(NAME pc_wall_sides_test COMMAND pc_wall_sides_test)
+
+    # Upstream e7d1168d: No Day Limit must not exhaust the diary after 27 days.
+    add_executable(pc_diary_misc_pool_test pc_port/pc_diary_misc_pool_test.cpp src/plugPikiKando/resultFlag.cpp)
+    target_include_directories(pc_diary_misc_pool_test BEFORE PRIVATE pc_port/result_flag_stubs)
+    target_include_directories(pc_diary_misc_pool_test PRIVATE include include/Dolphin include/Dolphin/OS pc_port)
+    add_test(NAME pc_diary_misc_pool_test COMMAND pc_diary_misc_pool_test)
+
 endif()
 
 # ─── Which release of the game this binary is built for ───

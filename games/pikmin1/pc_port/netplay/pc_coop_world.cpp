@@ -47,6 +47,14 @@ struct GuestState {
     std::map<std::uint64_t, VisualPikmin> visuals;
 };
 std::unique_ptr<GuestState> guest;
+void clearGuestEnemyTargets() {
+    if(!guest || !guest->enemy || !naviMgr)return;
+    Iterator navis(naviMgr);CI_LOOP(navis) {
+        auto* n=static_cast<Navi*>(*navis);
+        if(n && n->mPcLockTarget==guest->enemy)n->mPcLockTarget=nullptr;
+    }
+}
+
 AnimInfo* enemyAnimation(Teki* enemy,unsigned index) {
     if(!enemy || !enemy->mTekiShape || !enemy->mTekiShape->mAnimMgr || index>=1024)return nullptr;
     auto* a=static_cast<AnimInfo*>(enemy->mTekiShape->mAnimMgr->mAnimList.mChild);
@@ -75,6 +83,7 @@ void applyEnemy(const net::ActorFrame& frame,bool presentation=false) {
     local->mSRT.t.set(s.position.x,s.position.y,s.position.z);local->mLastPosition=local->mSRT.t;
     local->mSRT.s.set(s.scale.x,s.scale.y,s.scale.z);local->mFaceDirection=s.faceDirection;local->_3A4=s.tilt;local->mHealth=s.health;
     local->mLifeGauge.updValue(s.health,s.maxHealth);
+    pc_coop_world_prepare_enemy_gauge(local->mLifeGauge,s.health,s.maxHealth);
     if(s.visible)local->setTekiOption(TEKIOPT_Visible|TEKIOPT_LifeGaugeVisible);
     else local->clearTekiOption(TEKIOPT_Visible|TEKIOPT_LifeGaugeVisible);
     auto* a=local->mTekiAnimator;a->mListener=nullptr;a->mCurrentKeyIndex=-1;a->mPlayState=ANIMSTATE_Inactive;a->mMotionIdx=-1;
@@ -151,6 +160,7 @@ bool prepareCaptains(std::uint64_t sessionId, std::uint32_t epoch,
         net::CaptainState checked;
         if (!net::decodeCaptainState(bytes.data(), bytes.size(), checked) ||
             !pending.local[value.player]->pcCoopVisualValidate(value) ||
+            (value.lockedEnemy && (!guest->enemy || frame.enemies.size()!=1)) ||
             (guest->ids[value.player] && guest->ids[value.player] != entry.first)) return false;
         pending.incoming[value.player] = &value;
         pending.ids[value.player] = entry.first;
@@ -167,6 +177,7 @@ void commitCaptains(const CaptainApply& pending, const net::ActorFrame& frame)
         n->mFaceDirection = value.faceDirection;
         n->mSRT.r.y = value.faceDirection;
         n->pcCoopVisualApply(value);
+        n->mPcLockTarget=value.lockedEnemy ? guest->enemy : nullptr;
         guest->ids[player] = pending.ids[player];
         guest->captainStates[player] = value;
     }
@@ -352,6 +363,7 @@ bool pc_coop_world_present_guest(const net::ActorFrame& frame)
         n->mLastPosition=n->mSRT.t;
         n->mVelocity.x=value.velocity.x;n->mVelocity.y=value.velocity.y;n->mVelocity.z=value.velocity.z;
         n->mFaceDirection=value.faceDirection;n->mSRT.r.y=value.faceDirection;n->pcCoopVisualApply(value);
+        n->mPcLockTarget=value.lockedEnemy ? guest->enemy : nullptr;
     }
     for (const auto& entry:guest->visuals) {
         auto value=entry.second.applied;
@@ -364,6 +376,21 @@ bool pc_coop_world_present_guest(const net::ActorFrame& frame)
     return true;
 }
 
+bool pc_coop_world_guest_idle_count(int& count) {
+    if(!guest || guest->invalidated || !guest->havePikminFrame || !guest->visualManager)return false;
+    int idle=0;for(const auto& entry:guest->visuals) {
+        const auto& p=entry.second.applied;
+        if(p.health>0 && p.action==PikiMode::FreeMode)++idle;
+    }
+    count=idle;return true;
+}
+void pc_coop_world_prepare_enemy_gauge(LifeGauge& gauge,float health,float maximum) {
+    if(!state && !guest)return;
+    if(!std::isfinite(health)||!std::isfinite(maximum)||maximum<=0)return;
+    gauge.mDisplayState=LifeGauge::STATE_Display;gauge.mFadeTransitionValue=1;
+    gauge.mCurrentDisplayHealthRatio=gauge.mTargetHealthRatio=std::clamp(health/maximum,0.0f,1.0f);
+    gauge.mVisibleHoldTimer=5;gauge.mSnapToTargetHealth=true;
+}
 bool pc_coop_world_bind_guest_encounter(Teki* enemy) {
     if(!guest || guest->enemy || !enemy || enemy->mTekiType!=net::kPracticeEnemyType || !enemy->mTekiAnimator || !enemy->mTekiShape)return false;
     guest->enemy=enemy;return true;
@@ -430,13 +457,13 @@ bool pc_coop_world_begin_host(std::uint64_t sessionId, std::uint32_t epoch, bool
     state = std::move(pending); lastSession = sessionId; lastEpoch = epoch;
     return true;
 }
-void pc_coop_world_end_scene() { emergencyHold=false;state.reset(); guest.reset(); }
+void pc_coop_world_end_scene() { clearGuestEnemyTargets();emergencyHold=false;state.reset(); guest.reset(); }
 void pc_coop_world_forget(const void* actor)
 {
     if (state && actor) state->registry.retireLocal(key(actor));
     if (guest && actor && (actor == guest->captains[0] || actor == guest->captains[1]))
         guest->invalidated = true; // same address after pool reuse is NOT same lifetime
-    if (guest && actor && actor==guest->enemy)guest->invalidated=true;
+    if (guest && actor && actor==guest->enemy) { clearGuestEnemyTargets();guest->invalidated=true; }
     if (guest && actor) for (const auto* slot : guest->visualSlots)
         if (slot == actor) { guest->invalidated = true; break; }
     if (guest && actor) for (const auto& binding : guest->pikmin) {
@@ -470,6 +497,7 @@ bool pc_coop_world_capture(std::vector<net::EntityRecord>& output)
         s.cursor = {n->mCursorWorldPos.x,n->mCursorWorldPos.y,n->mCursorWorldPos.z};
         s.health=n->mHealth;s.cursorVisible=n->mIsCursorVisible ? 1 : 0;
         n->pcCoopWhistleCapture(s);
+        s.lockedEnemy=state->registry.idForLocal(key(n->mPcLockTarget),net::EntityKind::Enemy)!=0;
         const auto& upper=n->mNaviAnimMgr.getUpperAnimator();
         const auto& lower=n->mNaviAnimMgr.getLowerAnimator();
         if (upper.mCurrentAnimID<0 || upper.mCurrentAnimID>=1024 || lower.mCurrentAnimID<0 || lower.mCurrentAnimID>=1024) return false;

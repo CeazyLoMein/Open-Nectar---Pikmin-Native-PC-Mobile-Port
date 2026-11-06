@@ -1,5 +1,6 @@
 #include "netplay/pc_practice_squad_policy.h"
 #include "netplay/pc_coop_practice_runtime.h"
+#include "netplay/pc_coop_world_hooks.h"
 #if defined(PIKI_PC_PORT)
 #include "netplay/pc_coop_cursor_motion.h"
 #endif
@@ -1472,7 +1473,7 @@ void Navi::pcUpdateLockOn()
 	const uint8_t ext        = detMode ? pc_netplay_ext_bits(mNaviID) : 0;
 	const bool lockPressed   = pc_coop_practice_remote_input(mNaviID) ? (pc_coop_practice_ext(mNaviID)&2)!=0 : detMode ? (ext & pc_input_log::kExtLockOn) != 0 : pc_window_take_lockon_press(mNaviID);
 	const bool chargePressed = pc_coop_practice_remote_input(mNaviID) ? (pc_coop_practice_ext(mNaviID)&4)!=0 : detMode ? (ext & pc_input_log::kExtCharge) != 0 : pc_window_take_swarm_press(mNaviID);
-	const int mode           = pc_settings_get_lock_on();
+	const int mode           = pc_coop_practice_lock_on(mNaviID);
 	const bool extTrace      = detMode && pc_netplay_ext_trace();
 	Creature* const lockBefore = mPcLockTarget;
 
@@ -1681,7 +1682,7 @@ void Navi::pcDrawLockRing(Graphics& gfx)
 		colour.set(60, 130, 255, 230);
 	}
 
-	const Vector3f centre = mPcLockTarget->getCentre();
+	const Vector3f centre = pc_coop_world_has_guest() ? mPcLockTarget->mSRT.t : mPcLockTarget->getCentre();
 	const f32 radius      = pc_lock_target_radius(mPcLockTarget) + 5.0f;
 
 	const bool prevLighting = gfx.setLighting(false, nullptr);
@@ -2265,7 +2266,7 @@ void Navi::pcPinCursorToLock()
 
 	Vector3f offset = mPcLockTarget->getCentre() - mSRT.t;
 	offset.y        = 0.0f;
-    if (pc_settings_get_lock_on() == 3) {
+    if (pc_coop_practice_lock_on(mNaviID) == 3) {
         // Keep most of the user's free cursor; assistance is a nudge, not a pin.
         offset = mPcAimOffset * 0.55f + offset * 0.45f;
         if (offset.length() > NAVI_PARM(mCursorMaxRadius)) {
@@ -4051,7 +4052,7 @@ void Navi::refresh(Graphics& gfx)
 #if defined(PIKI_PC_PORT)
 		// Lock-On: el aro del cursor se sustituye por uno propio alrededor del
 		// objetivo (pcDrawLockRing), de trazo fijo sea cual sea su tamaño.
-		const bool pcLocked = mPcLockTarget && pc_settings_get_lock_on();
+		const bool pcLocked = mPcLockTarget && pc_coop_practice_lock_on(mNaviID);
 #endif
 
 		// Estela: emite mientras el cursor se desplaza; quieto, deja de emitir

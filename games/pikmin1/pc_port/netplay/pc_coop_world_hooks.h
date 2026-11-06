@@ -15,6 +15,9 @@ bool pc_coop_world_draw_guest_pikmin(Graphics&);
 // Keep renderer hooks independent of networking headers and target includes.
 bool pc_coop_world_draw_guest_enemies(Graphics&);
 bool pc_coop_world_draw_guest_enemy_gauges(Graphics&);
+bool pc_coop_world_guest_idle_count(int& count);
+struct LifeGauge;
+void pc_coop_world_prepare_enemy_gauge(LifeGauge&,float,float);
 #else
 inline void pc_coop_world_forget(const void*) {}
 inline void pc_coop_world_end_scene() {}
@@ -24,4 +27,7 @@ class Graphics;
 inline bool pc_coop_world_draw_guest_pikmin(Graphics&) { return false; }
 inline bool pc_coop_world_draw_guest_enemies(Graphics&) { return false; }
 inline bool pc_coop_world_draw_guest_enemy_gauges(Graphics&) { return false; }
+inline bool pc_coop_world_guest_idle_count(int&) { return false; }
+struct LifeGauge;
+inline void pc_coop_world_prepare_enemy_gauge(LifeGauge&,float,float) {}
 #endif

@@ -23,6 +23,7 @@ public:
     bool sample(const nectar::net::CaptainState& authoritative,std::uint64_t ackTick,
                 const pc_coop_cursor::Motion& unsent,float radius,std::uint64_t now,nectar::net::Vec3& out,const nectar::net::Vec3* shownCaptain=nullptr) {
         while (!pending.empty() && (pending.front().tick<=ackTick || now<pending.front().at || now-pending.front().at>300)) pending.pop_front();
+        if (authoritative.lockedEnemy && !held)return false;
         if (!haveActivity || now<lastActivity || (!held && pending.empty() && now-lastActivity>150)) return false;
         if (!std::isfinite(radius)||radius<=0||radius>10000) return false;
         auto wanted=authoritative.cursor;

@@ -8,7 +8,7 @@ bool NetInputFrame::operator==(const NetInputFrame& o) const
 {
     return tick == o.tick && held == o.held && pressed == o.pressed && released == o.released && stickX == o.stickX
         && stickY == o.stickY && cstickX == o.cstickX && cstickY == o.cstickY && triggerL == o.triggerL
-        && triggerR == o.triggerR && cursorDx == o.cursorDx && cursorDy == o.cursorDy && flags == o.flags && controlYaw == o.controlYaw && naviSpeedPct == o.naviSpeedPct;
+        && triggerR == o.triggerR && cursorDx == o.cursorDx && cursorDy == o.cursorDy && flags == o.flags && controlYaw == o.controlYaw && naviSpeedPct == o.naviSpeedPct && lockOnMode == o.lockOnMode;
 }
 
 std::vector<std::uint8_t> encodeInputBundle(const std::vector<NetInputFrame>& newestFirst)
@@ -32,7 +32,7 @@ std::vector<std::uint8_t> encodeInputBundle(const std::vector<NetInputFrame>& ne
         writer.writeU16(static_cast<std::uint16_t>(f.cursorDx));
         writer.writeU16(static_cast<std::uint16_t>(f.cursorDy));
         writer.writeU8(f.flags);
-        writer.writeU16(f.controlYaw); writer.writeU16(f.naviSpeedPct);
+        writer.writeU16(f.controlYaw); writer.writeU16(f.naviSpeedPct); writer.writeU8(f.lockOnMode);
     }
     return writer.ok() ? writer.bytes() : std::vector<std::uint8_t>{};
 }
@@ -55,7 +55,7 @@ bool decodeInputBundle(const std::uint8_t* data, std::size_t size, const InputLi
         if (!reader.readU16(f.held) || !reader.readU16(f.pressed) || !reader.readU16(f.released)
             || !reader.readU8(sx) || !reader.readU8(sy) || !reader.readU8(cx) || !reader.readU8(cy)
             || !reader.readU8(f.triggerL) || !reader.readU8(f.triggerR) || !reader.readU16(dx)
-            || !reader.readU16(dy) || !reader.readU8(f.flags) || !reader.readU16(f.controlYaw) || !reader.readU16(f.naviSpeedPct)) {
+            || !reader.readU16(dy) || !reader.readU8(f.flags) || !reader.readU16(f.controlYaw) || !reader.readU16(f.naviSpeedPct) || !reader.readU8(f.lockOnMode) || f.lockOnMode>3) {
             return false;
         }
         if (f.naviSpeedPct!=100 && f.naviSpeedPct!=150 && f.naviSpeedPct!=200 && f.naviSpeedPct!=250
@@ -180,6 +180,11 @@ NetInputFrame InputReceiver::consume(std::uint64_t tick, InputHealth& health)
         health = InputHealth::Repeated;
     } else {
         result.released = previousHeld; // let go of everything once
+        // No movement during a gap, but personal preferences are not buttons.
+        // Preserve them until a later authenticated input changes them.
+        if(mHaveLast) {
+            result.lockOnMode=mLast.lockOnMode;result.naviSpeedPct=mLast.naviSpeedPct;result.controlYaw=mLast.controlYaw;
+        }
         health = InputHealth::Neutral;
     }
     mLast = result;

@@ -15,10 +15,15 @@ settings=(root/'games/pikmin1/pc_port/settings/pc_settings.cpp').read_text(encod
 runtime=(root/'games/pikmin1/pc_port/netplay/pc_coop_practice_runtime.cpp').read_text(encoding='utf-8')
 parts=[body(visual,s) for s in ['void Navi::pcCoopWhistleCapture(', 'bool Navi::pcCoopWhistleRadius(', 'void Navi::pcCoopWhistleEffects(']]
 parts += [body(nav,s) for s in ['void Navi::renderCircle(', 'static bool pcTouchAim(', 'void Navi::pcUpdateRecallAll(']]
-parts += [body(runtime,s) for s in ['bool pc_coop_practice_cursor_delta(', 'float pc_coop_practice_remote_speed(']]
+parts += [body(runtime,s) for s in ['bool pc_coop_practice_cursor_delta(', 'float pc_coop_practice_remote_speed(', 'int pc_coop_practice_lock_on(']]
 fallback=body(nav,'} else if (localCursor && pc_window_get_control_mode() != PC_CONTROL_CLASSIC)').replace('} else if','if',1)
 parts.append('Vector3f actualVirtualFallback(bool localCursor,bool mouseIsMine) {(void)mouseIsMine;Vector3f stickVec2{77,0,88};'+fallback+';return stickVec2;}')
 parts += [body(settings,s) for s in ['int pc_settings_get_recall_all(', 'float pc_settings_get_piki_speed_scale(', 'const char* disabledReason(']]
+# Execute the actual idle-HUD eligibility/count preamble without a GPU.
+idle=body(settings,'void pc_settings_draw_idle_counter(').split('    DGXGraphics* gfx =',1)[0]
+idle=idle.replace('void pc_settings_draw_idle_counter(void)','int actualIdleHudCount()').replace('return;','return -1;')+'    return idle;\n}\n'
+parts.append(idle)
+
 particles=(root/'games/pikmin1/src/plugPikiYamashita/particleManager.cpp').read_text(encoding='utf-8')
 parts += [body(particles,'void zen::particleManager::updateCoopWhistles('),body(runtime,'bool pc_coop_practice_guest_effects_running(')]
 assert 'ptclGen->mPcCoopWhistleVisual=false' in particles
@@ -82,7 +87,15 @@ bool pc_netplay_deterministic(){return det;}
 bool pc_coop_practice_active(){return practice;}
 bool pc_hardmode_active(){return hard;}bool pc_speedrun_active(){return speedrun;}
 bool pc_coop_active(){return coop;}bool pc_vs_active(){return vsMode;}
-struct Config{int recallAll=1,pikiSpeedPct=100;}sConfig;
+struct Config{int recallAll=1,pikiSpeedPct=100,lockOn=3;}sConfig;
+int idleOption=1,replicaIdle=0;bool replicaIdleAvailable=false,sMenuOpen=false;unsigned sLastGameplayFrameMs=0;
+int pc_settings_get_idle_counter(){return idleOption;}bool pc_glass_menu_active(){return false;}
+unsigned SDL_GetTicks(){return 1000;}
+namespace GameStat {int freePikis=0;}
+
+bool pc_coop_world_guest_idle_count(int& out){if(!replicaIdleAvailable)return false;out=replicaIdle;return true;}
+
+extern "C" int pc_settings_get_lock_on(){return sConfig.lockOn;}
 enum{SRC_MAIN,SRC_ADV,SRC_RECENTER,SRC_GFX,SRC_MODS,SRC_DATA,ROW_RESOLUTION=100,PC_WINDOW_FULLSCREEN_BORDERLESS=2,PC_CONTROL_CLASSIC=0};
 struct GroupRow{int src,idx;};bool hardLocked(const GroupRow&){return false;}
 struct Pending{int displayMode=0,controlMode=0;bool gyroEnabled=false,colourGrading=false,lockOn=false;}sPending;
@@ -131,7 +144,7 @@ net::CoopRole role=net::CoopRole::Guest;
 struct Session{bool canIssueCommands(){return sessionRunning;}}fakeSession;
 Session*session(){return &fakeSession;}
 bool pc_coop_practice_guest_effects_running();
-struct System{float frame=.5f;float getFrameTime(){return frame;}}systemMock;System*gsys=&systemMock;
+struct System{void*mDGXGfx=reinterpret_cast<void*>(1);float frame=.5f;float getFrameTime(){return frame;}}systemMock;System*gsys=&systemMock;
 namespace zen {
 struct zenList{zenList*mNext=nullptr;};
 struct particleGenerator:zenList{bool mPcCoopWhistleVisual=false,finished=false;int calls=0;float step=0;bool update(float dt){++calls;step=dt;return finished;}};
@@ -182,6 +195,14 @@ int main(){
  check(near(pc_settings_get_piki_speed_scale(),2)&&!disabledReason({SRC_MODS,43}),"host may set shared Pikmin walking speed in practice");
  localPlayer=1;check(disabledReason({SRC_MODS,43})&&near(pc_settings_get_piki_speed_scale(),1),"guest Pikmin speed row explains host control instead of silently changing nothing");
  check(!disabledReason({SRC_MODS,42})&&pc_settings_get_recall_all()==1,"both players may enable their own practice recall button");
+ for(int idx:{4,5,6,7,13,19,24,28,30,31,32,34,36,37,44})check(disabledReason({SRC_MODS,idx})!=nullptr,"practice cannot advertise inactive campaign/rescue cheats");
+ for(int idx:{1,2,8,9,11,12,16,17,20,21,22,23,25,26,27,33,35,39})check(disabledReason({SRC_MODS,idx})!=nullptr,"guest is told each world gameplay rule is host-controlled");
+ for(int idx:{10,14,15,18,29,38,40,41,42})check(disabledReason({SRC_MODS,idx})==nullptr,"guest keeps personal idle/aim/captain speed/recall options");
+ host=true;sConfig.lockOn=0;remote.lockOnMode=3;
+ check(pc_coop_practice_lock_on(0)==0&&pc_coop_practice_lock_on(1)==3,"actual host uses separate guest soft assist and own off setting");
+ remote.lockOnMode=0;sConfig.lockOn=3;
+ check(pc_coop_practice_lock_on(0)==3&&pc_coop_practice_lock_on(1)==0,"guest can turn assistance off independently");
+ host=false;check(pc_coop_practice_lock_on(1)==3,"guest presentation uses its own local aim preference");
  for(bool* blocked:{&hard,&speedrun,&vsMode,&det}){*blocked=true;check(pc_settings_get_recall_all()==0&&near(pc_settings_get_piki_speed_scale(),1)&&disabledReason({SRC_MODS,42}),"restricted modes retain original cheat safety gates");*blocked=false;}
  practice=false;check(pc_settings_get_recall_all()==0&&near(pc_settings_get_piki_speed_scale(),1)&&disabledReason({SRC_MODS,42}),"unrelated local multiplayer stays restricted");
  zen::particleManager pm;zen::particleGenerator allowed,other,finished;
@@ -204,6 +225,12 @@ int main(){
  check(cameraDrag[1]==0&&mouseMotion.x==10,"disabled Free Camera preserves ordinary aim");
  freeCam=true;b.mPcLockTarget=&a;actualGuestMouseCamera(&b,&camera,mouseMotion);
  check(cameraDrag[1]==0&&mouseMotion.x==10,"guest edge route does not invent a local lock target");
+ replicaIdleAvailable=true;replicaIdle=4;GameStat::freePikis=0;sLastGameplayFrameMs=0;
+ check(actualIdleHudCount()==4,"actual guest idle HUD displays replica count even with stale simulation timestamp and zero local GameStat");
+ replicaIdleAvailable=false;check(actualIdleHudCount()==-1,"missing guest baseline cannot invent idle HUD data");
+ sLastGameplayFrameMs=1000;GameStat::freePikis=5;check(actualIdleHudCount()==5,"ordinary host idle HUD retains native live GameStat count");
+ replicaIdleAvailable=true;idleOption=0;check(actualIdleHudCount()==-1,"personal off option still hides network idle HUD");
+ idleOption=1;sMenuOpen=true;check(actualIdleHudCount()==-1,"settings menu still suppresses idle HUD");sMenuOpen=false;
  std::printf("%s %d actual practice feedback checks\n",failures?"FAIL":"PASS",checks);return failures?1:0;
 }
 '''

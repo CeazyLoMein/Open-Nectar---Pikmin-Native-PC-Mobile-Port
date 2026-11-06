@@ -112,6 +112,14 @@ void practiceReport(std::uint64_t now, net::CoopSession* s) {
                 static_cast<unsigned long long>(audioPlayed),static_cast<unsigned long long>(audioDropped),pc_coop_audio_backend_state());
         }
     }
+    if(role==net::CoopRole::Host && tekiMgr) {
+        Iterator enemies(tekiMgr);CI_LOOP(enemies) {
+            auto* e=static_cast<Teki*>(*enemies);
+            if(e && e->mTekiType==TEKI_Chappy)
+                std::fprintf(f,"encounter hp=%.2f max=%.2f pending_damage=%.2f state=%d dead=%d\n",
+                    e->mHealth,e->getMaxLife(),e->mStoredDamage,int(e->mStateID),e->mDeadState);
+        }
+    }
     std::fclose(f);
 }
 char failure[240]={};
@@ -360,6 +368,7 @@ void pc_coop_practice_filter_pad(PADStatus* pads) {
     if (start) { pc_coop_practice_pause();showPanel(); }
     if (role==net::CoopRole::Guest) {
         net::NetInputFrame f;
+        f.lockOnMode=static_cast<std::uint8_t>(pc_settings_get_lock_on());
         f.naviSpeedPct=static_cast<std::uint16_t>(std::lround(pc_settings_get_navi_speed_scale()*100.0f));
         f.held=physical.button & ~(PAD_BUTTON_START|PAD_BUTTON_Y);
         f.stickX=physical.stickX;f.stickY=physical.stickY;
@@ -429,6 +438,7 @@ bool pc_coop_practice_cursor_delta(int p,float* x,float* y) {
     *x=delta.x;*y=delta.z;
     return true;
 }
+int pc_coop_practice_lock_on(int p) { return pc_coop_practice_remote_input(p)?remote.lockOnMode:pc_settings_get_lock_on(); }
 float pc_coop_practice_remote_speed(int p) {
     return pc_coop_practice_remote_input(p)?remote.naviSpeedPct*.01f:1.0f;
 }

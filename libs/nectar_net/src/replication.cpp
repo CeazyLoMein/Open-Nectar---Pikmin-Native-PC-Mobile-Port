@@ -44,6 +44,7 @@ float lerpAngle(float a, float b, float t)
 
 std::vector<std::uint8_t> encodeCaptainState(const CaptainState& s)
 {
+    if(s.lockedEnemy>1)return {};
     ByteWriter writer(kCaptainStateBytes);
     for (float f : {s.position.x, s.position.y, s.position.z, s.velocity.x, s.velocity.y, s.velocity.z,
                     s.faceDirection}) {
@@ -54,7 +55,7 @@ std::vector<std::uint8_t> encodeCaptainState(const CaptainState& s)
         writer.writeU32(floatBits(f));
     writer.writeU16(s.upperAnimation); writer.writeU16(s.lowerAnimation);
     writer.writeU8(s.cursorVisible);
-    writer.writeU32(floatBits(s.whistleRadius)); writer.writeU8(s.whistleActive);
+    writer.writeU32(floatBits(s.whistleRadius)); writer.writeU8(s.whistleActive); writer.writeU8(s.lockedEnemy);
     return writer.ok() ? writer.bytes() : std::vector<std::uint8_t>{};
 }
 
@@ -90,7 +91,8 @@ bool decodeCaptainState(const std::uint8_t* data, std::size_t size, CaptainState
     decoded.cursor = {visual[0], visual[1], visual[2]}; decoded.health = visual[3];
     decoded.upperFrame = visual[4]; decoded.lowerFrame = visual[5];
     std::uint32_t whistleBits=0;
-    if (!reader.readU32(whistleBits) || !reader.readU8(decoded.whistleActive) || decoded.whistleActive>1) return false;
+    if (!reader.readU32(whistleBits) || !reader.readU8(decoded.whistleActive) || decoded.whistleActive>1
+        || !reader.readU8(decoded.lockedEnemy) || decoded.lockedEnemy>1) return false;
     decoded.whistleRadius=bitsFloat(whistleBits);
     if (!std::isfinite(decoded.whistleRadius) || decoded.whistleRadius<0 || decoded.whistleRadius>10000) return false;
     state = decoded;

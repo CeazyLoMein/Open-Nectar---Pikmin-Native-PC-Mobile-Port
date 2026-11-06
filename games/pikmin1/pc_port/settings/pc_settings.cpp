@@ -53,6 +53,7 @@
 #include "pc_permadeath.h"
 #include "pc_coop.h"
 #include "netplay/pc_coop_practice_runtime.h"
+#include "netplay/pc_coop_world_hooks.h"
 #include "pc_vs.h"
 #include "mods/pc_vs_map.h"
 #include "netplay/pc_netplay_det.h"
@@ -6018,10 +6019,12 @@ void pc_settings_draw_idle_counter(void) {
     if (sMenuOpen || pc_glass_menu_active()) return;
     // Solo mientras el mundo se está simulando. 250 ms de margen cubre una
     // pausa breve sin dejar el contador colgado en el menú o en el título.
-    if (sLastGameplayFrameMs == 0 || SDL_GetTicks() - sLastGameplayFrameMs > 250) return;
+    int networkIdle=0;
+    const bool replica=pc_coop_world_guest_idle_count(networkIdle);
+    if (!replica && (sLastGameplayFrameMs == 0 || SDL_GetTicks() - sLastGameplayFrameMs > 250)) return;
     if (!gsys || !gsys->mDGXGfx) return;
 
-    const int idle = GameStat::freePikis;
+    const int idle = replica ? networkIdle : static_cast<int>(GameStat::freePikis);
     if (idle <= 0) return;
 
     DGXGraphics* gfx = static_cast<DGXGraphics*>(gsys->mDGXGfx);
@@ -7278,7 +7281,7 @@ void pc_first_person_toggle(void) { pc_first_person_toggle_for(0); }
 
 int pc_settings_get_charge(void) { if (pc_speedrun_active()) return 0;
     // El charge no significa nada sin un objetivo fijado.
-    return sConfig.lockOn ? sConfig.charge : 0;
+    return (pc_coop_practice_active() || sConfig.lockOn) ? sConfig.charge : 0;
 }
 
 float pc_mods_teki_damage(float damage) {
@@ -7543,7 +7546,7 @@ void modsRowValue(int i, char* value, size_t n) {
     case 14: snprintf(value, n, "%s", sPending.freeCamera ? "On" : "Off (original)"); break;
     case 15: snprintf(value, n, "%s", sPending.lockOn == 3 ? "Soft Assist" : sPending.lockOn == 2 ? "Automatic" : sPending.lockOn == 1 ? "Manual" : "Off (original)"); break;
     case 16:
-        if (!sPending.lockOn) snprintf(value, n, "Needs Lock-On");
+        if (!sPending.lockOn && !pc_coop_practice_active()) snprintf(value, n, "Needs Lock-On");
         else snprintf(value, n, "%s", sPending.charge ? "On" : "Off (original)");
         break;
     case 17: snprintf(value, n, "%s", sPending.throwWhileMoving ? "On" : "Off (original)"); break;
@@ -7945,11 +7948,26 @@ const char* disabledReason(const GroupRow& r) {
         if (r.idx >= 7 && r.idx <= 9 && !sPending.colourGrading) return "Turn on Colour Adjustments first.";
         break;
     case SRC_MODS:
+        if(pc_coop_practice_active()) {
+            switch(r.idx) {
+            case 4:case 5:case 6:case 7:case 13:case 19:case 24:case 28:case 30:case 31:case 32:case 34:case 36:case 37:
+                return "Campaign feature: not available in the disposable co-op practice area.";
+            case 44:return "Automatic follower rescue is not implemented online yet.";
+            default:break;
+            }
+            if(pc_coop_practice_local_player()!=0) {
+                switch(r.idx) {
+                case 1:case 2:case 8:case 9:case 11:case 12:case 16:case 17:case 20:case 21:case 22:case 23:case 25:case 26:case 27:case 33:case 35:case 39:
+                    return "The host controls this gameplay rule for both players. Your local value is used in solo.";
+                default:break;
+                }
+            }
+        }
         if ((r.idx == 42 || r.idx == 43) && (pc_speedrun_active() || pc_hardmode_active()
             || (pc_coop_active() && !pc_coop_practice_active()) || pc_vs_active() || pc_netplay_deterministic())) return "Unavailable in this mode.";
         if (r.idx==43 && pc_coop_practice_active() && pc_coop_practice_local_player()!=0)
             return "The host controls Pikmin walking speed for both squads. Your captain speed is independent.";
-        if (r.idx == 16 && !sPending.lockOn) return "Turn on Lock-On first.";
+        if (r.idx == 16 && !sPending.lockOn && !pc_coop_practice_active()) return "Turn on Lock-On first.";
         break;
     case SRC_DATA:
         if (r.idx == 3 && !online_guest()) return "Only while you are the guest of an online co-op session.";

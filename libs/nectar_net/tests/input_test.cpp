@@ -193,6 +193,17 @@ void testAppliedInputs()
 
 int main()
 {
+    NetInputFrame preference;preference.tick=1;preference.lockOnMode=3;
+    std::vector<NetInputFrame> decoded;auto bytes=encodeInputBundle({preference});
+    check(decodeInputBundle(bytes.data(),bytes.size(),{},decoded)&&decoded[0].lockOnMode==3,"guest soft assist preference survives wire independently");
+    preference.lockOnMode=0;check(preference!=decoded[0],"different assist preferences are not identical buffered input");
+    bytes.back()=4;check(!decodeInputBundle(bytes.data(),bytes.size(),{},decoded)&&decoded[0].lockOnMode==3,"invalid aim mode cannot overwrite accepted preference");
+    InputReceiver preferenceBuffer;
+    preference.tick=1;preference.lockOnMode=3;preference.stickX=100;
+    check(preferenceBuffer.receive({preference},1)==1,"preference buffer accepts live aim mode");
+    InputHealth preferenceHealth;preferenceBuffer.consume(1,preferenceHealth);
+    auto neutralPreference=preferenceBuffer.consume(20,preferenceHealth);
+    check(preferenceHealth==InputHealth::Neutral&&neutralPreference.stickX==0&&neutralPreference.held==0&&neutralPreference.lockOnMode==3,"input gap stops movement without switching off personal soft assist");
     testCodec();
     testLossIsRepaired();
     testHoldThenNeutral();

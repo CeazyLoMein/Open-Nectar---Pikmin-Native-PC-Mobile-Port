@@ -40,6 +40,7 @@ bool actors(const std::vector<EntityRecord>& records, std::uint16_t epoch, Actor
         } else return false; // other types require explicit engine adapters
     }
     if(!players[0]) return false;
+    for(const auto& p:pending.captains)if(p.second.lockedEnemy && pending.enemies.size()!=1)return false;
     for(const auto& p:pending.pikmin) {
         const auto& s=p.second;
         if(s.leader!=255 && !players[s.leader]) return false;

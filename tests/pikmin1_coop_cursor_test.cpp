@@ -83,5 +83,12 @@ int main(){
     check(vertical.drag==0,"vertical edge movement does not invent horizontal camera turn");
     auto invalid=pc_coop_cursor::edgeTurn({100,0,0},{10,0,0},{1,0,0},0);
     check(invalid.drag==0&&invalid.delta.x==10,"invalid reach cannot rotate camera or divide by zero");
+    {
+        PcCoopCursorPreview aimPreview;nectar::net::CaptainState assisted;assisted.lockedEnemy=1;
+        nectar::net::Vec3 aimOut;aimPreview.activity(false,true,1000);
+        check(!aimPreview.sample(assisted,0,{1,0,1},300,1000,aimOut),"local preview cannot fight host soft assist target");
+        aimPreview.activity(true,true,1000);
+        check(aimPreview.sample(assisted,0,{1,0,1},300,1000,aimOut),"explicit free aim retains instant local response while assistance releases");
+    }
     std::printf("%d cursor projection/ownership/preview checks passed\n",checks);
 }

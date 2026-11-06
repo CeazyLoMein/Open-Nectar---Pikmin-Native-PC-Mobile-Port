@@ -1,6 +1,7 @@
 #pragma once
 #include "netplay/pc_coop_practice_bridge.h"
 #include <cstdint>
+extern "C" int pc_settings_get_lock_on(void);
 class GameCoreSection;
 struct PADStatus;
 #if defined(NECTAR_COOP_WORLD) && NECTAR_COOP_WORLD
@@ -18,6 +19,7 @@ std::uint8_t pc_coop_practice_ext(int player);
 std::int16_t pc_coop_practice_cursor_rotate(int player);
 bool pc_coop_practice_cursor_delta(int player,float* x,float* y);
 float pc_coop_practice_remote_speed(int player);
+int pc_coop_practice_lock_on(int player);
 int pc_coop_practice_local_player();
 bool pc_coop_practice_hud(int player,int& formation,int& total,int& nextType);
 
@@ -36,6 +38,7 @@ inline std::uint8_t pc_coop_practice_ext(int) { return 0; }
 inline std::int16_t pc_coop_practice_cursor_rotate(int) { return 0; }
 inline bool pc_coop_practice_cursor_delta(int,float*,float*) { return false; }
 inline float pc_coop_practice_remote_speed(int) { return 1.0f; }
+inline int pc_coop_practice_lock_on(int) { return pc_settings_get_lock_on(); }
 inline int pc_coop_practice_local_player() { return 0; }
 inline bool pc_coop_practice_hud(int,int&,int&,int&) { return false; }
 #endif

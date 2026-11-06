@@ -26,6 +26,7 @@ struct NetInputFrame {
     std::int16_t cursorDy = 0;
     std::uint8_t flags = 0;
     std::uint16_t naviSpeedPct = 100; // independent captain preference, bounded by native decoder
+    std::uint8_t lockOnMode = 0; // independent personal assist preference, 0..3
     std::uint16_t controlYaw = 0; // camera basis, 1/65536 turns; never guest position
 
     bool operator==(const NetInputFrame& other) const;
@@ -40,7 +41,7 @@ struct InputLimits {
     bool allowStickMinimum = false;
 };
 
-constexpr std::size_t kInputFrameBytes = 21;   // without the tick
+constexpr std::size_t kInputFrameBytes = 22;   // without the tick
 constexpr std::size_t kMaxInputFrames = 6;     // current tick + 5 previous
 constexpr std::size_t kInputBundleHeaderBytes = 9;
 
