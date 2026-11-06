@@ -1,9 +1,10 @@
 #pragma once
 #include "nectar_net/pikmin_replication.h"
+#include "nectar_net/enemy_replication.h"
 #include <map>
 
 namespace nectar::net {
-// Prototype captain/Pikmin visual state ONLY: not AI, a campaign save or a
+// Captain/Pikmin and restricted encounter visual state ONLY: not AI, a save or a
 // complete world snapshot. Transport must authenticate the host before receive.
 // Sessions/epochs come from that session's accepted scene barrier, never a packet.
 struct ActorFrameLimits {
@@ -18,6 +19,7 @@ struct ActorFrame {
     std::uint64_t frame = 0, tick = 0;
     std::map<std::uint64_t, CaptainState> captains;
     std::map<std::uint64_t, PikminState> pikmin;
+    std::map<std::uint64_t, EnemyState> enemies;
 };
 // All-or-nothing: rejects oversized/invalid captures; never drops actors to fit.
 // Returned vectors own their bytes (no borrowed actor/record buffers).

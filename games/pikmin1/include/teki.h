@@ -23,6 +23,9 @@
 
 #if defined(PIKI_PC_PORT)
 f32 pc_hardmode_teki_life(f32 base);
+#if defined(NECTAR_COOP_WORLD)
+f32 pc_coop_encounter_life(f32 base);
+#endif
 #endif
 
 class CollEvent;
@@ -409,7 +412,11 @@ public:
 	f32 getMaxLife()
 	{
 #if defined(PIKI_PC_PORT)
-		return pc_hardmode_teki_life(mTekiParams->getF(TPF_Life));
+#if defined(NECTAR_COOP_WORLD)
+        return pc_coop_encounter_life(pc_hardmode_teki_life(mTekiParams->getF(TPF_Life)));
+#else
+        return pc_hardmode_teki_life(mTekiParams->getF(TPF_Life));
+#endif
 #else
 		return mTekiParams->getF(TPF_Life);
 #endif

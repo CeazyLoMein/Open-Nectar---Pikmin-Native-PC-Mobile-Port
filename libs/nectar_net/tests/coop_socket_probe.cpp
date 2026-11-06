@@ -123,11 +123,13 @@ int main() {
         p.position.x = static_cast<float>(i);
         records.push_back(pikminRecord(NetEntityId{1, EntityKind::Pikmin, 0, i + 10}.pack(), p));
     }
+    EnemyState encounter;encounter.health=encounter.maxHealth=150;
+    records.push_back(enemyRecord(NetEntityId{1,EntityKind::Enemy,0,100}.pack(),encounter));
     std::vector<std::vector<std::uint8_t>> packets;
     if (!require(packActorFrame(100, 1, 1, 1, records, 1000, {}, packets) &&
                  h.publishActors(packets, nowMs()), "complete 60-Pikmin frame sent through real socket")) return 1;
     if (!require(until(pump, [&] { return g.actors().frame == 1; }) &&
-                 g.actors().pikmin.size() == 60 && g.actors().captains.size() == 2,
+                 g.actors().pikmin.size() == 60 && g.actors().captains.size() == 2 && g.actors().enemies.size()==1,
                  "receiver atomically reconstructs both captains and all 60 Pikmin")) return 1;
     // This fixture has no other world systems; real engine must attest ALL systems.
     if (!require(h.confirmWorldLoaded() && g.confirmWorldLoaded() && h.setReady(true) && g.setReady(true),
@@ -137,7 +139,7 @@ int main() {
     bool pictureSent=false;
     if (!require(packActorFrame(100,1,2,2,records,1000,{},packets) &&
                  until([&] { pump(); if(!pictureSent)pictureSent=h.publishActors(packets,nowMs()); },
-                       [&] { return g.actors().frame==2; }) && g.actors().pikmin.size()==60,
+                       [&] { return g.actors().frame==2; }) && g.actors().pikmin.size()==60 && g.actors().enemies.size()==1,
                  "running replaceable multipart picture crosses real encrypted UDP atomically")) return 1;
     AudioCue cue;cue.kind=AudioKind::PlayerPlay;cue.player=1;cue.sound=6;
     std::vector<AudioCue> heard;

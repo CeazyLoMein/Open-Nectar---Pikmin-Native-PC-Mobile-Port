@@ -35,6 +35,7 @@ add_library(nectar_net STATIC
     src/actor_frame.cpp
     src/entity_registry.cpp
     src/pikmin_replication.cpp
+    src/enemy_replication.cpp
     src/onion_authority.cpp
     src/world.cpp
     src/secure_memory.cpp
@@ -102,7 +103,7 @@ if(NECTAR_NET_BUILD_TESTS AND NOT ANDROID)
     endfunction()
 
     foreach(name protocol_test connection_code_test join_gate_test gated_transport_test compatibility_test
-                 decoder_fuzz_test port_mapping_test port_publisher_test async_port_publisher_test room_test input_test clock_test world_scene_test soak_test replication_test onion_authority_test entity_registry_test pikmin_replication_test actor_frame_test coop_session_test coop_connection_test practice_input_test practice_visual_blend_test reliable_queue_delay_test coop_audio_test)
+                 decoder_fuzz_test port_mapping_test port_publisher_test async_port_publisher_test room_test input_test clock_test world_scene_test soak_test replication_test onion_authority_test entity_registry_test pikmin_replication_test enemy_replication_test actor_frame_test coop_session_test coop_connection_test practice_input_test practice_visual_blend_test reliable_queue_delay_test coop_audio_test)
         nectar_net_add_test(${name})
     endforeach()
     add_executable(nectar_net_upnp_client_engine_test tests/upnp_client_engine_test.cpp)

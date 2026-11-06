@@ -33,7 +33,11 @@ bool actors(const std::vector<EntityRecord>& records, std::uint16_t epoch, Actor
             PikminState s;
             if(!decodePikminState(r.data.data(),r.data.size(),s)) return false;
             pending.pikmin.emplace(r.id,s);
-        } else return false; // add other entity schemas explicitly in a later milestone
+        } else if(id.kind==EntityKind::Enemy && r.schema==kEnemySchema) {
+            EnemyState s;
+            if(pending.enemies.size()>=1 || !decodeEnemyState(r.data.data(),r.data.size(),s)) return false;
+            pending.enemies.emplace(r.id,s);
+        } else return false; // other types require explicit engine adapters
     }
     if(!players[0]) return false;
     for(const auto& p:pending.pikmin) {

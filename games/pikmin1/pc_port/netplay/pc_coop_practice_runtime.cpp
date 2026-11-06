@@ -22,6 +22,7 @@
 #include "Navi.h"
 #include "NaviMgr.h"
 #include "PikiMgr.h"
+#include "teki.h"
 #include "NaviState.h"
 #include "MapMgr.h"
 #include "PlayerState.h"
@@ -311,8 +312,29 @@ void pc_coop_practice_loaded(GameCoreSection& core) {
         int count=0;for (auto* a=mgr->mAnimList.mChild;a;a=a->mNext) ++count;
         for (int i=0;i<count;++i) mgr->findAnim(i);
     }
+    if(!tekiMgr || !tekiMgr->getTekiShapeObject(TEKI_Chappy)) { fail("Original encounter assets are missing.");return; }
+    // Corpse carrying and rewards need their own shared-world adapter. This
+    // disposable encounter leaves no corpse or drops, on either device.
+    tekiMgr->getTekiParameters(TEKI_Chappy)->mParameters->setI(TPI_CorpseType,TEKICORPSE_NoCorpse);
+    auto* enemy=tekiMgr->newTeki(TEKI_Chappy);
+    if(!enemy){fail("The practice encounter could not be created.");return;}
+    Vector3f encounter(0,0,500);encounter.y=core.mMapMgr->getMinY(encounter.x,encounter.z,true);
+    enemy->mPersonality->mPosition=encounter;enemy->mPersonality->mNestPosition=encounter;
+    enemy->mPersonality->mFaceDirection=3.14159265f;
+    enemy->mPersonality->setI(TekiPersonality::INT_PelletMinCount,0);
+    enemy->mPersonality->setI(TekiPersonality::INT_PelletMaxCount,0);
+    enemy->mPersonality->setI(TekiPersonality::INT_NectarMinCount,0);
+    enemy->mPersonality->setI(TekiPersonality::INT_NectarMaxCount,0);
+    enemy->reset();
+    if(role==net::CoopRole::Host)enemy->startAI(0); // guest never starts an enemy strategy
+    auto* animations=enemy->mTekiShape->mAnimMgr;
+    int animationCount=0;for(auto* a=animations->mAnimList.mChild;a;a=a->mNext)++animationCount;
+    for(int i=0;i<animationCount;++i)animations->findAnim(i);
     GameStat::update();
     loaded=true;enterWorld();
+    if(!stopped && role==net::CoopRole::Guest && !pc_coop_world_bind_guest_encounter(enemy)) {
+        fail("The practice encounter display could not be initialized.");return;
+    }
     if (!stopped && !loading->worldLoaded(0,nowMs())) fail("The two phones did not accept the same practice area.");
 }
 bool pc_coop_practice_select_stage() {
@@ -464,3 +486,6 @@ bool pc_coop_practice_hud(int player,int& formation,int& total,int& nextType) {
     }
     return true;
 }
+
+// Two-player encounter tuning: modest durability only, no extra enemies or damage.
+f32 pc_coop_encounter_life(f32 base) { return pc_coop_practice_active() ? base*1.5f : base; }

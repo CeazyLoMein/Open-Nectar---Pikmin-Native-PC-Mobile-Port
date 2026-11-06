@@ -25,6 +25,11 @@ bool pc_coop_world_set_host_running(std::uint64_t sessionId, std::uint32_t scene
 // replica world and local view. No scene boot, spawning, inputs or saving here.
 bool pc_coop_world_begin_guest(std::uint64_t sessionId, std::uint32_t sceneEpoch);
 bool pc_coop_world_guest_active();
+class Teki;
+class Graphics;
+bool pc_coop_world_bind_guest_encounter(Teki* enemy);
+bool pc_coop_world_draw_guest_enemies(Graphics& gfx);
+bool pc_coop_world_draw_guest_enemy_gauges(Graphics& gfx);
 // Apply both captain transforms atomically, between ticks, from the current
 // authenticated session's fully assembled frame. Session ID is trusted context
 // supplied by the adapter (ActorFrame itself intentionally carries no session).
@@ -63,7 +68,7 @@ bool pc_coop_world_guest_pikmin_state(std::uint64_t id, nectar::net::PikminState
 
 // Complete current captain/Pikmin record list for a future keyframe. Failed
 // capture leaves output intact; do NOT transmit old output when false is returned.
-// Does not yet include jobs' targets, enemies, items, Onions or campaign state.
+// Includes only the restricted practice enemy; no jobs' targets, items, Onions or campaign state.
 bool pc_coop_world_capture(std::vector<nectar::net::EntityRecord>& output);
 std::uint64_t pc_coop_world_actor_id(const void* actor, nectar::net::EntityKind kind);
 bool pc_coop_world_set_owner(std::uint64_t pikminId, std::uint8_t owner);

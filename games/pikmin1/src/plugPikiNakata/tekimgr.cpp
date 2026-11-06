@@ -10,6 +10,9 @@
 #include "nlib/System.h"
 #include "sysNew.h"
 #include "teki.h"
+#if defined(NECTAR_COOP_WORLD)
+#include "netplay/pc_coop_world.h"
+#endif
 #include "timers.h"
 
 /**
@@ -231,6 +234,9 @@ void TekiMgr::update()
  */
 void TekiMgr::refresh(Graphics& gfx)
 {
+#if defined(NECTAR_COOP_WORLD)
+    if(pc_coop_world_draw_guest_enemies(gfx))return;
+#endif
 	gsys->mTimer->start("teki draw", true);
 	for (int i = 0; i < mMaxElements; i++) {
 		if (mEntryStatus[i] == 0) {
@@ -323,6 +329,9 @@ PaniSoundTable* TekiMgr::getSoundTable(int tekiType)
  */
 void TekiMgr::refresh2d(Graphics& gfx)
 {
+#if defined(NECTAR_COOP_WORLD)
+    if(pc_coop_world_draw_guest_enemy_gauges(gfx))return;
+#endif
 	Iterator iter(this);
 	CI_LOOP(iter)
 	{

@@ -33,8 +33,8 @@ const char* pc_coop_practice_map_prepare()
     map.routeStep = 150; map.routeMargin = 70;
     map.sunDir[0] = -0.3f; map.sunDir[1] = -1; map.sunDir[2] = -0.2f;
     map.bases[0].x = -180; map.bases[1].x = 180;
-    // No generators, enemies, Onions, ship parts, water or campaign objects.
-    // The first gameplay milestone exercises captains and their own squads.
+    // No generators, Onions, ship parts or campaign progress. One trusted
+    // original enemy is created after managers load by the practice driver.
     nectar::CompiledMap output;
     if (!nectar::compileMap(map, readBase, PC_COOP_PRACTICE_MOD, output, failure)
         || output.mod.empty() || output.ini.empty()) {

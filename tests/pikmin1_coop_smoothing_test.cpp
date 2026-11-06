@@ -75,5 +75,16 @@ int main(){
     check(s.delayMs()<100,"steady recovery releases accumulated buffering");
     s.push(frame(151,300),at+1500);check(s.delayMs()==75,"long outage resets timing evidence");
     s.reset();check(s.delayMs()==75&&!s.sample(0,out),"new scene resets policy and playhead");
+    s.reset();auto ea=frame(1,0),eb=frame(2,0);
+    nectar::net::EnemyState enemy;enemy.health=enemy.maxHealth=150;enemy.animationFrame=10;
+    ea.enemies[40]=enemy;enemy.position.x=100;enemy.animationFrame=20;enemy.health=75;eb.enemies[40]=enemy;
+    s.push(ea,1000);s.push(eb,1100);s.sample(1125,out);
+    check(near(out.enemies.at(40).position.x,50)&&near(out.enemies.at(40).animationFrame,15),"enemy movement and animation use accepted smoothing");
+    check(out.enemies.at(40).health==75,"enemy health stays authoritative while position smooths");
+    auto ec=frame(3,0);s.push(ec,1150);s.sample(1175,out);
+    check(out.enemies.empty(),"defeated enemy never reappears from smoothing history");
+    s.reset();ea=frame(1,0);eb=frame(2,0);enemy.position.x=0;ea.enemies[40]=enemy;enemy.position.x=800;eb.enemies[40]=enemy;
+    s.push(ea,1000);s.push(eb,1100);s.sample(1125,out);
+    check(near(out.enemies.at(40).position.x,800),"enemy teleports snap instead of sliding through arena");
     std::printf("%d guest presentation checks passed\n",checks);
 }

@@ -59,6 +59,17 @@ public:
             ? std::clamp(float(target > left->at ? target-left->at : 0) / float(right->at-left->at),0.0f,1.0f) : 0;
         blend(out.captains, left->frame.captains, right->frame.captains, alpha);
         blend(out.pikmin, left->frame.pikmin, right->frame.pikmin, alpha);
+        for(auto& entry:out.enemies) {
+            auto a=left->frame.enemies.find(entry.first),b=right->frame.enemies.find(entry.first);
+            if(a==left->frame.enemies.end() || b==right->frame.enemies.end())continue;
+            const auto& x=a->second;const auto& y=b->second;auto& v=entry.second;
+            const auto dx=x.position.x-y.position.x,dy=x.position.y-y.position.y,dz=x.position.z-y.position.z;
+            if(x.type!=y.type || x.visible!=y.visible || v.visible!=y.visible || dx*dx+dy*dy+dz*dz>400.0f*400.0f)continue;
+            v.position=mix(x.position,y.position,alpha);v.velocity=mix(x.velocity,y.velocity,alpha);
+            v.faceDirection=x.faceDirection+std::remainder(y.faceDirection-x.faceDirection,6.28318530718f)*alpha;
+            if(v.animation==x.animation && v.animation==y.animation && y.animationFrame>=x.animationFrame)
+                v.animationFrame=mix(x.animationFrame,y.animationFrame,alpha);
+        }
         for(auto& entry:out.captains) {
             const auto a=left->frame.captains.find(entry.first),b=right->frame.captains.find(entry.first);
             if(a==left->frame.captains.end() || b==right->frame.captains.end())continue;

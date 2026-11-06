@@ -1934,6 +1934,7 @@ void GameCoreSection::initStage()
 
 	memStat->start("teki");
 	int oldT = gsys->setHeap(SYSHEAP_Teki);
+	if (pc_coop_practice_active()) tekiMgr->mUsingType[TEKI_Chappy] = true;
 	tekiMgr->startStage();
 	gsys->setHeap(oldT);
 	memStat->end("teki");
